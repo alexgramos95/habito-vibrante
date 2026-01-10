@@ -10,18 +10,15 @@ import {
   updateHabit,
   deleteHabit,
   toggleDailyLog,
-  resetMonth,
-  resetAll,
 } from "@/data/storage";
 import {
   calculateMonthlySummary,
   calculateWeeklySummaries,
   getActiveHabits,
 } from "@/logic/computations";
-import { Header } from "@/components/Layout/Header";
+import { Navigation } from "@/components/Layout/Navigation";
 import { KPICard } from "@/components/Dashboard/KPICard";
 import { WeeklyChart } from "@/components/Dashboard/WeeklyChart";
-import { MonthlyCalendar } from "@/components/Dashboard/MonthlyCalendar";
 import { MonthSelector } from "@/components/Dashboard/MonthSelector";
 import { HabitList } from "@/components/Habits/HabitList";
 import { HabitForm } from "@/components/Habits/HabitForm";
@@ -49,7 +46,6 @@ const Index = () => {
   const [showHabitForm, setShowHabitForm] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
   const [deletingHabitId, setDeletingHabitId] = useState<string | null>(null);
-  const [showResetConfirm, setShowResetConfirm] = useState<"month" | "all" | null>(null);
 
   // Persist state changes
   useEffect(() => {
@@ -129,24 +125,9 @@ const Index = () => {
     setDeletingHabitId(null);
   };
 
-  const handleResetMonth = () => {
-    setState((prev) => resetMonth(prev, currentYear, currentMonth));
-    toast({ title: "Mês reiniciado" });
-    setShowResetConfirm(null);
-  };
-
-  const handleResetAll = () => {
-    setState(resetAll());
-    toast({ title: "Tudo reiniciado" });
-    setShowResetConfirm(null);
-  };
-
   return (
-    <div className="min-h-screen bg-background">
-      <Header
-        onResetMonth={() => setShowResetConfirm("month")}
-        onResetAll={() => setShowResetConfirm("all")}
-      />
+    <div className="min-h-screen bg-background pb-20 md:pb-0">
+      <Navigation />
 
       <main className="container py-6 space-y-6">
         {/* KPI Cards */}
@@ -188,19 +169,14 @@ const Index = () => {
 
         {/* Main Content Grid */}
         <div className="grid gap-6 lg:grid-cols-3">
-          {/* Left Column: Chart + Calendar */}
+          {/* Left Column: Chart */}
           <div className="space-y-6 lg:col-span-2">
             {/* Weekly Chart */}
             <div className="rounded-xl border border-border/50 bg-card p-5">
-              <h2 className="mb-4 text-lg font-semibold">
-                {translations.dashboard.weeklyEvolution}
-              </h2>
-              <WeeklyChart data={weeklySummaries} />
-            </div>
-
-            {/* Monthly Calendar */}
-            <div className="rounded-xl border border-border/50 bg-card p-5">
-              <div className="mb-4">
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-lg font-semibold">
+                  {translations.dashboard.weeklyEvolution}
+                </h2>
                 <MonthSelector
                   year={currentYear}
                   month={currentMonth}
@@ -209,12 +185,7 @@ const Index = () => {
                   onToday={handleToday}
                 />
               </div>
-              <MonthlyCalendar
-                state={state}
-                year={currentYear}
-                month={currentMonth}
-                onDayClick={handleDayClick}
-              />
+              <WeeklyChart data={weeklySummaries} />
             </div>
           </div>
 
@@ -273,40 +244,6 @@ const Index = () => {
             <AlertDialogCancel>{translations.habits.cancel}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteHabit}>
               {translations.habits.delete}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Reset Confirmation */}
-      <AlertDialog
-        open={!!showResetConfirm}
-        onOpenChange={() => setShowResetConfirm(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {showResetConfirm === "month"
-                ? translations.actions.resetMonth
-                : translations.actions.resetAll}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {showResetConfirm === "month"
-                ? "Todos os registos deste mês serão eliminados."
-                : "Todos os hábitos e registos serão eliminados."}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{translations.habits.cancel}</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={
-                showResetConfirm === "month"
-                  ? handleResetMonth
-                  : handleResetAll
-              }
-              className="bg-destructive hover:bg-destructive/90"
-            >
-              {translations.actions.reset}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
