@@ -1,18 +1,15 @@
-import { AppState, MonthlySummary, WeeklySummary } from "@/data/types";
+import { AppState, MonthlySummary, WeeklySummary, UserSavingsSummary, ACHIEVEMENTS } from "@/data/types";
 import {
   startOfMonth,
   endOfMonth,
   eachDayOfInterval,
   format,
-  getWeek,
-  startOfWeek,
   isAfter,
-  isBefore,
   isSameDay,
   parseISO,
   differenceInDays,
-  addDays,
   subDays,
+  getDaysInMonth as dateFnsGetDaysInMonth,
 } from "date-fns";
 
 const formatDate = (date: Date): string => format(date, "yyyy-MM-dd");
@@ -32,7 +29,6 @@ export const getWeeksInMonth = (year: number, month: number): { weekNumber: numb
   const weeks: Map<number, Date[]> = new Map();
   
   let weekCounter = 1;
-  let currentWeekStart: Date | null = null;
   
   days.forEach((day, index) => {
     const dayOfWeek = day.getDay();
@@ -41,13 +37,11 @@ export const getWeeksInMonth = (year: number, month: number): { weekNumber: numb
     
     if (isFirstDay || isMonday) {
       if (isFirstDay && !isMonday) {
-        // First week of month (partial)
         weeks.set(weekCounter, [day]);
       } else if (isMonday) {
         weekCounter = weeks.size + 1;
         weeks.set(weekCounter, [day]);
       }
-      currentWeekStart = day;
     } else {
       const currentWeek = weeks.get(weekCounter);
       if (currentWeek) {
@@ -62,30 +56,10 @@ export const getWeeksInMonth = (year: number, month: number): { weekNumber: numb
   }));
 };
 
-export const getCompletedDaysInRange = (
-  state: AppState,
-  startDate: Date,
-  endDate: Date
-): number => {
-  const activeHabits = getActiveHabits(state);
-  if (activeHabits.length === 0) return 0;
-  
-  const days = eachDayOfInterval({ start: startDate, end: endDate });
-  let completedDays = 0;
-  
-  days.forEach((day) => {
-    const dateStr = formatDate(day);
-    const allHabitsDone = activeHabits.every((habit) =>
-      state.dailyLogs.some(
-        (log) => log.habitId === habit.id && log.date === dateStr && log.done
-      )
-    );
-    if (allHabitsDone) {
-      completedDays++;
-    }
-  });
-  
-  return completedDays;
+// Check if at least one habit was completed on a given date
+export const hasAnyHabitDone = (state: AppState, date: Date): boolean => {
+  const dateStr = formatDate(date);
+  return state.dailyLogs.some((log) => log.date === dateStr && log.done);
 };
 
 export const getCompletedHabitsOnDate = (
@@ -128,19 +102,19 @@ export const isDayPartial = (state: AppState, date: Date): boolean => {
   return completedCount > 0 && completedCount < activeHabits.length;
 };
 
+// Calculate streak based on at least 1 habit done per day
 export const calculateCurrentStreak = (state: AppState): number => {
-  const activeHabits = getActiveHabits(state);
-  if (activeHabits.length === 0) return 0;
+  if (state.dailyLogs.length === 0) return 0;
   
   let streak = 0;
   let currentDate = new Date();
   
-  // Check if today is complete, if not start from yesterday
-  if (!isDayComplete(state, currentDate)) {
+  // Check if today has any habit done, if not start from yesterday
+  if (!hasAnyHabitDone(state, currentDate)) {
     currentDate = subDays(currentDate, 1);
   }
   
-  while (isDayComplete(state, currentDate)) {
+  while (hasAnyHabitDone(state, currentDate)) {
     streak++;
     currentDate = subDays(currentDate, 1);
   }
@@ -149,11 +123,15 @@ export const calculateCurrentStreak = (state: AppState): number => {
 };
 
 export const calculateBestStreak = (state: AppState): number => {
-  const activeHabits = getActiveHabits(state);
-  if (activeHabits.length === 0) return 0;
+  if (state.dailyLogs.length === 0) return 0;
   
-  // Get all unique dates from logs
-  const allDates = [...new Set(state.dailyLogs.map((l) => l.date))].sort();
+  // Get all unique dates from logs where done=true
+  const allDates = [...new Set(
+    state.dailyLogs
+      .filter((l) => l.done)
+      .map((l) => l.date)
+  )].sort();
+  
   if (allDates.length === 0) return 0;
   
   let bestStreak = 0;
@@ -163,23 +141,19 @@ export const calculateBestStreak = (state: AppState): number => {
   allDates.forEach((dateStr) => {
     const date = parseISO(dateStr);
     
-    if (isDayComplete(state, date)) {
-      if (previousDate && differenceInDays(date, previousDate) === 1) {
-        currentStreak++;
-      } else {
-        currentStreak = 1;
-      }
-      bestStreak = Math.max(bestStreak, currentStreak);
-      previousDate = date;
+    if (previousDate && differenceInDays(date, previousDate) === 1) {
+      currentStreak++;
     } else {
-      currentStreak = 0;
-      previousDate = null;
+      currentStreak = 1;
     }
+    bestStreak = Math.max(bestStreak, currentStreak);
+    previousDate = date;
   });
   
   return bestStreak;
 };
 
+// Calculate weekly summaries - count total habits completed per week
 export const calculateWeeklySummaries = (
   state: AppState,
   year: number,
@@ -192,16 +166,22 @@ export const calculateWeeklySummaries = (
     let totalDone = 0;
     
     days.forEach((day) => {
-      if (isDayComplete(state, day)) {
-        totalDone++;
-      }
+      const dateStr = formatDate(day);
+      // Count total habits completed for each day in the week
+      activeHabits.forEach((habit) => {
+        if (state.dailyLogs.some((log) => log.habitId === habit.id && log.date === dateStr && log.done)) {
+          totalDone++;
+        }
+      });
     });
+    
+    const totalPossible = days.length * activeHabits.length;
     
     return {
       weekNumber: weekNumber as 1 | 2 | 3 | 4 | 5,
       weekLabel: `S${weekNumber}`,
       totalDone,
-      totalPossible: days.length,
+      totalPossible: Math.max(totalPossible, 1),
     };
   });
 };
@@ -215,19 +195,26 @@ export const calculateMonthlySummary = (
   const activeHabits = getActiveHabits(state);
   const today = new Date();
   
-  // Only count days up to today
+  // Only count days up to today for current month
   const relevantDays = days.filter(
     (day) => !isAfter(day, today) || isSameDay(day, today)
   );
   
+  // Count total habits completed in the month
   let totalDone = 0;
-  relevantDays.forEach((day) => {
-    if (isDayComplete(state, day)) {
-      totalDone++;
+  const monthStr = `${year}-${String(month + 1).padStart(2, "0")}`;
+  
+  state.dailyLogs.forEach((log) => {
+    if (log.done && log.date.startsWith(monthStr)) {
+      // Only count if the habit is currently active
+      if (activeHabits.some((h) => h.id === log.habitId)) {
+        totalDone++;
+      }
     }
   });
   
-  const totalPossible = relevantDays.length;
+  // Calculate total possible = days * active habits
+  const totalPossible = relevantDays.length * activeHabits.length;
   const progressoMensal = totalPossible > 0 ? (totalDone / totalPossible) * 100 : 0;
   
   return {
@@ -241,15 +228,146 @@ export const calculateMonthlySummary = (
   };
 };
 
-export const getMotivationalMessage = (summary: MonthlySummary): string => {
-  if (summary.streakAtual >= 7) {
-    return "🔥 Excelente! Continua assim!";
+// Dynamic motivational messages
+export const getMotivationalMessage = (
+  summary: MonthlySummary,
+  hasHabits: boolean
+): string => {
+  // No habits scenario
+  if (!hasHabits || summary.habitosAtivos === 0) {
+    return "Começa hoje. Pequenos passos criam grandes mudanças.";
   }
-  if (summary.progressoMensal >= 80) {
-    return "🏆 Progresso incrível!";
+  
+  // No streak yet
+  if (summary.streakAtual === 0) {
+    return "🚀 Começa hoje. Pequenos passos criam grandes mudanças.";
   }
-  if (summary.progressoMensal >= 50) {
-    return "💪 Bom progresso!";
+  
+  // Progress-based messages
+  if (summary.progressoMensal > 70) {
+    return `🌟 Excelente! Já concluíste ${Math.round(summary.progressoMensal)}% deste mês.`;
   }
+  
+  // Streak-based messages
+  if (summary.streakAtual === summary.melhorStreak && summary.streakAtual > 0) {
+    return "🔥 Estás a igualar o teu melhor momento. Continua!";
+  }
+  
+  if (summary.streakAtual > 0 && summary.streakAtual < summary.melhorStreak) {
+    const daysToRecord = summary.melhorStreak - summary.streakAtual;
+    return `💪 Estás a ${daysToRecord} dia${daysToRecord > 1 ? 's' : ''} de igualar o teu recorde.`;
+  }
+  
+  if (summary.progressoMensal >= 30 && summary.progressoMensal <= 70) {
+    return "👍 Bom ritmo. Mantém a consistência e vais mais longe.";
+  }
+  
+  if (summary.progressoMensal < 30) {
+    return "🌱 Começos são sempre os mais difíceis. Um hábito de cada vez.";
+  }
+  
   return "🚀 Continua a construir o teu ritmo!";
+};
+
+// Check and award achievements
+export const checkAchievements = (state: AppState): string[] => {
+  const newAchievements: string[] = [];
+  const currentAchievements = state.gamification.conquistas;
+  const streakAtual = calculateCurrentStreak(state);
+  const bestStreak = calculateBestStreak(state);
+  
+  // 7-day streak achievement
+  if (bestStreak >= 7 && !currentAchievements.includes("streak_7")) {
+    newAchievements.push("streak_7");
+  }
+  
+  // 14-day streak achievement
+  if (bestStreak >= 14 && !currentAchievements.includes("streak_14")) {
+    newAchievements.push("streak_14");
+  }
+  
+  // 30-day streak achievement
+  if (bestStreak >= 30 && !currentAchievements.includes("streak_30")) {
+    newAchievements.push("streak_30");
+  }
+  
+  // Check for "mes_30" - 30 unique days with at least 1 habit done in current month
+  const today = new Date();
+  const currentMonth = today.getMonth();
+  const currentYear = today.getFullYear();
+  const monthStr = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}`;
+  
+  const uniqueDaysInMonth = new Set(
+    state.dailyLogs
+      .filter((l) => l.done && l.date.startsWith(monthStr))
+      .map((l) => l.date)
+  );
+  
+  if (uniqueDaysInMonth.size >= 30 && !currentAchievements.includes("mes_30")) {
+    newAchievements.push("mes_30");
+  }
+  
+  // Check for "tres_habitos_ativos" - 3+ active habits with at least 1 log each in the month
+  const activeHabits = getActiveHabits(state);
+  if (activeHabits.length >= 3 && !currentAchievements.includes("tres_habitos_ativos")) {
+    const habitsWithLogsThisMonth = activeHabits.filter((habit) =>
+      state.dailyLogs.some(
+        (log) => log.habitId === habit.id && log.done && log.date.startsWith(monthStr)
+      )
+    );
+    
+    if (habitsWithLogsThisMonth.length >= 3) {
+      newAchievements.push("tres_habitos_ativos");
+    }
+  }
+  
+  return newAchievements;
+};
+
+// Savings computations
+export const calculateSavingsSummary = (
+  state: AppState,
+  year: number,
+  month: number
+): UserSavingsSummary => {
+  const monthStr = `${year}-${String(month + 1).padStart(2, "0")}`;
+  
+  const entriesThisMonth = state.savings.filter((s) => s.date.startsWith(monthStr));
+  
+  const totalPoupadoAllTime = state.savings.reduce((sum, s) => sum + s.amount, 0);
+  const totalPoupadoMesAtual = entriesThisMonth.reduce((sum, s) => sum + s.amount, 0);
+  
+  return {
+    totalPoupadoAllTime,
+    totalPoupadoMesAtual,
+    numeroEntradasMesAtual: entriesThisMonth.length,
+  };
+};
+
+// Shopping list computations
+export const getShoppingItemsForWeek = (
+  state: AppState,
+  weekStartDate: string
+): { items: typeof state.shoppingItems; doneCount: number; totalCount: number } => {
+  const items = state.shoppingItems.filter((s) => s.weekStartDate === weekStartDate);
+  const doneCount = items.filter((s) => s.done).length;
+  
+  return {
+    items,
+    doneCount,
+    totalCount: items.length,
+  };
+};
+
+// Level progress calculation
+export const getLevelProgress = (pontos: number): { current: number; nextLevel: number; progress: number } => {
+  const nivel = Math.floor(pontos / 500) + 1;
+  const pontosNoNivelAtual = pontos % 500;
+  const progress = (pontosNoNivelAtual / 500) * 100;
+  
+  return {
+    current: nivel,
+    nextLevel: nivel + 1,
+    progress,
+  };
 };
