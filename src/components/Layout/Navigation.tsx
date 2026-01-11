@@ -12,7 +12,7 @@ export const Navigation = () => {
   const mainNavItems = [
     { to: "/", label: t.nav.dashboard, icon: LayoutDashboard },
     { to: "/habitos", label: t.nav.habits, icon: ListTodo },
-    { to: "/objetivos", label: t.nav.objectives, icon: Target },
+    { to: "/objetivos", label: t.nav.trackers, icon: Target },
     { to: "/financas", label: t.nav.finances, icon: Wallet },
     { to: "/compras", label: t.nav.shopping, icon: ShoppingCart },
   ];
@@ -25,7 +25,7 @@ export const Navigation = () => {
   const allMobileItems = [
     { to: "/", label: t.nav.dashboard, icon: LayoutDashboard },
     { to: "/habitos", label: t.nav.habits, icon: ListTodo },
-    { to: "/objetivos", label: t.nav.objectives, icon: Target },
+    { to: "/objetivos", label: t.nav.trackers, icon: Target },
     { to: "/financas", label: t.nav.finances, icon: Wallet },
     { to: "/perfil", label: t.nav.profile, icon: User },
   ];

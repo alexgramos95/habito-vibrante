@@ -1,6 +1,6 @@
 import { 
   AppState, MonthlySummary, WeeklySummary, UserSavingsSummary, ACHIEVEMENTS,
-  TobaccoSummary, PurchaseGoal
+  TobaccoSummary, PurchaseGoal, Tracker, TrackerEntry
 } from "@/data/types";
 import {
   startOfMonth,
@@ -589,4 +589,150 @@ export const getMotivationalFinanceMessage = (
   }
   
   return `💪 Cada pequena poupança conta para os teus objetivos!`;
+};
+
+// ============= TRACKER-BASED FINANCIAL COMPUTATIONS =============
+
+export interface TrackerFinancialSummary {
+  trackerId: string;
+  trackerName: string;
+  trackerIcon?: string;
+  monthlySavings: number;
+  accumulatedSavings: number;
+  percentageOfTotal: number;
+  daysActive: number;
+}
+
+export interface FinancialOverview {
+  monthlySavings: number;
+  accumulatedSavings: number;
+  topContributor: TrackerFinancialSummary | null;
+  trackerBreakdown: TrackerFinancialSummary[];
+  monthlyData: { date: string; savings: number; tracker: string }[];
+}
+
+export const calculateTrackerFinancials = (
+  trackers: Tracker[],
+  entries: TrackerEntry[],
+  year: number,
+  month: number
+): FinancialOverview => {
+  const monthStr = `${year}-${String(month + 1).padStart(2, "0")}`;
+  const today = new Date();
+  const daysInMonth = today.getMonth() === month && today.getFullYear() === year
+    ? today.getDate()
+    : new Date(year, month + 1, 0).getDate();
+  
+  const financialTrackers = trackers.filter(t => t.includeInFinances && t.active && t.valuePerUnit > 0);
+  
+  let totalMonthlySavings = 0;
+  let totalAccumulatedSavings = 0;
+  const trackerBreakdown: TrackerFinancialSummary[] = [];
+  const monthlyData: { date: string; savings: number; tracker: string }[] = [];
+  
+  financialTrackers.forEach(tracker => {
+    // Monthly savings calculation
+    const monthEntries = entries.filter(e => 
+      e.trackerId === tracker.id && e.date.startsWith(monthStr)
+    );
+    const monthCount = monthEntries.reduce((sum, e) => sum + e.quantity, 0);
+    const monthlyBaseline = tracker.baseline * daysInMonth;
+    const monthlySavings = tracker.type === 'reduce'
+      ? Math.max(0, (monthlyBaseline - monthCount) * tracker.valuePerUnit)
+      : 0;
+    
+    // Accumulated savings (all time)
+    const allEntries = entries.filter(e => e.trackerId === tracker.id);
+    const firstEntryDate = allEntries.length > 0 
+      ? parseISO(allEntries.sort((a, b) => a.date.localeCompare(b.date))[0].date)
+      : today;
+    const totalDays = Math.max(1, differenceInDays(today, firstEntryDate) + 1);
+    const totalBaseline = tracker.baseline * totalDays;
+    const totalCount = allEntries.reduce((sum, e) => sum + e.quantity, 0);
+    const accumulatedSavings = tracker.type === 'reduce'
+      ? Math.max(0, (totalBaseline - totalCount) * tracker.valuePerUnit)
+      : 0;
+    
+    totalMonthlySavings += monthlySavings;
+    totalAccumulatedSavings += accumulatedSavings;
+    
+    trackerBreakdown.push({
+      trackerId: tracker.id,
+      trackerName: tracker.name,
+      trackerIcon: tracker.icon,
+      monthlySavings,
+      accumulatedSavings,
+      percentageOfTotal: 0, // Will be calculated after totals
+      daysActive: totalDays,
+    });
+    
+    // Daily data for chart
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateStr = `${monthStr}-${String(day).padStart(2, "0")}`;
+      if (parseISO(dateStr) > today) continue;
+      
+      const dayEntries = entries.filter(e => e.trackerId === tracker.id && e.date === dateStr);
+      const dayCount = dayEntries.reduce((sum, e) => sum + e.quantity, 0);
+      const daySavings = tracker.type === 'reduce'
+        ? Math.max(0, (tracker.baseline - dayCount) * tracker.valuePerUnit)
+        : 0;
+      
+      monthlyData.push({
+        date: dateStr,
+        savings: daySavings,
+        tracker: tracker.name,
+      });
+    }
+  });
+  
+  // Calculate percentages
+  trackerBreakdown.forEach(t => {
+    t.percentageOfTotal = totalMonthlySavings > 0 
+      ? (t.monthlySavings / totalMonthlySavings) * 100 
+      : 0;
+  });
+  
+  // Sort by monthly savings descending
+  trackerBreakdown.sort((a, b) => b.monthlySavings - a.monthlySavings);
+  
+  return {
+    monthlySavings: totalMonthlySavings,
+    accumulatedSavings: totalAccumulatedSavings,
+    topContributor: trackerBreakdown[0] || null,
+    trackerBreakdown,
+    monthlyData,
+  };
+};
+
+export const getFinancialMotivationalMessage = (
+  overview: FinancialOverview,
+  locale: string
+): string => {
+  if (overview.monthlySavings > 100) {
+    return locale === 'pt-PT' 
+      ? `🎉 Incrível! Já poupaste mais de 100€ este mês!`
+      : `🎉 Incredible! You've saved over 100€ this month!`;
+  }
+  
+  if (overview.monthlySavings > 50) {
+    return locale === 'pt-PT'
+      ? `💰 Excelente progresso! ${overview.monthlySavings.toFixed(0)}€ poupados este mês.`
+      : `💰 Excellent progress! ${overview.monthlySavings.toFixed(0)}€ saved this month.`;
+  }
+  
+  if (overview.topContributor) {
+    return locale === 'pt-PT'
+      ? `📊 ${overview.topContributor.trackerName} é a tua principal fonte de poupança.`
+      : `📊 ${overview.topContributor.trackerName} is your main savings source.`;
+  }
+  
+  if (overview.trackerBreakdown.length === 0) {
+    return locale === 'pt-PT'
+      ? `💡 Cria trackers com impacto financeiro para ver poupanças aqui.`
+      : `💡 Create trackers with financial impact to see savings here.`;
+  }
+  
+  return locale === 'pt-PT'
+    ? `💪 Cada pequena poupança conta para os teus objetivos!`
+    : `💪 Every small saving counts towards your goals!`;
 };
