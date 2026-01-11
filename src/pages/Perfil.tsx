@@ -1,57 +1,112 @@
-import { useState, useEffect } from "react";
-import { User, Globe, Coins, Sun, Moon, Trophy, Target, Star, TrendingUp } from "lucide-react";
+import { useState } from "react";
+import { format } from "date-fns";
+import { 
+  User, Globe, Coins, Sun, Moon, Trophy, Target, Star, TrendingUp,
+  PenLine, Sparkles, PiggyBank, Bed, ChevronRight
+} from "lucide-react";
+import { Link } from "react-router-dom";
 import { Navigation } from "@/components/Layout/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/i18n/I18nContext";
 import { localeNames, currencyNames, type Locale, type Currency } from "@/i18n";
 import { AppState, ACHIEVEMENTS } from "@/data/types";
-import { loadState } from "@/data/storage";
-import { getLevelProgress, calculateSavingsSummary } from "@/logic/computations";
+import { loadState, getLatestFutureSelf, getReflectionForDate } from "@/data/storage";
+import { getLevelProgress, calculateSavingsSummary, calculateTrackerFinancials } from "@/logic/computations";
 import { cn } from "@/lib/utils";
 
 const Perfil = () => {
   const { t, locale, setLocale, currency, setCurrency, formatCurrency } = useI18n();
   const [state] = useState<AppState>(() => loadState());
-  const [chronotype, setChronotype] = useState<'diurnal' | 'nocturnal'>(() => {
+  const [chronotype, setChronotype] = useState<'early' | 'moderate' | 'late'>(() => {
     try {
-      return (localStorage.getItem('itero-chronotype') as any) || 'diurnal';
+      return (localStorage.getItem('become-chronotype') as any) || 'moderate';
     } catch {
-      return 'diurnal';
+      return 'moderate';
     }
   });
 
   const today = new Date();
+  const todayStr = format(today, "yyyy-MM-dd");
   const levelProgress = getLevelProgress(state.gamification.pontos);
   const savingsSummary = calculateSavingsSummary(state, today.getFullYear(), today.getMonth());
+  const trackerFinancials = calculateTrackerFinancials(
+    state.trackers || [], 
+    state.trackerEntries || [],
+    today.getFullYear(),
+    today.getMonth()
+  );
+  
+  // Get latest reflection and future self
+  const todayReflection = getReflectionForDate(state, todayStr);
+  const latestFutureSelf = getLatestFutureSelf(state);
+  
+  // Investment goals summary
+  const activeInvestments = (state.investmentGoals || []).filter(g => !g.completed);
+  const completedInvestments = (state.investmentGoals || []).filter(g => g.completed);
+  const totalInvested = activeInvestments.reduce((sum, g) => sum + g.currentAmount, 0);
 
   const unlockedAchievements = ACHIEVEMENTS.filter(a => 
     state.gamification.conquistas.includes(a.id)
   );
 
+  const lockedAchievements = ACHIEVEMENTS.filter(a => 
+    !state.gamification.conquistas.includes(a.id)
+  );
+
   const completedGoals = state.purchaseGoals.filter(g => g.completed);
 
-  const handleChronotypeChange = (value: 'diurnal' | 'nocturnal') => {
+  const handleChronotypeChange = (value: 'early' | 'moderate' | 'late') => {
     setChronotype(value);
-    localStorage.setItem('itero-chronotype', value);
+    localStorage.setItem('become-chronotype', value);
   };
+
+  const chronotypeLabels = {
+    early: { icon: Sun, label: t.profile.earlyBird, time: "05:00 - 21:00" },
+    moderate: { icon: Sun, label: t.profile.moderate, time: "07:00 - 23:00" },
+    late: { icon: Moon, label: t.profile.nightOwl, time: "10:00 - 02:00" },
+  };
+
+  const currentChronotype = chronotypeLabels[chronotype];
+  const ChronoIcon = currentChronotype.icon;
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
       <Navigation />
 
       <main className="container py-6 space-y-6">
-        {/* Header */}
+        {/* Header with Avatar */}
         <div className="flex items-center gap-4">
-          <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center text-2xl font-bold text-primary-foreground">
+          <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center text-2xl font-bold text-primary-foreground shadow-lg">
             {t.app.name.charAt(0)}
           </div>
-          <div>
+          <div className="flex-1">
             <h1 className="text-2xl font-semibold">{t.profile.title}</h1>
             <p className="text-sm text-muted-foreground">{t.app.tagline}</p>
           </div>
+          <div className="text-right">
+            <p className="text-2xl font-bold text-primary">{t.kpis.level} {levelProgress.current}</p>
+            <p className="text-xs text-muted-foreground">{levelProgress.pointsToNext} {t.profile.toNextLevel}</p>
+          </div>
         </div>
+
+        {/* Level Progress */}
+        <Card className="glass border-border/30">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium">{t.profile.levelProgress}</span>
+              <span className="text-sm text-muted-foreground">{state.gamification.pontos} {t.profile.totalPoints.toLowerCase()}</span>
+            </div>
+            <Progress value={levelProgress.progress} className="h-2" />
+            <div className="flex justify-between mt-1 text-xs text-muted-foreground">
+              <span>{t.kpis.level} {levelProgress.current}</span>
+              <span>{t.kpis.level} {levelProgress.current + 1}</span>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Stats Overview */}
         <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
@@ -65,21 +120,21 @@ const Perfil = () => {
           <Card className="glass border-border/30">
             <CardContent className="p-4 text-center">
               <TrendingUp className="h-6 w-6 text-primary mx-auto mb-2" />
-              <p className="text-2xl font-bold">{levelProgress.current}</p>
-              <p className="text-xs text-muted-foreground">{t.profile.currentLevel}</p>
+              <p className="text-2xl font-bold">{state.gamification.currentStreak || 0}</p>
+              <p className="text-xs text-muted-foreground">{t.kpis.currentStreak}</p>
             </CardContent>
           </Card>
           <Card className="glass border-border/30">
             <CardContent className="p-4 text-center">
               <Target className="h-6 w-6 text-success mx-auto mb-2" />
-              <p className="text-2xl font-bold">{state.habits.length}</p>
+              <p className="text-2xl font-bold">{state.habits.length + (state.trackers?.length || 0)}</p>
               <p className="text-xs text-muted-foreground">{t.profile.totalHabits}</p>
             </CardContent>
           </Card>
           <Card className="glass border-border/30">
             <CardContent className="p-4 text-center">
               <Trophy className="h-6 w-6 text-accent mx-auto mb-2" />
-              <p className="text-2xl font-bold">{formatCurrency(savingsSummary.totalPoupadoAllTime)}</p>
+              <p className="text-2xl font-bold">{formatCurrency(trackerFinancials.accumulatedSavings)}</p>
               <p className="text-xs text-muted-foreground">{t.profile.totalSavings}</p>
             </CardContent>
           </Card>
@@ -128,24 +183,29 @@ const Perfil = () => {
               {/* Chronotype */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">{t.profile.chronotype}</label>
-                <div className="flex gap-2">
-                  <Button
-                    variant={chronotype === 'diurnal' ? "default" : "outline"}
-                    className="flex-1 gap-2"
-                    onClick={() => handleChronotypeChange('diurnal')}
-                  >
-                    <Sun className="h-4 w-4" />
-                    {t.profile.diurnal}
-                  </Button>
-                  <Button
-                    variant={chronotype === 'nocturnal' ? "default" : "outline"}
-                    className="flex-1 gap-2"
-                    onClick={() => handleChronotypeChange('nocturnal')}
-                  >
-                    <Moon className="h-4 w-4" />
-                    {t.profile.nocturnal}
-                  </Button>
+                <div className="grid grid-cols-3 gap-2">
+                  {(['early', 'moderate', 'late'] as const).map((type) => {
+                    const typeInfo = chronotypeLabels[type];
+                    const TypeIcon = typeInfo.icon;
+                    return (
+                      <Button
+                        key={type}
+                        variant={chronotype === type ? "default" : "outline"}
+                        className={cn(
+                          "flex-col h-auto py-3 gap-1",
+                          chronotype === type && "ring-2 ring-primary"
+                        )}
+                        onClick={() => handleChronotypeChange(type)}
+                      >
+                        <TypeIcon className="h-4 w-4" />
+                        <span className="text-xs">{typeInfo.label}</span>
+                      </Button>
+                    );
+                  })}
                 </div>
+                <p className="text-xs text-muted-foreground text-center mt-2">
+                  {currentChronotype.time}
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -155,27 +215,27 @@ const Perfil = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Trophy className="h-5 w-5 text-warning" />
-                {t.profile.achievements} ({unlockedAchievements.length})
+                {t.profile.achievements} ({unlockedAchievements.length}/{ACHIEVEMENTS.length})
               </CardTitle>
             </CardHeader>
             <CardContent>
               {unlockedAchievements.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-8">
+                <p className="text-sm text-muted-foreground text-center py-4">
                   {t.progress.noAchievements}
                 </p>
               ) : (
-                <div className="grid gap-2">
+                <div className="grid gap-2 max-h-48 overflow-y-auto">
                   {unlockedAchievements.map(achievement => (
                     <div
                       key={achievement.id}
-                      className="flex items-center gap-3 p-3 rounded-xl bg-primary/5 border border-primary/20"
+                      className="flex items-center gap-3 p-2 rounded-lg bg-primary/5 border border-primary/20"
                     >
-                      <span className="text-2xl">{achievement.icon}</span>
-                      <div>
-                        <p className="font-medium text-primary">
+                      <span className="text-xl">{achievement.icon}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm text-primary truncate">
                           {t.achievements[achievement.id]?.name || achievement.nome}
                         </p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-muted-foreground truncate">
                           {t.achievements[achievement.id]?.description || achievement.descricao}
                         </p>
                       </div>
@@ -183,6 +243,109 @@ const Perfil = () => {
                   ))}
                 </div>
               )}
+              {lockedAchievements.length > 0 && (
+                <div className="mt-3 pt-3 border-t border-border/30">
+                  <p className="text-xs text-muted-foreground mb-2">{t.profile.nextAchievements}</p>
+                  <div className="flex flex-wrap gap-1">
+                    {lockedAchievements.slice(0, 4).map(a => (
+                      <Badge key={a.id} variant="outline" className="text-xs opacity-50">
+                        {a.icon}
+                      </Badge>
+                    ))}
+                    {lockedAchievements.length > 4 && (
+                      <Badge variant="outline" className="text-xs opacity-50">
+                        +{lockedAchievements.length - 4}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Module Summaries */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Reflection Summary */}
+          <Card className="glass border-border/30 group hover:glow-subtle transition-all">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm font-medium">
+                <div className="p-1.5 rounded-lg bg-accent/10">
+                  <PenLine className="h-4 w-4 text-accent" />
+                </div>
+                {t.reflection.title}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {todayReflection ? (
+                <div className="space-y-2">
+                  <p className="text-sm line-clamp-2 text-muted-foreground">{todayReflection.text}</p>
+                  <Badge variant="outline" className="text-xs">
+                    {todayReflection.mood === 'positive' ? '😊' : todayReflection.mood === 'challenging' ? '💪' : '😐'}
+                  </Badge>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">{t.reflection.noReflectionToday}</p>
+              )}
+              <p className="text-xs text-muted-foreground mt-2">
+                {state.reflections?.length || 0} {t.reflection.totalReflections}
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Future Self Summary */}
+          <Card className="glass border-border/30 group hover:glow-subtle transition-all">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm font-medium">
+                <div className="p-1.5 rounded-lg bg-primary/10">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                </div>
+                {t.futureSelf.title}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {latestFutureSelf ? (
+                <div className="space-y-2">
+                  <p className="text-sm line-clamp-2 text-muted-foreground">{latestFutureSelf.narrative}</p>
+                  <div className="flex flex-wrap gap-1">
+                    {latestFutureSelf.themes.slice(0, 3).map((theme, i) => (
+                      <Badge key={i} variant="secondary" className="text-xs">{theme}</Badge>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">{t.futureSelf.noEntry}</p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Investment Goals Summary */}
+          <Card className="glass border-border/30 group hover:glow-subtle transition-all">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm font-medium">
+                <div className="p-1.5 rounded-lg bg-success/10">
+                  <PiggyBank className="h-4 w-4 text-success" />
+                </div>
+                {t.investments.title}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">{t.investments.activeGoals}</span>
+                  <span className="font-medium">{activeInvestments.length}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">{t.investments.totalInvested}</span>
+                  <span className="font-medium text-success">{formatCurrency(totalInvested)}</span>
+                </div>
+                {completedInvestments.length > 0 && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">{t.investments.completedGoals}</span>
+                    <span className="font-medium">{completedInvestments.length}</span>
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
         </div>

@@ -364,15 +364,17 @@ export const getShoppingItemsForWeek = (
 };
 
 // Level progress calculation
-export const getLevelProgress = (pontos: number): { current: number; nextLevel: number; progress: number } => {
+export const getLevelProgress = (pontos: number): { current: number; nextLevel: number; progress: number; pointsToNext: number } => {
   const nivel = Math.floor(pontos / 500) + 1;
   const pontosNoNivelAtual = pontos % 500;
   const progress = (pontosNoNivelAtual / 500) * 100;
+  const pointsToNext = 500 - pontosNoNivelAtual;
   
   return {
     current: nivel,
     nextLevel: nivel + 1,
     progress,
+    pointsToNext,
   };
 };
 
