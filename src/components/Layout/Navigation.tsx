@@ -1,18 +1,21 @@
 import { NavLink } from "react-router-dom";
 import { LayoutDashboard, ListTodo, Calendar, Trophy, Settings, ShoppingCart, Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const navItems = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/habitos", label: "Hábitos", icon: ListTodo },
-  { to: "/calendario", label: "Calendário", icon: Calendar },
-  { to: "/financas", label: "Finanças", icon: Wallet },
-  { to: "/compras", label: "Compras", icon: ShoppingCart },
-  { to: "/progresso", label: "Progresso", icon: Trophy },
-  { to: "/definicoes", label: "Definições", icon: Settings },
-];
+import { useI18n } from "@/i18n/I18nContext";
 
 export const Navigation = () => {
+  const { t } = useI18n();
+
+  const navItems = [
+    { to: "/", label: t.nav.dashboard, icon: LayoutDashboard },
+    { to: "/habitos", label: t.nav.habits, icon: ListTodo },
+    { to: "/calendario", label: t.nav.calendar, icon: Calendar },
+    { to: "/financas", label: t.nav.finances, icon: Wallet },
+    { to: "/compras", label: t.nav.shopping, icon: ShoppingCart },
+    { to: "/progresso", label: t.nav.progress, icon: Trophy },
+    { to: "/definicoes", label: t.nav.settings, icon: Settings },
+  ];
+
   return (
     <nav className="sticky top-0 z-50 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center justify-between">
@@ -20,7 +23,7 @@ export const Navigation = () => {
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <ListTodo className="h-4 w-4" />
           </div>
-          <span className="text-lg font-semibold tracking-tight">Habit Tracker</span>
+          <span className="text-lg font-semibold tracking-tight">{t.app.title}</span>
         </div>
         
         {/* Desktop Navigation */}
