@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { format, isToday, isFuture } from "date-fns";
-import { Flame, Trophy, TrendingUp, Target } from "lucide-react";
+import { Flame, Trophy, TrendingUp, Target, PiggyBank, ShoppingCart } from "lucide-react";
+import { Link } from "react-router-dom";
 import { translations } from "@/i18n/translations.pt";
 import { AppState, Habit } from "@/data/types";
 import {
@@ -10,11 +11,16 @@ import {
   updateHabit,
   deleteHabit,
   toggleDailyLog,
+  addAchievement,
+  getWeekStartDate,
 } from "@/data/storage";
 import {
   calculateMonthlySummary,
   calculateWeeklySummaries,
   getActiveHabits,
+  checkAchievements,
+  calculateSavingsSummary,
+  getShoppingItemsForWeek,
 } from "@/logic/computations";
 import { Navigation } from "@/components/Layout/Navigation";
 import { KPICard } from "@/components/Dashboard/KPICard";
@@ -23,6 +29,8 @@ import { MonthSelector } from "@/components/Dashboard/MonthSelector";
 import { HabitList } from "@/components/Habits/HabitList";
 import { HabitForm } from "@/components/Habits/HabitForm";
 import { MotivationalBanner } from "@/components/Feedback/MotivationalBanner";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -52,9 +60,26 @@ const Index = () => {
     saveState(state);
   }, [state]);
 
+  // Check achievements after state changes
+  useEffect(() => {
+    const newAchievements = checkAchievements(state);
+    if (newAchievements.length > 0) {
+      newAchievements.forEach((achievementId) => {
+        setState((prev) => addAchievement(prev, achievementId));
+        toast({
+          title: "🏆 Nova conquista!",
+          description: `Desbloqueaste uma nova conquista!`,
+        });
+      });
+    }
+  }, [state.dailyLogs]);
+
   // Computed values
   const monthlySummary = calculateMonthlySummary(state, currentYear, currentMonth);
   const weeklySummaries = calculateWeeklySummaries(state, currentYear, currentMonth);
+  const savingsSummary = calculateSavingsSummary(state, currentYear, currentMonth);
+  const weekStartDate = getWeekStartDate(new Date());
+  const shoppingData = getShoppingItemsForWeek(state, weekStartDate);
 
   // Handlers
   const handlePreviousMonth = () => {
@@ -90,8 +115,16 @@ const Index = () => {
 
   const handleToggleHabit = useCallback((habitId: string) => {
     const dateStr = format(selectedDate, "yyyy-MM-dd");
-    setState((prev) => toggleDailyLog(prev, habitId, dateStr));
-  }, [selectedDate]);
+    const result = toggleDailyLog(state, habitId, dateStr);
+    setState(result.newState);
+    
+    if (result.wasCompleted) {
+      toast({
+        title: "Bom trabalho! +10 pontos",
+        description: `Dia concluído para ${result.habitName}.`,
+      });
+    }
+  }, [selectedDate, state, toast]);
 
   const handleSaveHabit = (data: Omit<Habit, "id" | "createdAt">) => {
     if (editingHabit) {
@@ -129,7 +162,7 @@ const Index = () => {
     <div className="min-h-screen bg-background pb-20 md:pb-0">
       <Navigation />
 
-      <main className="container py-6 space-y-6">
+      <main className="container py-8 space-y-8">
         {/* KPI Cards */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <KPICard
@@ -163,20 +196,18 @@ const Index = () => {
         </div>
 
         {/* Motivational Banner */}
-        {state.habits.length > 0 && (
-          <MotivationalBanner summary={monthlySummary} />
-        )}
+        <MotivationalBanner summary={monthlySummary} hasHabits={state.habits.length > 0} />
 
         {/* Main Content Grid */}
         <div className="grid gap-6 lg:grid-cols-3">
-          {/* Left Column: Chart */}
+          {/* Left Column: Chart + Mini Cards */}
           <div className="space-y-6 lg:col-span-2">
             {/* Weekly Chart */}
-            <div className="rounded-xl border border-border/50 bg-card p-5">
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-lg font-semibold">
+            <Card className="border-border/50 shadow-lg">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-lg font-semibold">
                   {translations.dashboard.weeklyEvolution}
-                </h2>
+                </CardTitle>
                 <MonthSelector
                   year={currentYear}
                   month={currentMonth}
@@ -184,35 +215,91 @@ const Index = () => {
                   onNext={handleNextMonth}
                   onToday={handleToday}
                 />
-              </div>
-              <WeeklyChart data={weeklySummaries} />
+              </CardHeader>
+              <CardContent>
+                <WeeklyChart data={weeklySummaries} />
+              </CardContent>
+            </Card>
+
+            {/* Mini Cards Row */}
+            <div className="grid gap-4 sm:grid-cols-2">
+              {/* Savings Mini Card */}
+              <Card className="border-border/50 shadow-lg hover:shadow-xl transition-shadow">
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <PiggyBank className="h-5 w-5 text-success" />
+                    Mealheiro
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div>
+                    <p className="text-2xl font-bold text-success">
+                      {savingsSummary.totalPoupadoMesAtual.toFixed(2)} €
+                    </p>
+                    <p className="text-xs text-muted-foreground">este mês</p>
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Total: <span className="font-medium text-foreground">{savingsSummary.totalPoupadoAllTime.toFixed(2)} €</span>
+                  </div>
+                  <Link to="/progresso">
+                    <Button variant="ghost" size="sm" className="w-full mt-2">
+                      Ver detalhes
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+
+              {/* Shopping List Mini Card */}
+              <Card className="border-border/50 shadow-lg hover:shadow-xl transition-shadow">
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <ShoppingCart className="h-5 w-5 text-primary" />
+                    Lista de Compras
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div>
+                    <p className="text-2xl font-bold text-primary">
+                      {shoppingData.doneCount}/{shoppingData.totalCount}
+                    </p>
+                    <p className="text-xs text-muted-foreground">itens esta semana</p>
+                  </div>
+                  <Link to="/compras">
+                    <Button variant="ghost" size="sm" className="w-full mt-2">
+                      Ver lista
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
             </div>
           </div>
 
           {/* Right Column: Habits */}
-          <div className="rounded-xl border border-border/50 bg-card p-5">
-            <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
-              <span>
+          <Card className="border-border/50 shadow-lg">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm text-muted-foreground">
                 {isToday(selectedDate)
                   ? "Hoje"
                   : format(selectedDate, "d 'de' MMMM")}
-              </span>
-            </div>
-            <HabitList
-              state={state}
-              selectedDate={selectedDate}
-              onToggleHabit={handleToggleHabit}
-              onEditHabit={(habit) => {
-                setEditingHabit(habit);
-                setShowHabitForm(true);
-              }}
-              onDeleteHabit={(id) => setDeletingHabitId(id)}
-              onAddHabit={() => {
-                setEditingHabit(null);
-                setShowHabitForm(true);
-              }}
-            />
-          </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <HabitList
+                state={state}
+                selectedDate={selectedDate}
+                onToggleHabit={handleToggleHabit}
+                onEditHabit={(habit) => {
+                  setEditingHabit(habit);
+                  setShowHabitForm(true);
+                }}
+                onDeleteHabit={(id) => setDeletingHabitId(id)}
+                onAddHabit={() => {
+                  setEditingHabit(null);
+                  setShowHabitForm(true);
+                }}
+              />
+            </CardContent>
+          </Card>
         </div>
       </main>
 

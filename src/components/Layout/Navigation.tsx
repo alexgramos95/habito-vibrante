@@ -1,11 +1,12 @@
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, ListTodo, Calendar, Trophy, Settings } from "lucide-react";
+import { LayoutDashboard, ListTodo, Calendar, Trophy, Settings, ShoppingCart } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/habitos", label: "Hábitos", icon: ListTodo },
   { to: "/calendario", label: "Calendário", icon: Calendar },
+  { to: "/compras", label: "Compras", icon: ShoppingCart },
   { to: "/progresso", label: "Progresso", icon: Trophy },
   { to: "/definicoes", label: "Definições", icon: Settings },
 ];

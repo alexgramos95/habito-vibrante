@@ -8,6 +8,7 @@ import Habitos from "./pages/Habitos";
 import Calendario from "./pages/Calendario";
 import Progresso from "./pages/Progresso";
 import Definicoes from "./pages/Definicoes";
+import Compras from "./pages/Compras";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/calendario" element={<Calendario />} />
           <Route path="/progresso" element={<Progresso />} />
           <Route path="/definicoes" element={<Definicoes />} />
+          <Route path="/compras" element={<Compras />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
