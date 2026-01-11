@@ -1,4 +1,8 @@
-import { AppState, Habit, DailyLog, UserGamification, SavingsEntry, ShoppingItem } from "./types";
+import { 
+  AppState, Habit, DailyLog, UserGamification, SavingsEntry, ShoppingItem,
+  TobaccoConfig, CigaretteLog, PurchaseGoal, GoalContribution, PurchaseDetails,
+  DEFAULT_TOBACCO_CONFIG
+} from "./types";
 import { format, startOfWeek, parseISO } from "date-fns";
 import { pt } from "date-fns/locale";
 
@@ -16,6 +20,9 @@ const defaultState: AppState = {
   gamification: defaultGamification,
   savings: [],
   shoppingItems: [],
+  tobaccoConfig: DEFAULT_TOBACCO_CONFIG,
+  cigaretteLogs: [],
+  purchaseGoals: [],
 };
 
 export const loadState = (): AppState => {
@@ -30,6 +37,9 @@ export const loadState = (): AppState => {
       gamification: parsed.gamification || defaultGamification,
       savings: parsed.savings || [],
       shoppingItems: parsed.shoppingItems || [],
+      tobaccoConfig: parsed.tobaccoConfig || DEFAULT_TOBACCO_CONFIG,
+      cigaretteLogs: parsed.cigaretteLogs || [],
+      purchaseGoals: parsed.purchaseGoals || [],
     };
   } catch {
     console.error("Failed to load state from localStorage");
@@ -307,4 +317,130 @@ export const resetMonth = (state: AppState, year: number, month: number): AppSta
 
 export const resetAll = (): AppState => {
   return defaultState;
+};
+
+// ============= TOBACCO OPERATIONS =============
+
+export const updateTobaccoConfig = (
+  state: AppState,
+  config: Partial<TobaccoConfig>
+): AppState => {
+  return {
+    ...state,
+    tobaccoConfig: { ...state.tobaccoConfig, ...config },
+  };
+};
+
+export const addCigaretteLog = (state: AppState): AppState => {
+  const now = new Date();
+  const newLog: CigaretteLog = {
+    id: generateId(),
+    timestamp: now.toISOString(),
+    date: format(now, "yyyy-MM-dd"),
+  };
+  return { ...state, cigaretteLogs: [...state.cigaretteLogs, newLog] };
+};
+
+export const deleteCigaretteLog = (state: AppState, id: string): AppState => {
+  return {
+    ...state,
+    cigaretteLogs: state.cigaretteLogs.filter((l) => l.id !== id),
+  };
+};
+
+export const getCigaretteLogsForDate = (state: AppState, date: string): CigaretteLog[] => {
+  return state.cigaretteLogs
+    .filter((l) => l.date === date)
+    .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+};
+
+// ============= PURCHASE GOALS OPERATIONS =============
+
+export const addPurchaseGoal = (
+  state: AppState,
+  goal: Omit<PurchaseGoal, "id" | "contribuicoes" | "completed">
+): AppState => {
+  const newGoal: PurchaseGoal = {
+    ...goal,
+    id: generateId(),
+    contribuicoes: [],
+    completed: false,
+  };
+  return { ...state, purchaseGoals: [...state.purchaseGoals, newGoal] };
+};
+
+export const updatePurchaseGoal = (
+  state: AppState,
+  id: string,
+  updates: Partial<PurchaseGoal>
+): AppState => {
+  return {
+    ...state,
+    purchaseGoals: state.purchaseGoals.map((g) =>
+      g.id === id ? { ...g, ...updates } : g
+    ),
+  };
+};
+
+export const deletePurchaseGoal = (state: AppState, id: string): AppState => {
+  return {
+    ...state,
+    purchaseGoals: state.purchaseGoals.filter((g) => g.id !== id),
+  };
+};
+
+export const addGoalContribution = (
+  state: AppState,
+  goalId: string,
+  contribution: Omit<GoalContribution, "id" | "goalId">
+): AppState => {
+  const newContribution: GoalContribution = {
+    ...contribution,
+    id: generateId(),
+    goalId,
+  };
+  
+  return {
+    ...state,
+    purchaseGoals: state.purchaseGoals.map((g) =>
+      g.id === goalId
+        ? { ...g, contribuicoes: [...g.contribuicoes, newContribution] }
+        : g
+    ),
+  };
+};
+
+export const completePurchaseGoal = (
+  state: AppState,
+  goalId: string,
+  purchaseDetails: PurchaseDetails
+): AppState => {
+  return {
+    ...state,
+    purchaseGoals: state.purchaseGoals.map((g) =>
+      g.id === goalId
+        ? { ...g, completed: true, purchaseDetails }
+        : g
+    ),
+  };
+};
+
+export const convertGoalToHabit = (
+  state: AppState,
+  goalId: string,
+  habitData: Omit<Habit, "id" | "createdAt">
+): AppState => {
+  const newHabit: Habit = {
+    ...habitData,
+    id: generateId(),
+    createdAt: new Date().toISOString(),
+  };
+  
+  return {
+    ...state,
+    habits: [...state.habits, newHabit],
+    purchaseGoals: state.purchaseGoals.map((g) =>
+      g.id === goalId ? { ...g, convertedToHabitId: newHabit.id } : g
+    ),
+  };
 };
