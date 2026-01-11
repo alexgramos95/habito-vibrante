@@ -166,6 +166,7 @@ const Objetivos = () => {
       valuePerUnit: parseFloat(trackerForm.valuePerUnit) || 0,
       baseline: parseInt(trackerForm.baseline) || 0,
       dailyGoal: trackerForm.dailyGoal ? parseInt(trackerForm.dailyGoal) : undefined,
+      includeInFinances: parseFloat(trackerForm.valuePerUnit) > 0,
       active: true,
     }));
 

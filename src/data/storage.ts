@@ -1,48 +1,68 @@
 import { 
   AppState, Habit, DailyLog, UserGamification, SavingsEntry, ShoppingItem,
   TobaccoConfig, CigaretteLog, PurchaseGoal, GoalContribution, PurchaseDetails,
-  DEFAULT_TOBACCO_CONFIG, Tracker, TrackerEntry
+  DEFAULT_TOBACCO_CONFIG, Tracker, TrackerEntry, DailyReflection, FutureSelfEntry,
+  InvestmentGoal, InvestmentContribution, SleepEntry, Trigger
 } from "./types";
-import { format, startOfWeek, parseISO } from "date-fns";
+import { format, startOfWeek, parseISO, subDays, differenceInDays } from "date-fns";
 import { pt } from "date-fns/locale";
 
-const STORAGE_KEY = "habit-tracker-data";
+const STORAGE_KEY = "become-app-data";
 
 const defaultGamification: UserGamification = {
   pontos: 0,
   nivel: 1,
   conquistas: [],
+  consistencyScore: 0,
+  currentStreak: 0,
+  bestStreak: 0,
 };
 
 const defaultState: AppState = {
   habits: [],
   dailyLogs: [],
+  trackers: [],
+  trackerEntries: [],
+  reflections: [],
+  futureSelf: [],
+  investmentGoals: [],
+  sleepEntries: [],
+  triggers: [],
   gamification: defaultGamification,
   savings: [],
   shoppingItems: [],
   tobaccoConfig: DEFAULT_TOBACCO_CONFIG,
   cigaretteLogs: [],
-  trackers: [],
-  trackerEntries: [],
   purchaseGoals: [],
 };
 
 export const loadState = (): AppState => {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    // Try new key first, then fall back to old key for migration
+    let stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) {
+      stored = localStorage.getItem("habit-tracker-data");
+    }
     if (!stored) return defaultState;
+    
     const parsed = JSON.parse(stored) as Partial<AppState>;
-    // Merge with defaults to handle missing fields from old data
+    
+    // Merge with defaults to handle missing fields
     return {
       habits: parsed.habits || [],
       dailyLogs: parsed.dailyLogs || [],
-      gamification: parsed.gamification || defaultGamification,
+      trackers: parsed.trackers || [],
+      trackerEntries: parsed.trackerEntries || [],
+      reflections: parsed.reflections || [],
+      futureSelf: parsed.futureSelf || [],
+      investmentGoals: parsed.investmentGoals || [],
+      sleepEntries: parsed.sleepEntries || [],
+      triggers: parsed.triggers || [],
+      gamification: { ...defaultGamification, ...parsed.gamification },
       savings: parsed.savings || [],
       shoppingItems: parsed.shoppingItems || [],
       tobaccoConfig: parsed.tobaccoConfig || DEFAULT_TOBACCO_CONFIG,
       cigaretteLogs: parsed.cigaretteLogs || [],
-      trackers: parsed.trackers || [],
-      trackerEntries: parsed.trackerEntries || [],
       purchaseGoals: parsed.purchaseGoals || [],
     };
   } catch {
@@ -63,7 +83,8 @@ export const generateId = (): string => {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 };
 
-// Habit operations
+// ============= HABIT OPERATIONS =============
+
 export const addHabit = (state: AppState, habit: Omit<Habit, "id" | "createdAt">): AppState => {
   const newHabit: Habit = {
     ...habit,
@@ -71,7 +92,6 @@ export const addHabit = (state: AppState, habit: Omit<Habit, "id" | "createdAt">
     createdAt: new Date().toISOString(),
   };
   
-  // Award "primeiro_habito" achievement if this is the first habit
   let newGamification = state.gamification;
   if (state.habits.length === 0 && !state.gamification.conquistas.includes("primeiro_habito")) {
     newGamification = {
@@ -103,7 +123,8 @@ export const deleteHabit = (state: AppState, id: string): AppState => {
   };
 };
 
-// Daily log operations with gamification
+// ============= DAILY LOG OPERATIONS =============
+
 export const toggleDailyLog = (
   state: AppState,
   habitId: string,
@@ -118,7 +139,6 @@ export const toggleDailyLog = (
 
   if (existingLog) {
     if (existingLog.done) {
-      // Remove points when un-completing
       const newPontos = Math.max(0, state.gamification.pontos - 10);
       const newNivel = Math.floor(newPontos / 500) + 1;
       
@@ -136,7 +156,6 @@ export const toggleDailyLog = (
         habitName,
       };
     } else {
-      // Mark as done - add points
       const newPontos = state.gamification.pontos + 10;
       const newNivel = Math.floor(newPontos / 500) + 1;
       
@@ -157,7 +176,6 @@ export const toggleDailyLog = (
       };
     }
   } else {
-    // Create new log as done - add points
     const newLog: DailyLog = {
       id: generateId(),
       habitId,
@@ -184,7 +202,6 @@ export const toggleDailyLog = (
   }
 };
 
-// Legacy toggle without gamification feedback (for backwards compat)
 export const toggleDailyLogSimple = (
   state: AppState,
   habitId: string,
@@ -203,7 +220,264 @@ export const isHabitDoneOnDate = (
   );
 };
 
-// Savings operations
+// ============= TRACKER OPERATIONS =============
+
+export const addTracker = (
+  state: AppState,
+  tracker: Omit<Tracker, "id" | "createdAt">
+): AppState => {
+  const newTracker: Tracker = {
+    ...tracker,
+    id: generateId(),
+    createdAt: new Date().toISOString(),
+  };
+  
+  let newGamification = state.gamification;
+  if (state.trackers.length === 0 && !state.gamification.conquistas.includes("tracker_first")) {
+    newGamification = {
+      ...state.gamification,
+      conquistas: [...state.gamification.conquistas, "tracker_first"],
+      pontos: state.gamification.pontos + 20,
+    };
+  }
+  
+  return { 
+    ...state, 
+    trackers: [...state.trackers, newTracker],
+    gamification: newGamification,
+  };
+};
+
+export const updateTracker = (
+  state: AppState,
+  id: string,
+  updates: Partial<Tracker>
+): AppState => {
+  return {
+    ...state,
+    trackers: state.trackers.map((t) => (t.id === id ? { ...t, ...updates } : t)),
+  };
+};
+
+export const deleteTracker = (state: AppState, id: string): AppState => {
+  return {
+    ...state,
+    trackers: state.trackers.filter((t) => t.id !== id),
+    trackerEntries: state.trackerEntries.filter((e) => e.trackerId !== id),
+  };
+};
+
+export const addTrackerEntry = (
+  state: AppState,
+  trackerId: string,
+  quantity: number = 1,
+  note?: string
+): AppState => {
+  const now = new Date();
+  const newEntry: TrackerEntry = {
+    id: generateId(),
+    trackerId,
+    timestamp: now.toISOString(),
+    date: format(now, "yyyy-MM-dd"),
+    quantity,
+    note,
+  };
+  
+  // Add points for tracking
+  const newPontos = state.gamification.pontos + 2;
+  const newNivel = Math.floor(newPontos / 500) + 1;
+  
+  return { 
+    ...state, 
+    trackerEntries: [...state.trackerEntries, newEntry],
+    gamification: {
+      ...state.gamification,
+      pontos: newPontos,
+      nivel: newNivel,
+    },
+  };
+};
+
+export const deleteTrackerEntry = (state: AppState, entryId: string): AppState => {
+  return {
+    ...state,
+    trackerEntries: state.trackerEntries.filter((e) => e.id !== entryId),
+  };
+};
+
+export const getTrackerEntriesForDate = (state: AppState, trackerId: string, date: string): TrackerEntry[] => {
+  return state.trackerEntries
+    .filter((e) => e.trackerId === trackerId && e.date === date)
+    .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+};
+
+// ============= REFLECTION OPERATIONS =============
+
+export const addReflection = (
+  state: AppState,
+  reflection: Omit<DailyReflection, "id" | "createdAt">
+): AppState => {
+  // Check if reflection exists for this date
+  const existing = state.reflections.find(r => r.date === reflection.date);
+  if (existing) {
+    return {
+      ...state,
+      reflections: state.reflections.map(r => 
+        r.id === existing.id 
+          ? { ...r, ...reflection, createdAt: r.createdAt }
+          : r
+      ),
+    };
+  }
+  
+  const newReflection: DailyReflection = {
+    ...reflection,
+    id: generateId(),
+    createdAt: new Date().toISOString(),
+  };
+  
+  return { ...state, reflections: [...state.reflections, newReflection] };
+};
+
+export const getReflectionForDate = (state: AppState, date: string): DailyReflection | undefined => {
+  return state.reflections.find(r => r.date === date);
+};
+
+// ============= FUTURE SELF OPERATIONS =============
+
+export const addFutureSelfEntry = (
+  state: AppState,
+  entry: Omit<FutureSelfEntry, "id" | "createdAt">
+): AppState => {
+  const newEntry: FutureSelfEntry = {
+    ...entry,
+    id: generateId(),
+    createdAt: new Date().toISOString(),
+  };
+  
+  return { ...state, futureSelf: [...state.futureSelf, newEntry] };
+};
+
+export const getLatestFutureSelf = (state: AppState): FutureSelfEntry | undefined => {
+  return state.futureSelf.sort((a, b) => 
+    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  )[0];
+};
+
+// ============= INVESTMENT GOAL OPERATIONS =============
+
+export const addInvestmentGoal = (
+  state: AppState,
+  goal: Omit<InvestmentGoal, "id" | "currentAmount" | "manualContributions" | "completed" | "createdAt">
+): AppState => {
+  const newGoal: InvestmentGoal = {
+    ...goal,
+    id: generateId(),
+    currentAmount: 0,
+    manualContributions: [],
+    completed: false,
+    createdAt: new Date().toISOString(),
+  };
+  
+  return { ...state, investmentGoals: [...state.investmentGoals, newGoal] };
+};
+
+export const addInvestmentContribution = (
+  state: AppState,
+  goalId: string,
+  contribution: Omit<InvestmentContribution, "id" | "goalId">
+): AppState => {
+  const newContribution: InvestmentContribution = {
+    ...contribution,
+    id: generateId(),
+    goalId,
+  };
+  
+  return {
+    ...state,
+    investmentGoals: state.investmentGoals.map(g => 
+      g.id === goalId
+        ? { 
+            ...g, 
+            currentAmount: g.currentAmount + contribution.amount,
+            manualContributions: [...g.manualContributions, newContribution],
+            completed: (g.currentAmount + contribution.amount) >= g.targetAmount,
+            completedAt: (g.currentAmount + contribution.amount) >= g.targetAmount 
+              ? new Date().toISOString() 
+              : undefined,
+          }
+        : g
+    ),
+  };
+};
+
+export const deleteInvestmentGoal = (state: AppState, id: string): AppState => {
+  return {
+    ...state,
+    investmentGoals: state.investmentGoals.filter(g => g.id !== id),
+  };
+};
+
+// ============= SLEEP OPERATIONS =============
+
+export const addSleepEntry = (
+  state: AppState,
+  entry: Omit<SleepEntry, "id">
+): AppState => {
+  // Update if exists for date
+  const existing = state.sleepEntries.find(s => s.date === entry.date);
+  if (existing) {
+    return {
+      ...state,
+      sleepEntries: state.sleepEntries.map(s => 
+        s.id === existing.id ? { ...s, ...entry } : s
+      ),
+    };
+  }
+  
+  const newEntry: SleepEntry = {
+    ...entry,
+    id: generateId(),
+  };
+  
+  return { ...state, sleepEntries: [...state.sleepEntries, newEntry] };
+};
+
+// ============= TRIGGER OPERATIONS =============
+
+export const addTrigger = (
+  state: AppState,
+  trigger: Omit<Trigger, "id" | "createdAt">
+): AppState => {
+  const newTrigger: Trigger = {
+    ...trigger,
+    id: generateId(),
+    createdAt: new Date().toISOString(),
+  };
+  
+  return { ...state, triggers: [...state.triggers, newTrigger] };
+};
+
+export const updateTrigger = (
+  state: AppState,
+  id: string,
+  updates: Partial<Trigger>
+): AppState => {
+  return {
+    ...state,
+    triggers: state.triggers.map(t => (t.id === id ? { ...t, ...updates } : t)),
+  };
+};
+
+export const deleteTrigger = (state: AppState, id: string): AppState => {
+  return {
+    ...state,
+    triggers: state.triggers.filter(t => t.id !== id),
+  };
+};
+
+// ============= SAVINGS OPERATIONS =============
+
 export const addSavingsEntry = (
   state: AppState,
   entry: Omit<SavingsEntry, "id">
@@ -233,7 +507,8 @@ export const deleteSavingsEntry = (state: AppState, id: string): AppState => {
   };
 };
 
-// Shopping list operations
+// ============= SHOPPING OPERATIONS =============
+
 export const getWeekStartDate = (date: Date = new Date()): string => {
   const weekStart = startOfWeek(date, { weekStartsOn: 1, locale: pt });
   return format(weekStart, "yyyy-MM-dd");
@@ -280,7 +555,8 @@ export const deleteShoppingItem = (state: AppState, id: string): AppState => {
   };
 };
 
-// Gamification operations
+// ============= GAMIFICATION OPERATIONS =============
+
 export const addAchievement = (state: AppState, achievementId: string): AppState => {
   if (state.gamification.conquistas.includes(achievementId)) {
     return state;
@@ -291,7 +567,7 @@ export const addAchievement = (state: AppState, achievementId: string): AppState
     gamification: {
       ...state.gamification,
       conquistas: [...state.gamification.conquistas, achievementId],
-      pontos: state.gamification.pontos + 50, // Bonus for achievements
+      pontos: state.gamification.pontos + 50,
     },
   };
 };
@@ -309,13 +585,15 @@ export const updateGamification = (
   };
 };
 
-// Reset operations
+// ============= RESET OPERATIONS =============
+
 export const resetMonth = (state: AppState, year: number, month: number): AppState => {
   const monthStr = `${year}-${String(month + 1).padStart(2, "0")}`;
   return {
     ...state,
     dailyLogs: state.dailyLogs.filter((l) => !l.date.startsWith(monthStr)),
     savings: state.savings.filter((s) => !s.date.startsWith(monthStr)),
+    trackerEntries: state.trackerEntries.filter((e) => !e.date.startsWith(monthStr)),
   };
 };
 
@@ -323,7 +601,7 @@ export const resetAll = (): AppState => {
   return defaultState;
 };
 
-// ============= TOBACCO OPERATIONS =============
+// ============= LEGACY TOBACCO OPERATIONS (for migration) =============
 
 export const updateTobaccoConfig = (
   state: AppState,
@@ -358,7 +636,7 @@ export const getCigaretteLogsForDate = (state: AppState, date: string): Cigarett
     .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 };
 
-// ============= PURCHASE GOALS OPERATIONS =============
+// ============= LEGACY PURCHASE GOALS (for migration) =============
 
 export const addPurchaseGoal = (
   state: AppState,
@@ -449,101 +727,47 @@ export const convertGoalToHabit = (
   };
 };
 
-// ============= TRACKER OPERATIONS =============
+// ============= MIGRATION HELPER =============
 
-export const addTracker = (
-  state: AppState,
-  tracker: Omit<Tracker, "id" | "createdAt">
-): AppState => {
-  const newTracker: Tracker = {
-    ...tracker,
-    id: generateId(),
-    createdAt: new Date().toISOString(),
-  };
-  return { ...state, trackers: [...state.trackers, newTracker] };
-};
-
-export const updateTracker = (
-  state: AppState,
-  id: string,
-  updates: Partial<Tracker>
-): AppState => {
-  return {
-    ...state,
-    trackers: state.trackers.map((t) => (t.id === id ? { ...t, ...updates } : t)),
-  };
-};
-
-export const deleteTracker = (state: AppState, id: string): AppState => {
-  return {
-    ...state,
-    trackers: state.trackers.filter((t) => t.id !== id),
-    trackerEntries: state.trackerEntries.filter((e) => e.trackerId !== id),
-  };
-};
-
-export const addTrackerEntry = (
-  state: AppState,
-  trackerId: string,
-  quantity: number = 1
-): AppState => {
-  const now = new Date();
-  const newEntry: TrackerEntry = {
-    id: generateId(),
-    trackerId,
-    timestamp: now.toISOString(),
-    date: format(now, "yyyy-MM-dd"),
-    quantity,
-  };
-  return { ...state, trackerEntries: [...state.trackerEntries, newEntry] };
-};
-
-export const deleteTrackerEntry = (state: AppState, id: string): AppState => {
-  return {
-    ...state,
-    trackerEntries: state.trackerEntries.filter((e) => e.id !== id),
-  };
-};
-
-export const getTrackerEntriesForDate = (state: AppState, trackerId: string, date: string): TrackerEntry[] => {
-  return state.trackerEntries
-    .filter((e) => e.trackerId === trackerId && e.date === date)
-    .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-};
-
-// Migrate legacy tobacco data to tracker
 export const migrateTobacoToTracker = (state: AppState): AppState => {
-  // Check if already migrated
-  const existingCigaretteTracker = state.trackers.find(t => t.name === "Cigarros");
-  if (existingCigaretteTracker || state.cigaretteLogs.length === 0) {
+  // Check if tobacco tracker already exists
+  const hasTobaccoTracker = state.trackers.some(t => 
+    t.name.toLowerCase().includes("cigarro") || t.name.toLowerCase().includes("tabaco")
+  );
+  
+  if (hasTobaccoTracker || state.cigaretteLogs.length === 0) {
     return state;
   }
-
-  const valuePerUnit = state.tobaccoConfig.precoPorMaco / state.tobaccoConfig.numCigarrosPorMaco;
   
-  const cigaretteTracker: Tracker = {
+  const { tobaccoConfig, cigaretteLogs } = state;
+  const valorUnit = tobaccoConfig.precoPorMaco / tobaccoConfig.numCigarrosPorMaco;
+  
+  const tobaccoTracker: Tracker = {
     id: generateId(),
     name: "Cigarros",
     type: "reduce",
     unitSingular: "cigarro",
     unitPlural: "cigarros",
-    valuePerUnit,
-    baseline: state.tobaccoConfig.baselineDeclarado,
+    valuePerUnit: valorUnit,
+    baseline: tobaccoConfig.baselineDeclarado,
+    dailyGoal: Math.floor(tobaccoConfig.baselineDeclarado * 0.8),
+    includeInFinances: true,
     active: true,
     createdAt: new Date().toISOString(),
+    icon: "🚬",
   };
-
-  const migratedEntries: TrackerEntry[] = state.cigaretteLogs.map(log => ({
+  
+  const trackerEntries: TrackerEntry[] = cigaretteLogs.map(log => ({
     id: log.id,
-    trackerId: cigaretteTracker.id,
+    trackerId: tobaccoTracker.id,
     timestamp: log.timestamp,
     date: log.date,
     quantity: 1,
   }));
-
+  
   return {
     ...state,
-    trackers: [...state.trackers, cigaretteTracker],
-    trackerEntries: [...state.trackerEntries, ...migratedEntries],
+    trackers: [...state.trackers, tobaccoTracker],
+    trackerEntries: [...state.trackerEntries, ...trackerEntries],
   };
 };
