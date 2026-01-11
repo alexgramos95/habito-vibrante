@@ -2,11 +2,11 @@ import { useState, useEffect, useCallback } from "react";
 import { format, isToday, isFuture } from "date-fns";
 import { 
   Flame, Trophy, TrendingUp, Target, PiggyBank, ShoppingCart, 
-  Activity, Zap, ChevronRight 
+  Activity, Zap, ChevronRight, Sparkles
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useI18n } from "@/i18n/I18nContext";
-import { AppState, Habit, Tracker, TrackerEntry } from "@/data/types";
+import { AppState, Habit, Tracker, TrackerEntry, DailyReflection, FutureSelfEntry } from "@/data/types";
 import {
   loadState,
   saveState,
@@ -16,6 +16,11 @@ import {
   toggleDailyLog,
   addAchievement,
   getWeekStartDate,
+  addReflection,
+  getReflectionForDate,
+  addFutureSelfEntry,
+  getLatestFutureSelf,
+  addTrackerEntry,
 } from "@/data/storage";
 import {
   calculateMonthlySummary,
@@ -32,6 +37,9 @@ import { MonthSelector } from "@/components/Dashboard/MonthSelector";
 import { HabitList } from "@/components/Habits/HabitList";
 import { HabitForm } from "@/components/Habits/HabitForm";
 import { MotivationalBanner } from "@/components/Feedback/MotivationalBanner";
+import { ReflectionCard } from "@/components/Modules/ReflectionCard";
+import { FutureSelfCard } from "@/components/Modules/FutureSelfCard";
+import { TrackerQuickAdd } from "@/components/Modules/TrackerQuickAdd";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -111,6 +119,8 @@ const Index = () => {
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
   const [deletingHabitId, setDeletingHabitId] = useState<string | null>(null);
 
+  const today = format(new Date(), "yyyy-MM-dd");
+
   // Persist state changes
   useEffect(() => {
     saveState(state);
@@ -129,6 +139,10 @@ const Index = () => {
       });
     }
   }, [state.dailyLogs, t, tr]);
+
+  // Get today's reflection
+  const todayReflection = getReflectionForDate(state, today);
+  const latestFutureSelf = getLatestFutureSelf(state);
 
   // Computed values
   const monthlySummary = calculateMonthlySummary(state, currentYear, currentMonth);
@@ -224,6 +238,33 @@ const Index = () => {
     setDeletingHabitId(null);
   };
 
+  const handleSaveReflection = (text: string, mood: 'positive' | 'neutral' | 'challenging') => {
+    setState(prev => addReflection(prev, {
+      date: today,
+      text,
+      mood,
+    }));
+    toast({ title: t.reflection.saved });
+  };
+
+  const handleSaveFutureSelf = (narrative: string, themes: string[]) => {
+    setState(prev => addFutureSelfEntry(prev, {
+      date: today,
+      narrative,
+      themes,
+    }));
+    toast({ title: t.futureSelf.saved });
+  };
+
+  const handleTrackerQuickAdd = (trackerId: string) => {
+    setState(prev => addTrackerEntry(prev, trackerId, 1));
+    const tracker = state.trackers.find(t => t.id === trackerId);
+    toast({ 
+      title: `+1 ${tracker?.unitSingular || t.trackers.entry}`,
+      description: tracker?.name,
+    });
+  };
+
   const dateLabel = isToday(selectedDate) 
     ? t.dashboard.today 
     : formatDate(selectedDate, locale === 'pt-PT' ? "d 'de' MMMM" : "MMMM d");
@@ -308,6 +349,15 @@ const Index = () => {
                 <WeeklyChart data={weeklySummaries} />
               </CardContent>
             </Card>
+
+            {/* Tracker Quick Add */}
+            {(state.trackers?.length || 0) > 0 && (
+              <TrackerQuickAdd
+                trackers={state.trackers || []}
+                entries={state.trackerEntries || []}
+                onAddEntry={handleTrackerQuickAdd}
+              />
+            )}
 
             {/* Mini Cards Row - Premium Design */}
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -400,6 +450,20 @@ const Index = () => {
                   </Link>
                 </CardContent>
               </Card>
+            </div>
+
+            {/* Reflection and Future Self Cards */}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <ReflectionCard 
+                reflection={todayReflection}
+                onSave={handleSaveReflection}
+                compact
+              />
+              <FutureSelfCard 
+                entry={latestFutureSelf}
+                onSave={handleSaveFutureSelf}
+                compact
+              />
             </div>
           </div>
 
