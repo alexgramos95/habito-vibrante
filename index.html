@@ -1,25 +1,41 @@
 <!doctype html>
-<html lang="pt">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Rastreador de Hábitos | Constrói melhores hábitos</title>
-    <meta name="description" content="Acompanha os teus hábitos diários e melhora o teu progresso com um dashboard motivacional. Visualiza streaks, metas e evolução semanal." />
-    <meta name="author" content="Lovable" />
-    <meta name="theme-color" content="#0d1420" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>ITERO — Consistency, Compounded</title>
+    <meta name="description" content="ITERO is a behavioral and financial iteration system. Build consistency through small, sustainable iterations. Track habits, objectives, and savings." />
+    <meta name="author" content="ITERO" />
+    <meta name="theme-color" content="#080d14" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="ITERO" />
+    <meta name="mobile-web-app-capable" content="yes" />
 
-    <meta property="og:title" content="Rastreador de Hábitos" />
-    <meta property="og:description" content="Acompanha os teus hábitos diários e melhora o teu progresso com um dashboard motivacional." />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+
+    <meta property="og:title" content="ITERO — Consistency, Compounded" />
+    <meta property="og:description" content="A behavioral and financial iteration system for personal growth through consistency." />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@Lovable" />
+    <meta name="twitter:title" content="ITERO" />
+    <meta name="twitter:description" content="Consistency, Compounded." />
     <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
   </head>
 
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(() => {});
+        });
+      }
+    </script>
   </body>
 </html>
