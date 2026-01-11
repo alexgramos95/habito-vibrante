@@ -81,7 +81,42 @@ export interface ShoppingItem {
   done: boolean;
 }
 
-// Tobacco tracking types
+// ============= CUSTOMIZABLE TRACKERS =============
+
+export type TrackerType = 'reduce' | 'increase';
+
+export interface Tracker {
+  id: string;
+  name: string;
+  type: TrackerType;
+  unitSingular: string;
+  unitPlural: string;
+  valuePerUnit: number; // monetary value, 0 if no financial impact
+  baseline: number; // daily baseline
+  dailyGoal?: number; // optional daily goal
+  active: boolean;
+  createdAt: string;
+}
+
+export interface TrackerEntry {
+  id: string;
+  trackerId: string;
+  timestamp: string; // ISO datetime
+  date: string; // YYYY-MM-DD for grouping
+  quantity: number; // default 1
+}
+
+export interface TrackerSummary {
+  todayCount: number;
+  todaySavings: number;
+  monthlyCount: number;
+  monthlySavings: number;
+  accumulatedSavings: number;
+  daysOnTrack: number;
+  average30Days: number;
+}
+
+// Legacy Tobacco types (migrated to trackers)
 export interface TobaccoConfig {
   numCigarrosPorMaco: number;
   precoPorMaco: number;
@@ -142,8 +177,12 @@ export interface AppState {
   gamification: UserGamification;
   savings: SavingsEntry[];
   shoppingItems: ShoppingItem[];
+  // Legacy tobacco (for migration)
   tobaccoConfig: TobaccoConfig;
   cigaretteLogs: CigaretteLog[];
+  // New tracker system
+  trackers: Tracker[];
+  trackerEntries: TrackerEntry[];
   purchaseGoals: PurchaseGoal[];
 }
 

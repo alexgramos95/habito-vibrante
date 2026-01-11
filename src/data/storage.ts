@@ -1,7 +1,7 @@
 import { 
   AppState, Habit, DailyLog, UserGamification, SavingsEntry, ShoppingItem,
   TobaccoConfig, CigaretteLog, PurchaseGoal, GoalContribution, PurchaseDetails,
-  DEFAULT_TOBACCO_CONFIG
+  DEFAULT_TOBACCO_CONFIG, Tracker, TrackerEntry
 } from "./types";
 import { format, startOfWeek, parseISO } from "date-fns";
 import { pt } from "date-fns/locale";
@@ -22,6 +22,8 @@ const defaultState: AppState = {
   shoppingItems: [],
   tobaccoConfig: DEFAULT_TOBACCO_CONFIG,
   cigaretteLogs: [],
+  trackers: [],
+  trackerEntries: [],
   purchaseGoals: [],
 };
 
@@ -39,6 +41,8 @@ export const loadState = (): AppState => {
       shoppingItems: parsed.shoppingItems || [],
       tobaccoConfig: parsed.tobaccoConfig || DEFAULT_TOBACCO_CONFIG,
       cigaretteLogs: parsed.cigaretteLogs || [],
+      trackers: parsed.trackers || [],
+      trackerEntries: parsed.trackerEntries || [],
       purchaseGoals: parsed.purchaseGoals || [],
     };
   } catch {
@@ -442,5 +446,104 @@ export const convertGoalToHabit = (
     purchaseGoals: state.purchaseGoals.map((g) =>
       g.id === goalId ? { ...g, convertedToHabitId: newHabit.id } : g
     ),
+  };
+};
+
+// ============= TRACKER OPERATIONS =============
+
+export const addTracker = (
+  state: AppState,
+  tracker: Omit<Tracker, "id" | "createdAt">
+): AppState => {
+  const newTracker: Tracker = {
+    ...tracker,
+    id: generateId(),
+    createdAt: new Date().toISOString(),
+  };
+  return { ...state, trackers: [...state.trackers, newTracker] };
+};
+
+export const updateTracker = (
+  state: AppState,
+  id: string,
+  updates: Partial<Tracker>
+): AppState => {
+  return {
+    ...state,
+    trackers: state.trackers.map((t) => (t.id === id ? { ...t, ...updates } : t)),
+  };
+};
+
+export const deleteTracker = (state: AppState, id: string): AppState => {
+  return {
+    ...state,
+    trackers: state.trackers.filter((t) => t.id !== id),
+    trackerEntries: state.trackerEntries.filter((e) => e.trackerId !== id),
+  };
+};
+
+export const addTrackerEntry = (
+  state: AppState,
+  trackerId: string,
+  quantity: number = 1
+): AppState => {
+  const now = new Date();
+  const newEntry: TrackerEntry = {
+    id: generateId(),
+    trackerId,
+    timestamp: now.toISOString(),
+    date: format(now, "yyyy-MM-dd"),
+    quantity,
+  };
+  return { ...state, trackerEntries: [...state.trackerEntries, newEntry] };
+};
+
+export const deleteTrackerEntry = (state: AppState, id: string): AppState => {
+  return {
+    ...state,
+    trackerEntries: state.trackerEntries.filter((e) => e.id !== id),
+  };
+};
+
+export const getTrackerEntriesForDate = (state: AppState, trackerId: string, date: string): TrackerEntry[] => {
+  return state.trackerEntries
+    .filter((e) => e.trackerId === trackerId && e.date === date)
+    .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+};
+
+// Migrate legacy tobacco data to tracker
+export const migrateTobacoToTracker = (state: AppState): AppState => {
+  // Check if already migrated
+  const existingCigaretteTracker = state.trackers.find(t => t.name === "Cigarros");
+  if (existingCigaretteTracker || state.cigaretteLogs.length === 0) {
+    return state;
+  }
+
+  const valuePerUnit = state.tobaccoConfig.precoPorMaco / state.tobaccoConfig.numCigarrosPorMaco;
+  
+  const cigaretteTracker: Tracker = {
+    id: generateId(),
+    name: "Cigarros",
+    type: "reduce",
+    unitSingular: "cigarro",
+    unitPlural: "cigarros",
+    valuePerUnit,
+    baseline: state.tobaccoConfig.baselineDeclarado,
+    active: true,
+    createdAt: new Date().toISOString(),
+  };
+
+  const migratedEntries: TrackerEntry[] = state.cigaretteLogs.map(log => ({
+    id: log.id,
+    trackerId: cigaretteTracker.id,
+    timestamp: log.timestamp,
+    date: log.date,
+    quantity: 1,
+  }));
+
+  return {
+    ...state,
+    trackers: [...state.trackers, cigaretteTracker],
+    trackerEntries: [...state.trackerEntries, ...migratedEntries],
   };
 };

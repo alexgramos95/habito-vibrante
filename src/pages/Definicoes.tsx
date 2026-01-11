@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { Globe, RotateCcw, Trash2 } from "lucide-react";
-import { translations } from "@/i18n/translations.pt";
+import { Globe, RotateCcw, Trash2, Coins } from "lucide-react";
+import { useI18n } from "@/i18n/I18nContext";
+import { localeNames, currencyNames, type Locale, type Currency } from "@/i18n";
 import { AppState } from "@/data/types";
 import { loadState, saveState, resetMonth, resetAll } from "@/data/storage";
 import { Navigation } from "@/components/Layout/Navigation";
@@ -21,6 +22,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const Definicoes = () => {
   const { toast } = useToast();
+  const { t, locale, setLocale, currency, setCurrency } = useI18n();
   const [state, setState] = useState<AppState>(() => loadState());
   const [showResetConfirm, setShowResetConfirm] = useState<"month" | "all" | null>(null);
 
@@ -33,14 +35,22 @@ const Definicoes = () => {
 
   const handleResetMonth = () => {
     setState((prev) => resetMonth(prev, currentYear, currentMonth));
-    toast({ title: "Mês reiniciado com sucesso!" });
+    toast({ title: t.settings.monthReset });
     setShowResetConfirm(null);
   };
 
   const handleResetAll = () => {
     setState(resetAll());
-    toast({ title: "Todos os dados foram reiniciados!" });
+    toast({ title: t.settings.allReset });
     setShowResetConfirm(null);
+  };
+
+  const handleLocaleChange = (newLocale: string) => {
+    setLocale(newLocale as Locale);
+  };
+
+  const handleCurrencyChange = (newCurrency: string) => {
+    setCurrency(newCurrency as Currency);
   };
 
   return (
@@ -48,32 +58,55 @@ const Definicoes = () => {
       <Navigation />
 
       <main className="container py-6 space-y-6">
-        <h1 className="text-2xl font-bold">Definições</h1>
+        <h1 className="text-2xl font-bold">{t.settings.title}</h1>
 
         {/* Idioma */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Globe className="h-5 w-5" />
-              Idioma
+              {t.settings.language}
             </CardTitle>
             <CardDescription>
-              Escolhe o idioma da aplicação
+              {t.settings.languageDescription}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Select defaultValue="pt" disabled>
+            <Select value={locale} onValueChange={handleLocaleChange}>
               <SelectTrigger className="w-full max-w-xs">
-                <SelectValue placeholder="Selecionar idioma" />
+                <SelectValue placeholder={t.settings.selectLanguage} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="pt">Português (Portugal)</SelectItem>
-                <SelectItem value="en" disabled>English (em breve)</SelectItem>
+                {Object.entries(localeNames).map(([code, name]) => (
+                  <SelectItem key={code} value={code}>{name}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
-            <p className="text-sm text-muted-foreground mt-2">
-              Mais idiomas disponíveis em breve.
-            </p>
+          </CardContent>
+        </Card>
+
+        {/* Moeda */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Coins className="h-5 w-5" />
+              {t.settings.currency}
+            </CardTitle>
+            <CardDescription>
+              {t.settings.currencyDescription}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Select value={currency} onValueChange={handleCurrencyChange}>
+              <SelectTrigger className="w-full max-w-xs">
+                <SelectValue placeholder={t.settings.selectCurrency} />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(currencyNames).map(([code, names]) => (
+                  <SelectItem key={code} value={code}>{names[locale]}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </CardContent>
         </Card>
 
@@ -82,10 +115,10 @@ const Definicoes = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <RotateCcw className="h-5 w-5" />
-              Reiniciar Dados
+              {t.settings.resetData}
             </CardTitle>
             <CardDescription>
-              Elimina registos de hábitos. Esta ação não pode ser desfeita.
+              {t.settings.resetDataDescription}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -96,7 +129,7 @@ const Definicoes = () => {
                 className="gap-2"
               >
                 <RotateCcw className="h-4 w-4" />
-                {translations.actions.resetMonth}
+                {t.actions.resetMonth}
               </Button>
               
               <Button
@@ -105,13 +138,13 @@ const Definicoes = () => {
                 className="gap-2"
               >
                 <Trash2 className="h-4 w-4" />
-                {translations.actions.resetAll}
+                {t.actions.resetAll}
               </Button>
             </div>
             
             <div className="rounded-lg bg-secondary/50 p-4 text-sm text-muted-foreground">
-              <p><strong>Reiniciar mês:</strong> Elimina apenas os registos do mês atual. Os hábitos são mantidos.</p>
-              <p className="mt-2"><strong>Reiniciar tudo:</strong> Elimina todos os hábitos e registos. Começa do zero.</p>
+              <p><strong>{t.actions.resetMonth}:</strong> {t.settings.resetMonthInfo}</p>
+              <p className="mt-2"><strong>{t.actions.resetAll}:</strong> {t.settings.resetAllInfo}</p>
             </div>
           </CardContent>
         </Card>
@@ -126,22 +159,22 @@ const Definicoes = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>
               {showResetConfirm === "month"
-                ? translations.actions.resetMonth
-                : translations.actions.resetAll}
+                ? t.actions.resetMonth
+                : t.actions.resetAll}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {showResetConfirm === "month"
-                ? "Todos os registos deste mês serão eliminados. Os teus hábitos serão mantidos."
-                : "Todos os hábitos e registos serão eliminados permanentemente. Esta ação não pode ser desfeita."}
+                ? t.settings.resetMonthConfirm
+                : t.settings.resetAllConfirm}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{translations.habits.cancel}</AlertDialogCancel>
+            <AlertDialogCancel>{t.actions.cancel}</AlertDialogCancel>
             <AlertDialogAction
               onClick={showResetConfirm === "month" ? handleResetMonth : handleResetAll}
               className={showResetConfirm === "all" ? "bg-destructive hover:bg-destructive/90" : ""}
             >
-              {translations.actions.reset}
+              {t.actions.reset}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
