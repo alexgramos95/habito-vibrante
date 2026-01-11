@@ -21,37 +21,40 @@ export const KPICard = ({
   return (
     <div
       className={cn(
-        "group relative overflow-hidden rounded-xl border border-border/50 p-5",
-        "bg-card transition-all duration-300 hover:border-primary/30",
-        "animate-fade-in",
-        variant === "primary" && "border-primary/20 hover:border-primary/50",
-        variant === "success" && "border-success/20 hover:border-success/50",
-        variant === "warning" && "border-warning/20 hover:border-warning/50",
+        "group relative overflow-hidden rounded-2xl p-5",
+        "glass transition-all duration-300",
+        "hover:glow-subtle",
+        variant === "primary" && "border-primary/20 hover:border-primary/40",
+        variant === "success" && "border-success/20 hover:border-success/40",
+        variant === "warning" && "border-warning/20 hover:border-warning/40",
+        variant === "default" && "border-border/30 hover:border-border/50",
         className
       )}
     >
-      {/* Glow effect */}
+      {/* Background gradient glow */}
       <div
         className={cn(
-          "absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100",
-          variant === "primary" && "bg-primary/5",
-          variant === "success" && "bg-success/5",
-          variant === "warning" && "bg-warning/5",
-          variant === "default" && "bg-primary/5"
+          "absolute -inset-px opacity-0 transition-opacity duration-500 group-hover:opacity-100 blur-xl",
+          variant === "primary" && "bg-primary/20",
+          variant === "success" && "bg-success/20",
+          variant === "warning" && "bg-warning/20",
+          variant === "default" && "bg-primary/10"
         )}
       />
 
+      {/* Content */}
       <div className="relative z-10">
-        <div className="mb-3 flex items-center justify-between">
-          <span className="text-sm font-medium text-muted-foreground">
+        <div className="mb-4 flex items-center justify-between">
+          <span className="text-sm font-medium text-muted-foreground tracking-wide">
             {title}
           </span>
           <div
             className={cn(
-              "flex h-9 w-9 items-center justify-center rounded-lg transition-colors",
-              variant === "primary" && "bg-primary/10 text-primary",
-              variant === "success" && "bg-success/10 text-success",
-              variant === "warning" && "bg-warning/10 text-warning",
+              "flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300",
+              "group-hover:scale-110",
+              variant === "primary" && "bg-primary/15 text-primary",
+              variant === "success" && "bg-success/15 text-success",
+              variant === "warning" && "bg-warning/15 text-warning",
               variant === "default" && "bg-secondary text-muted-foreground"
             )}
           >
@@ -62,10 +65,11 @@ export const KPICard = ({
         <div className="space-y-1">
           <p
             className={cn(
-              "text-3xl font-semibold tracking-tight",
-              variant === "primary" && "text-primary",
-              variant === "success" && "text-success",
-              variant === "warning" && "text-warning"
+              "text-3xl md:text-4xl font-bold tracking-tight transition-all duration-300",
+              variant === "primary" && "text-primary group-hover:text-primary",
+              variant === "success" && "text-success group-hover:text-success",
+              variant === "warning" && "text-warning group-hover:text-warning",
+              variant === "default" && "text-foreground"
             )}
           >
             {value}

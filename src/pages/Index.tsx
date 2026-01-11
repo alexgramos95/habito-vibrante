@@ -1,9 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { format, isToday, isFuture } from "date-fns";
-import { Flame, Trophy, TrendingUp, Target, PiggyBank, ShoppingCart } from "lucide-react";
+import { 
+  Flame, Trophy, TrendingUp, Target, PiggyBank, ShoppingCart, 
+  Activity, Zap, ChevronRight 
+} from "lucide-react";
 import { Link } from "react-router-dom";
-import { translations } from "@/i18n/translations.pt";
-import { AppState, Habit } from "@/data/types";
+import { useI18n } from "@/i18n/I18nContext";
+import { AppState, Habit, Tracker, TrackerEntry } from "@/data/types";
 import {
   loadState,
   saveState,
@@ -31,6 +34,7 @@ import { HabitForm } from "@/components/Habits/HabitForm";
 import { MotivationalBanner } from "@/components/Feedback/MotivationalBanner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,8 +47,60 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 
+// Calculate tracker summary for dashboard
+const calculateTrackerDashboardSummary = (
+  trackers: Tracker[],
+  entries: TrackerEntry[],
+  formatCurrency: (v: number) => string
+) => {
+  const today = format(new Date(), "yyyy-MM-dd");
+  const activeTrackers = trackers.filter(t => t.active);
+  
+  let todayTotalSavings = 0;
+  let monthTotalSavings = 0;
+  
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+  
+  activeTrackers.forEach(tracker => {
+    if (tracker.valuePerUnit <= 0) return;
+    
+    const todayEntries = entries.filter(e => e.trackerId === tracker.id && e.date === today);
+    const todayCount = todayEntries.reduce((sum, e) => sum + e.quantity, 0);
+    
+    if (tracker.type === 'reduce') {
+      const dailySaving = (tracker.baseline - todayCount) * tracker.valuePerUnit;
+      todayTotalSavings += Math.max(0, dailySaving);
+    }
+    
+    // Month savings
+    const monthEntries = entries.filter(e => {
+      if (e.trackerId !== tracker.id) return false;
+      const date = new Date(e.date);
+      return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+    });
+    
+    const daysInMonth = new Date().getDate();
+    const monthBaseline = tracker.baseline * daysInMonth;
+    const monthActual = monthEntries.reduce((sum, e) => sum + e.quantity, 0);
+    
+    if (tracker.type === 'reduce') {
+      monthTotalSavings += Math.max(0, (monthBaseline - monthActual) * tracker.valuePerUnit);
+    }
+  });
+  
+  return {
+    activeCount: activeTrackers.length,
+    todaySavings: todayTotalSavings,
+    monthSavings: monthTotalSavings,
+    formattedTodaySavings: formatCurrency(todayTotalSavings),
+    formattedMonthSavings: formatCurrency(monthTotalSavings),
+  };
+};
+
 const Index = () => {
   const { toast } = useToast();
+  const { t, tr, formatCurrency, formatDate, locale } = useI18n();
   const [state, setState] = useState<AppState>(() => loadState());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
@@ -67,12 +123,12 @@ const Index = () => {
       newAchievements.forEach((achievementId) => {
         setState((prev) => addAchievement(prev, achievementId));
         toast({
-          title: "🏆 Nova conquista!",
-          description: `Desbloqueaste uma nova conquista!`,
+          title: "🏆 " + t.profile.achievements,
+          description: tr("habits.habitCreated"),
         });
       });
     }
-  }, [state.dailyLogs]);
+  }, [state.dailyLogs, t, tr]);
 
   // Computed values
   const monthlySummary = calculateMonthlySummary(state, currentYear, currentMonth);
@@ -80,6 +136,16 @@ const Index = () => {
   const savingsSummary = calculateSavingsSummary(state, currentYear, currentMonth);
   const weekStartDate = getWeekStartDate(new Date());
   const shoppingData = getShoppingItemsForWeek(state, weekStartDate);
+  const trackerSummary = calculateTrackerDashboardSummary(
+    state.trackers || [], 
+    state.trackerEntries || [],
+    formatCurrency
+  );
+
+  // Calculate consistency score (percentage of days with all habits done)
+  const consistencyScore = monthlySummary.totalPossible > 0 
+    ? Math.round((monthlySummary.totalDone / monthlySummary.totalPossible) * 100)
+    : 0;
 
   // Handlers
   const handlePreviousMonth = () => {
@@ -120,19 +186,19 @@ const Index = () => {
     
     if (result.wasCompleted) {
       toast({
-        title: "Bom trabalho! +10 pontos",
-        description: `Dia concluído para ${result.habitName}.`,
+        title: t.habits.goodWork,
+        description: tr("habits.dayCompleted", { habitName: result.habitName }),
       });
     }
-  }, [selectedDate, state, toast]);
+  }, [selectedDate, state, toast, t, tr]);
 
   const handleSaveHabit = (data: Omit<Habit, "id" | "createdAt">) => {
     if (editingHabit) {
       setState((prev) => updateHabit(prev, editingHabit.id, data));
-      toast({ title: "Hábito atualizado!" });
+      toast({ title: t.habits.habitUpdated });
     } else {
       setState((prev) => addHabit(prev, data));
-      toast({ title: "Novo hábito criado!" });
+      toast({ title: t.habits.habitCreated });
     }
     setShowHabitForm(false);
     setEditingHabit(null);
@@ -146,7 +212,7 @@ const Index = () => {
     
     if (activeCount <= 1 && habitToDelete?.active) {
       toast({
-        title: translations.habits.atLeastOne,
+        title: t.habits.atLeastOne,
         variant: "destructive",
       });
       setDeletingHabitId(null);
@@ -154,42 +220,64 @@ const Index = () => {
     }
     
     setState((prev) => deleteHabit(prev, deletingHabitId));
-    toast({ title: "Hábito eliminado" });
+    toast({ title: t.habits.habitDeleted });
     setDeletingHabitId(null);
   };
+
+  const dateLabel = isToday(selectedDate) 
+    ? t.dashboard.today 
+    : formatDate(selectedDate, locale === 'pt-PT' ? "d 'de' MMMM" : "MMMM d");
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
       <Navigation />
 
-      <main className="container py-8 space-y-8">
-        {/* KPI Cards */}
+      <main className="container py-6 md:py-8 space-y-6 md:space-y-8">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gradient">
+              {t.dashboard.title}
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              {t.app.tagline}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full glass text-sm">
+              <Zap className="h-4 w-4 text-primary" />
+              <span className="font-medium">{t.kpis.level} {state.gamification?.nivel || 1}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* KPI Cards - Premium Glass Style */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <KPICard
-            title={translations.kpis.currentStreak}
+            title={t.kpis.currentStreak}
             value={monthlySummary.streakAtual}
-            subtitle={translations.kpis.days}
+            subtitle={t.kpis.days}
             icon={<Flame className="h-5 w-5" />}
             variant="primary"
           />
           <KPICard
-            title={translations.kpis.bestStreak}
+            title={t.kpis.bestStreak}
             value={monthlySummary.melhorStreak}
-            subtitle={translations.kpis.days}
+            subtitle={t.kpis.days}
             icon={<Trophy className="h-5 w-5" />}
             variant="warning"
           />
           <KPICard
-            title={translations.kpis.totalProgress}
-            value={`${Math.round(monthlySummary.progressoMensal)}%`}
-            subtitle={`${monthlySummary.totalDone} ${translations.kpis.ofTotal} ${monthlySummary.totalPossible}`}
+            title={t.dashboard.consistencyScore}
+            value={`${consistencyScore}%`}
+            subtitle={`${monthlySummary.totalDone} ${t.kpis.ofTotal} ${monthlySummary.totalPossible}`}
             icon={<TrendingUp className="h-5 w-5" />}
             variant="success"
           />
           <KPICard
-            title={translations.kpis.activeHabits}
+            title={t.kpis.activeHabits}
             value={monthlySummary.habitosAtivos}
-            subtitle={`${translations.kpis.ofTotal} ${monthlySummary.habitosTotal}`}
+            subtitle={`${t.kpis.ofTotal} ${monthlySummary.habitosTotal}`}
             icon={<Target className="h-5 w-5" />}
             variant="default"
           />
@@ -202,11 +290,11 @@ const Index = () => {
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Left Column: Chart + Mini Cards */}
           <div className="space-y-6 lg:col-span-2">
-            {/* Weekly Chart */}
-            <Card className="border-border/50 shadow-lg">
+            {/* Weekly Chart - Premium Card */}
+            <Card className="premium-card border-border/30 overflow-hidden">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-lg font-semibold">
-                  {translations.dashboard.weeklyEvolution}
+                  {t.dashboard.weeklyEvolution}
                 </CardTitle>
                 <MonthSelector
                   year={currentYear}
@@ -221,52 +309,93 @@ const Index = () => {
               </CardContent>
             </Card>
 
-            {/* Mini Cards Row */}
-            <div className="grid gap-4 sm:grid-cols-2">
+            {/* Mini Cards Row - Premium Design */}
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {/* Savings Mini Card */}
-              <Card className="border-border/50 shadow-lg hover:shadow-xl transition-shadow">
+              <Card className="premium-card group hover:glow-subtle transition-all duration-300">
                 <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2 text-base">
-                    <PiggyBank className="h-5 w-5 text-success" />
-                    Mealheiro
+                  <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                    <div className="p-1.5 rounded-lg bg-success/10">
+                      <PiggyBank className="h-4 w-4 text-success" />
+                    </div>
+                    {t.dashboard.piggyBank}
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-2">
+                <CardContent className="space-y-3">
                   <div>
                     <p className="text-2xl font-bold text-success">
-                      {savingsSummary.totalPoupadoMesAtual.toFixed(2)} €
+                      {formatCurrency(savingsSummary.totalPoupadoMesAtual)}
                     </p>
-                    <p className="text-xs text-muted-foreground">este mês</p>
+                    <p className="text-xs text-muted-foreground">{t.dashboard.thisMonth}</p>
                   </div>
-                  <div className="text-sm text-muted-foreground">
-                    Total: <span className="font-medium text-foreground">{savingsSummary.totalPoupadoAllTime.toFixed(2)} €</span>
+                  <div className="text-xs text-muted-foreground">
+                    {t.dashboard.total}: <span className="font-medium text-foreground">{formatCurrency(savingsSummary.totalPoupadoAllTime)}</span>
                   </div>
-                  <Link to="/progresso">
-                    <Button variant="ghost" size="sm" className="w-full mt-2">
-                      Ver detalhes
+                  <Link to="/financas">
+                    <Button variant="ghost" size="sm" className="w-full mt-1 group-hover:bg-success/10 group-hover:text-success">
+                      {t.dashboard.viewDetails}
+                      <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+
+              {/* Trackers Mini Card */}
+              <Card className="premium-card group hover:glow-subtle transition-all duration-300">
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                    <div className="p-1.5 rounded-lg bg-primary/10">
+                      <Activity className="h-4 w-4 text-primary" />
+                    </div>
+                    {t.trackers.title}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div>
+                    <p className="text-2xl font-bold text-primary">
+                      {trackerSummary.formattedMonthSavings}
+                    </p>
+                    <p className="text-xs text-muted-foreground">{t.trackers.monthSavings}</p>
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {trackerSummary.activeCount} {t.kpis.activeHabits.toLowerCase()}
+                  </div>
+                  <Link to="/objetivos">
+                    <Button variant="ghost" size="sm" className="w-full mt-1 group-hover:bg-primary/10 group-hover:text-primary">
+                      {t.dashboard.viewDetails}
+                      <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
                   </Link>
                 </CardContent>
               </Card>
 
               {/* Shopping List Mini Card */}
-              <Card className="border-border/50 shadow-lg hover:shadow-xl transition-shadow">
+              <Card className="premium-card group hover:glow-subtle transition-all duration-300">
                 <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2 text-base">
-                    <ShoppingCart className="h-5 w-5 text-primary" />
-                    Lista de Compras
+                  <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                    <div className="p-1.5 rounded-lg bg-warning/10">
+                      <ShoppingCart className="h-4 w-4 text-warning" />
+                    </div>
+                    {t.dashboard.shoppingList}
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-2">
+                <CardContent className="space-y-3">
                   <div>
-                    <p className="text-2xl font-bold text-primary">
+                    <p className="text-2xl font-bold text-warning">
                       {shoppingData.doneCount}/{shoppingData.totalCount}
                     </p>
-                    <p className="text-xs text-muted-foreground">itens esta semana</p>
+                    <p className="text-xs text-muted-foreground">{t.dashboard.itemsThisWeek}</p>
                   </div>
+                  {shoppingData.totalCount > 0 && (
+                    <Progress 
+                      value={(shoppingData.doneCount / shoppingData.totalCount) * 100} 
+                      className="h-1.5"
+                    />
+                  )}
                   <Link to="/compras">
-                    <Button variant="ghost" size="sm" className="w-full mt-2">
-                      Ver lista
+                    <Button variant="ghost" size="sm" className="w-full mt-1 group-hover:bg-warning/10 group-hover:text-warning">
+                      {t.dashboard.viewList}
+                      <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
                   </Link>
                 </CardContent>
@@ -274,13 +403,18 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Right Column: Habits */}
-          <Card className="border-border/50 shadow-lg">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-sm text-muted-foreground">
-                {isToday(selectedDate)
-                  ? "Hoje"
-                  : format(selectedDate, "d 'de' MMMM")}
+          {/* Right Column: Today's Habits */}
+          <Card className="premium-card h-fit">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center justify-between">
+                <span className="text-sm font-medium text-muted-foreground">
+                  {dateLabel}
+                </span>
+                {isToday(selectedDate) && (
+                  <span className="px-2 py-0.5 text-xs rounded-full bg-primary/10 text-primary font-medium">
+                    {t.dashboard.today}
+                  </span>
+                )}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -320,17 +454,17 @@ const Index = () => {
         open={!!deletingHabitId}
         onOpenChange={() => setDeletingHabitId(null)}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="glass-strong">
           <AlertDialogHeader>
-            <AlertDialogTitle>{translations.habits.delete}</AlertDialogTitle>
+            <AlertDialogTitle>{t.habits.delete}</AlertDialogTitle>
             <AlertDialogDescription>
-              {translations.habits.confirmDelete}
+              {t.habits.confirmDelete}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{translations.habits.cancel}</AlertDialogCancel>
+            <AlertDialogCancel>{t.habits.cancel}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteHabit}>
-              {translations.habits.delete}
+              {t.habits.delete}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
