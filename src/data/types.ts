@@ -81,13 +81,77 @@ export interface ShoppingItem {
   done: boolean;
 }
 
+// Tobacco tracking types
+export interface TobaccoConfig {
+  numCigarrosPorMaco: number;
+  precoPorMaco: number;
+  baselineDeclarado: number; // cigarros por dia
+}
+
+export interface CigaretteLog {
+  id: string;
+  timestamp: string; // ISO datetime
+  date: string; // YYYY-MM-DD for grouping
+}
+
+export interface TobaccoSummary {
+  consumoHoje: number;
+  poupancaHoje: number;
+  poupancaMensal: number;
+  poupancaAcumulada: number;
+  streakDiasAbaixoBaseline: number;
+  streakDiasZero: number;
+  mediaUltimos30Dias: number;
+}
+
+// Financial Goals types
+export interface PurchaseGoal {
+  id: string;
+  nome: string;
+  valorAlvo: number;
+  prazoEmDias: number;
+  dataInicio: string; // YYYY-MM-DD
+  fontesPoupanca: ('tabaco' | 'compras' | 'habito' | 'manual')[];
+  contribuicoes: GoalContribution[];
+  completed: boolean;
+  purchaseDetails?: PurchaseDetails;
+  convertedToHabitId?: string;
+}
+
+export interface GoalContribution {
+  id: string;
+  goalId: string;
+  date: string;
+  amount: number;
+  fonte: 'tabaco' | 'compras' | 'habito' | 'manual' | 'investimento';
+  descricao: string;
+  investmentPlatform?: string; // For symbolic investments
+}
+
+export interface PurchaseDetails {
+  loja: string;
+  precoFinal: number;
+  data: string;
+  notas?: string;
+  fotoUrl?: string;
+}
+
 export interface AppState {
   habits: Habit[];
   dailyLogs: DailyLog[];
   gamification: UserGamification;
   savings: SavingsEntry[];
   shoppingItems: ShoppingItem[];
+  tobaccoConfig: TobaccoConfig;
+  cigaretteLogs: CigaretteLog[];
+  purchaseGoals: PurchaseGoal[];
 }
+
+export const DEFAULT_TOBACCO_CONFIG: TobaccoConfig = {
+  numCigarrosPorMaco: 20,
+  precoPorMaco: 6.20,
+  baselineDeclarado: 20, // 1 maço/dia
+};
 
 export const DEFAULT_COLORS = [
   "#14b8a6", // teal
@@ -127,5 +191,23 @@ export const SAVINGS_CATEGORIES = [
   "Poupança",
   "Reembolso",
   "Bónus",
+  "Tabaco",
+  "Outro",
+];
+
+export const GOAL_SOURCES = [
+  { id: 'tabaco', label: 'Poupança Tabaco' },
+  { id: 'compras', label: 'Compras Evitadas' },
+  { id: 'habito', label: 'Ligado a Hábito' },
+  { id: 'manual', label: 'Contribuição Manual' },
+] as const;
+
+export const INVESTMENT_PLATFORMS = [
+  "ETF Genérico",
+  "Certificados de Aforro",
+  "PPR",
+  "Depósito a Prazo",
+  "Ações",
+  "Crypto",
   "Outro",
 ];

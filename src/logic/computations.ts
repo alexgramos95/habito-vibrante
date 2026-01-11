@@ -1,4 +1,7 @@
-import { AppState, MonthlySummary, WeeklySummary, UserSavingsSummary, ACHIEVEMENTS } from "@/data/types";
+import { 
+  AppState, MonthlySummary, WeeklySummary, UserSavingsSummary, ACHIEVEMENTS,
+  TobaccoSummary, PurchaseGoal
+} from "@/data/types";
 import {
   startOfMonth,
   endOfMonth,
@@ -10,6 +13,7 @@ import {
   differenceInDays,
   subDays,
   getDaysInMonth as dateFnsGetDaysInMonth,
+  addDays,
 } from "date-fns";
 
 const formatDate = (date: Date): string => format(date, "yyyy-MM-dd");
@@ -370,4 +374,219 @@ export const getLevelProgress = (pontos: number): { current: number; nextLevel: 
     nextLevel: nivel + 1,
     progress,
   };
+};
+
+// ============= TOBACCO COMPUTATIONS =============
+
+export const calculateTobaccoSummary = (state: AppState): TobaccoSummary => {
+  const { tobaccoConfig, cigaretteLogs } = state;
+  const today = new Date();
+  const todayStr = format(today, "yyyy-MM-dd");
+  
+  // Unit price per cigarette
+  const valorUnit = tobaccoConfig.precoPorMaco / tobaccoConfig.numCigarrosPorMaco;
+  const baselineFinanceiro = tobaccoConfig.baselineDeclarado * valorUnit;
+  
+  // Today's consumption
+  const consumoHoje = cigaretteLogs.filter(l => l.date === todayStr).length;
+  const consumoHojeFinanceiro = consumoHoje * valorUnit;
+  const poupancaHoje = Math.max(0, baselineFinanceiro - consumoHojeFinanceiro);
+  
+  // Monthly consumption
+  const currentMonth = format(today, "yyyy-MM");
+  const logsThisMonth = cigaretteLogs.filter(l => l.date.startsWith(currentMonth));
+  const daysThisMonth = today.getDate();
+  const baselineMensal = baselineFinanceiro * daysThisMonth;
+  const consumoMensal = logsThisMonth.length * valorUnit;
+  const poupancaMensal = Math.max(0, baselineMensal - consumoMensal);
+  
+  // Accumulated savings (all time)
+  const allUniqueDates = [...new Set(cigaretteLogs.map(l => l.date))];
+  const firstLogDate = allUniqueDates.length > 0 
+    ? parseISO(allUniqueDates.sort()[0])
+    : today;
+  const totalDays = Math.max(1, differenceInDays(today, firstLogDate) + 1);
+  const totalBaseline = baselineFinanceiro * totalDays;
+  const totalConsumo = cigaretteLogs.length * valorUnit;
+  const poupancaAcumulada = Math.max(0, totalBaseline - totalConsumo);
+  
+  // Calculate streaks
+  let streakDiasAbaixoBaseline = 0;
+  let streakDiasZero = 0;
+  let checkDate = today;
+  
+  // Streak: days below baseline
+  while (true) {
+    const dateStr = format(checkDate, "yyyy-MM-dd");
+    const count = cigaretteLogs.filter(l => l.date === dateStr).length;
+    if (count < tobaccoConfig.baselineDeclarado) {
+      streakDiasAbaixoBaseline++;
+      checkDate = subDays(checkDate, 1);
+    } else {
+      break;
+    }
+    if (differenceInDays(today, checkDate) > 365) break; // Safety limit
+  }
+  
+  // Streak: zero cigarette days
+  checkDate = today;
+  while (true) {
+    const dateStr = format(checkDate, "yyyy-MM-dd");
+    const count = cigaretteLogs.filter(l => l.date === dateStr).length;
+    if (count === 0) {
+      streakDiasZero++;
+      checkDate = subDays(checkDate, 1);
+    } else {
+      break;
+    }
+    if (differenceInDays(today, checkDate) > 365) break;
+  }
+  
+  // 30-day moving average
+  const last30Days: string[] = [];
+  for (let i = 0; i < 30; i++) {
+    last30Days.push(format(subDays(today, i), "yyyy-MM-dd"));
+  }
+  const logsLast30 = cigaretteLogs.filter(l => last30Days.includes(l.date));
+  const mediaUltimos30Dias = logsLast30.length / 30;
+  
+  return {
+    consumoHoje,
+    poupancaHoje,
+    poupancaMensal,
+    poupancaAcumulada,
+    streakDiasAbaixoBaseline,
+    streakDiasZero,
+    mediaUltimos30Dias,
+  };
+};
+
+export const getTobaccoDailyData = (
+  state: AppState,
+  year: number,
+  month: number
+): { date: string; consumo: number; baseline: number; poupanca: number }[] => {
+  const { tobaccoConfig, cigaretteLogs } = state;
+  const valorUnit = tobaccoConfig.precoPorMaco / tobaccoConfig.numCigarrosPorMaco;
+  const baselineFinanceiro = tobaccoConfig.baselineDeclarado * valorUnit;
+  
+  const days = getDaysInMonth(year, month);
+  const today = new Date();
+  
+  return days
+    .filter(day => !isAfter(day, today))
+    .map(day => {
+      const dateStr = format(day, "yyyy-MM-dd");
+      const consumo = cigaretteLogs.filter(l => l.date === dateStr).length;
+      const consumoFinanceiro = consumo * valorUnit;
+      const poupanca = Math.max(0, baselineFinanceiro - consumoFinanceiro);
+      
+      return {
+        date: dateStr,
+        consumo,
+        baseline: tobaccoConfig.baselineDeclarado,
+        poupanca,
+      };
+    });
+};
+
+// ============= PURCHASE GOALS COMPUTATIONS =============
+
+export const calculateGoalProgress = (goal: PurchaseGoal): {
+  totalContribuido: number;
+  percentual: number;
+  diasRestantes: number;
+  previsaoDias: number;
+  acimaDoPrazo: boolean;
+  mediaContribuicaoDiaria: number;
+} => {
+  const totalContribuido = goal.contribuicoes.reduce((sum, c) => sum + c.amount, 0);
+  const percentual = (totalContribuido / goal.valorAlvo) * 100;
+  
+  const dataInicio = parseISO(goal.dataInicio);
+  const dataFim = addDays(dataInicio, goal.prazoEmDias);
+  const today = new Date();
+  const diasRestantes = Math.max(0, differenceInDays(dataFim, today));
+  
+  // Calculate average daily contribution
+  const diasPassados = Math.max(1, differenceInDays(today, dataInicio));
+  const mediaContribuicaoDiaria = totalContribuido / diasPassados;
+  
+  // Forecast days to complete at current rate
+  const valorRestante = goal.valorAlvo - totalContribuido;
+  const previsaoDias = mediaContribuicaoDiaria > 0 
+    ? Math.ceil(valorRestante / mediaContribuicaoDiaria)
+    : Infinity;
+  
+  // Check if above expected pace
+  const esperadoAgora = (diasPassados / goal.prazoEmDias) * goal.valorAlvo;
+  const acimaDoPrazo = totalContribuido >= esperadoAgora;
+  
+  return {
+    totalContribuido,
+    percentual: Math.min(100, percentual),
+    diasRestantes,
+    previsaoDias: previsaoDias === Infinity ? 999 : previsaoDias,
+    acimaDoPrazo,
+    mediaContribuicaoDiaria,
+  };
+};
+
+export const getFinancialKPIs = (state: AppState, year: number, month: number): {
+  poupancaTabaco: number;
+  contribuicoesInvestimento: number;
+  comprasMetas: number;
+  totalPoupado: number;
+} => {
+  const monthStr = `${year}-${String(month + 1).padStart(2, "0")}`;
+  
+  // Tobacco savings for month
+  const tobaccoSummary = calculateTobaccoSummary(state);
+  const poupancaTabaco = tobaccoSummary.poupancaMensal;
+  
+  // Investment contributions for month
+  const contribuicoesInvestimento = state.purchaseGoals
+    .flatMap(g => g.contribuicoes)
+    .filter(c => c.date.startsWith(monthStr) && c.fonte === 'investimento')
+    .reduce((sum, c) => sum + c.amount, 0);
+  
+  // Purchases made from goals this month
+  const comprasMetas = state.purchaseGoals
+    .filter(g => g.completed && g.purchaseDetails?.data.startsWith(monthStr))
+    .reduce((sum, g) => sum + (g.purchaseDetails?.precoFinal || 0), 0);
+  
+  // Regular savings
+  const savingsThisMonth = state.savings
+    .filter(s => s.date.startsWith(monthStr))
+    .reduce((sum, s) => sum + s.amount, 0);
+  
+  return {
+    poupancaTabaco,
+    contribuicoesInvestimento,
+    comprasMetas,
+    totalPoupado: poupancaTabaco + savingsThisMonth,
+  };
+};
+
+export const getMotivationalFinanceMessage = (
+  tobaccoSummary: TobaccoSummary,
+  goalProgress?: { percentual: number; diasRestantes: number; acimaDoPrazo: boolean }
+): string => {
+  if (tobaccoSummary.poupancaHoje > 0) {
+    return `💰 Hoje poupaste ${tobaccoSummary.poupancaHoje.toFixed(2)}€ por reduzir cigarros!`;
+  }
+  
+  if (tobaccoSummary.streakDiasZero > 0) {
+    return `🌟 ${tobaccoSummary.streakDiasZero} dias sem fumar! Continua assim!`;
+  }
+  
+  if (goalProgress && goalProgress.acimaDoPrazo) {
+    return `🚀 A este ritmo cumpres a meta antes do prazo!`;
+  }
+  
+  if (tobaccoSummary.streakDiasAbaixoBaseline > 3) {
+    return `📉 ${tobaccoSummary.streakDiasAbaixoBaseline} dias abaixo do baseline. Boa redução!`;
+  }
+  
+  return `💪 Cada pequena poupança conta para os teus objetivos!`;
 };
