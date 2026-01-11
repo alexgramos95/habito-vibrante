@@ -1,17 +1,47 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
 import { format as dateFnsFormat, Locale as DateFnsLocale } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { enUS as enUSDateFns } from 'date-fns/locale';
-import {
-  Locale,
-  Currency,
-  locales,
-  currencySymbols,
-  initializeI18n,
-  setStoredLocale,
-  setStoredCurrency,
-  type Translations,
-} from './index';
+import { ptPT } from './locales/pt-PT';
+import { enUS } from './locales/en-US';
+import type { Translations } from './locales/pt-PT';
+
+export type Locale = 'pt-PT' | 'en-US';
+export type Currency = 'EUR' | 'USD';
+
+const locales: Record<Locale, Translations> = {
+  'pt-PT': ptPT,
+  'en-US': enUS,
+};
+
+const currencySymbols: Record<Currency, string> = {
+  EUR: '€',
+  USD: '$',
+};
+
+const LOCALE_STORAGE_KEY = 'become-locale';
+const CURRENCY_STORAGE_KEY = 'become-currency';
+
+const getStoredLocale = (): Locale => {
+  try {
+    const stored = localStorage.getItem(LOCALE_STORAGE_KEY);
+    if (stored === 'pt-PT' || stored === 'en-US') {
+      return stored;
+    }
+  } catch {}
+  const browserLang = navigator.language || 'en-US';
+  return browserLang.startsWith('pt') ? 'pt-PT' : 'en-US';
+};
+
+const getStoredCurrency = (): Currency => {
+  try {
+    const stored = localStorage.getItem(CURRENCY_STORAGE_KEY);
+    if (stored === 'EUR' || stored === 'USD') {
+      return stored;
+    }
+  } catch {}
+  return getStoredLocale() === 'pt-PT' ? 'EUR' : 'USD';
+};
 
 interface I18nContextType {
   locale: Locale;
@@ -35,8 +65,8 @@ const dateFnsLocales: Record<Locale, DateFnsLocale> = {
 };
 
 export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [locale, setLocaleState] = useState<Locale>(() => initializeI18n().locale);
-  const [currency, setCurrencyState] = useState<Currency>(() => initializeI18n().currency);
+  const [locale, setLocaleState] = useState<Locale>(() => getStoredLocale());
+  const [currency, setCurrencyState] = useState<Currency>(() => getStoredCurrency());
 
   const t = useMemo(() => locales[locale], [locale]);
   const dateFnsLocale = useMemo(() => dateFnsLocales[locale], [locale]);
@@ -44,12 +74,16 @@ export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const setLocale = useCallback((newLocale: Locale) => {
     setLocaleState(newLocale);
-    setStoredLocale(newLocale);
+    try {
+      localStorage.setItem(LOCALE_STORAGE_KEY, newLocale);
+    } catch {}
   }, []);
 
   const setCurrencyFn = useCallback((newCurrency: Currency) => {
     setCurrencyState(newCurrency);
-    setStoredCurrency(newCurrency);
+    try {
+      localStorage.setItem(CURRENCY_STORAGE_KEY, newCurrency);
+    } catch {}
   }, []);
 
   const formatCurrency = useCallback((value: number): string => {
