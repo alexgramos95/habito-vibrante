@@ -1,11 +1,11 @@
 {
-  "name": "ITERO",
-  "short_name": "ITERO",
-  "description": "Consistency, Compounded. A behavioral and financial iteration system for personal growth.",
+  "name": "becoMe",
+  "short_name": "becoMe",
+  "description": "Identity-Based Habits. Build who you're becoming.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#080d14",
-  "theme_color": "#14b8a6",
+  "theme_color": "#080d14",
   "orientation": "portrait-primary",
   "icons": [
     {
@@ -13,15 +13,7 @@
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
-    },
-    {
-      "src": "/icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
     }
   ],
-  "categories": ["productivity", "lifestyle", "finance"],
-  "lang": "en",
-  "dir": "ltr"
+  "categories": ["lifestyle", "productivity", "health"]
 }

@@ -1,3 +1,59 @@
+// ============= CORE TRACKER SYSTEM =============
+// Trackers are the central unit-based behavioral tracking system
+// All previous modules (tobacco, objectives) are now generic Trackers
+
+export type TrackerType = 'reduce' | 'increase';
+
+export interface Tracker {
+  id: string;
+  name: string;
+  type: TrackerType;
+  unitSingular: string;
+  unitPlural: string;
+  valuePerUnit: number; // monetary value per unit, 0 if no financial impact
+  baseline: number; // daily baseline (expected/typical amount)
+  dailyGoal?: number; // optional daily target (differs from baseline)
+  includeInFinances: boolean; // whether to show savings in Finanças
+  active: boolean;
+  createdAt: string;
+  icon?: string; // optional emoji/icon
+  color?: string; // optional color override
+}
+
+export interface TrackerEntry {
+  id: string;
+  trackerId: string;
+  timestamp: string; // ISO datetime
+  date: string; // YYYY-MM-DD for grouping
+  quantity: number; // default 1
+  note?: string; // optional note
+}
+
+// Exported for backwards compatibility
+export interface TobaccoSummary {
+  consumoHoje: number;
+  poupancaHoje: number;
+  poupancaMensal: number;
+  poupancaAcumulada: number;
+  streakDiasAbaixoBaseline: number;
+  streakDiasZero: number;
+  mediaUltimos30Dias: number;
+}
+
+export interface TrackerSummary {
+  todayCount: number;
+  todaySavings: number;
+  monthlyCount: number;
+  monthlySavings: number;
+  accumulatedSavings: number;
+  daysOnTrack: number;
+  currentStreak: number;
+  average30Days: number;
+  percentVsBaseline: number;
+}
+
+// ============= HABITS =============
+
 export interface Habit {
   id: string;
   nome: string;
@@ -11,6 +67,128 @@ export interface DailyLog {
   id: string;
   habitId: string;
   date: string; // YYYY-MM-DD format
+  done: boolean;
+}
+
+// ============= REFLECTION & FUTURE SELF =============
+
+export interface DailyReflection {
+  id: string;
+  date: string; // YYYY-MM-DD
+  text: string;
+  mood?: 'positive' | 'neutral' | 'challenging';
+  createdAt: string;
+}
+
+export interface FutureSelfEntry {
+  id: string;
+  date: string;
+  narrative: string; // "Who am I becoming?"
+  themes: string[]; // e.g., ["health", "discipline", "calm"]
+  createdAt: string;
+}
+
+// ============= INVESTMENTS / FINANCIAL GOALS =============
+
+export interface InvestmentGoal {
+  id: string;
+  name: string;
+  targetAmount: number;
+  currentAmount: number;
+  deadline?: string; // YYYY-MM-DD
+  linkedTrackerIds: string[]; // Trackers that contribute savings
+  manualContributions: InvestmentContribution[];
+  completed: boolean;
+  completedAt?: string;
+  createdAt: string;
+}
+
+export interface InvestmentContribution {
+  id: string;
+  goalId: string;
+  date: string;
+  amount: number;
+  source: 'tracker' | 'manual';
+  sourceTrackerId?: string;
+  description?: string;
+}
+
+// ============= SLEEP / CHRONOTYPE =============
+
+export interface SleepEntry {
+  id: string;
+  date: string; // YYYY-MM-DD
+  bedtime?: string; // HH:MM
+  wakeTime?: string; // HH:MM
+  quality?: 1 | 2 | 3 | 4 | 5;
+  notes?: string;
+}
+
+export type Chronotype = 'early' | 'moderate' | 'late';
+
+// ============= GAMIFICATION =============
+
+export interface UserGamification {
+  pontos: number;
+  nivel: number;
+  conquistas: string[]; // achievement IDs
+  consistencyScore: number; // 0-100
+  currentStreak: number;
+  bestStreak: number;
+}
+
+export interface Achievement {
+  id: string;
+  nome: string;
+  descricao: string;
+  icon: string;
+  category: 'streak' | 'consistency' | 'savings' | 'milestone';
+  requirement: number;
+}
+
+export const ACHIEVEMENTS: Achievement[] = [
+  { id: "streak_7", nome: "7 Dias Seguidos", descricao: "7 dias consecutivos", icon: "🔥", category: "streak", requirement: 7 },
+  { id: "streak_14", nome: "2 Semanas Fortes", descricao: "14 dias consecutivos", icon: "💪", category: "streak", requirement: 14 },
+  { id: "streak_30", nome: "Maratonista", descricao: "30 dias consecutivos", icon: "🏆", category: "streak", requirement: 30 },
+  { id: "streak_60", nome: "Transformação", descricao: "60 dias consecutivos", icon: "⚡", category: "streak", requirement: 60 },
+  { id: "streak_90", nome: "Identidade", descricao: "90 dias consecutivos", icon: "🌟", category: "streak", requirement: 90 },
+  { id: "mes_30", nome: "Mês Completo", descricao: "30 dias num mês", icon: "📅", category: "consistency", requirement: 30 },
+  { id: "tres_habitos_ativos", nome: "Tripla Ameaça", descricao: "3+ hábitos ativos", icon: "🎯", category: "milestone", requirement: 3 },
+  { id: "primeiro_habito", nome: "Primeiro Passo", descricao: "Primeiro hábito criado", icon: "🌱", category: "milestone", requirement: 1 },
+  { id: "savings_50", nome: "Poupador", descricao: "50€ poupados", icon: "💰", category: "savings", requirement: 50 },
+  { id: "savings_100", nome: "Centenário", descricao: "100€ poupados", icon: "💎", category: "savings", requirement: 100 },
+  { id: "savings_500", nome: "Investidor", descricao: "500€ poupados", icon: "🏦", category: "savings", requirement: 500 },
+  { id: "tracker_first", nome: "Primeiro Tracker", descricao: "Primeiro tracker criado", icon: "📊", category: "milestone", requirement: 1 },
+  { id: "consistency_80", nome: "Consistente", descricao: "80% consistência num mês", icon: "📈", category: "consistency", requirement: 80 },
+];
+
+// ============= SAVINGS (Manual entries) =============
+
+export interface SavingsEntry {
+  id: string;
+  date: string; // YYYY-MM-DD format
+  amount: number;
+  moeda: string; // default "€"
+  descricao: string;
+  categoria?: string;
+  habitId?: string;
+}
+
+export interface UserSavingsSummary {
+  totalPoupadoAllTime: number;
+  totalPoupadoMesAtual: number;
+  numeroEntradasMesAtual: number;
+}
+
+// ============= SHOPPING =============
+
+export interface ShoppingItem {
+  id: string;
+  weekStartDate: string; // YYYY-MM-DD (Monday of the week)
+  nome: string;
+  quantidade?: string;
+  categoria?: string;
+  price?: number; // optional price tracking
   done: boolean;
 }
 
@@ -31,121 +209,47 @@ export interface MonthlySummary {
   habitosTotal: number;
 }
 
-// Gamification types
-export interface UserGamification {
-  pontos: number;
-  nivel: number;
-  conquistas: string[]; // achievement IDs
-}
+// ============= TRIGGERS =============
 
-export interface Achievement {
+export interface Trigger {
   id: string;
-  nome: string;
-  descricao: string;
-  icon: string;
-}
-
-export const ACHIEVEMENTS: Achievement[] = [
-  { id: "streak_7", nome: "7 Dias Seguidos", descricao: "Manteve pelo menos 1 hábito durante 7 dias consecutivos", icon: "🔥" },
-  { id: "mes_30", nome: "Mês Completo", descricao: "Pelo menos 1 hábito concluído em 30 dias do mesmo mês", icon: "📅" },
-  { id: "tres_habitos_ativos", nome: "Tripla Ameaça", descricao: "3 ou mais hábitos ativos durante um mês inteiro", icon: "⚡" },
-  { id: "primeiro_habito", nome: "Primeiro Passo", descricao: "Criaste o teu primeiro hábito", icon: "🌱" },
-  { id: "streak_14", nome: "2 Semanas Fortes", descricao: "14 dias consecutivos de hábitos", icon: "💪" },
-  { id: "streak_30", nome: "Maratonista", descricao: "30 dias consecutivos de hábitos", icon: "🏆" },
-];
-
-// Savings types
-export interface SavingsEntry {
-  id: string;
-  date: string; // YYYY-MM-DD format
-  amount: number;
-  moeda: string; // default "€"
-  descricao: string;
-  categoria?: string;
-  habitId?: string;
-}
-
-export interface UserSavingsSummary {
-  totalPoupadoAllTime: number;
-  totalPoupadoMesAtual: number;
-  numeroEntradasMesAtual: number;
-}
-
-// Shopping list types
-export interface ShoppingItem {
-  id: string;
-  weekStartDate: string; // YYYY-MM-DD (Monday of the week)
-  nome: string;
-  quantidade?: string;
-  categoria?: string;
-  done: boolean;
-}
-
-// ============= CUSTOMIZABLE TRACKERS =============
-
-export type TrackerType = 'reduce' | 'increase';
-
-export interface Tracker {
-  id: string;
+  type: 'alarm' | 'event';
   name: string;
-  type: TrackerType;
-  unitSingular: string;
-  unitPlural: string;
-  valuePerUnit: number; // monetary value, 0 if no financial impact
-  baseline: number; // daily baseline
-  dailyGoal?: number; // optional daily goal
+  // For alarms
+  time?: string; // HH:MM
+  repeat?: 'daily' | 'weekdays' | 'weekends' | 'custom';
+  customDays?: number[]; // 0-6 for Sun-Sat
+  // For events
+  eventTrigger?: 'wake' | 'sleep' | 'meal' | 'custom';
+  customTrigger?: string;
+  // Common
+  action: string;
+  linkedHabitId?: string;
+  linkedTrackerId?: string;
   active: boolean;
   createdAt: string;
 }
 
-export interface TrackerEntry {
-  id: string;
-  trackerId: string;
-  timestamp: string; // ISO datetime
-  date: string; // YYYY-MM-DD for grouping
-  quantity: number; // default 1
-}
+// ============= LEGACY (for migration) =============
 
-export interface TrackerSummary {
-  todayCount: number;
-  todaySavings: number;
-  monthlyCount: number;
-  monthlySavings: number;
-  accumulatedSavings: number;
-  daysOnTrack: number;
-  average30Days: number;
-}
-
-// Legacy Tobacco types (migrated to trackers)
 export interface TobaccoConfig {
   numCigarrosPorMaco: number;
   precoPorMaco: number;
-  baselineDeclarado: number; // cigarros por dia
+  baselineDeclarado: number;
 }
 
 export interface CigaretteLog {
   id: string;
-  timestamp: string; // ISO datetime
-  date: string; // YYYY-MM-DD for grouping
+  timestamp: string;
+  date: string;
 }
 
-export interface TobaccoSummary {
-  consumoHoje: number;
-  poupancaHoje: number;
-  poupancaMensal: number;
-  poupancaAcumulada: number;
-  streakDiasAbaixoBaseline: number;
-  streakDiasZero: number;
-  mediaUltimos30Dias: number;
-}
-
-// Financial Goals types
 export interface PurchaseGoal {
   id: string;
   nome: string;
   valorAlvo: number;
   prazoEmDias: number;
-  dataInicio: string; // YYYY-MM-DD
+  dataInicio: string;
   fontesPoupanca: ('tabaco' | 'compras' | 'habito' | 'manual')[];
   contribuicoes: GoalContribution[];
   completed: boolean;
@@ -160,7 +264,7 @@ export interface GoalContribution {
   amount: number;
   fonte: 'tabaco' | 'compras' | 'habito' | 'manual' | 'investimento';
   descricao: string;
-  investmentPlatform?: string; // For symbolic investments
+  investmentPlatform?: string;
 }
 
 export interface PurchaseDetails {
@@ -171,25 +275,37 @@ export interface PurchaseDetails {
   fotoUrl?: string;
 }
 
+// ============= APP STATE =============
+
 export interface AppState {
+  // Core
   habits: Habit[];
   dailyLogs: DailyLog[];
+  trackers: Tracker[];
+  trackerEntries: TrackerEntry[];
+  
+  // New modules
+  reflections: DailyReflection[];
+  futureSelf: FutureSelfEntry[];
+  investmentGoals: InvestmentGoal[];
+  sleepEntries: SleepEntry[];
+  triggers: Trigger[];
+  
+  // Existing
   gamification: UserGamification;
   savings: SavingsEntry[];
   shoppingItems: ShoppingItem[];
-  // Legacy tobacco (for migration)
+  
+  // Legacy (kept for migration)
   tobaccoConfig: TobaccoConfig;
   cigaretteLogs: CigaretteLog[];
-  // New tracker system
-  trackers: Tracker[];
-  trackerEntries: TrackerEntry[];
   purchaseGoals: PurchaseGoal[];
 }
 
 export const DEFAULT_TOBACCO_CONFIG: TobaccoConfig = {
   numCigarrosPorMaco: 20,
   precoPorMaco: 6.20,
-  baselineDeclarado: 20, // 1 maço/dia
+  baselineDeclarado: 20,
 };
 
 export const DEFAULT_COLORS = [
@@ -230,16 +346,21 @@ export const SAVINGS_CATEGORIES = [
   "Poupança",
   "Reembolso",
   "Bónus",
-  "Tabaco",
+  "Tracker",
   "Outro",
 ];
 
-export const GOAL_SOURCES = [
-  { id: 'tabaco', label: 'Poupança Tabaco' },
-  { id: 'compras', label: 'Compras Evitadas' },
-  { id: 'habito', label: 'Ligado a Hábito' },
-  { id: 'manual', label: 'Contribuição Manual' },
-] as const;
+// Tracker templates for quick setup
+export const TRACKER_TEMPLATES = [
+  { name: "Cigarros", type: "reduce" as const, unit: "cigarro", unitPlural: "cigarros", baseline: 20, valuePerUnit: 0.31, icon: "🚬" },
+  { name: "Café", type: "reduce" as const, unit: "café", unitPlural: "cafés", baseline: 3, valuePerUnit: 1.20, icon: "☕" },
+  { name: "Álcool", type: "reduce" as const, unit: "bebida", unitPlural: "bebidas", baseline: 2, valuePerUnit: 4.00, icon: "🍺" },
+  { name: "Exercício", type: "increase" as const, unit: "minuto", unitPlural: "minutos", baseline: 0, valuePerUnit: 0, icon: "🏃" },
+  { name: "Água", type: "increase" as const, unit: "copo", unitPlural: "copos", baseline: 0, valuePerUnit: 0, icon: "💧" },
+  { name: "Passos", type: "increase" as const, unit: "passo", unitPlural: "passos", baseline: 0, valuePerUnit: 0, icon: "👣" },
+  { name: "Leitura", type: "increase" as const, unit: "página", unitPlural: "páginas", baseline: 0, valuePerUnit: 0, icon: "📚" },
+  { name: "Meditação", type: "increase" as const, unit: "minuto", unitPlural: "minutos", baseline: 0, valuePerUnit: 0, icon: "🧘" },
+];
 
 export const INVESTMENT_PLATFORMS = [
   "ETF Genérico",
@@ -250,3 +371,8 @@ export const INVESTMENT_PLATFORMS = [
   "Crypto",
   "Outro",
 ];
+
+export const GOAL_SOURCES = [
+  { id: 'tracker', label: 'Poupança de Tracker' },
+  { id: 'manual', label: 'Contribuição Manual' },
+] as const;
