@@ -581,6 +581,19 @@ export const ptPT = {
     recoverAction: "Recuperar",
     skipAction: "Saltar",
   },
+  subscription: {
+    trial: "Trial",
+    pro: "Pro",
+    free: "Grátis",
+    daysLeft: "dias restantes",
+    upgrade: "Atualizar",
+    trialEnded: "Trial terminado",
+    unlimitedHabits: "Hábitos ilimitados",
+    unlimitedTrackers: "Trackers ilimitados",
+    fullCalendar: "Histórico completo",
+    financesAccess: "Dashboard financeiro",
+    exportAccess: "Exportar (CSV/PDF)",
+  },
 };
 
 export type Translations = {
