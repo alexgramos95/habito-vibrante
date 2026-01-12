@@ -11,7 +11,6 @@ import Objetivos from "./pages/Objetivos";
 import Calendario from "./pages/Calendario";
 import Financas from "./pages/Financas";
 import Compras from "./pages/Compras";
-import Triggers from "./pages/Triggers";
 import Perfil from "./pages/Perfil";
 import Onboarding from "./pages/Onboarding";
 import Progresso from "./pages/Progresso";
@@ -35,12 +34,12 @@ const App = () => (
             <Route path="/calendario" element={<Calendario />} />
             <Route path="/financas" element={<Financas />} />
             <Route path="/compras" element={<Compras />} />
-            <Route path="/triggers" element={<Triggers />} />
             <Route path="/perfil" element={<Perfil />} />
             <Route path="/onboarding" element={<Onboarding />} />
             
             {/* Legacy routes for backwards compatibility */}
             <Route path="/habitos" element={<Index />} />
+            <Route path="/triggers" element={<Index />} />
             <Route path="/progresso" element={<Progresso />} />
             <Route path="/definicoes" element={<Definicoes />} />
             

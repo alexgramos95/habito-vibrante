@@ -280,14 +280,18 @@ export const addTrackerEntry = (
   state: AppState,
   trackerId: string,
   quantity: number = 1,
-  note?: string
+  note?: string,
+  customTimestamp?: string // Optional: allow custom timestamp for editing
 ): AppState => {
   const now = new Date();
+  const timestamp = customTimestamp || now.toISOString();
+  const entryDate = customTimestamp ? format(new Date(customTimestamp), "yyyy-MM-dd") : format(now, "yyyy-MM-dd");
+  
   const newEntry: TrackerEntry = {
     id: generateId(),
     trackerId,
-    timestamp: now.toISOString(),
-    date: format(now, "yyyy-MM-dd"),
+    timestamp,
+    date: entryDate,
     quantity,
     note,
   };
@@ -304,6 +308,28 @@ export const addTrackerEntry = (
       pontos: newPontos,
       nivel: newNivel,
     },
+  };
+};
+
+export const updateTrackerEntry = (
+  state: AppState,
+  entryId: string,
+  updates: Partial<TrackerEntry>
+): AppState => {
+  return {
+    ...state,
+    trackerEntries: state.trackerEntries.map((e) => 
+      e.id === entryId 
+        ? { 
+            ...e, 
+            ...updates,
+            // Update date if timestamp changed
+            date: updates.timestamp 
+              ? format(new Date(updates.timestamp), "yyyy-MM-dd") 
+              : e.date
+          } 
+        : e
+    ),
   };
 };
 
@@ -770,6 +796,7 @@ export const migrateTobacoToTracker = (state: AppState): AppState => {
     id: generateId(),
     name: "Cigarros",
     type: "reduce",
+    inputMode: "incremental",
     unitSingular: "cigarro",
     unitPlural: "cigarros",
     valuePerUnit: valorUnit,

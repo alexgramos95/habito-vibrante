@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Tracker, TrackerType, TrackerFrequency, TRACKER_TEMPLATES } from "@/data/types";
+import { Tracker, TrackerType, TrackerFrequency, TrackerInputMode, TRACKER_TEMPLATES } from "@/data/types";
 import { useI18n } from "@/i18n/I18nContext";
 import { cn } from "@/lib/utils";
 
@@ -45,6 +45,7 @@ export const TrackerEditDialog = ({
   const [formData, setFormData] = useState({
     name: "",
     type: "reduce" as TrackerType,
+    inputMode: "incremental" as TrackerInputMode,
     unitSingular: "",
     unitPlural: "",
     valuePerUnit: "0",
@@ -52,6 +53,7 @@ export const TrackerEditDialog = ({
     dailyGoal: "",
     frequency: "daily" as TrackerFrequency,
     specificDays: [] as number[],
+    scheduledDays: [] as number[],
     icon: "🎯",
     active: true,
     includeInFinances: false,
@@ -65,6 +67,7 @@ export const TrackerEditDialog = ({
       setFormData({
         name: tracker.name,
         type: tracker.type,
+        inputMode: tracker.inputMode || "incremental",
         unitSingular: tracker.unitSingular,
         unitPlural: tracker.unitPlural,
         valuePerUnit: tracker.valuePerUnit.toString(),
@@ -72,6 +75,7 @@ export const TrackerEditDialog = ({
         dailyGoal: tracker.dailyGoal?.toString() || "",
         frequency: tracker.frequency || "daily",
         specificDays: tracker.specificDays || [],
+        scheduledDays: tracker.scheduledDays || [],
         icon: tracker.icon || "🎯",
         active: tracker.active,
         includeInFinances: tracker.includeInFinances,
@@ -82,6 +86,7 @@ export const TrackerEditDialog = ({
       setFormData({
         name: "",
         type: "reduce",
+        inputMode: "incremental",
         unitSingular: "",
         unitPlural: "",
         valuePerUnit: "0",
@@ -89,6 +94,7 @@ export const TrackerEditDialog = ({
         dailyGoal: "",
         frequency: "daily",
         specificDays: [],
+        scheduledDays: [],
         icon: "🎯",
         active: true,
         includeInFinances: false,
@@ -98,9 +104,15 @@ export const TrackerEditDialog = ({
   }, [tracker, open]);
 
   const handleTemplateSelect = (template: typeof TRACKER_TEMPLATES[0]) => {
+    // Determine inputMode based on type
+    let inputMode: TrackerInputMode = "incremental";
+    if (template.type === "boolean") inputMode = "binary";
+    else if (template.type === "increase" && template.baseline > 0) inputMode = "fixedAmount";
+    
     setFormData({
       name: template.name,
       type: template.type,
+      inputMode,
       unitSingular: template.unit,
       unitPlural: template.unitPlural,
       valuePerUnit: template.valuePerUnit.toString(),
@@ -108,6 +120,7 @@ export const TrackerEditDialog = ({
       dailyGoal: "",
       frequency: template.frequency || "daily",
       specificDays: [],
+      scheduledDays: [],
       icon: template.icon,
       active: true,
       includeInFinances: template.valuePerUnit > 0,
@@ -119,19 +132,21 @@ export const TrackerEditDialog = ({
   const handleSave = () => {
     if (!formData.name.trim()) return;
     
-    // For boolean type, units are not needed
-    const isBooleanType = formData.type === "boolean";
+    // For binary type, units are not needed
+    const isBinaryType = formData.type === "boolean" || formData.inputMode === "binary";
     
     onSave({
       name: formData.name.trim(),
       type: formData.type,
-      unitSingular: isBooleanType ? "" : formData.unitSingular.trim(),
-      unitPlural: isBooleanType ? "" : (formData.unitPlural.trim() || formData.unitSingular.trim() + "s"),
+      inputMode: formData.inputMode,
+      unitSingular: isBinaryType ? "" : formData.unitSingular.trim(),
+      unitPlural: isBinaryType ? "" : (formData.unitPlural.trim() || formData.unitSingular.trim() + "s"),
       valuePerUnit: parseFloat(formData.valuePerUnit) || 0,
       baseline: parseInt(formData.baseline) || 0,
       dailyGoal: formData.dailyGoal ? parseInt(formData.dailyGoal) : undefined,
       frequency: formData.frequency,
       specificDays: formData.frequency === "specific_days" ? formData.specificDays : undefined,
+      scheduledDays: formData.scheduledDays.length > 0 ? formData.scheduledDays : undefined,
       icon: formData.icon,
       active: formData.active,
       includeInFinances: Math.abs(parseFloat(formData.valuePerUnit)) > 0,
@@ -235,7 +250,13 @@ export const TrackerEditDialog = ({
               <Label>{t.trackers.type}</Label>
               <Select
                 value={formData.type}
-                onValueChange={(value: TrackerType) => setFormData(prev => ({ ...prev, type: value }))}
+                onValueChange={(value: TrackerType) => {
+                  // Auto-set inputMode based on type
+                  let newInputMode = formData.inputMode;
+                  if (value === "boolean") newInputMode = "binary";
+                  else if (value === "event") newInputMode = "incremental";
+                  setFormData(prev => ({ ...prev, type: value, inputMode: newInputMode }));
+                }}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -249,6 +270,31 @@ export const TrackerEditDialog = ({
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">{typeDescriptions[formData.type]}</p>
+            </div>
+
+            {/* Input Mode */}
+            <div className="space-y-2">
+              <Label>Modo de Input</Label>
+              <Select
+                value={formData.inputMode}
+                onValueChange={(value: TrackerInputMode) => setFormData(prev => ({ ...prev, inputMode: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="binary">✅ Binário (feito/não feito)</SelectItem>
+                  <SelectItem value="fixedAmount">🎯 Quantidade fixa (1 clique = meta)</SelectItem>
+                  <SelectItem value="incremental">➕ Incremental (+1 por clique)</SelectItem>
+                  <SelectItem value="manualAmount">✏️ Manual (inserir valor)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                {formData.inputMode === "binary" && "Um clique marca o dia como completo"}
+                {formData.inputMode === "fixedAmount" && "Um clique regista a meta diária completa"}
+                {formData.inputMode === "incremental" && "Cada clique adiciona +1 unidade à timeline"}
+                {formData.inputMode === "manualAmount" && "Abre campo para inserir quantidade personalizada"}
+              </p>
             </div>
 
             {/* Units - hide for boolean */}

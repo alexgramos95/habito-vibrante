@@ -1,7 +1,7 @@
 import { NavLink } from "react-router-dom";
 import { 
   LayoutDashboard, Target, Calendar, Wallet, 
-  ShoppingCart, Bell, User
+  ShoppingCart, User
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n/I18nContext";
@@ -18,7 +18,6 @@ export const Navigation = () => {
   ];
 
   const secondaryNavItems = [
-    { to: "/triggers", label: t.nav.triggers, icon: Bell },
     { to: "/perfil", label: t.nav.profile, icon: User },
   ];
 

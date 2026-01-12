@@ -5,10 +5,18 @@
 export type TrackerType = 'reduce' | 'increase' | 'boolean' | 'event' | 'neutral';
 export type TrackerFrequency = 'daily' | 'weekly' | 'specific_days' | 'flex';
 
+// Input mode defines how user enters data for this tracker
+export type TrackerInputMode = 
+  | 'binary'        // Done/Not done (1 click = day complete)
+  | 'fixedAmount'   // Fixed daily amount (1 click = goal complete)
+  | 'incremental'   // +1 per click with timeline
+  | 'manualAmount'; // User enters custom value
+
 export interface Tracker {
   id: string;
   name: string;
   type: TrackerType;
+  inputMode: TrackerInputMode; // How user interacts with this tracker
   unitSingular: string;
   unitPlural: string;
   valuePerUnit: number; // monetary value per unit, 0 if no financial impact (can be negative for expenses like events)
@@ -22,14 +30,15 @@ export interface Tracker {
   frequency: TrackerFrequency; // tracking frequency
   specificDays?: number[]; // 0-6 for Sun-Sat when frequency is 'specific_days'
   scheduledTime?: string; // HH:MM format for scheduled reminder time
+  scheduledDays?: number[]; // 0-6 for Sun-Sat for reminder days
 }
 
 export interface TrackerEntry {
   id: string;
   trackerId: string;
-  timestamp: string; // ISO datetime
+  timestamp: string; // ISO datetime - editable by user
   date: string; // YYYY-MM-DD for grouping
-  quantity: number; // default 1, for boolean always 1
+  quantity: number; // default 1, for binary always 1
   note?: string; // optional note
 }
 
@@ -65,9 +74,10 @@ export interface Habit {
   cor?: string;
   active: boolean;
   createdAt: string;
-  // Scheduling fields
+  // Scheduling and reminder fields (replaces Triggers)
   scheduledTime?: string; // HH:MM format for scheduled time
   scheduledDays?: number[]; // 0-6 for Sun-Sat, empty = every day
+  reminderEnabled?: boolean; // Whether to show reminder notifications
 }
 
 export interface DailyLog {
@@ -75,6 +85,7 @@ export interface DailyLog {
   habitId: string;
   date: string; // YYYY-MM-DD format
   done: boolean;
+  completedAt?: string; // ISO datetime when completed
 }
 
 // ============= REFLECTION & FUTURE SELF =============
