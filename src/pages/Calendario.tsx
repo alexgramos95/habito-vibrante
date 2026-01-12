@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday, isFuture, getDay, startOfWeek, endOfWeek, addDays, subDays, addWeeks, subWeeks } from "date-fns";
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday, isFuture, getDay, startOfWeek, endOfWeek, addDays, subDays, addWeeks, subWeeks, differenceInWeeks } from "date-fns";
 import { pt, enUS as enUSLocale } from "date-fns/locale";
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Flame, Check, X, Clock, PenLine, ShoppingCart } from "lucide-react";
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Flame, Check, X, Clock, PenLine, ShoppingCart, Lock } from "lucide-react";
 import { AppState, Habit, Tracker, DailyReflection, ShoppingItem } from "@/data/types";
 import { loadState, saveState, toggleDailyLog, getReflectionForDate } from "@/data/storage";
 import { getCompletedHabitsOnDate, getActiveHabits } from "@/logic/computations";
@@ -15,6 +15,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useI18n } from "@/i18n/I18nContext";
 import { cn } from "@/lib/utils";
+import { useSubscription } from "@/hooks/useSubscription";
+import { PaywallModal } from "@/components/Paywall/PaywallModal";
+import { TrialBanner } from "@/components/Paywall/TrialBanner";
 
 type ViewMode = "daily" | "weekly" | "monthly";
 
@@ -27,8 +30,19 @@ const Calendario = () => {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [showDayDetail, setShowDayDetail] = useState(false);
   const [detailDate, setDetailDate] = useState<Date | null>(null);
+  const [showPaywall, setShowPaywall] = useState(false);
+  const { isPro, trialStatus, upgradeToPro, getLimits } = useSubscription();
   
   const dateLocale = locale === 'pt-PT' ? pt : enUSLocale;
+  const limits = getLimits();
+  
+  // Check if date is within allowed history
+  const isDateAccessible = (date: Date): boolean => {
+    if (isPro) return true;
+    const today = new Date();
+    const daysBack = Math.floor((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+    return daysBack <= (limits.calendarDaysBack as number);
+  };
 
   useEffect(() => {
     saveState(state);
@@ -169,6 +183,11 @@ const Calendario = () => {
 
   const openDayDetail = (date: Date) => {
     if (!isFuture(date)) {
+      // Check if date is accessible (within free limits)
+      if (!isDateAccessible(date)) {
+        setShowPaywall(true);
+        return;
+      }
       setDetailDate(date);
       setShowDayDetail(true);
     }
@@ -188,6 +207,7 @@ const Calendario = () => {
     const isPartial = data.completedHabits > 0 && data.completedHabits < data.totalHabits;
     const hasReflection = !!data.reflection;
     const hasTrackerActivity = data.trackerCount > 0;
+    const isLocked = !isFutureDate && !isDateAccessible(date);
 
     return (
       <button
@@ -198,21 +218,30 @@ const Calendario = () => {
           "relative aspect-square flex flex-col items-center justify-center rounded-xl text-sm font-medium transition-all duration-200",
           "hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary/50",
           isFutureDate && "cursor-not-allowed opacity-30",
-          !isFutureDate && !isComplete && !isPartial && "bg-secondary/50 text-muted-foreground hover:bg-secondary",
-          isPartial && "bg-primary/20 text-primary",
-          isComplete && "bg-primary text-primary-foreground shadow-lg",
+          isLocked && "opacity-50",
+          !isFutureDate && !isComplete && !isPartial && !isLocked && "bg-secondary/50 text-muted-foreground hover:bg-secondary",
+          !isLocked && isPartial && "bg-primary/20 text-primary",
+          !isLocked && isComplete && "bg-primary text-primary-foreground shadow-lg",
           isTodayDate && "ring-2 ring-primary ring-offset-2 ring-offset-background"
         )}
       >
-        <span className="text-lg">{format(date, "d")}</span>
-        {!isFutureDate && data.totalHabits > 0 && (
-          <span className="text-xs opacity-80">{data.completedHabits}/{data.totalHabits}</span>
+        {isLocked ? (
+          <Lock className="h-4 w-4 text-muted-foreground" />
+        ) : (
+          <>
+            <span className="text-lg">{format(date, "d")}</span>
+            {!isFutureDate && data.totalHabits > 0 && (
+              <span className="text-xs opacity-80">{data.completedHabits}/{data.totalHabits}</span>
+            )}
+          </>
         )}
         {/* Indicators */}
-        <div className="absolute bottom-1 flex gap-0.5">
-          {hasReflection && <div className="w-1.5 h-1.5 rounded-full bg-accent" />}
-          {hasTrackerActivity && <div className="w-1.5 h-1.5 rounded-full bg-warning" />}
-        </div>
+        {!isLocked && (
+          <div className="absolute bottom-1 flex gap-0.5">
+            {hasReflection && <div className="w-1.5 h-1.5 rounded-full bg-accent" />}
+            {hasTrackerActivity && <div className="w-1.5 h-1.5 rounded-full bg-warning" />}
+          </div>
+        )}
       </button>
     );
   };
@@ -636,6 +665,15 @@ const Calendario = () => {
       </main>
 
       {renderDayDetail()}
+
+      {/* Paywall Modal */}
+      <PaywallModal
+        open={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        onUpgrade={upgradeToPro}
+        trigger="calendar"
+        trialDaysLeft={trialStatus.daysRemaining}
+      />
     </div>
   );
 };
