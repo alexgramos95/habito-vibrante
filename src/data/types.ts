@@ -86,6 +86,18 @@ export interface DailyLog {
   date: string; // YYYY-MM-DD format
   done: boolean;
   completedAt?: string; // ISO datetime when completed
+  isBounceback?: boolean; // true if this was recovered via bounceback
+  bouncebackAt?: string; // ISO datetime when bounceback was used
+}
+
+// Weekly consistency tracking
+export interface WeeklyStats {
+  weekStart: string; // YYYY-MM-DD (Monday)
+  wins: number; // days with all habits done (including bounceback)
+  bouncebacks: number; // days recovered via bounceback
+  misses: number; // days with incomplete habits (not recovered)
+  consistency: number; // wins / 7 as percentage
+  signal: 'consistent' | 'recovered' | 'bounceback' | 'building'; // weekly identity signal
 }
 
 // ============= REFLECTION & FUTURE SELF =============

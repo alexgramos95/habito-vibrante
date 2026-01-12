@@ -220,6 +220,49 @@ export const isHabitDoneOnDate = (
   );
 };
 
+// Bounceback: recover missed habits for a past date
+export const recoverHabitsForDate = (
+  state: AppState,
+  date: string
+): AppState => {
+  const activeHabits = state.habits.filter(h => h.active);
+  const now = new Date().toISOString();
+  
+  // Find habits not done on this date
+  const missedHabits = activeHabits.filter(habit =>
+    !state.dailyLogs.some(log => 
+      log.habitId === habit.id && 
+      log.date === date && 
+      log.done
+    )
+  );
+  
+  // Create bounceback logs for missed habits
+  const bouncebackLogs: DailyLog[] = missedHabits.map(habit => ({
+    id: generateId(),
+    habitId: habit.id,
+    date,
+    done: true,
+    isBounceback: true,
+    bouncebackAt: now,
+  }));
+  
+  // Award reduced points for bouncebacks (5 instead of 10)
+  const pointsEarned = missedHabits.length * 5;
+  const newPontos = state.gamification.pontos + pointsEarned;
+  const newNivel = Math.floor(newPontos / 500) + 1;
+  
+  return {
+    ...state,
+    dailyLogs: [...state.dailyLogs, ...bouncebackLogs],
+    gamification: {
+      ...state.gamification,
+      pontos: newPontos,
+      nivel: newNivel,
+    },
+  };
+};
+
 // ============= TRACKER OPERATIONS =============
 
 export const addTracker = (

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { format, isToday, isFuture } from "date-fns";
+import { format, isToday, isFuture, subDays } from "date-fns";
 import { 
   Flame, Trophy, TrendingUp, Target, PiggyBank, ShoppingCart, 
   Activity, Zap, ChevronRight, Sparkles
@@ -21,6 +21,7 @@ import {
   addFutureSelfEntry,
   getLatestFutureSelf,
   addTrackerEntry,
+  recoverHabitsForDate,
 } from "@/data/storage";
 import {
   calculateMonthlySummary,
@@ -30,6 +31,7 @@ import {
   calculateSavingsSummary,
   getShoppingItemsForWeek,
 } from "@/logic/computations";
+import { useBounceback } from "@/hooks/useBounceback";
 import { Navigation } from "@/components/Layout/Navigation";
 import { KPICard } from "@/components/Dashboard/KPICard";
 import { WeeklyChart } from "@/components/Dashboard/WeeklyChart";
@@ -46,6 +48,8 @@ import {
 import { ReflectionModal } from "@/components/Dashboard/ReflectionModal";
 import { FutureSelfModal } from "@/components/Dashboard/FutureSelfModal";
 import { WeeklyDrilldownModal } from "@/components/Dashboard/WeeklyDrilldownModal";
+import { WeeklyConsistencyCard } from "@/components/Dashboard/WeeklyConsistencyCard";
+import { BouncebackPrompt } from "@/components/Dashboard/BouncebackPrompt";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -134,8 +138,12 @@ const Index = () => {
   const [showFutureSelfModal, setShowFutureSelfModal] = useState(false);
   const [showWeeklyDrilldown, setShowWeeklyDrilldown] = useState(false);
   const [selectedWeek, setSelectedWeek] = useState<number>(1);
+  const [bouncebackDismissed, setBouncebackDismissed] = useState(false);
 
   const today = format(new Date(), "yyyy-MM-dd");
+  
+  // Bounceback hook
+  const { weeklyStats, yesterdayRecovery } = useBounceback(state);
 
   // Persist state changes
   useEffect(() => {
@@ -281,6 +289,17 @@ const Index = () => {
     });
   };
 
+  // Bounceback: recover yesterday
+  const handleRecoverYesterday = () => {
+    const yesterday = format(subDays(new Date(), 1), "yyyy-MM-dd");
+    setState(prev => recoverHabitsForDate(prev, yesterday));
+    setBouncebackDismissed(true);
+    toast({
+      title: t.bounceback.dayRecovered,
+      description: t.bounceback.streakProtected,
+    });
+  };
+
   const dateLabel = isToday(selectedDate) 
     ? t.dashboard.today 
     : formatDate(selectedDate, locale === 'pt-PT' ? "d 'de' MMMM" : "MMMM d");
@@ -346,6 +365,15 @@ const Index = () => {
           />
         </div>
 
+        {/* Bounceback Prompt */}
+        {yesterdayRecovery.canRecover && !bouncebackDismissed && (
+          <BouncebackPrompt
+            missedHabits={yesterdayRecovery.missedHabits}
+            onRecover={handleRecoverYesterday}
+            onDismiss={() => setBouncebackDismissed(true)}
+          />
+        )}
+
         {/* Motivational Banner */}
         <MotivationalBanner summary={monthlySummary} hasHabits={state.habits.length > 0} />
 
@@ -353,6 +381,8 @@ const Index = () => {
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Left Column: Chart + Mini Cards */}
           <div className="space-y-6 lg:col-span-2">
+            {/* Weekly Consistency Card */}
+            <WeeklyConsistencyCard stats={weeklyStats} />
             {/* Weekly Chart - Premium Card */}
             <Card className="premium-card border-border/30 overflow-hidden">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
