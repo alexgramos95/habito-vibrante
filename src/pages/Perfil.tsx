@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/i18n/I18nContext";
 import { localeNames, currencyNames, type Locale, type Currency } from "@/i18n";
 import { AppState, ACHIEVEMENTS } from "@/data/types";
-import { loadState, saveState, getLatestFutureSelf, getReflectionForDate } from "@/data/storage";
+import { loadState, saveState, getLatestFutureSelf, getReflectionForDate, clearAllData } from "@/data/storage";
 import { getLevelProgress, calculateTrackerFinancials } from "@/logic/computations";
 import { cn } from "@/lib/utils";
 import { ResetDataDialog } from "@/components/Profile/ResetDataDialog";
@@ -67,12 +67,8 @@ const Perfil = () => {
   };
 
   const handleResetAllData = () => {
-    // Clear localStorage completely for app data
-    localStorage.removeItem('become-state');
-    
-    // Reload state from storage (will create fresh state)
-    const freshState = loadState();
-    setState(freshState);
+    // Use centralized clearAllData function - clears everything except locale/theme
+    clearAllData();
     
     toast({
       title: locale === 'pt-PT' ? "Dados reiniciados" : "Data reset",
@@ -81,7 +77,7 @@ const Perfil = () => {
         : "All data has been deleted.",
     });
     
-    // Reload page to ensure clean state
+    // Reload page to start fresh
     window.location.reload();
   };
 

@@ -21,6 +21,7 @@ export interface Tracker {
   color?: string; // optional color override
   frequency: TrackerFrequency; // tracking frequency
   specificDays?: number[]; // 0-6 for Sun-Sat when frequency is 'specific_days'
+  scheduledTime?: string; // HH:MM format for scheduled reminder time
 }
 
 export interface TrackerEntry {
@@ -64,6 +65,9 @@ export interface Habit {
   cor?: string;
   active: boolean;
   createdAt: string;
+  // Scheduling fields
+  scheduledTime?: string; // HH:MM format for scheduled time
+  scheduledDays?: number[]; // 0-6 for Sun-Sat, empty = every day
 }
 
 export interface DailyLog {
