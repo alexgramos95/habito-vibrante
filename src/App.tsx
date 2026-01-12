@@ -16,6 +16,7 @@ const Perfil = lazy(() => import("./pages/Perfil"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const Progresso = lazy(() => import("./pages/Progresso"));
 const Definicoes = lazy(() => import("./pages/Definicoes"));
+const Landing = lazy(() => import("./pages/Landing"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Keep QueryClient outside component to prevent recreation
@@ -41,17 +42,26 @@ const App = () => (
               {/* Main routes */}
               <Route path="/" element={<Index />} />
               <Route path="/objetivos" element={<Objetivos />} />
+              <Route path="/trackers" element={<Objetivos />} />
               <Route path="/calendario" element={<Calendario />} />
+              <Route path="/calendar" element={<Calendario />} />
               <Route path="/financas" element={<Financas />} />
+              <Route path="/finances" element={<Financas />} />
               <Route path="/compras" element={<Compras />} />
+              <Route path="/shopping" element={<Compras />} />
               <Route path="/perfil" element={<Perfil />} />
+              <Route path="/profile" element={<Perfil />} />
               <Route path="/onboarding" element={<Onboarding />} />
+              <Route path="/landing" element={<Landing />} />
               
               {/* Legacy routes for backwards compatibility */}
               <Route path="/habitos" element={<Index />} />
+              <Route path="/habits" element={<Index />} />
               <Route path="/triggers" element={<Index />} />
               <Route path="/progresso" element={<Progresso />} />
+              <Route path="/progress" element={<Progresso />} />
               <Route path="/definicoes" element={<Definicoes />} />
+              <Route path="/settings" element={<Definicoes />} />
               
               {/* Catch-all */}
               <Route path="*" element={<NotFound />} />
