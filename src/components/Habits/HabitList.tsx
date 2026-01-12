@@ -1,10 +1,10 @@
-import { Plus } from "lucide-react";
+import { Plus, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { translations } from "@/i18n/translations.pt";
+import { useI18n } from "@/i18n/I18nContext";
 import { AppState, Habit } from "@/data/types";
 import { HabitCard } from "./HabitCard";
 import { isHabitDoneOnDate } from "@/data/storage";
-import { format } from "date-fns";
+import { format, getDay } from "date-fns";
 
 interface HabitListProps {
   state: AppState;
@@ -15,6 +15,20 @@ interface HabitListProps {
   onAddHabit: () => void;
 }
 
+// Filter habits to only show those scheduled for the selected day
+const getHabitsForDay = (habits: Habit[], date: Date): Habit[] => {
+  const dayOfWeek = getDay(date); // 0 = Sunday, 1 = Monday, etc.
+  
+  return habits.filter(habit => {
+    // If no scheduled days set, show every day
+    if (!habit.scheduledDays || habit.scheduledDays.length === 0) {
+      return true;
+    }
+    // Show only if this day is in the scheduled days
+    return habit.scheduledDays.includes(dayOfWeek);
+  });
+};
+
 export const HabitList = ({
   state,
   selectedDate,
@@ -23,12 +37,16 @@ export const HabitList = ({
   onDeleteHabit,
   onAddHabit,
 }: HabitListProps) => {
+  const { t } = useI18n();
   const dateStr = format(selectedDate, "yyyy-MM-dd");
+  
+  // Get habits for this specific day
+  const habitsForDay = getHabitsForDay(state.habits, selectedDate);
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">{translations.habits.title}</h2>
+        <h2 className="text-lg font-semibold">{t.habits.title}</h2>
         <Button
           onClick={onAddHabit}
           size="icon"
@@ -39,20 +57,20 @@ export const HabitList = ({
         </Button>
       </div>
 
-      {state.habits.length === 0 ? (
+      {habitsForDay.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border/50 bg-secondary/20 py-12 text-center">
-          <p className="text-muted-foreground">{translations.habits.noHabits}</p>
+          <p className="text-muted-foreground">{t.habits.noHabits}</p>
           <Button
             onClick={onAddHabit}
             variant="link"
             className="mt-2 text-primary"
           >
-            {translations.habits.add}
+            {t.habits.add}
           </Button>
         </div>
       ) : (
         <div className="space-y-2">
-          {state.habits.map((habit) => (
+          {habitsForDay.map((habit) => (
             <HabitCard
               key={habit.id}
               habit={habit}

@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Navigation } from "@/components/Layout/Navigation";
+import { PageHeader } from "@/components/Layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -134,17 +135,11 @@ const Financas = () => {
 
       <main className="container py-6 md:py-8 space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gradient">
-              {t.finances.title}
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              {motivationalMessage}
-            </p>
-          </div>
-          
-          {/* Month Selector */}
+        <PageHeader
+          title={t.finances.title}
+          subtitle={(t as any).pageSubtitles?.finances || motivationalMessage}
+          icon={PiggyBank}
+        >
           <div className="flex items-center gap-2 glass rounded-xl px-2 py-1">
             <Button variant="ghost" size="icon" onClick={handlePreviousMonth}>
               <ChevronLeft className="h-4 w-4" />
@@ -161,7 +156,7 @@ const Financas = () => {
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
-        </div>
+        </PageHeader>
 
         {/* Empty State - Show deposit option even without trackers */}
         {financialOverview.trackerBreakdown.length === 0 ? (

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { format, isToday, isFuture, subDays } from "date-fns";
 import { 
   Flame, Trophy, TrendingUp, Target, PiggyBank, ShoppingCart, 
-  Activity, Zap, ChevronRight, Sparkles
+  Activity, Zap, ChevronRight, Sparkles, CheckCircle2
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useI18n } from "@/i18n/I18nContext";
@@ -33,6 +33,7 @@ import {
 } from "@/logic/computations";
 import { useBounceback } from "@/hooks/useBounceback";
 import { Navigation } from "@/components/Layout/Navigation";
+import { PageHeader } from "@/components/Layout/PageHeader";
 import { KPICard } from "@/components/Dashboard/KPICard";
 import { WeeklyChart } from "@/components/Dashboard/WeeklyChart";
 import { MonthSelector } from "@/components/Dashboard/MonthSelector";
@@ -310,22 +311,16 @@ const Index = () => {
 
       <main className="container py-6 md:py-8 space-y-6 md:space-y-8">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gradient">
-              {t.dashboard.title}
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              {t.app.tagline}
-            </p>
+        <PageHeader
+          title={t.nav.habits}
+          subtitle={(t as any).pageSubtitles?.habits || t.app.tagline}
+          icon={CheckCircle2}
+        >
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full glass text-sm">
+            <Zap className="h-4 w-4 text-primary" />
+            <span className="font-medium">{t.kpis.level} {state.gamification?.nivel || 1}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full glass text-sm">
-              <Zap className="h-4 w-4 text-primary" />
-              <span className="font-medium">{t.kpis.level} {state.gamification?.nivel || 1}</span>
-            </div>
-          </div>
-        </div>
+        </PageHeader>
 
         {/* KPI Cards - Premium Glass Style (Clickable) */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

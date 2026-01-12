@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { translations } from "@/i18n/translations.pt";
+import { useI18n } from "@/i18n/I18nContext";
 import { Habit, DEFAULT_COLORS, DEFAULT_CATEGORIES } from "@/data/types";
 import { cn } from "@/lib/utils";
 import {
@@ -21,7 +21,17 @@ interface HabitFormProps {
   onCancel: () => void;
 }
 
-const WEEKDAYS = [
+const WEEKDAYS_EN = [
+  { value: 0, label: "Sun" },
+  { value: 1, label: "Mon" },
+  { value: 2, label: "Tue" },
+  { value: 3, label: "Wed" },
+  { value: 4, label: "Thu" },
+  { value: 5, label: "Fri" },
+  { value: 6, label: "Sat" },
+];
+
+const WEEKDAYS_PT = [
   { value: 0, label: "Dom" },
   { value: 1, label: "Seg" },
   { value: 2, label: "Ter" },
@@ -32,6 +42,9 @@ const WEEKDAYS = [
 ];
 
 export const HabitForm = ({ habit, onSave, onCancel }: HabitFormProps) => {
+  const { t, locale } = useI18n();
+  const WEEKDAYS = locale === 'pt-PT' ? WEEKDAYS_PT : WEEKDAYS_EN;
+  
   const [nome, setNome] = useState(habit?.nome || "");
   const [categoria, setCategoria] = useState(habit?.categoria || "");
   const [cor, setCor] = useState(habit?.cor || DEFAULT_COLORS[0]);
@@ -72,18 +85,18 @@ export const HabitForm = ({ habit, onSave, onCancel }: HabitFormProps) => {
         </button>
 
         <h2 className="mb-6 text-xl font-semibold">
-          {habit ? translations.habits.edit : translations.habits.add}
+          {habit ? t.habits.edit : t.habits.add}
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Nome */}
           <div className="space-y-2">
-            <Label htmlFor="nome">{translations.habits.name}</Label>
+            <Label htmlFor="nome">{t.habits.name}</Label>
             <Input
               id="nome"
               value={nome}
               onChange={(e) => setNome(e.target.value)}
-              placeholder="Ex: Beber 2L de água"
+              placeholder={locale === 'pt-PT' ? "Ex: Beber 2L de água" : "E.g., Drink 2L of water"}
               className="bg-secondary/50"
               autoFocus
             />
@@ -91,10 +104,10 @@ export const HabitForm = ({ habit, onSave, onCancel }: HabitFormProps) => {
 
           {/* Categoria */}
           <div className="space-y-2">
-            <Label htmlFor="categoria">{translations.habits.category}</Label>
+            <Label htmlFor="categoria">{t.habits.category}</Label>
             <Select value={categoria} onValueChange={setCategoria}>
               <SelectTrigger className="bg-secondary/50">
-                <SelectValue placeholder="Selecionar categoria" />
+                <SelectValue placeholder={locale === 'pt-PT' ? "Selecionar categoria" : "Select category"} />
               </SelectTrigger>
               <SelectContent>
                 {DEFAULT_CATEGORIES.map((cat) => (
@@ -108,7 +121,7 @@ export const HabitForm = ({ habit, onSave, onCancel }: HabitFormProps) => {
 
           {/* Cor */}
           <div className="space-y-2">
-            <Label>{translations.habits.color}</Label>
+            <Label>{t.habits.color}</Label>
             <div className="flex flex-wrap gap-2">
               {DEFAULT_COLORS.map((color) => (
                 <button
@@ -131,7 +144,7 @@ export const HabitForm = ({ habit, onSave, onCancel }: HabitFormProps) => {
           <div className="space-y-2">
             <Label htmlFor="scheduledTime" className="flex items-center gap-2">
               <Clock className="h-4 w-4" />
-              Horário (opcional)
+              {locale === 'pt-PT' ? "Horário (opcional)" : "Time (optional)"}
             </Label>
             <Input
               id="scheduledTime"
@@ -141,13 +154,13 @@ export const HabitForm = ({ habit, onSave, onCancel }: HabitFormProps) => {
               className="bg-secondary/50"
             />
             <p className="text-xs text-muted-foreground">
-              Define um horário para lembrete
+              {locale === 'pt-PT' ? "Define um horário para lembrete" : "Set a reminder time"}
             </p>
           </div>
 
           {/* Scheduling - Days */}
           <div className="space-y-2">
-            <Label>Dias da semana (opcional)</Label>
+            <Label>{locale === 'pt-PT' ? "Dias da semana (opcional)" : "Days of week (optional)"}</Label>
             <div className="flex gap-1">
               {WEEKDAYS.map(day => (
                 <Button
@@ -163,7 +176,7 @@ export const HabitForm = ({ habit, onSave, onCancel }: HabitFormProps) => {
               ))}
             </div>
             <p className="text-xs text-muted-foreground">
-              Deixar vazio = todos os dias
+              {locale === 'pt-PT' ? "Deixar vazio = todos os dias" : "Leave empty = every day"}
             </p>
           </div>
 
@@ -171,10 +184,10 @@ export const HabitForm = ({ habit, onSave, onCancel }: HabitFormProps) => {
           <div className="flex items-center justify-between rounded-lg border border-border/50 bg-secondary/30 p-4">
             <div>
               <Label htmlFor="active" className="font-medium">
-                {translations.habits.active}
+                {t.habits.active}
               </Label>
               <p className="text-sm text-muted-foreground">
-                Incluir no rastreamento diário
+                {locale === 'pt-PT' ? "Incluir no rastreamento diário" : "Include in daily tracking"}
               </p>
             </div>
             <Switch
@@ -192,10 +205,10 @@ export const HabitForm = ({ habit, onSave, onCancel }: HabitFormProps) => {
               onClick={onCancel}
               className="flex-1"
             >
-              {translations.habits.cancel}
+              {t.habits.cancel}
             </Button>
             <Button type="submit" className="flex-1">
-              {translations.habits.save}
+              {t.habits.save}
             </Button>
           </div>
         </form>

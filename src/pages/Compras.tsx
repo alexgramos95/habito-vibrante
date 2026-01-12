@@ -4,6 +4,7 @@ import { pt, enUS as enUSLocale } from "date-fns/locale";
 import { ShoppingCart, Plus, Trash2, Pencil, ChevronLeft, ChevronRight, Receipt, TrendingUp } from "lucide-react";
 import { useI18n } from "@/i18n/I18nContext";
 import { Navigation } from "@/components/Layout/Navigation";
+import { PageHeader } from "@/components/Layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -154,13 +155,17 @@ const Compras = () => {
       <Navigation />
 
       <main className="container py-8 space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gradient">{t.shopping.title}</h1>
-          <Button onClick={openAddForm}>
-            <Plus className="h-4 w-4 mr-1" />
-            {t.shopping.addItem}
-          </Button>
-        </div>
+        {/* Header */}
+        <PageHeader
+          title={t.shopping.title}
+          subtitle={(t as any).pageSubtitles?.shopping || (locale === 'pt-PT' ? 'Gastos semanais e visão de compras' : 'Weekly spending and purchasing overview')}
+          icon={ShoppingCart}
+          action={{
+            icon: Plus,
+            label: t.shopping.addItem,
+            onClick: openAddForm,
+          }}
+        />
 
         {/* Week Selector */}
         <Card className="glass border-border/30">
