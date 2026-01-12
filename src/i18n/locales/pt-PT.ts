@@ -9,6 +9,7 @@ export const ptPT = {
     dashboard: "Dashboard",
     habits: "Hábitos",
     trackers: "Trackers",
+    calendar: "Calendário",
     finances: "Finanças",
     shopping: "Compras",
     triggers: "Triggers",

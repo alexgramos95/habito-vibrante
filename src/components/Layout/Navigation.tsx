@@ -1,7 +1,7 @@
 import { NavLink } from "react-router-dom";
 import { 
-  LayoutDashboard, ListTodo, Target, Calendar, Wallet, 
-  ShoppingCart, Bell, User, Settings
+  LayoutDashboard, Target, Calendar, Wallet, 
+  ShoppingCart, Bell, User
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n/I18nContext";
@@ -11,7 +11,7 @@ export const Navigation = () => {
 
   const mainNavItems = [
     { to: "/", label: t.nav.dashboard, icon: LayoutDashboard },
-    { to: "/habitos", label: t.nav.habits, icon: ListTodo },
+    { to: "/calendario", label: (t.nav as any).calendar || "Calendário", icon: Calendar },
     { to: "/objetivos", label: t.nav.trackers, icon: Target },
     { to: "/financas", label: t.nav.finances, icon: Wallet },
     { to: "/compras", label: t.nav.shopping, icon: ShoppingCart },
@@ -24,7 +24,7 @@ export const Navigation = () => {
 
   const allMobileItems = [
     { to: "/", label: t.nav.dashboard, icon: LayoutDashboard },
-    { to: "/habitos", label: t.nav.habits, icon: ListTodo },
+    { to: "/calendario", label: (t.nav as any).calendar || "Calendário", icon: Calendar },
     { to: "/objetivos", label: t.nav.trackers, icon: Target },
     { to: "/financas", label: t.nav.finances, icon: Wallet },
     { to: "/perfil", label: t.nav.profile, icon: User },
@@ -38,7 +38,7 @@ export const Navigation = () => {
           {/* Logo */}
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent text-primary-foreground font-bold text-sm">
-              I
+              B
             </div>
             <div className="flex flex-col">
               <span className="text-base font-semibold tracking-tight">{t.app.name}</span>

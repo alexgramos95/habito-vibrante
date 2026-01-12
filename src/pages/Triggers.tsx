@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Bell, Clock, Zap, Plus, Trash2, Power } from "lucide-react";
+import { Bell, Clock, Zap, Plus, Trash2, Power, Link2, Edit2, Check, X } from "lucide-react";
 import { Navigation } from "@/components/Layout/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,135 +8,247 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/i18n/I18nContext";
 import { cn } from "@/lib/utils";
+import { AppState, Trigger, Habit, Tracker } from "@/data/types";
+import { loadState, saveState, addTrigger, updateTrigger, deleteTrigger, generateId } from "@/data/storage";
 
-interface Trigger {
-  id: string;
-  type: 'alarm' | 'event';
-  name: string;
-  time?: string; // for alarms
-  eventTrigger?: string; // for events
-  action: string;
-  repeat: 'daily' | 'weekdays' | 'weekends' | 'custom';
-  active: boolean;
-}
-
-const STORAGE_KEY = 'itero-triggers';
-
-const loadTriggers = (): Trigger[] => {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
-  } catch {
-    return [];
-  }
-};
-
-const saveTriggers = (triggers: Trigger[]) => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(triggers));
-};
+const WEEKDAYS = [
+  { value: 0, labelPT: "Dom", labelEN: "Sun" },
+  { value: 1, labelPT: "Seg", labelEN: "Mon" },
+  { value: 2, labelPT: "Ter", labelEN: "Tue" },
+  { value: 3, labelPT: "Qua", labelEN: "Wed" },
+  { value: 4, labelPT: "Qui", labelEN: "Thu" },
+  { value: 5, labelPT: "Sex", labelEN: "Fri" },
+  { value: 6, labelPT: "Sáb", labelEN: "Sat" },
+];
 
 const Triggers = () => {
   const { toast } = useToast();
-  const { t } = useI18n();
-  const [triggers, setTriggers] = useState<Trigger[]>(() => loadTriggers());
-  const [showNewAlarmDialog, setShowNewAlarmDialog] = useState(false);
-  const [showNewEventDialog, setShowNewEventDialog] = useState(false);
+  const { t, locale } = useI18n();
+  const [state, setState] = useState<AppState>(() => loadState());
+  const [showNewTriggerDialog, setShowNewTriggerDialog] = useState(false);
+  const [editingTrigger, setEditingTrigger] = useState<Trigger | null>(null);
   
-  const [alarmForm, setAlarmForm] = useState({
+  const [form, setForm] = useState({
+    type: "alarm" as "alarm" | "event",
     name: "",
     time: "08:00",
+    repeat: "daily" as "daily" | "weekdays" | "weekends" | "custom",
+    customDays: [] as number[],
+    eventTrigger: "wake" as "wake" | "sleep" | "meal" | "custom",
+    customTrigger: "",
     action: "",
-    repeat: "daily" as const,
-  });
-  
-  const [eventForm, setEventForm] = useState({
-    name: "",
-    eventTrigger: "onWakeUp",
-    action: "",
+    linkedHabitId: "",
+    linkedTrackerId: "",
   });
 
   useEffect(() => {
-    saveTriggers(triggers);
-  }, [triggers]);
+    saveState(state);
+  }, [state]);
 
+  const triggers = state.triggers || [];
   const alarms = triggers.filter(t => t.type === 'alarm');
   const events = triggers.filter(t => t.type === 'event');
+  const habits = state.habits.filter(h => h.active);
+  const trackers = (state.trackers || []).filter(t => t.active);
 
-  const handleAddAlarm = () => {
-    if (!alarmForm.name.trim() || !alarmForm.action.trim()) {
-      toast({ title: "Preenche os campos obrigatórios", variant: "destructive" });
-      return;
-    }
-    
-    const newTrigger: Trigger = {
-      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      type: 'alarm',
-      name: alarmForm.name.trim(),
-      time: alarmForm.time,
-      action: alarmForm.action.trim(),
-      repeat: alarmForm.repeat,
-      active: true,
-    };
-    
-    setTriggers(prev => [...prev, newTrigger]);
-    setShowNewAlarmDialog(false);
-    setAlarmForm({ name: "", time: "08:00", action: "", repeat: "daily" });
-    toast({ title: "Alarme criado" });
+  const resetForm = () => {
+    setForm({
+      type: "alarm",
+      name: "",
+      time: "08:00",
+      repeat: "daily",
+      customDays: [],
+      eventTrigger: "wake",
+      customTrigger: "",
+      action: "",
+      linkedHabitId: "",
+      linkedTrackerId: "",
+    });
+    setEditingTrigger(null);
   };
 
-  const handleAddEvent = () => {
-    if (!eventForm.name.trim() || !eventForm.action.trim()) {
-      toast({ title: "Preenche os campos obrigatórios", variant: "destructive" });
+  const openEditDialog = (trigger: Trigger) => {
+    setEditingTrigger(trigger);
+    setForm({
+      type: trigger.type,
+      name: trigger.name,
+      time: trigger.time || "08:00",
+      repeat: trigger.repeat || "daily",
+      customDays: trigger.customDays || [],
+      eventTrigger: trigger.eventTrigger || "wake",
+      customTrigger: trigger.customTrigger || "",
+      action: trigger.action,
+      linkedHabitId: trigger.linkedHabitId || "",
+      linkedTrackerId: trigger.linkedTrackerId || "",
+    });
+    setShowNewTriggerDialog(true);
+  };
+
+  const handleSave = () => {
+    if (!form.name.trim() || !form.action.trim()) {
+      toast({ 
+        title: locale === 'pt-PT' ? "Preenche os campos obrigatórios" : "Fill in required fields", 
+        variant: "destructive" 
+      });
       return;
     }
-    
-    const newTrigger: Trigger = {
-      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      type: 'event',
-      name: eventForm.name.trim(),
-      eventTrigger: eventForm.eventTrigger,
-      action: eventForm.action.trim(),
-      repeat: 'daily',
+
+    const triggerData: Omit<Trigger, "id" | "createdAt"> = {
+      type: form.type,
+      name: form.name.trim(),
+      time: form.type === 'alarm' ? form.time : undefined,
+      repeat: form.repeat,
+      customDays: form.repeat === 'custom' ? form.customDays : undefined,
+      eventTrigger: form.type === 'event' ? form.eventTrigger : undefined,
+      customTrigger: form.eventTrigger === 'custom' ? form.customTrigger : undefined,
+      action: form.action.trim(),
+      linkedHabitId: form.linkedHabitId || undefined,
+      linkedTrackerId: form.linkedTrackerId || undefined,
       active: true,
     };
-    
-    setTriggers(prev => [...prev, newTrigger]);
-    setShowNewEventDialog(false);
-    setEventForm({ name: "", eventTrigger: "onWakeUp", action: "" });
-    toast({ title: "Evento criado" });
+
+    if (editingTrigger) {
+      setState(prev => updateTrigger(prev, editingTrigger.id, triggerData));
+      toast({ title: locale === 'pt-PT' ? "Trigger atualizado" : "Trigger updated" });
+    } else {
+      setState(prev => addTrigger(prev, triggerData));
+      toast({ title: locale === 'pt-PT' ? "Trigger criado" : "Trigger created" });
+    }
+
+    setShowNewTriggerDialog(false);
+    resetForm();
   };
 
   const handleToggle = (id: string) => {
-    setTriggers(prev => prev.map(t => 
-      t.id === id ? { ...t, active: !t.active } : t
-    ));
+    const trigger = triggers.find(t => t.id === id);
+    if (trigger) {
+      setState(prev => updateTrigger(prev, id, { active: !trigger.active }));
+    }
   };
 
   const handleDelete = (id: string) => {
-    setTriggers(prev => prev.filter(t => t.id !== id));
-    toast({ title: "Trigger eliminado" });
+    setState(prev => deleteTrigger(prev, id));
+    toast({ title: locale === 'pt-PT' ? "Trigger eliminado" : "Trigger deleted" });
+  };
+
+  const toggleDay = (day: number) => {
+    setForm(prev => ({
+      ...prev,
+      customDays: prev.customDays.includes(day)
+        ? prev.customDays.filter(d => d !== day)
+        : [...prev.customDays, day].sort()
+    }));
   };
 
   const getEventTriggerLabel = (trigger: string) => {
-    const labels: Record<string, string> = {
-      onWakeUp: t.triggers.onWakeUp,
-      onSleep: t.triggers.onSleep,
-      afterMeal: t.triggers.afterMeal,
+    const labels: Record<string, { pt: string, en: string }> = {
+      wake: { pt: "Ao acordar", en: "On wake up" },
+      sleep: { pt: "Antes de dormir", en: "Before sleep" },
+      meal: { pt: "Após refeição", en: "After meal" },
+      custom: { pt: "Personalizado", en: "Custom" },
     };
-    return labels[trigger] || trigger;
+    return labels[trigger]?.[locale === 'pt-PT' ? 'pt' : 'en'] || trigger;
   };
 
-  const getRepeatLabel = (repeat: string) => {
-    const labels: Record<string, string> = {
-      daily: t.triggers.daily,
-      weekdays: t.triggers.weekdays,
-      weekends: t.triggers.weekends,
-      custom: t.triggers.custom,
+  const getRepeatLabel = (repeat: string, customDays?: number[]) => {
+    const labels: Record<string, { pt: string, en: string }> = {
+      daily: { pt: "Diário", en: "Daily" },
+      weekdays: { pt: "Dias úteis", en: "Weekdays" },
+      weekends: { pt: "Fins de semana", en: "Weekends" },
+      custom: { pt: "Personalizado", en: "Custom" },
     };
-    return labels[repeat] || repeat;
+    
+    if (repeat === 'custom' && customDays && customDays.length > 0) {
+      const dayLabels = customDays.map(d => 
+        WEEKDAYS.find(w => w.value === d)?.[locale === 'pt-PT' ? 'labelPT' : 'labelEN']
+      ).join(', ');
+      return dayLabels;
+    }
+    
+    return labels[repeat]?.[locale === 'pt-PT' ? 'pt' : 'en'] || repeat;
+  };
+
+  const getLinkedItemLabel = (habitId?: string, trackerId?: string) => {
+    if (habitId) {
+      const habit = habits.find(h => h.id === habitId);
+      return habit ? `🎯 ${habit.nome}` : null;
+    }
+    if (trackerId) {
+      const tracker = trackers.find(t => t.id === trackerId);
+      return tracker ? `${tracker.icon || '📊'} ${tracker.name}` : null;
+    }
+    return null;
+  };
+
+  const renderTriggerCard = (trigger: Trigger) => {
+    const linkedLabel = getLinkedItemLabel(trigger.linkedHabitId, trigger.linkedTrackerId);
+    
+    return (
+      <div
+        key={trigger.id}
+        className={cn(
+          "flex items-center justify-between p-4 rounded-xl border border-border/30 transition-all",
+          trigger.active ? "bg-secondary/50" : "opacity-50 bg-muted/30"
+        )}
+      >
+        <div className="flex items-center gap-4 flex-1">
+          {trigger.type === 'alarm' && (
+            <div className="text-2xl font-mono font-bold text-primary">
+              {trigger.time}
+            </div>
+          )}
+          {trigger.type === 'event' && (
+            <div className="p-2 rounded-lg bg-warning/10">
+              <Zap className="h-5 w-5 text-warning" />
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <p className="font-medium truncate">{trigger.name}</p>
+            <p className="text-sm text-muted-foreground truncate">{trigger.action}</p>
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
+              <Badge variant="outline" className="text-xs">
+                {getRepeatLabel(trigger.repeat || 'daily', trigger.customDays)}
+              </Badge>
+              {trigger.type === 'event' && (
+                <Badge variant="secondary" className="text-xs">
+                  {getEventTriggerLabel(trigger.eventTrigger || 'wake')}
+                </Badge>
+              )}
+              {linkedLabel && (
+                <Badge variant="secondary" className="text-xs">
+                  <Link2 className="h-3 w-3 mr-1" />
+                  {linkedLabel}
+                </Badge>
+              )}
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => openEditDialog(trigger)}
+          >
+            <Edit2 className="h-4 w-4" />
+          </Button>
+          <Switch
+            checked={trigger.active}
+            onCheckedChange={() => handleToggle(trigger.id)}
+          />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => handleDelete(trigger.id)}
+          >
+            <Trash2 className="h-4 w-4 text-destructive" />
+          </Button>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -147,21 +259,19 @@ const Triggers = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-semibold">{t.triggers.title}</h1>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gradient">
+              {t.triggers.title}
+            </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              {t.motivational.consistencyWins}
+              {locale === 'pt-PT' 
+                ? 'Alarmes e lembretes para manter a consistência' 
+                : 'Alarms and reminders to maintain consistency'}
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setShowNewEventDialog(true)} className="gap-2">
-              <Zap className="h-4 w-4" />
-              {t.triggers.newEvent}
-            </Button>
-            <Button onClick={() => setShowNewAlarmDialog(true)} className="gap-2">
-              <Clock className="h-4 w-4" />
-              {t.triggers.newAlarm}
-            </Button>
-          </div>
+          <Button onClick={() => { resetForm(); setShowNewTriggerDialog(true); }} className="gap-2">
+            <Plus className="h-4 w-4" />
+            {locale === 'pt-PT' ? 'Novo Trigger' : 'New Trigger'}
+          </Button>
         </div>
 
         {/* Empty State */}
@@ -171,16 +281,10 @@ const Triggers = () => {
               <Bell className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <p className="text-muted-foreground mb-2">{t.triggers.noTriggers}</p>
               <p className="text-sm text-muted-foreground mb-6">{t.triggers.noTriggersDescription}</p>
-              <div className="flex justify-center gap-3">
-                <Button variant="outline" onClick={() => setShowNewEventDialog(true)}>
-                  <Zap className="h-4 w-4 mr-2" />
-                  {t.triggers.newEvent}
-                </Button>
-                <Button onClick={() => setShowNewAlarmDialog(true)}>
-                  <Clock className="h-4 w-4 mr-2" />
-                  {t.triggers.newAlarm}
-                </Button>
-              </div>
+              <Button onClick={() => { resetForm(); setShowNewTriggerDialog(true); }}>
+                <Plus className="h-4 w-4 mr-2" />
+                {locale === 'pt-PT' ? 'Criar Primeiro Trigger' : 'Create First Trigger'}
+              </Button>
             </CardContent>
           </Card>
         ) : (
@@ -191,47 +295,16 @@ const Triggers = () => {
                 <CardTitle className="flex items-center gap-2">
                   <Clock className="h-5 w-5 text-primary" />
                   {t.triggers.alarms}
+                  <Badge variant="secondary" className="ml-auto">{alarms.length}</Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {alarms.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-8">
-                    Sem alarmes definidos
+                    {locale === 'pt-PT' ? 'Sem alarmes definidos' : 'No alarms set'}
                   </p>
                 ) : (
-                  alarms.map(alarm => (
-                    <div
-                      key={alarm.id}
-                      className={cn(
-                        "flex items-center justify-between p-4 rounded-xl border border-border/30 transition-all",
-                        alarm.active ? "bg-secondary/50" : "opacity-50"
-                      )}
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="text-2xl font-mono font-bold text-primary">
-                          {alarm.time}
-                        </div>
-                        <div>
-                          <p className="font-medium">{alarm.name}</p>
-                          <p className="text-sm text-muted-foreground">{alarm.action}</p>
-                          <p className="text-xs text-muted-foreground">{getRepeatLabel(alarm.repeat)}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Switch
-                          checked={alarm.active}
-                          onCheckedChange={() => handleToggle(alarm.id)}
-                        />
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDelete(alarm.id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))
+                  alarms.map(renderTriggerCard)
                 )}
               </CardContent>
             </Card>
@@ -242,43 +315,16 @@ const Triggers = () => {
                 <CardTitle className="flex items-center gap-2">
                   <Zap className="h-5 w-5 text-warning" />
                   {t.triggers.events}
+                  <Badge variant="secondary" className="ml-auto">{events.length}</Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {events.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-8">
-                    Sem eventos definidos
+                    {locale === 'pt-PT' ? 'Sem eventos definidos' : 'No events set'}
                   </p>
                 ) : (
-                  events.map(event => (
-                    <div
-                      key={event.id}
-                      className={cn(
-                        "flex items-center justify-between p-4 rounded-xl border border-border/30 transition-all",
-                        event.active ? "bg-secondary/50" : "opacity-50"
-                      )}
-                    >
-                      <div>
-                        <p className="font-medium">{event.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {getEventTriggerLabel(event.eventTrigger || "")} → {event.action}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Switch
-                          checked={event.active}
-                          onCheckedChange={() => handleToggle(event.id)}
-                        />
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDelete(event.id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))
+                  events.map(renderTriggerCard)
                 )}
               </CardContent>
             </Card>
@@ -286,108 +332,216 @@ const Triggers = () => {
         )}
       </main>
 
-      {/* New Alarm Dialog */}
-      <Dialog open={showNewAlarmDialog} onOpenChange={setShowNewAlarmDialog}>
-        <DialogContent>
+      {/* New/Edit Trigger Dialog */}
+      <Dialog open={showNewTriggerDialog} onOpenChange={(open) => { setShowNewTriggerDialog(open); if (!open) resetForm(); }}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{t.triggers.newAlarm}</DialogTitle>
+            <DialogTitle>
+              {editingTrigger 
+                ? (locale === 'pt-PT' ? 'Editar Trigger' : 'Edit Trigger')
+                : (locale === 'pt-PT' ? 'Novo Trigger' : 'New Trigger')}
+            </DialogTitle>
+            <DialogDescription>
+              {locale === 'pt-PT' 
+                ? 'Define alarmes ou eventos para te lembrar dos teus hábitos'
+                : 'Set alarms or events to remind you of your habits'}
+            </DialogDescription>
           </DialogHeader>
+
           <div className="space-y-4 py-4">
+            {/* Type Selection */}
             <div className="space-y-2">
-              <Label>Nome</Label>
+              <Label>{locale === 'pt-PT' ? 'Tipo' : 'Type'}</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  type="button"
+                  variant={form.type === 'alarm' ? 'default' : 'outline'}
+                  className="gap-2"
+                  onClick={() => setForm(prev => ({ ...prev, type: 'alarm' }))}
+                >
+                  <Clock className="h-4 w-4" />
+                  {t.triggers.alarms.replace('s', '')}
+                </Button>
+                <Button
+                  type="button"
+                  variant={form.type === 'event' ? 'default' : 'outline'}
+                  className="gap-2"
+                  onClick={() => setForm(prev => ({ ...prev, type: 'event' }))}
+                >
+                  <Zap className="h-4 w-4" />
+                  {t.triggers.events.replace('s', '')}
+                </Button>
+              </div>
+            </div>
+
+            {/* Name */}
+            <div className="space-y-2">
+              <Label>{locale === 'pt-PT' ? 'Nome' : 'Name'} *</Label>
               <Input
-                placeholder="Ex: Dormir"
-                value={alarmForm.name}
-                onChange={(e) => setAlarmForm(prev => ({ ...prev, name: e.target.value }))}
+                placeholder={locale === 'pt-PT' ? 'Ex: Hora de dormir' : 'Ex: Bedtime'}
+                value={form.name}
+                onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))}
               />
             </div>
+
+            {/* Time (for alarms) */}
+            {form.type === 'alarm' && (
+              <div className="space-y-2">
+                <Label>{t.triggers.time}</Label>
+                <Input
+                  type="time"
+                  value={form.time}
+                  onChange={(e) => setForm(prev => ({ ...prev, time: e.target.value }))}
+                />
+              </div>
+            )}
+
+            {/* Event Trigger (for events) */}
+            {form.type === 'event' && (
+              <div className="space-y-2">
+                <Label>{t.triggers.eventTrigger}</Label>
+                <Select
+                  value={form.eventTrigger}
+                  onValueChange={(value: any) => setForm(prev => ({ ...prev, eventTrigger: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="wake">{getEventTriggerLabel('wake')}</SelectItem>
+                    <SelectItem value="sleep">{getEventTriggerLabel('sleep')}</SelectItem>
+                    <SelectItem value="meal">{getEventTriggerLabel('meal')}</SelectItem>
+                    <SelectItem value="custom">{getEventTriggerLabel('custom')}</SelectItem>
+                  </SelectContent>
+                </Select>
+                {form.eventTrigger === 'custom' && (
+                  <Input
+                    placeholder={locale === 'pt-PT' ? 'Descreve o gatilho' : 'Describe the trigger'}
+                    value={form.customTrigger}
+                    onChange={(e) => setForm(prev => ({ ...prev, customTrigger: e.target.value }))}
+                  />
+                )}
+              </div>
+            )}
+
+            {/* Action */}
             <div className="space-y-2">
-              <Label>{t.triggers.time}</Label>
+              <Label>{t.triggers.action} *</Label>
               <Input
-                type="time"
-                value={alarmForm.time}
-                onChange={(e) => setAlarmForm(prev => ({ ...prev, time: e.target.value }))}
+                placeholder={locale === 'pt-PT' ? 'Ex: Preparar para dormir' : 'Ex: Prepare for bed'}
+                value={form.action}
+                onChange={(e) => setForm(prev => ({ ...prev, action: e.target.value }))}
               />
             </div>
-            <div className="space-y-2">
-              <Label>{t.triggers.action}</Label>
-              <Input
-                placeholder="Ex: Preparar para dormir"
-                value={alarmForm.action}
-                onChange={(e) => setAlarmForm(prev => ({ ...prev, action: e.target.value }))}
-              />
-            </div>
+
+            {/* Repeat */}
             <div className="space-y-2">
               <Label>{t.triggers.repeat}</Label>
               <Select
-                value={alarmForm.repeat}
-                onValueChange={(value: any) => setAlarmForm(prev => ({ ...prev, repeat: value }))}
+                value={form.repeat}
+                onValueChange={(value: any) => setForm(prev => ({ ...prev, repeat: value }))}
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="daily">{t.triggers.daily}</SelectItem>
-                  <SelectItem value="weekdays">{t.triggers.weekdays}</SelectItem>
-                  <SelectItem value="weekends">{t.triggers.weekends}</SelectItem>
+                  <SelectItem value="daily">{getRepeatLabel('daily')}</SelectItem>
+                  <SelectItem value="weekdays">{getRepeatLabel('weekdays')}</SelectItem>
+                  <SelectItem value="weekends">{getRepeatLabel('weekends')}</SelectItem>
+                  <SelectItem value="custom">{getRepeatLabel('custom')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowNewAlarmDialog(false)}>
-              {t.actions.cancel}
-            </Button>
-            <Button onClick={handleAddAlarm}>{t.actions.create}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
-      {/* New Event Dialog */}
-      <Dialog open={showNewEventDialog} onOpenChange={setShowNewEventDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t.triggers.newEvent}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>Nome</Label>
-              <Input
-                placeholder="Ex: Beber água"
-                value={eventForm.name}
-                onChange={(e) => setEventForm(prev => ({ ...prev, name: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>{t.triggers.eventTrigger}</Label>
-              <Select
-                value={eventForm.eventTrigger}
-                onValueChange={(value) => setEventForm(prev => ({ ...prev, eventTrigger: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="onWakeUp">{t.triggers.onWakeUp}</SelectItem>
-                  <SelectItem value="onSleep">{t.triggers.onSleep}</SelectItem>
-                  <SelectItem value="afterMeal">{t.triggers.afterMeal}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>{t.triggers.thenDo}</Label>
-              <Input
-                placeholder="Ex: Beber 500ml de água"
-                value={eventForm.action}
-                onChange={(e) => setEventForm(prev => ({ ...prev, action: e.target.value }))}
-              />
-            </div>
+            {/* Custom Days */}
+            {form.repeat === 'custom' && (
+              <div className="space-y-2">
+                <Label>{locale === 'pt-PT' ? 'Dias da semana' : 'Days of week'}</Label>
+                <div className="flex gap-1 flex-wrap">
+                  {WEEKDAYS.map(day => (
+                    <Button
+                      key={day.value}
+                      type="button"
+                      variant={form.customDays.includes(day.value) ? "default" : "outline"}
+                      size="sm"
+                      className="w-10 h-10"
+                      onClick={() => toggleDay(day.value)}
+                    >
+                      {locale === 'pt-PT' ? day.labelPT : day.labelEN}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Link to Habit */}
+            {habits.length > 0 && (
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Link2 className="h-4 w-4" />
+                  {locale === 'pt-PT' ? 'Associar a hábito' : 'Link to habit'}
+                </Label>
+                <Select
+                  value={form.linkedHabitId}
+                  onValueChange={(value) => setForm(prev => ({ 
+                    ...prev, 
+                    linkedHabitId: value === 'none' ? '' : value,
+                    linkedTrackerId: value !== 'none' ? '' : prev.linkedTrackerId
+                  }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={locale === 'pt-PT' ? 'Selecionar...' : 'Select...'} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">{locale === 'pt-PT' ? 'Nenhum' : 'None'}</SelectItem>
+                    {habits.map(habit => (
+                      <SelectItem key={habit.id} value={habit.id}>
+                        🎯 {habit.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Link to Tracker */}
+            {trackers.length > 0 && (
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Link2 className="h-4 w-4" />
+                  {locale === 'pt-PT' ? 'Associar a tracker' : 'Link to tracker'}
+                </Label>
+                <Select
+                  value={form.linkedTrackerId}
+                  onValueChange={(value) => setForm(prev => ({ 
+                    ...prev, 
+                    linkedTrackerId: value === 'none' ? '' : value,
+                    linkedHabitId: value !== 'none' ? '' : prev.linkedHabitId
+                  }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={locale === 'pt-PT' ? 'Selecionar...' : 'Select...'} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">{locale === 'pt-PT' ? 'Nenhum' : 'None'}</SelectItem>
+                    {trackers.map(tracker => (
+                      <SelectItem key={tracker.id} value={tracker.id}>
+                        {tracker.icon || '📊'} {tracker.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
+
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowNewEventDialog(false)}>
+            <Button variant="outline" onClick={() => { setShowNewTriggerDialog(false); resetForm(); }}>
               {t.actions.cancel}
             </Button>
-            <Button onClick={handleAddEvent}>{t.actions.create}</Button>
+            <Button onClick={handleSave}>
+              {editingTrigger ? t.actions.update : t.actions.create}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
