@@ -201,6 +201,7 @@ export interface ShoppingItem {
   categoria?: string;
   price: number; // price per item (required)
   done: boolean;
+  purchaseDate?: string; // YYYY-MM-DD when item was actually purchased
 }
 
 export interface WeeklySummary {

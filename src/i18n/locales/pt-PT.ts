@@ -102,6 +102,7 @@ export const ptPT = {
     templates: "Templates",
     useTemplate: "Usar template",
     customTracker: "Tracker personalizado",
+    entry: "registo",
   },
   reflection: {
     title: "Reflexão",
@@ -255,6 +256,10 @@ export const ptPT = {
     habitsCompleted: "{{count}} de {{total}} hábitos",
     noHabitsCompleted: "Nenhum hábito concluído",
     futureDays: "Dias futuros não podem ser selecionados",
+    dayDetail: "Detalhe do Dia",
+    noActivity: "Sem atividade registada",
+    purchases: "Compras",
+    trackerEntries: "Registos de Trackers",
   },
   chart: {
     week: "Semana",
@@ -558,7 +563,7 @@ export type Translations = {
   sleep: { [key: string]: string };
   finances: { [key: string]: string };
   gamification: { [key: string]: string };
-  calendar: { weekdays: string[]; months: string[]; title: string; habitsCompleted: string; noHabitsCompleted: string; futureDays: string };
+  calendar: { weekdays: string[]; months: string[]; title: string; habitsCompleted: string; noHabitsCompleted: string; futureDays: string; dayDetail?: string; noActivity?: string; purchases?: string; trackerEntries?: string; [key: string]: any };
   chart: { [key: string]: string };
   feedback: { [key: string]: string };
   motivational: { [key: string]: string };

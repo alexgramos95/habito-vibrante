@@ -104,6 +104,7 @@ export const enUS: Translations = {
     templates: "Templates",
     useTemplate: "Use template",
     customTracker: "Custom tracker",
+    entry: "entry",
   },
   reflection: {
     title: "Reflection",
@@ -257,6 +258,10 @@ export const enUS: Translations = {
     habitsCompleted: "{{count}} of {{total}} habits",
     noHabitsCompleted: "No habits completed",
     futureDays: "Future days cannot be selected",
+    dayDetail: "Day Detail",
+    noActivity: "No activity recorded",
+    purchases: "Purchases",
+    trackerEntries: "Tracker Entries",
   },
   chart: {
     week: "Week",

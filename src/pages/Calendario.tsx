@@ -223,6 +223,15 @@ const Calendario = () => {
     const dateStr = format(detailDate, "yyyy-MM-dd");
     const isComplete = data.completedHabits === data.totalHabits && data.totalHabits > 0;
 
+    // Get shopping items for this specific day (items bought on this date or with done status in this week)
+    const dailyShoppingItems = (state.shoppingItems || []).filter(item => {
+      if (item.purchaseDate) {
+        return item.purchaseDate === dateStr;
+      }
+      // Fallback: show done items from the same week
+      return item.done && item.weekStartDate === format(startOfWeek(detailDate, { weekStartsOn: 1 }), "yyyy-MM-dd");
+    });
+
     return (
       <Dialog open={showDayDetail} onOpenChange={setShowDayDetail}>
         <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
@@ -256,7 +265,7 @@ const Calendario = () => {
               </div>
             </div>
 
-            {/* Habits List */}
+            {/* Habits List with Toggle */}
             {activeHabits.length > 0 && (
               <div className="space-y-2">
                 <h4 className="text-sm font-medium text-muted-foreground">
@@ -278,7 +287,21 @@ const Calendario = () => {
                             : "bg-secondary/50 border border-border/30 hover:bg-secondary"
                         )}
                       >
-                        <span className={cn(isDone && "line-through opacity-70")}>{habit.nome}</span>
+                        <div className="flex items-center gap-3">
+                          <div 
+                            className="w-3 h-3 rounded-full" 
+                            style={{ backgroundColor: habit.cor || '#14b8a6' }} 
+                          />
+                          <div className="flex flex-col items-start">
+                            <span className={cn(isDone && "line-through opacity-70")}>{habit.nome}</span>
+                            {habit.scheduledTime && (
+                              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                {habit.scheduledTime}
+                              </span>
+                            )}
+                          </div>
+                        </div>
                         {isDone ? <Check className="h-4 w-4 text-primary" /> : <div className="w-4 h-4 rounded border border-muted-foreground" />}
                       </button>
                     );
@@ -312,6 +335,28 @@ const Calendario = () => {
               </div>
             )}
 
+            {/* Shopping Items */}
+            {dailyShoppingItems.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <ShoppingCart className="h-4 w-4" />
+                  {locale === 'pt-PT' ? 'Compras' : 'Purchases'}
+                </h4>
+                <div className="space-y-1">
+                  {dailyShoppingItems.map(item => (
+                    <div key={item.id} className="flex items-center justify-between p-2 rounded-lg bg-secondary/50">
+                      <span className="text-sm">{item.nome}</span>
+                      {item.price && (
+                        <span className="text-sm font-medium text-warning">
+                          {item.price.toFixed(2)}€
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Reflection */}
             {data.reflection && (
               <div className="space-y-2">
@@ -325,6 +370,16 @@ const Calendario = () => {
                     {data.reflection.mood === 'positive' ? '😊' : data.reflection.mood === 'challenging' ? '💪' : '😐'}
                   </Badge>
                 </div>
+              </div>
+            )}
+
+            {/* Empty State */}
+            {data.completedHabits === 0 && data.trackerEntries.length === 0 && !data.reflection && dailyShoppingItems.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground">
+                <CalendarIcon className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">
+                  {locale === 'pt-PT' ? 'Sem atividade registada' : 'No activity recorded'}
+                </p>
               </div>
             )}
           </div>
