@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { format, startOfWeek, addWeeks, subWeeks } from "date-fns";
-import { pt } from "date-fns/locale";
-import { ShoppingCart, Plus, Check, Trash2, Pencil, ChevronLeft, ChevronRight } from "lucide-react";
+import { format, startOfWeek, addWeeks, subWeeks, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
+import { pt, enUS as enUSLocale } from "date-fns/locale";
+import { ShoppingCart, Plus, Trash2, Pencil, ChevronLeft, ChevronRight, Receipt, TrendingUp } from "lucide-react";
+import { useI18n } from "@/i18n/I18nContext";
 import { Navigation } from "@/components/Layout/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,9 +26,11 @@ import { cn } from "@/lib/utils";
 
 const Compras = () => {
   const { toast } = useToast();
+  const { t, locale, formatCurrency } = useI18n();
+  const dateLocale = locale === 'pt-PT' ? pt : enUSLocale;
   const [state, setState] = useState<AppState>(() => loadState());
   const [selectedWeek, setSelectedWeek] = useState(() => 
-    startOfWeek(new Date(), { weekStartsOn: 1, locale: pt })
+    startOfWeek(new Date(), { weekStartsOn: 1, locale: dateLocale })
   );
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<ShoppingItem | null>(null);
@@ -45,9 +48,26 @@ const Compras = () => {
   const weekStartDate = format(selectedWeek, "yyyy-MM-dd");
   const { items, doneCount, totalCount } = getShoppingItemsForWeek(state, weekStartDate);
 
+  // Calculate weekly and monthly totals
+  const weeklyTotal = items.reduce((sum, item) => sum + (item.price || 0), 0);
+  const weeklyDoneTotal = items.filter(item => item.done).reduce((sum, item) => sum + (item.price || 0), 0);
+  
+  // Calculate monthly total
+  const monthStart = startOfMonth(selectedWeek);
+  const monthEnd = endOfMonth(selectedWeek);
+  const monthlyItems = (state.shoppingItems || []).filter(item => {
+    try {
+      const itemDate = new Date(item.weekStartDate);
+      return isWithinInterval(itemDate, { start: monthStart, end: monthEnd });
+    } catch {
+      return false;
+    }
+  });
+  const monthlyTotal = monthlyItems.reduce((sum, item) => sum + (item.price || 0), 0);
+
   // Group items by category
   const itemsByCategory = items.reduce((acc, item) => {
-    const cat = item.categoria || "Outros";
+    const cat = item.categoria || (locale === 'pt-PT' ? "Outros" : "Other");
     if (!acc[cat]) acc[cat] = [];
     acc[cat].push(item);
     return acc;
@@ -62,7 +82,7 @@ const Compras = () => {
   };
 
   const handleThisWeek = () => {
-    setSelectedWeek(startOfWeek(new Date(), { weekStartsOn: 1, locale: pt }));
+    setSelectedWeek(startOfWeek(new Date(), { weekStartsOn: 1, locale: dateLocale }));
   };
 
   const openAddForm = () => {
@@ -84,7 +104,7 @@ const Compras = () => {
 
   const handleSave = () => {
     if (!formData.nome.trim()) {
-      toast({ title: "Nome obrigatório", variant: "destructive" });
+      toast({ title: t.shopping.itemName + " " + (locale === 'pt-PT' ? "obrigatório" : "required"), variant: "destructive" });
       return;
     }
 
@@ -97,7 +117,7 @@ const Compras = () => {
           price: parseFloat(formData.price) || 0,
         })
       );
-      toast({ title: "Item atualizado!" });
+      toast({ title: t.shopping.itemUpdated });
     } else {
       setState((prev) =>
         addShoppingItem(prev, {
@@ -108,7 +128,7 @@ const Compras = () => {
           price: parseFloat(formData.price) || 0,
         })
       );
-      toast({ title: "Item adicionado!" });
+      toast({ title: t.shopping.itemAdded });
     }
 
     setShowForm(false);
@@ -122,10 +142,12 @@ const Compras = () => {
 
   const handleDelete = (id: string) => {
     setState((prev) => deleteShoppingItem(prev, id));
-    toast({ title: "Item removido" });
+    toast({ title: t.shopping.itemDeleted });
   };
 
-  const weekLabel = format(selectedWeek, "'Semana de' d 'de' MMMM", { locale: pt });
+  const weekLabel = locale === 'pt-PT' 
+    ? format(selectedWeek, "'Semana de' d 'de' MMMM", { locale: dateLocale })
+    : format(selectedWeek, "'Week of' MMMM d", { locale: dateLocale });
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
@@ -133,15 +155,15 @@ const Compras = () => {
 
       <main className="container py-8 space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Lista de Compras Semanal</h1>
+          <h1 className="text-2xl font-bold text-gradient">{t.shopping.title}</h1>
           <Button onClick={openAddForm}>
             <Plus className="h-4 w-4 mr-1" />
-            Adicionar
+            {t.shopping.addItem}
           </Button>
         </div>
 
         {/* Week Selector */}
-        <Card className="border-border/50 shadow-lg">
+        <Card className="glass border-border/30">
           <CardContent className="py-4">
             <div className="flex items-center justify-between">
               <Button variant="ghost" size="icon" onClick={handlePreviousWeek}>
@@ -155,7 +177,7 @@ const Compras = () => {
                   className="text-primary"
                   onClick={handleThisWeek}
                 >
-                  Esta semana
+                  {locale === 'pt-PT' ? "Esta semana" : "This week"}
                 </Button>
               </div>
               <Button variant="ghost" size="icon" onClick={handleNextWeek}>
@@ -165,54 +187,91 @@ const Compras = () => {
           </CardContent>
         </Card>
 
-        {/* Summary */}
-        <Card className="border-border/50 shadow-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2">
-              <ShoppingCart className="h-5 w-5 text-primary" />
-              Resumo
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-4">
+        {/* Financial Summary */}
+        <div className="grid gap-4 sm:grid-cols-3">
+          {/* Items Progress */}
+          <Card className="glass border-border/30">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                <ShoppingCart className="h-4 w-4 text-primary" />
+                {locale === 'pt-PT' ? "Itens" : "Items"}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
               <div className="text-3xl font-bold text-primary">
                 {doneCount}/{totalCount}
               </div>
-              <div className="text-muted-foreground">
-                itens concluídos esta semana
+              {totalCount > 0 && (
+                <div className="mt-2 h-1.5 rounded-full bg-secondary overflow-hidden">
+                  <div
+                    className="h-full bg-primary transition-all duration-300"
+                    style={{ width: `${(doneCount / totalCount) * 100}%` }}
+                  />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Weekly Total */}
+          <Card className="glass border-border/30">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                <Receipt className="h-4 w-4 text-warning" />
+                {t.shopping.weekTotal}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-warning">
+                {formatCurrency(weeklyTotal)}
               </div>
-            </div>
-            {totalCount > 0 && (
-              <div className="mt-3 h-2 rounded-full bg-secondary overflow-hidden">
-                <div
-                  className="h-full bg-primary transition-all duration-300"
-                  style={{ width: `${(doneCount / totalCount) * 100}%` }}
-                />
+              <p className="text-xs text-muted-foreground mt-1">
+                {locale === 'pt-PT' ? "Comprado" : "Bought"}: {formatCurrency(weeklyDoneTotal)}
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Monthly Total */}
+          <Card className="glass border-border/30">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                <TrendingUp className="h-4 w-4 text-success" />
+                {t.shopping.monthlySpending}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-success">
+                {formatCurrency(monthlyTotal)}
               </div>
-            )}
-          </CardContent>
-        </Card>
+              <p className="text-xs text-muted-foreground mt-1">
+                {format(monthStart, "MMMM yyyy", { locale: dateLocale })}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Items List */}
         {totalCount === 0 ? (
-          <Card className="border-border/50 border-dashed">
+          <Card className="glass border-border/30 border-dashed">
             <CardContent className="py-12 text-center">
               <ShoppingCart className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <p className="text-muted-foreground">
-                Nenhum item nesta semana.
+                {t.shopping.noItems}
               </p>
               <Button variant="link" onClick={openAddForm} className="mt-2">
-                Adicionar primeiro item
+                {t.shopping.addFirst}
               </Button>
             </CardContent>
           </Card>
         ) : (
           <div className="space-y-4">
             {Object.entries(itemsByCategory).map(([category, categoryItems]) => (
-              <Card key={category} className="border-border/50 shadow-lg">
+              <Card key={category} className="glass border-border/30">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm text-muted-foreground font-medium">
-                    {category}
+                  <CardTitle className="text-sm text-muted-foreground font-medium flex items-center justify-between">
+                    <span>{category}</span>
+                    <span className="text-xs">
+                      {formatCurrency(categoryItems.reduce((sum, i) => sum + (i.price || 0), 0))}
+                    </span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
@@ -232,9 +291,19 @@ const Compras = () => {
                         className="h-5 w-5"
                       />
                       <div className="flex-1">
-                        <p className={cn("font-medium", item.done && "line-through text-muted-foreground")}>
-                          {item.nome}
-                        </p>
+                        <div className="flex items-center justify-between">
+                          <p className={cn("font-medium", item.done && "line-through text-muted-foreground")}>
+                            {item.nome}
+                          </p>
+                          {item.price > 0 && (
+                            <span className={cn(
+                              "text-sm font-medium",
+                              item.done ? "text-muted-foreground" : "text-warning"
+                            )}>
+                              {formatCurrency(item.price)}
+                            </span>
+                          )}
+                        </div>
                         {item.quantidade && (
                           <p className="text-sm text-muted-foreground">{item.quantidade}</p>
                         )}
@@ -270,35 +339,47 @@ const Compras = () => {
       <Dialog open={showForm} onOpenChange={setShowForm}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingItem ? "Editar Item" : "Adicionar Item"}</DialogTitle>
+            <DialogTitle>{editingItem ? t.shopping.editItem : t.shopping.addItem}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="nome">Nome do item</Label>
+              <Label htmlFor="nome">{t.shopping.itemName}</Label>
               <Input
                 id="nome"
-                placeholder="Ex: Leite"
+                placeholder={locale === 'pt-PT' ? "Ex: Leite" : "E.g., Milk"}
                 value={formData.nome}
                 onChange={(e) => setFormData((prev) => ({ ...prev, nome: e.target.value }))}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="quantidade">Quantidade (opcional)</Label>
+              <Label htmlFor="price">{t.shopping.price}</Label>
+              <Input
+                id="price"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="1.29"
+                value={formData.price}
+                onChange={(e) => setFormData((prev) => ({ ...prev, price: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="quantidade">{t.shopping.quantity} ({t.shopping.optional})</Label>
               <Input
                 id="quantidade"
-                placeholder="Ex: 2 litros"
+                placeholder={locale === 'pt-PT' ? "Ex: 2 litros" : "E.g., 2 liters"}
                 value={formData.quantidade}
                 onChange={(e) => setFormData((prev) => ({ ...prev, quantidade: e.target.value }))}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="categoria">Categoria (opcional)</Label>
+              <Label htmlFor="categoria">{locale === 'pt-PT' ? "Categoria" : "Category"} ({t.shopping.optional})</Label>
               <Select
                 value={formData.categoria}
                 onValueChange={(value) => setFormData((prev) => ({ ...prev, categoria: value }))}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecionar categoria" />
+                  <SelectValue placeholder={locale === 'pt-PT' ? "Selecionar categoria" : "Select category"} />
                 </SelectTrigger>
                 <SelectContent>
                   {SHOPPING_CATEGORIES.map((cat) => (
@@ -312,10 +393,10 @@ const Compras = () => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowForm(false)}>
-              Cancelar
+              {t.actions.cancel}
             </Button>
             <Button onClick={handleSave}>
-              {editingItem ? "Atualizar" : "Adicionar"}
+              {editingItem ? t.actions.update : t.actions.add}
             </Button>
           </DialogFooter>
         </DialogContent>

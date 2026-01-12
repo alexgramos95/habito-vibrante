@@ -147,6 +147,9 @@ export const enUS: Translations = {
     daysRemaining: "days remaining",
     fromTrackers: "From trackers",
     fromManual: "Manual",
+    activeGoals: "Active Goals",
+    totalInvested: "Total Invested",
+    completedGoals: "Completed Goals",
   },
   sleep: {
     title: "Sleep",
