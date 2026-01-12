@@ -755,6 +755,7 @@ export const migrateTobacoToTracker = (state: AppState): AppState => {
     active: true,
     createdAt: new Date().toISOString(),
     icon: "🚬",
+    frequency: "daily",
   };
   
   const trackerEntries: TrackerEntry[] = cigaretteLogs.map(log => ({
