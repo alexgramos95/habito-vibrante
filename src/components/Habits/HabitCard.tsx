@@ -1,4 +1,4 @@
-import { Check, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { Check, MoreHorizontal, Pencil, Trash2, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Habit } from "@/data/types";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { translations } from "@/i18n/translations.pt";
+import { useI18n } from "@/i18n/I18nContext";
 
 interface HabitCardProps {
   habit: Habit;
@@ -25,6 +25,8 @@ export const HabitCard = ({
   onEdit,
   onDelete,
 }: HabitCardProps) => {
+  const { t } = useI18n();
+  
   return (
     <div
       className={cn(
@@ -67,9 +69,15 @@ export const HabitCard = ({
         >
           {habit.nome}
         </h3>
-        {habit.categoria && (
-          <p className="text-sm text-muted-foreground">{habit.categoria}</p>
-        )}
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          {habit.categoria && <span>{habit.categoria}</span>}
+          {habit.scheduledTime && (
+            <span className="flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              {habit.scheduledTime}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Status badge */}
@@ -81,9 +89,7 @@ export const HabitCard = ({
             : "bg-muted text-muted-foreground"
         )}
       >
-        {habit.active
-          ? translations.habits.active
-          : translations.habits.inactive}
+        {habit.active ? t.habits.active : t.habits.inactive}
       </div>
 
       {/* Actions menu */}
@@ -100,14 +106,14 @@ export const HabitCard = ({
         <DropdownMenuContent align="end" className="w-40">
           <DropdownMenuItem onClick={onEdit} className="gap-2">
             <Pencil className="h-4 w-4" />
-            {translations.habits.edit}
+            {t.habits.edit}
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={onDelete}
             className="gap-2 text-destructive focus:text-destructive"
           >
             <Trash2 className="h-4 w-4" />
-            {translations.habits.delete}
+            {t.habits.delete}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

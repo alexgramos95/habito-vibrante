@@ -18,6 +18,15 @@ export const ptPT = {
     settings: "Definições",
     futureSelf: "Future Self",
   },
+  // Page subtitles for unified header
+  pageSubtitles: {
+    habits: "Rastreamento diário de consistência e lembretes",
+    trackers: "Monitorização de consumo e comportamento",
+    calendar: "Planeamento semanal e visão de execução",
+    finances: "Poupança mensal e acompanhamento de resultados",
+    shopping: "Gastos semanais e visão de compras",
+    profile: "Configuração de identidade e desempenho",
+  },
   dashboard: {
     title: "Hábitos",
     weeklyEvolution: "Evolução Semanal",
@@ -577,6 +586,7 @@ export const ptPT = {
 export type Translations = {
   app: { name: string; tagline: string; title: string; subtitle: string };
   nav: { dashboard: string; habits: string; trackers: string; calendar: string; finances: string; shopping: string; triggers: string; profile: string; progress: string; settings: string; futureSelf: string };
+  pageSubtitles: { habits: string; trackers: string; calendar: string; finances: string; shopping: string; profile: string };
   dashboard: { [key: string]: string };
   kpis: { [key: string]: string };
   habits: { [key: string]: string };

@@ -2,9 +2,10 @@ import { useState } from "react";
 import { format } from "date-fns";
 import { 
   Globe, Sun, Moon, Trophy, Target, Star, TrendingUp,
-  PenLine, Sparkles, PiggyBank, Trash2, AlertTriangle
+  PenLine, Sparkles, PiggyBank, Trash2, AlertTriangle, User
 } from "lucide-react";
 import { Navigation } from "@/components/Layout/Navigation";
+import { PageHeader } from "@/components/Layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -95,20 +96,17 @@ const Perfil = () => {
       <Navigation />
 
       <main className="container py-6 space-y-6">
-        {/* Header with Avatar */}
-        <div className="flex items-center gap-4">
-          <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center text-2xl font-bold text-primary-foreground shadow-lg">
-            {t.app.name.charAt(0)}
-          </div>
-          <div className="flex-1">
-            <h1 className="text-2xl font-semibold">{t.profile.title}</h1>
-            <p className="text-sm text-muted-foreground">{t.app.tagline}</p>
-          </div>
+        {/* Header */}
+        <PageHeader
+          title={t.profile.title}
+          subtitle={(t as any).pageSubtitles?.profile || t.app.tagline}
+          icon={User}
+        >
           <div className="text-right">
             <p className="text-2xl font-bold text-primary">{t.kpis.level} {levelProgress.current}</p>
             <p className="text-xs text-muted-foreground">{levelProgress.pointsToNext} {t.profile.toNextLevel}</p>
           </div>
-        </div>
+        </PageHeader>
 
         {/* Level Progress */}
         <Card className="glass border-border/30">

@@ -6,6 +6,7 @@ import { AppState, Habit, Tracker, DailyReflection, ShoppingItem } from "@/data/
 import { loadState, saveState, toggleDailyLog, getReflectionForDate } from "@/data/storage";
 import { getCompletedHabitsOnDate, getActiveHabits } from "@/logic/computations";
 import { Navigation } from "@/components/Layout/Navigation";
+import { PageHeader } from "@/components/Layout/PageHeader";
 import { MonthSelector } from "@/components/Dashboard/MonthSelector";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -394,25 +395,17 @@ const Calendario = () => {
 
       <main className="container py-6 space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gradient">
-              {locale === 'pt-PT' ? 'Calendário' : 'Calendar'}
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              {locale === 'pt-PT' ? 'Visualiza o teu progresso ao longo do tempo' : 'View your progress over time'}
-            </p>
+        <PageHeader
+          title={t.calendar.title}
+          subtitle={(t as any).pageSubtitles?.calendar || (locale === 'pt-PT' ? 'Visualiza o teu progresso ao longo do tempo' : 'View your progress over time')}
+          icon={CalendarIcon}
+        >
+          <div className="flex items-center gap-2 px-4 py-2 rounded-xl glass">
+            <Flame className="h-5 w-5 text-warning" />
+            <span className="font-bold text-lg">{currentStreak}</span>
+            <span className="text-sm text-muted-foreground">{t.kpis.days}</span>
           </div>
-          
-          {/* Streak Badge */}
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 px-4 py-2 rounded-xl glass">
-              <Flame className="h-5 w-5 text-warning" />
-              <span className="font-bold text-lg">{currentStreak}</span>
-              <span className="text-sm text-muted-foreground">{t.kpis.days}</span>
-            </div>
-          </div>
-        </div>
+        </PageHeader>
 
         {/* View Mode Tabs */}
         <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>

@@ -20,6 +20,15 @@ export const enUS: Translations = {
     settings: "Settings",
     futureSelf: "Identity",
   },
+  // Page subtitles for unified header
+  pageSubtitles: {
+    habits: "Daily consistency tracking and reminders",
+    trackers: "Consumption and behavior monitoring",
+    calendar: "Weekly planner and execution overview",
+    finances: "Monthly savings and outcome tracking",
+    shopping: "Weekly spending and purchasing overview",
+    profile: "Identity configuration and performance",
+  },
   dashboard: {
     title: "Habits",
     weeklyEvolution: "Weekly Progress",

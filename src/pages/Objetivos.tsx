@@ -3,9 +3,10 @@ import { format, parseISO } from "date-fns";
 import { pt, enUS as enUSLocale } from "date-fns/locale";
 import {
   Target, Plus, Trash2, ChevronRight, TrendingUp, TrendingDown,
-  Clock, Check, X, Pencil, BarChart3, Play, Settings2
+  Clock, Check, X, Pencil, BarChart3, Play, Settings2, Activity
 } from "lucide-react";
 import { Navigation } from "@/components/Layout/Navigation";
+import { PageHeader } from "@/components/Layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -227,18 +228,16 @@ const Objetivos = () => {
 
       <main className="container py-6 space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold">{t.objectives.title}</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              {t.motivational.consistencyWins}
-            </p>
-          </div>
-          <Button onClick={() => setShowNewTrackerDialog(true)} className="gap-2">
-            <Plus className="h-4 w-4" />
-            {t.objectives.newObjective}
-          </Button>
-        </div>
+        <PageHeader
+          title={t.nav.trackers}
+          subtitle={(t as any).pageSubtitles?.trackers || t.motivational.consistencyWins}
+          icon={Activity}
+          action={{
+            icon: Plus,
+            label: t.objectives.newObjective,
+            onClick: () => setShowNewTrackerDialog(true),
+          }}
+        />
 
         {/* Empty State */}
         {activeTrackers.length === 0 ? (
