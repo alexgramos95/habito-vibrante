@@ -270,18 +270,20 @@ const Objetivos = () => {
                   <Card 
                     key={tracker.id}
                     className={cn(
-                      "cursor-pointer transition-all duration-200 border-border/30",
+                      "transition-all duration-200 border-border/30 group",
                       selectedTracker === tracker.id 
                         ? "glass border-primary/50 shadow-lg" 
                         : "hover:bg-secondary/50"
                     )}
-                    onClick={() => setSelectedTracker(tracker.id)}
                   >
                     <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <div 
+                          className="flex items-center gap-3 flex-1 cursor-pointer"
+                          onClick={() => setSelectedTracker(tracker.id)}
+                        >
                           <div className={cn(
-                            "h-10 w-10 rounded-xl flex items-center justify-center text-lg",
+                            "h-10 w-10 rounded-xl flex items-center justify-center text-lg shrink-0",
                             tracker.type === 'reduce' 
                               ? "bg-warning/10" 
                               : tracker.type === 'boolean'
@@ -292,16 +294,44 @@ const Objetivos = () => {
                           )}>
                             {tracker.icon || (tracker.type === 'reduce' ? <TrendingDown className="h-5 w-5 text-warning" /> : <TrendingUp className="h-5 w-5 text-success" />)}
                           </div>
-                          <div>
-                            <p className="font-medium">{tracker.name}</p>
+                          <div className="min-w-0">
+                            <p className="font-medium truncate">{tracker.name}</p>
                             <p className="text-sm text-muted-foreground">
                               {summary.todayCount} {summary.todayCount === 1 ? tracker.unitSingular : tracker.unitPlural} {t.dashboard.today.toLowerCase()}
                             </p>
                           </div>
                         </div>
-                        <Badge variant={isOnTrack ? "default" : "destructive"}>
-                          {isOnTrack ? t.objectives.onTrack : t.objectives.offTrack}
-                        </Badge>
+                        
+                        {/* Actions - Edit/Delete */}
+                        <div className="flex items-center gap-1">
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openEditDialog(tracker);
+                            }}
+                            title={locale === 'pt-PT' ? "Editar" : "Edit"}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openDeleteDialog(tracker);
+                            }}
+                            title={locale === 'pt-PT' ? "Eliminar" : "Delete"}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                          <Badge variant={isOnTrack ? "default" : "destructive"} className="ml-1">
+                            {isOnTrack ? t.objectives.onTrack : t.objectives.offTrack}
+                          </Badge>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -320,9 +350,20 @@ const Objetivos = () => {
                         <Clock className="h-5 w-5 text-primary" />
                         {t.dashboard.today}
                       </CardTitle>
-                      <Badge variant="outline">
-                        {currentSummary.todayCount} / {currentTracker.dailyGoal ?? currentTracker.baseline}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">
+                          {currentSummary.todayCount} / {currentTracker.dailyGoal ?? currentTracker.baseline}
+                        </Badge>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => openEditDialog(currentTracker)}
+                          title={locale === 'pt-PT' ? "Editar Tracker" : "Edit Tracker"}
+                        >
+                          <Settings2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
