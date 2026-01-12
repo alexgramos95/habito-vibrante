@@ -11,6 +11,7 @@ export const enUS: Translations = {
     dashboard: "Dashboard",
     habits: "Habits",
     trackers: "Trackers",
+    calendar: "Calendar",
     finances: "Finances",
     shopping: "Shopping",
     triggers: "Triggers",

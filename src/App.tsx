@@ -7,7 +7,6 @@ import { I18nProvider } from "@/i18n/I18nContext";
 
 // Pages
 import Index from "./pages/Index";
-import Habitos from "./pages/Habitos";
 import Objetivos from "./pages/Objetivos";
 import Calendario from "./pages/Calendario";
 import Financas from "./pages/Financas";
@@ -31,7 +30,6 @@ const App = () => (
           <Routes>
             {/* Main routes */}
             <Route path="/" element={<Index />} />
-            <Route path="/habitos" element={<Habitos />} />
             <Route path="/objetivos" element={<Objetivos />} />
             <Route path="/calendario" element={<Calendario />} />
             <Route path="/financas" element={<Financas />} />
@@ -41,6 +39,7 @@ const App = () => (
             <Route path="/onboarding" element={<Onboarding />} />
             
             {/* Legacy routes for backwards compatibility */}
+            <Route path="/habitos" element={<Index />} />
             <Route path="/progresso" element={<Progresso />} />
             <Route path="/definicoes" element={<Definicoes />} />
             
