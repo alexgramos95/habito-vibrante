@@ -145,6 +145,9 @@ export const ptPT = {
     daysRemaining: "dias restantes",
     fromTrackers: "De trackers",
     fromManual: "Manual",
+    activeGoals: "Objetivos Ativos",
+    totalInvested: "Total Investido",
+    completedGoals: "Objetivos Concluídos",
   },
   sleep: {
     title: "Sono",

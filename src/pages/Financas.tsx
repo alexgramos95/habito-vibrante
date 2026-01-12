@@ -3,7 +3,7 @@ import { format, parseISO } from "date-fns";
 import { pt, enUS as enUSLocale } from "date-fns/locale";
 import {
   Wallet, TrendingUp, PiggyBank, BarChart3, Award,
-  ChevronLeft, ChevronRight, Target, ArrowUpRight
+  ChevronLeft, ChevronRight, Target, ArrowUpRight, Plus, Tag
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Navigation } from "@/components/Layout/Navigation";
@@ -13,17 +13,21 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/i18n/I18nContext";
 import { AppState } from "@/data/types";
-import { loadState } from "@/data/storage";
+import { loadState, saveState } from "@/data/storage";
 import { calculateTrackerFinancials, getFinancialMotivationalMessage } from "@/logic/computations";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
   ResponsiveContainer, BarChart, Bar, Cell
 } from "recharts";
 import { cn } from "@/lib/utils";
+import { ExternalDepositDialog } from "@/components/Finance/ExternalDepositDialog";
+import { useToast } from "@/hooks/use-toast";
 
 const Financas = () => {
+  const { toast } = useToast();
   const { t, locale, formatCurrency } = useI18n();
-  const [state] = useState<AppState>(() => loadState());
+  const [state, setState] = useState<AppState>(() => loadState());
+  const [showDepositDialog, setShowDepositDialog] = useState(false);
   const today = new Date();
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
@@ -39,6 +43,24 @@ const Financas = () => {
   );
 
   const motivationalMessage = getFinancialMotivationalMessage(financialOverview, locale);
+
+  // Persist state changes
+  useEffect(() => {
+    saveState(state);
+  }, [state]);
+
+  // Handle external deposit - stores in purchaseGoals contributions
+  const handleAddDeposit = (deposit: {
+    amount: number;
+    description: string;
+    tags: string[];
+  }) => {
+    // For now, just show toast - external deposits tracked in future iteration
+    toast({
+      title: locale === "pt-PT" ? "Depósito registado" : "Deposit recorded",
+      description: formatCurrency(deposit.amount),
+    });
+  };
 
   // Month navigation
   const handlePreviousMonth = () => {
@@ -115,7 +137,7 @@ const Financas = () => {
           </div>
         </div>
 
-        {/* Empty State */}
+        {/* Empty State - Show deposit option even without trackers */}
         {financialOverview.trackerBreakdown.length === 0 ? (
           <Card className="glass border-border/30">
             <CardContent className="py-16 text-center">
@@ -124,16 +146,38 @@ const Financas = () => {
               <p className="text-sm text-muted-foreground mb-6 max-w-md mx-auto">
                 {t.finances.noFinancialTrackersDescription}
               </p>
-              <Link to="/objetivos">
-                <Button className="gap-2">
-                  <Target className="h-4 w-4" />
-                  {t.finances.goToTrackers}
+              <div className="flex gap-3 justify-center">
+                <Link to="/objetivos">
+                  <Button className="gap-2">
+                    <Target className="h-4 w-4" />
+                    {t.finances.goToTrackers}
+                  </Button>
+                </Link>
+                <Button
+                  variant="outline"
+                  className="gap-2"
+                  onClick={() => setShowDepositDialog(true)}
+                >
+                  <Plus className="h-4 w-4" />
+                  {locale === "pt-PT" ? "Depósito Externo" : "External Deposit"}
                 </Button>
-              </Link>
+              </div>
             </CardContent>
           </Card>
         ) : (
           <>
+            {/* Add Deposit Button */}
+            <div className="flex justify-end">
+              <Button
+                variant="outline"
+                className="gap-2"
+                onClick={() => setShowDepositDialog(true)}
+              >
+                <Plus className="h-4 w-4" />
+                {locale === "pt-PT" ? "Depósito Externo" : "External Deposit"}
+              </Button>
+            </div>
+
             {/* KPI Cards */}
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <Card className="premium-card group hover:glow-subtle">
@@ -386,6 +430,13 @@ const Financas = () => {
           </>
         )}
       </main>
+
+      {/* External Deposit Dialog */}
+      <ExternalDepositDialog
+        open={showDepositDialog}
+        onOpenChange={setShowDepositDialog}
+        onSave={handleAddDeposit}
+      />
     </div>
   );
 };

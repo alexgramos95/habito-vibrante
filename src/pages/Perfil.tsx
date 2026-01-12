@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { 
-  User, Globe, Coins, Sun, Moon, Trophy, Target, Star, TrendingUp,
-  PenLine, Sparkles, PiggyBank, Bed, ChevronRight
+  Globe, Sun, Moon, Trophy, Target, Star, TrendingUp,
+  PenLine, Sparkles, PiggyBank, Trash2, AlertTriangle
 } from "lucide-react";
-import { Link } from "react-router-dom";
 import { Navigation } from "@/components/Layout/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,13 +13,17 @@ import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/i18n/I18nContext";
 import { localeNames, currencyNames, type Locale, type Currency } from "@/i18n";
 import { AppState, ACHIEVEMENTS } from "@/data/types";
-import { loadState, getLatestFutureSelf, getReflectionForDate } from "@/data/storage";
-import { getLevelProgress, calculateSavingsSummary, calculateTrackerFinancials } from "@/logic/computations";
+import { loadState, saveState, getLatestFutureSelf, getReflectionForDate } from "@/data/storage";
+import { getLevelProgress, calculateTrackerFinancials } from "@/logic/computations";
 import { cn } from "@/lib/utils";
+import { ResetDataDialog } from "@/components/Profile/ResetDataDialog";
+import { useToast } from "@/hooks/use-toast";
 
 const Perfil = () => {
+  const { toast } = useToast();
   const { t, locale, setLocale, currency, setCurrency, formatCurrency } = useI18n();
-  const [state] = useState<AppState>(() => loadState());
+  const [state, setState] = useState<AppState>(() => loadState());
+  const [showResetDialog, setShowResetDialog] = useState(false);
   const [chronotype, setChronotype] = useState<'early' | 'moderate' | 'late'>(() => {
     try {
       return (localStorage.getItem('become-chronotype') as any) || 'moderate';
@@ -32,7 +35,6 @@ const Perfil = () => {
   const today = new Date();
   const todayStr = format(today, "yyyy-MM-dd");
   const levelProgress = getLevelProgress(state.gamification.pontos);
-  const savingsSummary = calculateSavingsSummary(state, today.getFullYear(), today.getMonth());
   const trackerFinancials = calculateTrackerFinancials(
     state.trackers || [], 
     state.trackerEntries || [],
@@ -62,6 +64,25 @@ const Perfil = () => {
   const handleChronotypeChange = (value: 'early' | 'moderate' | 'late') => {
     setChronotype(value);
     localStorage.setItem('become-chronotype', value);
+  };
+
+  const handleResetAllData = () => {
+    // Clear localStorage completely for app data
+    localStorage.removeItem('become-state');
+    
+    // Reload state from storage (will create fresh state)
+    const freshState = loadState();
+    setState(freshState);
+    
+    toast({
+      title: locale === 'pt-PT' ? "Dados reiniciados" : "Data reset",
+      description: locale === 'pt-PT' 
+        ? "Todos os dados foram eliminados." 
+        : "All data has been deleted.",
+    });
+    
+    // Reload page to ensure clean state
+    window.location.reload();
   };
 
   const chronotypeLabels = {
@@ -381,7 +402,45 @@ const Perfil = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* Danger Zone - Reset */}
+        <Card className="glass border-destructive/30">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              {locale === 'pt-PT' ? "Zona Perigosa" : "Danger Zone"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="font-medium">{t.settings.resetData}</p>
+                <p className="text-sm text-muted-foreground">
+                  {locale === 'pt-PT' 
+                    ? "Elimina todos os hábitos, trackers, finanças, compras, conquistas e reflexões." 
+                    : "Deletes all habits, trackers, finances, shopping, achievements, and reflections."}
+                </p>
+              </div>
+              <Button 
+                variant="destructive" 
+                size="sm"
+                onClick={() => setShowResetDialog(true)}
+                className="shrink-0"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                {t.actions.reset}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </main>
+
+      {/* Reset Dialog */}
+      <ResetDataDialog
+        open={showResetDialog}
+        onOpenChange={setShowResetDialog}
+        onConfirm={handleResetAllData}
+      />
     </div>
   );
 };
