@@ -526,7 +526,7 @@ export const ptPT = {
 
 export type Translations = {
   app: { name: string; tagline: string; title: string; subtitle: string };
-  nav: { dashboard: string; habits: string; trackers: string; finances: string; shopping: string; triggers: string; profile: string; progress: string; settings: string; futureSelf: string };
+  nav: { dashboard: string; habits: string; trackers: string; calendar: string; finances: string; shopping: string; triggers: string; profile: string; progress: string; settings: string; futureSelf: string };
   dashboard: { [key: string]: string };
   kpis: { [key: string]: string };
   habits: { [key: string]: string };
