@@ -40,6 +40,11 @@ import { MotivationalBanner } from "@/components/Feedback/MotivationalBanner";
 import { ReflectionCard } from "@/components/Modules/ReflectionCard";
 import { FutureSelfCard } from "@/components/Modules/FutureSelfCard";
 import { TrackerQuickAdd } from "@/components/Modules/TrackerQuickAdd";
+import { 
+  StreakDrilldown, ConsistencyDrilldown, TrackersDrilldown, SavingsDrilldown 
+} from "@/components/Dashboard/DrilldownModals";
+import { ReflectionModal } from "@/components/Dashboard/ReflectionModal";
+import { FutureSelfModal } from "@/components/Dashboard/FutureSelfModal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -118,6 +123,14 @@ const Index = () => {
   const [showHabitForm, setShowHabitForm] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
   const [deletingHabitId, setDeletingHabitId] = useState<string | null>(null);
+  
+  // Drilldown Modal States
+  const [showStreakDrilldown, setShowStreakDrilldown] = useState(false);
+  const [showConsistencyDrilldown, setShowConsistencyDrilldown] = useState(false);
+  const [showTrackersDrilldown, setShowTrackersDrilldown] = useState(false);
+  const [showSavingsDrilldown, setShowSavingsDrilldown] = useState(false);
+  const [showReflectionModal, setShowReflectionModal] = useState(false);
+  const [showFutureSelfModal, setShowFutureSelfModal] = useState(false);
 
   const today = format(new Date(), "yyyy-MM-dd");
 
@@ -292,29 +305,35 @@ const Index = () => {
           </div>
         </div>
 
-        {/* KPI Cards - Premium Glass Style */}
+        {/* KPI Cards - Premium Glass Style (Clickable) */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <KPICard
-            title={t.kpis.currentStreak}
-            value={monthlySummary.streakAtual}
-            subtitle={t.kpis.days}
-            icon={<Flame className="h-5 w-5" />}
-            variant="primary"
-          />
-          <KPICard
-            title={t.kpis.bestStreak}
-            value={monthlySummary.melhorStreak}
-            subtitle={t.kpis.days}
-            icon={<Trophy className="h-5 w-5" />}
-            variant="warning"
-          />
-          <KPICard
-            title={t.dashboard.consistencyScore}
-            value={`${consistencyScore}%`}
-            subtitle={`${monthlySummary.totalDone} ${t.kpis.ofTotal} ${monthlySummary.totalPossible}`}
-            icon={<TrendingUp className="h-5 w-5" />}
-            variant="success"
-          />
+          <div onClick={() => setShowStreakDrilldown(true)} className="cursor-pointer">
+            <KPICard
+              title={t.kpis.currentStreak}
+              value={monthlySummary.streakAtual}
+              subtitle={t.kpis.days}
+              icon={<Flame className="h-5 w-5" />}
+              variant="primary"
+            />
+          </div>
+          <div onClick={() => setShowStreakDrilldown(true)} className="cursor-pointer">
+            <KPICard
+              title={t.kpis.bestStreak}
+              value={monthlySummary.melhorStreak}
+              subtitle={t.kpis.days}
+              icon={<Trophy className="h-5 w-5" />}
+              variant="warning"
+            />
+          </div>
+          <div onClick={() => setShowConsistencyDrilldown(true)} className="cursor-pointer">
+            <KPICard
+              title={t.dashboard.consistencyScore}
+              value={`${consistencyScore}%`}
+              subtitle={`${monthlySummary.totalDone} ${t.kpis.ofTotal} ${monthlySummary.totalPossible}`}
+              icon={<TrendingUp className="h-5 w-5" />}
+              variant="success"
+            />
+          </div>
           <KPICard
             title={t.kpis.activeHabits}
             value={monthlySummary.habitosAtivos}
@@ -452,18 +471,22 @@ const Index = () => {
               </Card>
             </div>
 
-            {/* Reflection and Future Self Cards */}
+            {/* Reflection and Future Self Cards - Clickable */}
             <div className="grid gap-4 sm:grid-cols-2">
-              <ReflectionCard 
-                reflection={todayReflection}
-                onSave={handleSaveReflection}
-                compact
-              />
-              <FutureSelfCard 
-                entry={latestFutureSelf}
-                onSave={handleSaveFutureSelf}
-                compact
-              />
+              <div onClick={() => setShowReflectionModal(true)} className="cursor-pointer">
+                <ReflectionCard 
+                  reflection={todayReflection}
+                  onSave={handleSaveReflection}
+                  compact
+                />
+              </div>
+              <div onClick={() => setShowFutureSelfModal(true)} className="cursor-pointer">
+                <FutureSelfCard 
+                  entry={latestFutureSelf}
+                  onSave={handleSaveFutureSelf}
+                  compact
+                />
+              </div>
             </div>
           </div>
 
@@ -533,6 +556,53 @@ const Index = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Drilldown Modals */}
+      <StreakDrilldown
+        open={showStreakDrilldown}
+        onOpenChange={setShowStreakDrilldown}
+        currentStreak={monthlySummary.streakAtual}
+        bestStreak={monthlySummary.melhorStreak}
+        dailyLogs={state.dailyLogs}
+        habits={state.habits}
+      />
+      <ConsistencyDrilldown
+        open={showConsistencyDrilldown}
+        onOpenChange={setShowConsistencyDrilldown}
+        consistencyScore={consistencyScore}
+        habits={state.habits}
+        dailyLogs={state.dailyLogs}
+        month={currentMonth}
+        year={currentYear}
+      />
+      <TrackersDrilldown
+        open={showTrackersDrilldown}
+        onOpenChange={setShowTrackersDrilldown}
+        trackers={state.trackers || []}
+        entries={state.trackerEntries || []}
+        formatCurrency={formatCurrency}
+      />
+      <SavingsDrilldown
+        open={showSavingsDrilldown}
+        onOpenChange={setShowSavingsDrilldown}
+        savingsSummary={savingsSummary}
+        savings={state.savings}
+        formatCurrency={formatCurrency}
+      />
+      <ReflectionModal
+        open={showReflectionModal}
+        onOpenChange={setShowReflectionModal}
+        reflections={state.reflections || []}
+        todayReflection={todayReflection}
+        onSave={handleSaveReflection}
+      />
+      <FutureSelfModal
+        open={showFutureSelfModal}
+        onOpenChange={setShowFutureSelfModal}
+        entries={state.futureSelf || []}
+        latestEntry={latestFutureSelf}
+        onSave={handleSaveFutureSelf}
+      />
     </div>
   );
 };
