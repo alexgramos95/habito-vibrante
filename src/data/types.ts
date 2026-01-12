@@ -332,81 +332,81 @@ export const DEFAULT_TOBACCO_CONFIG: TobaccoConfig = {
 };
 
 export const DEFAULT_COLORS = [
-  "#14b8a6", // teal
+  "#00ffff", // cyan
   "#22c55e", // green
   "#3b82f6", // blue
   "#f59e0b", // amber
   "#ef4444", // red
   "#8b5cf6", // violet
   "#ec4899", // pink
-  "#06b6d4", // cyan
+  "#06b6d4", // teal
 ];
 
 export const DEFAULT_CATEGORIES = [
-  "Saúde",
-  "Exercício",
-  "Produtividade",
-  "Aprendizagem",
+  "Health",
+  "Exercise",
+  "Productivity",
+  "Learning",
   "Mindfulness",
   "Social",
-  "Finanças",
-  "Criatividade",
+  "Finance",
+  "Creativity",
 ];
 
 export const SHOPPING_CATEGORIES = [
-  "Mercearia",
-  "Fresco",
-  "Lacticínios",
-  "Carne & Peixe",
-  "Higiene",
-  "Limpeza",
-  "Outros",
+  "Groceries",
+  "Fresh",
+  "Dairy",
+  "Meat & Fish",
+  "Hygiene",
+  "Cleaning",
+  "Other",
 ];
 
 export const SAVINGS_CATEGORIES = [
-  "Corte de gastos",
-  "Investimento",
-  "Poupança",
-  "Reembolso",
-  "Bónus",
+  "Expense Cut",
+  "Investment",
+  "Savings",
+  "Refund",
+  "Bonus",
   "Tracker",
-  "Outro",
+  "Other",
 ];
 
 // Tracker templates for quick setup
 export const TRACKER_TEMPLATES = [
-  { name: "Cigarros", type: "reduce" as const, unit: "cigarro", unitPlural: "cigarros", baseline: 20, valuePerUnit: 0.31, icon: "🚬", frequency: "daily" as const },
-  { name: "Café", type: "event" as const, unit: "café", unitPlural: "cafés", baseline: 0, valuePerUnit: -1.20, icon: "☕", frequency: "daily" as const },
-  { name: "Álcool", type: "reduce" as const, unit: "bebida", unitPlural: "bebidas", baseline: 2, valuePerUnit: 4.00, icon: "🍺", frequency: "daily" as const },
-  { name: "Exercício", type: "increase" as const, unit: "minuto", unitPlural: "minutos", baseline: 0, valuePerUnit: 0, icon: "🏃", frequency: "daily" as const },
-  { name: "Água", type: "increase" as const, unit: "copo", unitPlural: "copos", baseline: 8, valuePerUnit: 0, icon: "💧", frequency: "daily" as const },
-  { name: "Passos", type: "increase" as const, unit: "passo", unitPlural: "passos", baseline: 0, valuePerUnit: 0, icon: "👣", frequency: "daily" as const },
-  { name: "Leitura", type: "increase" as const, unit: "página", unitPlural: "páginas", baseline: 0, valuePerUnit: 0, icon: "📚", frequency: "daily" as const },
-  { name: "Meditação", type: "increase" as const, unit: "minuto", unitPlural: "minutos", baseline: 0, valuePerUnit: 0, icon: "🧘", frequency: "daily" as const },
-  { name: "Suplemento", type: "boolean" as const, unit: "", unitPlural: "", baseline: 0, valuePerUnit: 0, icon: "💊", frequency: "daily" as const },
-  { name: "Jejum Intermitente", type: "boolean" as const, unit: "", unitPlural: "", baseline: 0, valuePerUnit: 0, icon: "⏰", frequency: "daily" as const },
+  { name: "Exercise", type: "increase" as const, unit: "minute", unitPlural: "minutes", baseline: 0, valuePerUnit: 0, icon: "🏃", frequency: "daily" as const },
+  { name: "Meditation", type: "increase" as const, unit: "minute", unitPlural: "minutes", baseline: 0, valuePerUnit: 0, icon: "🧘", frequency: "daily" as const },
+  { name: "Water", type: "increase" as const, unit: "glass", unitPlural: "glasses", baseline: 8, valuePerUnit: 0, icon: "💧", frequency: "daily" as const },
+  { name: "Reading", type: "increase" as const, unit: "page", unitPlural: "pages", baseline: 0, valuePerUnit: 0, icon: "📚", frequency: "daily" as const },
+  { name: "Steps", type: "increase" as const, unit: "step", unitPlural: "steps", baseline: 0, valuePerUnit: 0, icon: "👣", frequency: "daily" as const },
+  { name: "Sleep", type: "increase" as const, unit: "hour", unitPlural: "hours", baseline: 7, valuePerUnit: 0, icon: "😴", frequency: "daily" as const },
+  { name: "Coffee", type: "event" as const, unit: "cup", unitPlural: "cups", baseline: 0, valuePerUnit: -3.00, icon: "☕", frequency: "daily" as const },
+  { name: "Alcohol", type: "reduce" as const, unit: "drink", unitPlural: "drinks", baseline: 2, valuePerUnit: 5.00, icon: "🍺", frequency: "daily" as const },
+  { name: "Supplement", type: "boolean" as const, unit: "", unitPlural: "", baseline: 0, valuePerUnit: 0, icon: "💊", frequency: "daily" as const },
+  { name: "Fasting", type: "boolean" as const, unit: "", unitPlural: "", baseline: 0, valuePerUnit: 0, icon: "⏰", frequency: "daily" as const },
 ];
 
 export const DEPOSIT_TAGS = [
-  "investimento",
+  "investment",
   "bonus",
-  "reembolso",
-  "presente",
-  "poupança",
-  "outro",
+  "refund",
+  "gift",
+  "savings",
+  "other",
 ];
 
 export const INVESTMENT_PLATFORMS = [
-  "ETF Genérico",
-  "Certificados de Aforro",
-  "PPR",
-  "Depósito a Prazo",
-  "Ações",
+  "ETF",
+  "Savings Bonds",
+  "Retirement Fund",
+  "Term Deposit",
+  "Stocks",
   "Crypto",
-  "Outro",
+  "Other",
 ];
 
 export const GOAL_SOURCES = [
-  { id: 'tracker', label: 'Poupança de Tracker' },
-  { id: 'manual', label: 'Contribuição Manual' },
+  { id: 'tracker', label: 'Tracker Savings' },
+  { id: 'manual', label: 'Manual Contribution' },
 ] as const;
