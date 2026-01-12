@@ -2,7 +2,8 @@ import { useState } from "react";
 import { format } from "date-fns";
 import { 
   Globe, Sun, Moon, Trophy, Target, Star, TrendingUp,
-  PenLine, Sparkles, PiggyBank, Trash2, AlertTriangle, User
+  PenLine, Sparkles, PiggyBank, Trash2, AlertTriangle, User,
+  Crown, Download
 } from "lucide-react";
 import { Navigation } from "@/components/Layout/Navigation";
 import { PageHeader } from "@/components/Layout/PageHeader";
@@ -19,12 +20,19 @@ import { getLevelProgress, calculateTrackerFinancials } from "@/logic/computatio
 import { cn } from "@/lib/utils";
 import { ResetDataDialog } from "@/components/Profile/ResetDataDialog";
 import { useToast } from "@/hooks/use-toast";
+import { useSubscription } from "@/hooks/useSubscription";
+import { PaywallModal } from "@/components/Paywall/PaywallModal";
+import { TrialBanner } from "@/components/Paywall/TrialBanner";
+import { ExportDialog } from "@/components/Export/ExportDialog";
 
 const Perfil = () => {
   const { toast } = useToast();
   const { t, locale, setLocale, currency, setCurrency, formatCurrency } = useI18n();
   const [state, setState] = useState<AppState>(() => loadState());
   const [showResetDialog, setShowResetDialog] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
+  const [showExport, setShowExport] = useState(false);
+  const { subscription, trialStatus, isPro, upgradeToPro } = useSubscription();
   const [chronotype, setChronotype] = useState<'early' | 'moderate' | 'late'>(() => {
     try {
       return (localStorage.getItem('become-chronotype') as any) || 'moderate';
@@ -102,11 +110,73 @@ const Perfil = () => {
           subtitle={(t as any).pageSubtitles?.profile || t.app.tagline}
           icon={User}
         >
-          <div className="text-right">
-            <p className="text-2xl font-bold text-primary">{t.kpis.level} {levelProgress.current}</p>
-            <p className="text-xs text-muted-foreground">{levelProgress.pointsToNext} {t.profile.toNextLevel}</p>
+          <div className="flex items-center gap-3">
+            {trialStatus.isActive && (
+              <TrialBanner 
+                daysRemaining={trialStatus.daysRemaining}
+                onUpgrade={() => setShowPaywall(true)}
+              />
+            )}
+            <div className="text-right">
+              <p className="text-2xl font-bold text-primary">{t.kpis.level} {levelProgress.current}</p>
+              <p className="text-xs text-muted-foreground">{levelProgress.pointsToNext} {t.profile.toNextLevel}</p>
+            </div>
           </div>
         </PageHeader>
+
+        {/* Subscription Status */}
+        <Card className={cn(
+          "glass border-border/30",
+          isPro && subscription.plan === 'pro' && "border-warning/30 bg-warning/5"
+        )}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={cn(
+                  "p-2 rounded-lg",
+                  isPro ? "bg-warning/20" : "bg-secondary"
+                )}>
+                  <Crown className={cn(
+                    "h-5 w-5",
+                    isPro ? "text-warning" : "text-muted-foreground"
+                  )} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold capitalize">
+                      {subscription.plan === 'pro' 
+                        ? `Pro (${subscription.purchasePlan})` 
+                        : subscription.plan === 'trial' 
+                          ? 'Trial' 
+                          : 'Free'}
+                    </span>
+                    {isPro && (
+                      <Badge variant="outline" className="text-warning border-warning/50 text-xs">
+                        ACTIVE
+                      </Badge>
+                    )}
+                  </div>
+                  {trialStatus.isActive && (
+                    <p className="text-sm text-muted-foreground">
+                      {trialStatus.daysRemaining} {trialStatus.daysRemaining === 1 ? 'day' : 'days'} remaining
+                    </p>
+                  )}
+                  {subscription.plan === 'free' && (
+                    <p className="text-sm text-muted-foreground">
+                      Limited to 3 habits • 7-day calendar
+                    </p>
+                  )}
+                </div>
+              </div>
+              {!isPro || trialStatus.isActive ? (
+                <Button onClick={() => setShowPaywall(true)} size="sm" className="gap-2">
+                  <Crown className="h-4 w-4" />
+                  Upgrade
+                </Button>
+              ) : null}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Level Progress */}
         <Card className="glass border-border/30">
@@ -397,6 +467,32 @@ const Perfil = () => {
           </Card>
         )}
 
+        {/* Export Data */}
+        <Card className="glass border-border/30">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <Download className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-medium">Export Data</p>
+                  <p className="text-sm text-muted-foreground">Download your progress (CSV/PDF)</p>
+                </div>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setShowExport(true)}
+                className="gap-2"
+              >
+                {!isPro && <Crown className="h-4 w-4 text-warning" />}
+                Export
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Danger Zone - Reset */}
         <Card className="glass border-destructive/30">
           <CardHeader>
@@ -434,6 +530,22 @@ const Perfil = () => {
         open={showResetDialog}
         onOpenChange={setShowResetDialog}
         onConfirm={handleResetAllData}
+      />
+
+      {/* Paywall */}
+      <PaywallModal
+        open={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        onUpgrade={upgradeToPro}
+        trialDaysLeft={trialStatus.daysRemaining}
+      />
+
+      {/* Export */}
+      <ExportDialog
+        open={showExport}
+        onClose={() => setShowExport(false)}
+        isPro={isPro}
+        onShowPaywall={() => setShowPaywall(true)}
       />
     </div>
   );

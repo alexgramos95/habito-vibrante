@@ -583,4 +583,17 @@ export const enUS: Translations = {
     recoverAction: "Recover",
     skipAction: "Skip",
   },
+  subscription: {
+    trial: "Trial",
+    pro: "Pro",
+    free: "Free",
+    daysLeft: "days left",
+    upgrade: "Upgrade",
+    trialEnded: "Trial ended",
+    unlimitedHabits: "Unlimited habits",
+    unlimitedTrackers: "Unlimited trackers",
+    fullCalendar: "Full calendar history",
+    financesAccess: "Finances dashboard",
+    exportAccess: "Export (CSV/PDF)",
+  },
 };
