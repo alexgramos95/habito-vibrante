@@ -20,11 +20,12 @@ import { useI18n } from "@/i18n/I18nContext";
 import { AppState, Tracker, TrackerEntry } from "@/data/types";
 import {
   loadState, saveState, addTracker, updateTracker, deleteTracker, archiveTracker,
-  addTrackerEntry, deleteTrackerEntry, getTrackerEntriesForDate
+  addTrackerEntry, deleteTrackerEntry, getTrackerEntriesForDate, updateTrackerEntry
 } from "@/data/storage";
 import { TrackerEditDialog } from "@/components/Trackers/TrackerEditDialog";
 import { TrackerDeleteDialog } from "@/components/Trackers/TrackerDeleteDialog";
 import { TrackerTimeline } from "@/components/Trackers/TrackerTimeline";
+import { TrackerInputButton, TrackerEntryItem } from "@/components/Trackers/TrackerInputButton";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
   ResponsiveContainer
@@ -134,12 +135,16 @@ const Objetivos = () => {
     : null;
 
   // Handlers
-  const handleAddEntry = (trackerId: string, quantity: number = 1) => {
-    setState(prev => addTrackerEntry(prev, trackerId, quantity));
+  const handleAddEntry = (trackerId: string, quantity: number = 1, timestamp?: string) => {
+    setState(prev => addTrackerEntry(prev, trackerId, quantity, undefined, timestamp));
     const tracker = state.trackers.find(t => t.id === trackerId);
     toast({ 
       title: `+${quantity} ${quantity === 1 ? tracker?.unitSingular : tracker?.unitPlural || t.trackers.entry}` 
     });
+  };
+
+  const handleUpdateEntry = (entryId: string, updates: Partial<typeof state.trackerEntries[0]>) => {
+    setState(prev => updateTrackerEntry(prev, entryId, updates));
   };
 
   const handleDeleteEntry = (entryId: string) => {
@@ -321,19 +326,11 @@ const Objetivos = () => {
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <Button
-                      size="lg"
-                      onClick={() => handleAddEntry(currentTracker.id)}
-                      className={cn(
-                        "w-full h-14 text-lg gap-3",
-                        currentTracker.type === 'reduce'
-                          ? "bg-gradient-to-r from-warning to-warning/80 hover:from-warning/90 hover:to-warning/70"
-                          : "bg-gradient-to-r from-success to-success/80 hover:from-success/90 hover:to-success/70"
-                      )}
-                    >
-                      <Plus className="h-6 w-6" />
-                      +1 {currentTracker.unitSingular}
-                    </Button>
+                    <TrackerInputButton
+                      tracker={currentTracker}
+                      todayCount={currentSummary.todayCount}
+                      onAddEntry={(qty, ts) => handleAddEntry(currentTracker.id, qty, ts)}
+                    />
 
                     {currentSummary.todaySavings > 0 && (
                       <div className="text-center p-3 rounded-xl bg-success/10 border border-success/30">
@@ -343,33 +340,19 @@ const Objetivos = () => {
                       </div>
                     )}
 
-                    {/* Timeline */}
+                    {/* Timeline with editable entries */}
                     {todayEntries.length > 0 && (
                       <div className="space-y-2">
                         <h4 className="text-sm font-medium text-muted-foreground">{t.objectives.timeline}</h4>
                         <div className="max-h-40 overflow-y-auto space-y-1">
-                          {todayEntries.map((entry, idx) => (
-                            <div
+                          {todayEntries.map((entry) => (
+                            <TrackerEntryItem
                               key={entry.id}
-                              className="flex items-center justify-between p-2 rounded-lg bg-secondary/50 group"
-                            >
-                              <div className="flex items-center gap-2">
-                                <span className="text-xs text-muted-foreground font-mono">
-                                  {format(parseISO(entry.timestamp), "HH:mm")}
-                                </span>
-                                <span className="text-sm">
-                                  +{entry.quantity} {entry.quantity === 1 ? currentTracker.unitSingular : currentTracker.unitPlural}
-                                </span>
-                              </div>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                                onClick={() => handleDeleteEntry(entry.id)}
-                              >
-                                <X className="h-3 w-3 text-destructive" />
-                              </Button>
-                            </div>
+                              entry={entry}
+                              tracker={currentTracker}
+                              onUpdate={handleUpdateEntry}
+                              onDelete={handleDeleteEntry}
+                            />
                           ))}
                         </div>
                       </div>
