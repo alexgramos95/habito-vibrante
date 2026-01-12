@@ -14,7 +14,144 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          currency: string | null
+          display_name: string | null
+          email: string | null
+          id: string
+          language: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          currency?: string | null
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          language?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          currency?: string | null
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          language?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          apple_transaction_id: string | null
+          created_at: string
+          current_period_end: string | null
+          google_purchase_token: string | null
+          id: string
+          plan: string
+          purchase_date: string | null
+          purchase_plan: string | null
+          status: string | null
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          trial_end_date: string | null
+          trial_start_date: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          apple_transaction_id?: string | null
+          created_at?: string
+          current_period_end?: string | null
+          google_purchase_token?: string | null
+          id?: string
+          plan?: string
+          purchase_date?: string | null
+          purchase_plan?: string | null
+          status?: string | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          trial_end_date?: string | null
+          trial_start_date?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          apple_transaction_id?: string | null
+          created_at?: string
+          current_period_end?: string | null
+          google_purchase_token?: string | null
+          id?: string
+          plan?: string
+          purchase_date?: string | null
+          purchase_plan?: string | null
+          status?: string | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          trial_end_date?: string | null
+          trial_start_date?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_data: {
+        Row: {
+          created_at: string
+          daily_reflections: Json | null
+          future_self_entries: Json | null
+          gamification: Json | null
+          habits: Json | null
+          id: string
+          investment_goals: Json | null
+          shopping_items: Json | null
+          synced_at: string
+          tracker_logs: Json | null
+          trackers: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          daily_reflections?: Json | null
+          future_self_entries?: Json | null
+          gamification?: Json | null
+          habits?: Json | null
+          id?: string
+          investment_goals?: Json | null
+          shopping_items?: Json | null
+          synced_at?: string
+          tracker_logs?: Json | null
+          trackers?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          daily_reflections?: Json | null
+          future_self_entries?: Json | null
+          gamification?: Json | null
+          habits?: Json | null
+          id?: string
+          investment_goals?: Json | null
+          shopping_items?: Json | null
+          synced_at?: string
+          tracker_logs?: Json | null
+          trackers?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
