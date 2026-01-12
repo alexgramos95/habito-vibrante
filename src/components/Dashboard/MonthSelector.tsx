@@ -1,6 +1,6 @@
 import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { translations } from "@/i18n/translations.pt";
+import { useI18n } from "@/i18n/I18nContext";
 import { cn } from "@/lib/utils";
 
 interface MonthSelectorProps {
@@ -18,7 +18,8 @@ export const MonthSelector = ({
   onNext,
   onToday,
 }: MonthSelectorProps) => {
-  const monthName = translations.calendar.months[month];
+  const { t } = useI18n();
+  const monthName = t.calendar.months[month];
   const isCurrentMonth =
     new Date().getMonth() === month && new Date().getFullYear() === year;
 
@@ -58,7 +59,7 @@ export const MonthSelector = ({
         )}
       >
         <Calendar className="h-4 w-4" />
-        {translations.actions.today}
+        {t.actions.today}
       </Button>
     </div>
   );

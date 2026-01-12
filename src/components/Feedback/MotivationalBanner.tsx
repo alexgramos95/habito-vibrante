@@ -10,8 +10,8 @@ interface MotivationalBannerProps {
 }
 
 export const MotivationalBanner = ({ summary, hasHabits }: MotivationalBannerProps) => {
-  const { t } = useI18n();
-  const message = getMotivationalMessage(summary, hasHabits);
+  const { t, locale } = useI18n();
+  const message = getMotivationalMessage(summary, hasHabits, locale);
   
   const isGreat = summary.streakAtual >= 7 || summary.progressoMensal >= 70;
   const isGood = summary.progressoMensal >= 30;

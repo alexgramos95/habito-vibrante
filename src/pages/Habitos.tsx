@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { Plus, Pencil, Trash2, Power } from "lucide-react";
-import { translations } from "@/i18n/translations.pt";
+import { Plus, Pencil, Trash2, Power, CheckCircle2 } from "lucide-react";
+import { useI18n } from "@/i18n/I18nContext";
 import { AppState, Habit } from "@/data/types";
 import { loadState, saveState, addHabit, updateHabit, deleteHabit } from "@/data/storage";
 import { getActiveHabits } from "@/logic/computations";
 import { Navigation } from "@/components/Layout/Navigation";
+import { PageHeader } from "@/components/Layout/PageHeader";
 import { HabitForm } from "@/components/Habits/HabitForm";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +23,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
 const Habitos = () => {
+  const { t } = useI18n();
   const { toast } = useToast();
   const [state, setState] = useState<AppState>(() => loadState());
   const [showHabitForm, setShowHabitForm] = useState(false);
@@ -35,10 +37,10 @@ const Habitos = () => {
   const handleSaveHabit = (data: Omit<Habit, "id" | "createdAt">) => {
     if (editingHabit) {
       setState((prev) => updateHabit(prev, editingHabit.id, data));
-      toast({ title: "Hábito atualizado!" });
+      toast({ title: t.habits.habitUpdated });
     } else {
       setState((prev) => addHabit(prev, data));
-      toast({ title: "Novo hábito criado!" });
+      toast({ title: t.habits.habitCreated });
     }
     setShowHabitForm(false);
     setEditingHabit(null);
@@ -49,14 +51,14 @@ const Habitos = () => {
     
     if (habit.active && activeCount <= 1) {
       toast({
-        title: translations.habits.atLeastOne,
+        title: t.habits.atLeastOne,
         variant: "destructive",
       });
       return;
     }
     
     setState((prev) => updateHabit(prev, habit.id, { active: !habit.active }));
-    toast({ title: habit.active ? "Hábito desativado" : "Hábito ativado" });
+    toast({ title: habit.active ? t.habits.inactive : t.habits.active });
   };
 
   const handleDeleteHabit = () => {
@@ -67,7 +69,7 @@ const Habitos = () => {
     
     if (activeCount <= 1 && habitToDelete?.active) {
       toast({
-        title: translations.habits.atLeastOne,
+        title: t.habits.atLeastOne,
         variant: "destructive",
       });
       setDeletingHabitId(null);
@@ -75,7 +77,7 @@ const Habitos = () => {
     }
     
     setState((prev) => deleteHabit(prev, deletingHabitId));
-    toast({ title: "Hábito eliminado" });
+    toast({ title: t.habits.habitDeleted });
     setDeletingHabitId(null);
   };
 
@@ -84,23 +86,24 @@ const Habitos = () => {
       <Navigation />
 
       <main className="container py-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Gestão de Hábitos</h1>
-          <Button
-            onClick={() => {
+        {/* Header */}
+        <PageHeader
+          title={t.habits.management}
+          subtitle={(t as any).pageSubtitles?.habits || t.app.tagline}
+          icon={CheckCircle2}
+          action={{
+            icon: Plus,
+            label: t.habits.add,
+            onClick: () => {
               setEditingHabit(null);
               setShowHabitForm(true);
-            }}
-            className="gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            {translations.habits.add}
-          </Button>
-        </div>
+            },
+          }}
+        />
 
         {state.habits.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border/50 bg-card py-16 text-center">
-            <p className="text-muted-foreground">{translations.habits.noHabits}</p>
+            <p className="text-muted-foreground">{t.habits.noHabits}</p>
             <Button
               onClick={() => {
                 setEditingHabit(null);
@@ -109,7 +112,7 @@ const Habitos = () => {
               variant="link"
               className="mt-2 text-primary"
             >
-              {translations.habits.add}
+              {t.habits.add}
             </Button>
           </div>
         ) : (
@@ -137,7 +140,7 @@ const Habitos = () => {
                 
                 <div className="flex items-center gap-2">
                   <Badge variant={habit.active ? "default" : "secondary"}>
-                    {habit.active ? translations.habits.active : translations.habits.inactive}
+                    {habit.active ? t.habits.active : t.habits.inactive}
                   </Badge>
                   
                   <Button
@@ -191,15 +194,15 @@ const Habitos = () => {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{translations.habits.delete}</AlertDialogTitle>
+            <AlertDialogTitle>{t.habits.delete}</AlertDialogTitle>
             <AlertDialogDescription>
-              {translations.habits.confirmDelete}
+              {t.habits.confirmDelete}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{translations.habits.cancel}</AlertDialogCancel>
+            <AlertDialogCancel>{t.habits.cancel}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteHabit}>
-              {translations.habits.delete}
+              {t.habits.delete}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

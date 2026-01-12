@@ -232,45 +232,64 @@ export const calculateMonthlySummary = (
   };
 };
 
-// Dynamic motivational messages
+// Dynamic motivational messages - EN primary
 export const getMotivationalMessage = (
   summary: MonthlySummary,
-  hasHabits: boolean
+  hasHabits: boolean,
+  locale: string = 'en-US'
 ): string => {
+  const isPortuguese = locale === 'pt-PT';
+  
   // No habits scenario
   if (!hasHabits || summary.habitosAtivos === 0) {
-    return "Começa hoje. Pequenos passos criam grandes mudanças.";
+    return isPortuguese 
+      ? "Começa hoje. Pequenos passos criam grandes mudanças."
+      : "Start today. Small steps create big changes.";
   }
   
   // No streak yet
   if (summary.streakAtual === 0) {
-    return "🚀 Começa hoje. Pequenos passos criam grandes mudanças.";
+    return isPortuguese 
+      ? "🚀 Começa hoje. Pequenos passos criam grandes mudanças."
+      : "🚀 Start today. Small steps create big changes.";
   }
   
   // Progress-based messages
   if (summary.progressoMensal > 70) {
-    return `🌟 Excelente! Já concluíste ${Math.round(summary.progressoMensal)}% deste mês.`;
+    return isPortuguese 
+      ? `🌟 Excelente! Já concluíste ${Math.round(summary.progressoMensal)}% deste mês.`
+      : `🌟 Excellent! ${Math.round(summary.progressoMensal)}% complete this month.`;
   }
   
   // Streak-based messages
   if (summary.streakAtual === summary.melhorStreak && summary.streakAtual > 0) {
-    return "🔥 Estás a igualar o teu melhor momento. Continua!";
+    return isPortuguese 
+      ? "🔥 Estás a igualar o teu melhor momento. Continua!"
+      : "🔥 Matching your best streak. Keep going!";
   }
   
   if (summary.streakAtual > 0 && summary.streakAtual < summary.melhorStreak) {
     const daysToRecord = summary.melhorStreak - summary.streakAtual;
-    return `💪 Estás a ${daysToRecord} dia${daysToRecord > 1 ? 's' : ''} de igualar o teu recorde.`;
+    return isPortuguese 
+      ? `💪 Estás a ${daysToRecord} dia${daysToRecord > 1 ? 's' : ''} de igualar o teu recorde.`
+      : `💪 ${daysToRecord} day${daysToRecord > 1 ? 's' : ''} to match your record.`;
   }
   
   if (summary.progressoMensal >= 30 && summary.progressoMensal <= 70) {
-    return "👍 Bom ritmo. Mantém a consistência e vais mais longe.";
+    return isPortuguese 
+      ? "👍 Bom ritmo. Mantém a consistência e vais mais longe."
+      : "👍 Good rhythm. Stay consistent and go further.";
   }
   
   if (summary.progressoMensal < 30) {
-    return "🌱 Começos são sempre os mais difíceis. Um hábito de cada vez.";
+    return isPortuguese 
+      ? "🌱 Começos são sempre os mais difíceis. Um hábito de cada vez."
+      : "🌱 Beginnings are hardest. One habit at a time.";
   }
   
-  return "🚀 Continua a construir o teu ritmo!";
+  return isPortuguese 
+    ? "🚀 Continua a construir o teu ritmo!"
+    : "🚀 Keep building your momentum!";
 };
 
 // Check and award achievements
