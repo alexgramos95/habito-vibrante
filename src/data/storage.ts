@@ -267,6 +267,15 @@ export const deleteTracker = (state: AppState, id: string): AppState => {
   };
 };
 
+// Archive tracker: removes tracker but keeps entries for historical data
+export const archiveTracker = (state: AppState, id: string): AppState => {
+  return {
+    ...state,
+    trackers: state.trackers.filter((t) => t.id !== id),
+    // Keep entries - they remain for historical/financial data
+  };
+};
+
 export const addTrackerEntry = (
   state: AppState,
   trackerId: string,

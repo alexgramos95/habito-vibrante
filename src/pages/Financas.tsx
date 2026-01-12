@@ -3,7 +3,7 @@ import { format, parseISO } from "date-fns";
 import { pt, enUS as enUSLocale } from "date-fns/locale";
 import {
   Wallet, TrendingUp, PiggyBank, BarChart3, Award,
-  ChevronLeft, ChevronRight, Target, ArrowUpRight, Plus, Tag
+  ChevronLeft, ChevronRight, Target, ArrowUpRight, Plus, Tag, Trash2, Pencil
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Navigation } from "@/components/Layout/Navigation";
@@ -12,8 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/i18n/I18nContext";
-import { AppState } from "@/data/types";
-import { loadState, saveState } from "@/data/storage";
+import { AppState, SavingsEntry } from "@/data/types";
+import { loadState, saveState, addSavingsEntry, deleteSavingsEntry, generateId } from "@/data/storage";
 import { calculateTrackerFinancials, getFinancialMotivationalMessage } from "@/logic/computations";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
@@ -28,6 +28,7 @@ const Financas = () => {
   const { t, locale, formatCurrency } = useI18n();
   const [state, setState] = useState<AppState>(() => loadState());
   const [showDepositDialog, setShowDepositDialog] = useState(false);
+  const [editingDeposit, setEditingDeposit] = useState<SavingsEntry | null>(null);
   const today = new Date();
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
@@ -49,16 +50,41 @@ const Financas = () => {
     saveState(state);
   }, [state]);
 
-  // Handle external deposit - stores in purchaseGoals contributions
+  // Get external deposits for current month
+  const monthStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+  const externalDeposits = (state.savings || []).filter(
+    s => s.isExternalDeposit && s.date.startsWith(monthStr)
+  );
+  const externalDepositsTotal = externalDeposits.reduce((sum, d) => sum + d.amount, 0);
+  const allExternalDeposits = (state.savings || []).filter(s => s.isExternalDeposit);
+  const allExternalDepositsTotal = allExternalDeposits.reduce((sum, d) => sum + d.amount, 0);
+
+  // Handle external deposit - stores in savings array
   const handleAddDeposit = (deposit: {
     amount: number;
     description: string;
     tags: string[];
   }) => {
-    // For now, just show toast - external deposits tracked in future iteration
+    const newDeposit: Omit<SavingsEntry, "id"> = {
+      date: format(new Date(), "yyyy-MM-dd"),
+      amount: deposit.amount,
+      moeda: locale === 'pt-PT' ? '€' : '$',
+      descricao: deposit.description,
+      tags: deposit.tags,
+      isExternalDeposit: true,
+    };
+    setState(prev => addSavingsEntry(prev, newDeposit));
     toast({
       title: locale === "pt-PT" ? "Depósito registado" : "Deposit recorded",
       description: formatCurrency(deposit.amount),
+    });
+    setEditingDeposit(null);
+  };
+
+  const handleDeleteDeposit = (id: string) => {
+    setState(prev => deleteSavingsEntry(prev, id));
+    toast({
+      title: locale === "pt-PT" ? "Depósito eliminado" : "Deposit deleted",
     });
   };
 
@@ -427,6 +453,67 @@ const Financas = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* External Deposits Section */}
+            {externalDeposits.length > 0 && (
+              <Card className="premium-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                      <Plus className="h-5 w-5 text-success" />
+                      {locale === "pt-PT" ? "Depósitos Externos" : "External Deposits"}
+                    </span>
+                    <Badge variant="outline" className="text-success border-success/30">
+                      {formatCurrency(externalDepositsTotal)}
+                    </Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {externalDeposits.map((deposit) => (
+                      <div 
+                        key={deposit.id}
+                        className="flex items-center justify-between p-3 rounded-xl bg-secondary/50 group"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-success/10">
+                            <Wallet className="h-4 w-4 text-success" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-sm">
+                              {deposit.descricao || (locale === "pt-PT" ? "Depósito" : "Deposit")}
+                            </p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-xs text-muted-foreground">
+                                {format(parseISO(deposit.date), "d MMM", { locale: dateLocale })}
+                              </span>
+                              {deposit.tags?.map(tag => (
+                                <Badge key={tag} variant="secondary" className="text-xs px-1.5 py-0">
+                                  {tag}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-success">
+                            +{formatCurrency(deposit.amount)}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-destructive"
+                            onClick={() => handleDeleteDeposit(deposit.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </>
         )}
       </main>

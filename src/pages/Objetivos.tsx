@@ -19,10 +19,11 @@ import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/i18n/I18nContext";
 import { AppState, Tracker, TrackerEntry } from "@/data/types";
 import {
-  loadState, saveState, addTracker, updateTracker, deleteTracker,
+  loadState, saveState, addTracker, updateTracker, deleteTracker, archiveTracker,
   addTrackerEntry, deleteTrackerEntry, getTrackerEntriesForDate
 } from "@/data/storage";
 import { TrackerEditDialog } from "@/components/Trackers/TrackerEditDialog";
+import { TrackerDeleteDialog } from "@/components/Trackers/TrackerDeleteDialog";
 import { TrackerTimeline } from "@/components/Trackers/TrackerTimeline";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
@@ -108,6 +109,8 @@ const Objetivos = () => {
   const [showNewTrackerDialog, setShowNewTrackerDialog] = useState(false);
   const [editingTracker, setEditingTracker] = useState<Tracker | null>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deletingTracker, setDeletingTracker] = useState<Tracker | null>(null);
 
   useEffect(() => {
     saveState(state);
@@ -158,14 +161,33 @@ const Objetivos = () => {
     setEditingTracker(null);
   };
 
-  const handleDeleteTracker = (id: string) => {
-    setState(prev => deleteTracker(prev, id));
-    if (selectedTracker === id) {
-      setSelectedTracker(state.trackers.find(t => t.id !== id)?.id || null);
+  const handleDeleteTracker = (deleteHistory: boolean) => {
+    if (!deletingTracker) return;
+    
+    if (deleteHistory) {
+      // Delete tracker and all entries
+      setState(prev => deleteTracker(prev, deletingTracker.id));
+    } else {
+      // Archive: just remove tracker, keep entries for historical data
+      setState(prev => archiveTracker(prev, deletingTracker.id));
     }
-    toast({ title: t.finances.goalDeleted });
+    
+    if (selectedTracker === deletingTracker.id) {
+      setSelectedTracker(state.trackers.find(t => t.id !== deletingTracker.id)?.id || null);
+    }
+    toast({ title: deleteHistory 
+      ? (locale === 'pt-PT' ? "Tracker eliminado" : "Tracker deleted")
+      : (locale === 'pt-PT' ? "Tracker arquivado" : "Tracker archived")
+    });
+    setShowDeleteDialog(false);
     setShowEditDialog(false);
+    setDeletingTracker(null);
     setEditingTracker(null);
+  };
+
+  const openDeleteDialog = (tracker: Tracker) => {
+    setDeletingTracker(tracker);
+    setShowDeleteDialog(true);
   };
 
   const openEditDialog = (tracker: Tracker) => {
@@ -448,7 +470,19 @@ const Objetivos = () => {
         onOpenChange={setShowEditDialog}
         tracker={editingTracker}
         onSave={handleUpdateTracker}
-        onDelete={() => editingTracker && handleDeleteTracker(editingTracker.id)}
+        onDelete={() => editingTracker && openDeleteDialog(editingTracker)}
+      />
+
+      {/* Delete Tracker Dialog */}
+      <TrackerDeleteDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        tracker={deletingTracker}
+        entriesCount={deletingTracker 
+          ? state.trackerEntries.filter(e => e.trackerId === deletingTracker.id).length 
+          : 0
+        }
+        onConfirm={handleDeleteTracker}
       />
     </div>
   );

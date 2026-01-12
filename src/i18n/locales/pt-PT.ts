@@ -230,6 +230,10 @@ export const ptPT = {
     goToTrackers: "Ir para Trackers",
     howItWorks: "Como funciona?",
     howItWorksDescription: "As finanças são calculadas automaticamente a partir dos teus Trackers. Quando reduces o consumo abaixo do baseline, a diferença é contabilizada como poupança.",
+    externalDeposits: "Depósitos Externos",
+    depositRecorded: "Depósito registado",
+    depositDeleted: "Depósito eliminado",
+    deposit: "Depósito",
   },
   gamification: {
     level: "Nível",
@@ -374,6 +378,23 @@ export const ptPT = {
     noTriggers: "Sem triggers definidos.",
     noTriggersDescription: "Cria alarmes e eventos para aumentar a consistência.",
     createFirst: "Criar primeiro trigger",
+    linkedHabit: "Hábito associado",
+    linkedTracker: "Tracker associado",
+    selectHabitOrTracker: "Selecionar hábito ou tracker",
+    triggerCreated: "Trigger criado.",
+    triggerUpdated: "Trigger atualizado.",
+    triggerDeleted: "Trigger eliminado.",
+  },
+  trackerDelete: {
+    title: "Eliminar Tracker",
+    confirmMessage: "Tens a certeza que queres eliminar este tracker?",
+    entriesWarning: "Este tracker tem registos no histórico.",
+    archiveOption: "Arquivar (manter histórico)",
+    archiveDescription: "Remove o tracker mas mantém todos os registos e dados financeiros.",
+    deleteOption: "Eliminar tudo",
+    deleteDescription: "Remove o tracker e todo o histórico permanentemente.",
+    archived: "Tracker arquivado",
+    deleted: "Tracker eliminado",
   },
   onboarding: {
     welcome: "Bem-vindo ao becoMe",
@@ -546,6 +567,7 @@ export type Translations = {
   achievements: { [key: string]: { name: string; description: string } };
   profile: { [key: string]: string };
   triggers: { [key: string]: string };
+  trackerDelete: { [key: string]: string };
   onboarding: { [key: string]: string };
   settings: { [key: string]: string };
   shopping: { [key: string]: string };
