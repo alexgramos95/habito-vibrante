@@ -3,7 +3,7 @@ import { format } from "date-fns";
 import { 
   Globe, Sun, Moon, Trophy, Target, Star, TrendingUp,
   PenLine, Sparkles, PiggyBank, Trash2, AlertTriangle, User,
-  Crown, Download
+  Crown, Download, Camera, ExternalLink
 } from "lucide-react";
 import { Navigation } from "@/components/Layout/Navigation";
 import { PageHeader } from "@/components/Layout/PageHeader";
@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { useI18n } from "@/i18n/I18nContext";
 import { localeNames, currencyNames, type Locale, type Currency } from "@/i18n";
 import { AppState, ACHIEVEMENTS } from "@/data/types";
@@ -21,6 +22,7 @@ import { cn } from "@/lib/utils";
 import { ResetDataDialog } from "@/components/Profile/ResetDataDialog";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useDemoMode } from "@/hooks/useDemoMode";
 import { PaywallModal } from "@/components/Paywall/PaywallModal";
 import { TrialBanner } from "@/components/Paywall/TrialBanner";
 import { ExportDialog } from "@/components/Export/ExportDialog";
@@ -33,6 +35,7 @@ const Perfil = () => {
   const [showPaywall, setShowPaywall] = useState(false);
   const [showExport, setShowExport] = useState(false);
   const { subscription, trialStatus, isPro, upgradeToPro } = useSubscription();
+  const { isDemoMode, enableDemoMode, disableDemoMode } = useDemoMode();
   const [chronotype, setChronotype] = useState<'early' | 'moderate' | 'late'>(() => {
     try {
       return (localStorage.getItem('become-chronotype') as any) || 'moderate';
@@ -490,6 +493,60 @@ const Perfil = () => {
                 Export
               </Button>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Demo Mode Card */}
+        <Card className="glass border-border/30">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-sm font-medium">
+              <Camera className="h-5 w-5 text-primary" />
+              {locale === 'pt-PT' ? "Modo Screenshot" : "Screenshot Mode"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">
+                  {locale === 'pt-PT' ? "Dados de demonstração" : "Demo data"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {locale === 'pt-PT' 
+                    ? "Carrega dados fictícios para screenshots e marketing" 
+                    : "Load sample data for screenshots and marketing"}
+                </p>
+              </div>
+              <Switch
+                checked={isDemoMode}
+                onCheckedChange={(checked) => {
+                  if (checked) enableDemoMode();
+                  else disableDemoMode();
+                }}
+              />
+            </div>
+            {isDemoMode && (
+              <Badge variant="outline" className="text-warning border-warning/50">
+                {locale === 'pt-PT' ? "Modo demo ativo" : "Demo mode active"}
+              </Badge>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Links */}
+        <Card className="glass border-border/30">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-sm font-medium">
+              <ExternalLink className="h-5 w-5" />
+              {locale === 'pt-PT' ? "Links" : "Links"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <Button variant="outline" className="w-full justify-start gap-2" asChild>
+              <a href="/landing" target="_blank">
+                <ExternalLink className="h-4 w-4" />
+                {locale === 'pt-PT' ? "Ver Landing Page" : "View Landing Page"}
+              </a>
+            </Button>
           </CardContent>
         </Card>
 

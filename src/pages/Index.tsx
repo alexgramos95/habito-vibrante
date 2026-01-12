@@ -327,11 +327,26 @@ const Index = () => {
       <Navigation />
 
       <main className="container py-6 md:py-8 space-y-6 md:space-y-8">
-        {/* Header */}
+        {/* Header with Add Habit CTA */}
         <PageHeader
           title={t.nav.habits}
           subtitle={(t as any).pageSubtitles?.habits || t.app.tagline}
           icon={CheckCircle2}
+          action={{
+            icon: Flame,
+            label: t.habits.add,
+            onClick: () => {
+              const currentHabitCount = state.habits.filter(h => h.active).length;
+              const maxHabits = limits.maxHabits as number;
+              
+              if (!isPro && currentHabitCount >= maxHabits) {
+                setShowPaywall(true);
+                return;
+              }
+              setEditingHabit(null);
+              setShowHabitForm(true);
+            },
+          }}
         >
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full glass text-sm">
             <Zap className="h-4 w-4 text-primary" />
