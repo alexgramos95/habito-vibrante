@@ -57,7 +57,8 @@ interface I18nContextType {
   tr: (key: string, params?: Record<string, string | number>) => string;
 }
 
-const I18nContext = createContext<I18nContextType | null>(null);
+// Create context with undefined default - will throw helpful error if used outside provider
+const I18nContext = createContext<I18nContextType | undefined>(undefined);
 
 const dateFnsLocales: Record<Locale, DateFnsLocale> = {
   'pt-PT': pt,
@@ -159,7 +160,7 @@ export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 export const useI18n = (): I18nContextType => {
   const context = useContext(I18nContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error('useI18n must be used within an I18nProvider');
   }
   return context;
