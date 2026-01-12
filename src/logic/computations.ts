@@ -341,10 +341,16 @@ export const calculateSavingsSummary = (
   const totalPoupadoAllTime = state.savings.reduce((sum, s) => sum + s.amount, 0);
   const totalPoupadoMesAtual = entriesThisMonth.reduce((sum, s) => sum + s.amount, 0);
   
+  // External deposits
+  const externalThisMonth = entriesThisMonth.filter(s => s.isExternalDeposit);
+  const allExternal = state.savings.filter(s => s.isExternalDeposit);
+  
   return {
     totalPoupadoAllTime,
     totalPoupadoMesAtual,
     numeroEntradasMesAtual: entriesThisMonth.length,
+    externalDepositsMonth: externalThisMonth.reduce((sum, s) => sum + s.amount, 0),
+    externalDepositsTotal: allExternal.reduce((sum, s) => sum + s.amount, 0),
   };
 };
 

@@ -35,6 +35,7 @@ const Compras = () => {
     nome: "",
     quantidade: "",
     categoria: "",
+    price: "",
   });
 
   useEffect(() => {
@@ -66,7 +67,7 @@ const Compras = () => {
 
   const openAddForm = () => {
     setEditingItem(null);
-    setFormData({ nome: "", quantidade: "", categoria: "" });
+    setFormData({ nome: "", quantidade: "", categoria: "", price: "" });
     setShowForm(true);
   };
 
@@ -76,6 +77,7 @@ const Compras = () => {
       nome: item.nome,
       quantidade: item.quantidade || "",
       categoria: item.categoria || "",
+      price: item.price?.toString() || "",
     });
     setShowForm(true);
   };
@@ -92,6 +94,7 @@ const Compras = () => {
           nome: formData.nome.trim(),
           quantidade: formData.quantidade.trim() || undefined,
           categoria: formData.categoria || undefined,
+          price: parseFloat(formData.price) || 0,
         })
       );
       toast({ title: "Item atualizado!" });
@@ -102,13 +105,14 @@ const Compras = () => {
           nome: formData.nome.trim(),
           quantidade: formData.quantidade.trim() || undefined,
           categoria: formData.categoria || undefined,
+          price: parseFloat(formData.price) || 0,
         })
       );
       toast({ title: "Item adicionado!" });
     }
 
     setShowForm(false);
-    setFormData({ nome: "", quantidade: "", categoria: "" });
+    setFormData({ nome: "", quantidade: "", categoria: "", price: "" });
     setEditingItem(null);
   };
 

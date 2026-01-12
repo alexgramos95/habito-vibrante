@@ -1,8 +1,9 @@
 // ============= CORE TRACKER SYSTEM =============
 // Trackers are the central unit-based behavioral tracking system
-// All previous modules (tobacco, objectives) are now generic Trackers
+// Supports: reduce, increase, boolean, event, neutral types
 
-export type TrackerType = 'reduce' | 'increase';
+export type TrackerType = 'reduce' | 'increase' | 'boolean' | 'event' | 'neutral';
+export type TrackerFrequency = 'daily' | 'weekly' | 'specific_days' | 'flex';
 
 export interface Tracker {
   id: string;
@@ -10,14 +11,16 @@ export interface Tracker {
   type: TrackerType;
   unitSingular: string;
   unitPlural: string;
-  valuePerUnit: number; // monetary value per unit, 0 if no financial impact
-  baseline: number; // daily baseline (expected/typical amount)
-  dailyGoal?: number; // optional daily target (differs from baseline)
+  valuePerUnit: number; // monetary value per unit, 0 if no financial impact (can be negative for expenses like events)
+  baseline: number; // daily baseline (expected/typical amount), 0 is valid
+  dailyGoal?: number; // optional daily target (differs from baseline), can be undefined for goal-less trackers
   includeInFinances: boolean; // whether to show savings in Finanças
   active: boolean;
   createdAt: string;
   icon?: string; // optional emoji/icon
   color?: string; // optional color override
+  frequency: TrackerFrequency; // tracking frequency
+  specificDays?: number[]; // 0-6 for Sun-Sat when frequency is 'specific_days'
 }
 
 export interface TrackerEntry {
@@ -25,7 +28,7 @@ export interface TrackerEntry {
   trackerId: string;
   timestamp: string; // ISO datetime
   date: string; // YYYY-MM-DD for grouping
-  quantity: number; // default 1
+  quantity: number; // default 1, for boolean always 1
   note?: string; // optional note
 }
 
@@ -162,7 +165,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: "consistency_80", nome: "Consistente", descricao: "80% consistência num mês", icon: "📈", category: "consistency", requirement: 80 },
 ];
 
-// ============= SAVINGS (Manual entries) =============
+// ============= SAVINGS (Manual entries / External Deposits) =============
 
 export interface SavingsEntry {
   id: string;
@@ -172,12 +175,16 @@ export interface SavingsEntry {
   descricao: string;
   categoria?: string;
   habitId?: string;
+  tags?: string[]; // optional tags for categorization (e.g., "investimento", "bonus")
+  isExternalDeposit?: boolean; // true if this is a manual deposit, not tracker-based
 }
 
 export interface UserSavingsSummary {
   totalPoupadoAllTime: number;
   totalPoupadoMesAtual: number;
   numeroEntradasMesAtual: number;
+  externalDepositsMonth: number;
+  externalDepositsTotal: number;
 }
 
 // ============= SHOPPING =============
@@ -188,7 +195,7 @@ export interface ShoppingItem {
   nome: string;
   quantidade?: string;
   categoria?: string;
-  price?: number; // optional price tracking
+  price: number; // price per item (required)
   done: boolean;
 }
 
@@ -352,14 +359,25 @@ export const SAVINGS_CATEGORIES = [
 
 // Tracker templates for quick setup
 export const TRACKER_TEMPLATES = [
-  { name: "Cigarros", type: "reduce" as const, unit: "cigarro", unitPlural: "cigarros", baseline: 20, valuePerUnit: 0.31, icon: "🚬" },
-  { name: "Café", type: "reduce" as const, unit: "café", unitPlural: "cafés", baseline: 3, valuePerUnit: 1.20, icon: "☕" },
-  { name: "Álcool", type: "reduce" as const, unit: "bebida", unitPlural: "bebidas", baseline: 2, valuePerUnit: 4.00, icon: "🍺" },
-  { name: "Exercício", type: "increase" as const, unit: "minuto", unitPlural: "minutos", baseline: 0, valuePerUnit: 0, icon: "🏃" },
-  { name: "Água", type: "increase" as const, unit: "copo", unitPlural: "copos", baseline: 0, valuePerUnit: 0, icon: "💧" },
-  { name: "Passos", type: "increase" as const, unit: "passo", unitPlural: "passos", baseline: 0, valuePerUnit: 0, icon: "👣" },
-  { name: "Leitura", type: "increase" as const, unit: "página", unitPlural: "páginas", baseline: 0, valuePerUnit: 0, icon: "📚" },
-  { name: "Meditação", type: "increase" as const, unit: "minuto", unitPlural: "minutos", baseline: 0, valuePerUnit: 0, icon: "🧘" },
+  { name: "Cigarros", type: "reduce" as const, unit: "cigarro", unitPlural: "cigarros", baseline: 20, valuePerUnit: 0.31, icon: "🚬", frequency: "daily" as const },
+  { name: "Café", type: "event" as const, unit: "café", unitPlural: "cafés", baseline: 0, valuePerUnit: -1.20, icon: "☕", frequency: "daily" as const },
+  { name: "Álcool", type: "reduce" as const, unit: "bebida", unitPlural: "bebidas", baseline: 2, valuePerUnit: 4.00, icon: "🍺", frequency: "daily" as const },
+  { name: "Exercício", type: "increase" as const, unit: "minuto", unitPlural: "minutos", baseline: 0, valuePerUnit: 0, icon: "🏃", frequency: "daily" as const },
+  { name: "Água", type: "increase" as const, unit: "copo", unitPlural: "copos", baseline: 8, valuePerUnit: 0, icon: "💧", frequency: "daily" as const },
+  { name: "Passos", type: "increase" as const, unit: "passo", unitPlural: "passos", baseline: 0, valuePerUnit: 0, icon: "👣", frequency: "daily" as const },
+  { name: "Leitura", type: "increase" as const, unit: "página", unitPlural: "páginas", baseline: 0, valuePerUnit: 0, icon: "📚", frequency: "daily" as const },
+  { name: "Meditação", type: "increase" as const, unit: "minuto", unitPlural: "minutos", baseline: 0, valuePerUnit: 0, icon: "🧘", frequency: "daily" as const },
+  { name: "Suplemento", type: "boolean" as const, unit: "", unitPlural: "", baseline: 0, valuePerUnit: 0, icon: "💊", frequency: "daily" as const },
+  { name: "Jejum Intermitente", type: "boolean" as const, unit: "", unitPlural: "", baseline: 0, valuePerUnit: 0, icon: "⏰", frequency: "daily" as const },
+];
+
+export const DEPOSIT_TAGS = [
+  "investimento",
+  "bonus",
+  "reembolso",
+  "presente",
+  "poupança",
+  "outro",
 ];
 
 export const INVESTMENT_PLATFORMS = [

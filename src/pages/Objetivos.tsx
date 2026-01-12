@@ -3,7 +3,7 @@ import { format, parseISO } from "date-fns";
 import { pt, enUS as enUSLocale } from "date-fns/locale";
 import {
   Target, Plus, Trash2, ChevronRight, TrendingUp, TrendingDown,
-  Clock, Check, X, Pencil, BarChart3, Play
+  Clock, Check, X, Pencil, BarChart3, Play, Settings2
 } from "lucide-react";
 import { Navigation } from "@/components/Layout/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,6 +22,8 @@ import {
   loadState, saveState, addTracker, updateTracker, deleteTracker,
   addTrackerEntry, deleteTrackerEntry, getTrackerEntriesForDate
 } from "@/data/storage";
+import { TrackerEditDialog } from "@/components/Trackers/TrackerEditDialog";
+import { TrackerTimeline } from "@/components/Trackers/TrackerTimeline";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
   ResponsiveContainer
@@ -105,17 +107,7 @@ const Objetivos = () => {
   const [selectedTracker, setSelectedTracker] = useState<string | null>(null);
   const [showNewTrackerDialog, setShowNewTrackerDialog] = useState(false);
   const [editingTracker, setEditingTracker] = useState<Tracker | null>(null);
-  
-  // Form state
-  const [trackerForm, setTrackerForm] = useState({
-    name: "",
-    type: "reduce" as "reduce" | "increase",
-    unitSingular: "",
-    unitPlural: "",
-    valuePerUnit: "0",
-    baseline: "0",
-    dailyGoal: "",
-  });
+  const [showEditDialog, setShowEditDialog] = useState(false);
 
   useEffect(() => {
     saveState(state);
@@ -143,7 +135,7 @@ const Objetivos = () => {
     setState(prev => addTrackerEntry(prev, trackerId, quantity));
     const tracker = state.trackers.find(t => t.id === trackerId);
     toast({ 
-      title: t.trackers.entryRegistered.replace("{{unit}}", tracker?.unitSingular || "") 
+      title: `+${quantity} ${quantity === 1 ? tracker?.unitSingular : tracker?.unitPlural || t.trackers.entry}` 
     });
   };
 
@@ -152,27 +144,18 @@ const Objetivos = () => {
     toast({ title: t.trackers.entryRemoved });
   };
 
-  const handleCreateTracker = () => {
-    if (!trackerForm.name.trim() || !trackerForm.unitSingular.trim()) {
-      toast({ title: "Preenche os campos obrigatórios", variant: "destructive" });
-      return;
-    }
-
-    setState(prev => addTracker(prev, {
-      name: trackerForm.name.trim(),
-      type: trackerForm.type,
-      unitSingular: trackerForm.unitSingular.trim(),
-      unitPlural: trackerForm.unitPlural.trim() || trackerForm.unitSingular.trim() + "s",
-      valuePerUnit: parseFloat(trackerForm.valuePerUnit) || 0,
-      baseline: parseInt(trackerForm.baseline) || 0,
-      dailyGoal: trackerForm.dailyGoal ? parseInt(trackerForm.dailyGoal) : undefined,
-      includeInFinances: parseFloat(trackerForm.valuePerUnit) > 0,
-      active: true,
-    }));
-
+  const handleCreateTracker = (data: Omit<Tracker, "id" | "createdAt">) => {
+    setState(prev => addTracker(prev, data));
     toast({ title: t.objectives.newObjective });
     setShowNewTrackerDialog(false);
-    resetForm();
+  };
+
+  const handleUpdateTracker = (data: Omit<Tracker, "id" | "createdAt">) => {
+    if (!editingTracker) return;
+    setState(prev => updateTracker(prev, editingTracker.id, data));
+    toast({ title: t.habits.habitUpdated });
+    setShowEditDialog(false);
+    setEditingTracker(null);
   };
 
   const handleDeleteTracker = (id: string) => {
@@ -181,18 +164,13 @@ const Objetivos = () => {
       setSelectedTracker(state.trackers.find(t => t.id !== id)?.id || null);
     }
     toast({ title: t.finances.goalDeleted });
+    setShowEditDialog(false);
+    setEditingTracker(null);
   };
 
-  const resetForm = () => {
-    setTrackerForm({
-      name: "",
-      type: "reduce",
-      unitSingular: "",
-      unitPlural: "",
-      valuePerUnit: "0",
-      baseline: "0",
-      dailyGoal: "",
-    });
+  const openEditDialog = (tracker: Tracker) => {
+    setEditingTracker(tracker);
+    setShowEditDialog(true);
   };
 
   // Chart data
@@ -255,9 +233,11 @@ const Objetivos = () => {
               {activeTrackers.map(tracker => {
                 const summary = calculateTrackerSummary(tracker, [], state.trackerEntries);
                 const goal = tracker.dailyGoal ?? tracker.baseline;
-                const isOnTrack = tracker.type === 'reduce' 
-                  ? summary.todayCount <= goal 
-                  : summary.todayCount >= goal;
+                const isOnTrack = tracker.type === "boolean" 
+                  ? summary.todayCount >= 1
+                  : tracker.type === "reduce" 
+                    ? summary.todayCount <= goal 
+                    : summary.todayCount >= goal;
                 
                 return (
                   <Card 
@@ -274,12 +254,16 @@ const Objetivos = () => {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <div className={cn(
-                            "h-10 w-10 rounded-xl flex items-center justify-center",
+                            "h-10 w-10 rounded-xl flex items-center justify-center text-lg",
                             tracker.type === 'reduce' 
-                              ? "bg-warning/10 text-warning" 
-                              : "bg-success/10 text-success"
+                              ? "bg-warning/10" 
+                              : tracker.type === 'boolean'
+                              ? "bg-success/10"
+                              : tracker.type === 'event'
+                              ? "bg-accent/10"
+                              : "bg-primary/10"
                           )}>
-                            {tracker.type === 'reduce' ? <TrendingDown className="h-5 w-5" /> : <TrendingUp className="h-5 w-5" />}
+                            {tracker.icon || (tracker.type === 'reduce' ? <TrendingDown className="h-5 w-5 text-warning" /> : <TrendingUp className="h-5 w-5 text-success" />)}
                           </div>
                           <div>
                             <p className="font-medium">{tracker.name}</p>
@@ -452,95 +436,20 @@ const Objetivos = () => {
       </main>
 
       {/* New Tracker Dialog */}
-      <Dialog open={showNewTrackerDialog} onOpenChange={setShowNewTrackerDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>{t.objectives.newObjective}</DialogTitle>
-            <DialogDescription>
-              {t.trackers.noTrackersDescription}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>{t.trackers.name}</Label>
-              <Input
-                placeholder="Ex: Cigarros, Exercício, Água..."
-                value={trackerForm.name}
-                onChange={(e) => setTrackerForm(prev => ({ ...prev, name: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>{t.trackers.type}</Label>
-              <Select
-                value={trackerForm.type}
-                onValueChange={(value: "reduce" | "increase") => setTrackerForm(prev => ({ ...prev, type: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="reduce">{t.trackers.typeReduce}</SelectItem>
-                  <SelectItem value="increase">{t.trackers.typeIncrease}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>{t.trackers.unitSingular}</Label>
-                <Input
-                  placeholder="cigarro"
-                  value={trackerForm.unitSingular}
-                  onChange={(e) => setTrackerForm(prev => ({ ...prev, unitSingular: e.target.value }))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>{t.trackers.unitPlural}</Label>
-                <Input
-                  placeholder="cigarros"
-                  value={trackerForm.unitPlural}
-                  onChange={(e) => setTrackerForm(prev => ({ ...prev, unitPlural: e.target.value }))}
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>{t.trackers.baseline}</Label>
-                <Input
-                  type="number"
-                  value={trackerForm.baseline}
-                  onChange={(e) => setTrackerForm(prev => ({ ...prev, baseline: e.target.value }))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>{t.trackers.dailyGoal} ({t.shopping.optional})</Label>
-                <Input
-                  type="number"
-                  value={trackerForm.dailyGoal}
-                  onChange={(e) => setTrackerForm(prev => ({ ...prev, dailyGoal: e.target.value }))}
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>{t.trackers.valuePerUnit}</Label>
-              <Input
-                type="number"
-                step="0.01"
-                value={trackerForm.valuePerUnit}
-                onChange={(e) => setTrackerForm(prev => ({ ...prev, valuePerUnit: e.target.value }))}
-              />
-              <p className="text-xs text-muted-foreground">0 se não tiver impacto financeiro</p>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowNewTrackerDialog(false)}>
-              {t.actions.cancel}
-            </Button>
-            <Button onClick={handleCreateTracker}>
-              {t.actions.create}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <TrackerEditDialog
+        open={showNewTrackerDialog}
+        onOpenChange={setShowNewTrackerDialog}
+        onSave={handleCreateTracker}
+      />
+
+      {/* Edit Tracker Dialog */}
+      <TrackerEditDialog
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        tracker={editingTracker}
+        onSave={handleUpdateTracker}
+        onDelete={() => editingTracker && handleDeleteTracker(editingTracker.id)}
+      />
     </div>
   );
 };
