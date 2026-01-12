@@ -239,7 +239,7 @@ export const TrackerEditDialog = ({
               <Label htmlFor="name">{t.trackers.name} *</Label>
               <Input
                 id="name"
-                placeholder="Ex: Cigarros"
+                placeholder="Ex: Meditação"
                 value={formData.name}
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
               />
@@ -297,14 +297,14 @@ export const TrackerEditDialog = ({
               </p>
             </div>
 
-            {/* Units - hide for boolean */}
-            {formData.type !== "boolean" && (
+            {/* Units - hide for binary inputMode */}
+            {formData.inputMode !== "binary" && (
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="unitSingular">{t.trackers.unitSingular}</Label>
                   <Input
                     id="unitSingular"
-                    placeholder="Ex: cigarro"
+                    placeholder={formData.inputMode === "fixedAmount" ? "Ex: minuto" : formData.inputMode === "incremental" ? "Ex: unidade" : "Ex: minuto"}
                     value={formData.unitSingular}
                     onChange={(e) => setFormData(prev => ({ ...prev, unitSingular: e.target.value }))}
                   />
@@ -313,7 +313,7 @@ export const TrackerEditDialog = ({
                   <Label htmlFor="unitPlural">{t.trackers.unitPlural}</Label>
                   <Input
                     id="unitPlural"
-                    placeholder="Ex: cigarros"
+                    placeholder={formData.inputMode === "fixedAmount" ? "Ex: minutos" : formData.inputMode === "incremental" ? "Ex: unidades" : "Ex: minutos"}
                     value={formData.unitPlural}
                     onChange={(e) => setFormData(prev => ({ ...prev, unitPlural: e.target.value }))}
                   />

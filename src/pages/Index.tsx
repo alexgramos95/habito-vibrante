@@ -506,11 +506,6 @@ const Index = () => {
                 <span className="text-sm font-medium text-muted-foreground">
                   {dateLabel}
                 </span>
-                {isToday(selectedDate) && (
-                  <span className="px-2 py-0.5 text-xs rounded-full bg-primary/10 text-primary font-medium">
-                    {t.dashboard.today}
-                  </span>
-                )}
               </CardTitle>
             </CardHeader>
             <CardContent>

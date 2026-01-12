@@ -31,11 +31,11 @@ export const HabitList = ({
         <h2 className="text-lg font-semibold">{translations.habits.title}</h2>
         <Button
           onClick={onAddHabit}
-          size="sm"
-          className="gap-2 rounded-lg"
+          size="icon"
+          variant="ghost"
+          className="h-8 w-8 rounded-lg hover:bg-primary/10"
         >
           <Plus className="h-4 w-4" />
-          {translations.habits.add}
         </Button>
       </div>
 

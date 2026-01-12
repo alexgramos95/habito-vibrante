@@ -19,7 +19,7 @@ export const ptPT = {
     futureSelf: "Future Self",
   },
   dashboard: {
-    title: "Dashboard",
+    title: "Hábitos",
     weeklyEvolution: "Evolução Semanal",
     monthlyCalendar: "Calendário Mensal",
     today: "Hoje",

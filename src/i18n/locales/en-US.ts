@@ -21,7 +21,7 @@ export const enUS: Translations = {
     futureSelf: "Future Self",
   },
   dashboard: {
-    title: "Dashboard",
+    title: "Habits",
     weeklyEvolution: "Weekly Evolution",
     monthlyCalendar: "Monthly Calendar",
     today: "Today",
