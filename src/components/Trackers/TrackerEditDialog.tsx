@@ -55,6 +55,7 @@ export const TrackerEditDialog = ({
     icon: "🎯",
     active: true,
     includeInFinances: false,
+    scheduledTime: "", // HH:MM format
   });
 
   const [tab, setTab] = useState<"custom" | "templates">("custom");
@@ -74,6 +75,7 @@ export const TrackerEditDialog = ({
         icon: tracker.icon || "🎯",
         active: tracker.active,
         includeInFinances: tracker.includeInFinances,
+        scheduledTime: tracker.scheduledTime || "",
       });
       setTab("custom");
     } else {
@@ -90,6 +92,7 @@ export const TrackerEditDialog = ({
         icon: "🎯",
         active: true,
         includeInFinances: false,
+        scheduledTime: "",
       });
     }
   }, [tracker, open]);
@@ -108,6 +111,7 @@ export const TrackerEditDialog = ({
       icon: template.icon,
       active: true,
       includeInFinances: template.valuePerUnit > 0,
+      scheduledTime: "",
     });
     setTab("custom");
   };
@@ -131,6 +135,7 @@ export const TrackerEditDialog = ({
       icon: formData.icon,
       active: formData.active,
       includeInFinances: Math.abs(parseFloat(formData.valuePerUnit)) > 0,
+      scheduledTime: formData.scheduledTime || undefined,
     });
   };
 
@@ -355,6 +360,20 @@ export const TrackerEditDialog = ({
                 </div>
               </div>
             )}
+
+            {/* Scheduled Time */}
+            <div className="space-y-2">
+              <Label htmlFor="scheduledTime">Horário (opcional)</Label>
+              <Input
+                id="scheduledTime"
+                type="time"
+                value={formData.scheduledTime}
+                onChange={(e) => setFormData(prev => ({ ...prev, scheduledTime: e.target.value }))}
+              />
+              <p className="text-xs text-muted-foreground">
+                Define um horário para lembrete/trigger
+              </p>
+            </div>
 
             {/* Active Toggle */}
             {isEditing && (

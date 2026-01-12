@@ -45,6 +45,7 @@ import {
 } from "@/components/Dashboard/DrilldownModals";
 import { ReflectionModal } from "@/components/Dashboard/ReflectionModal";
 import { FutureSelfModal } from "@/components/Dashboard/FutureSelfModal";
+import { WeeklyDrilldownModal } from "@/components/Dashboard/WeeklyDrilldownModal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -131,6 +132,8 @@ const Index = () => {
   const [showSavingsDrilldown, setShowSavingsDrilldown] = useState(false);
   const [showReflectionModal, setShowReflectionModal] = useState(false);
   const [showFutureSelfModal, setShowFutureSelfModal] = useState(false);
+  const [showWeeklyDrilldown, setShowWeeklyDrilldown] = useState(false);
+  const [selectedWeek, setSelectedWeek] = useState<number>(1);
 
   const today = format(new Date(), "yyyy-MM-dd");
 
@@ -365,7 +368,13 @@ const Index = () => {
                 />
               </CardHeader>
               <CardContent>
-                <WeeklyChart data={weeklySummaries} />
+                <WeeklyChart 
+                  data={weeklySummaries} 
+                  onWeekClick={(weekNum) => {
+                    setSelectedWeek(weekNum);
+                    setShowWeeklyDrilldown(true);
+                  }}
+                />
               </CardContent>
             </Card>
 
@@ -602,6 +611,16 @@ const Index = () => {
         entries={state.futureSelf || []}
         latestEntry={latestFutureSelf}
         onSave={handleSaveFutureSelf}
+      />
+      <WeeklyDrilldownModal
+        open={showWeeklyDrilldown}
+        onOpenChange={setShowWeeklyDrilldown}
+        weekSummary={weeklySummaries.find(w => w.weekNumber === selectedWeek) || weeklySummaries[0]}
+        weekNumber={selectedWeek}
+        year={currentYear}
+        month={currentMonth}
+        state={state}
+        locale={locale}
       />
     </div>
   );

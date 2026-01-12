@@ -610,6 +610,21 @@ export const resetAll = (): AppState => {
   return defaultState;
 };
 
+/**
+ * Centralized function to completely clear ALL app data.
+ * This is the single source of truth for data reset.
+ * Preserves: locale, currency, theme (stored separately in localStorage).
+ * Clears: ALL trackers, entries, habits, logs, finances, shopping, reflections,
+ *         future self, achievements, gamification, triggers, sleep entries, etc.
+ */
+export const clearAllData = (): void => {
+  // Remove the main app state from localStorage
+  localStorage.removeItem(STORAGE_KEY);
+  // Also remove legacy key if it exists
+  localStorage.removeItem("habit-tracker-data");
+  // Note: Locale/currency/theme are stored with different keys and are preserved
+};
+
 // ============= LEGACY TOBACCO OPERATIONS (for migration) =============
 
 export const updateTobaccoConfig = (

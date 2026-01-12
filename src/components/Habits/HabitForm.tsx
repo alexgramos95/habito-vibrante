@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X } from "lucide-react";
+import { X, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,11 +21,23 @@ interface HabitFormProps {
   onCancel: () => void;
 }
 
+const WEEKDAYS = [
+  { value: 0, label: "Dom" },
+  { value: 1, label: "Seg" },
+  { value: 2, label: "Ter" },
+  { value: 3, label: "Qua" },
+  { value: 4, label: "Qui" },
+  { value: 5, label: "Sex" },
+  { value: 6, label: "Sáb" },
+];
+
 export const HabitForm = ({ habit, onSave, onCancel }: HabitFormProps) => {
   const [nome, setNome] = useState(habit?.nome || "");
   const [categoria, setCategoria] = useState(habit?.categoria || "");
   const [cor, setCor] = useState(habit?.cor || DEFAULT_COLORS[0]);
   const [active, setActive] = useState(habit?.active ?? true);
+  const [scheduledTime, setScheduledTime] = useState(habit?.scheduledTime || "");
+  const [scheduledDays, setScheduledDays] = useState<number[]>(habit?.scheduledDays || []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,12 +48,22 @@ export const HabitForm = ({ habit, onSave, onCancel }: HabitFormProps) => {
       categoria: categoria || undefined,
       cor,
       active,
+      scheduledTime: scheduledTime || undefined,
+      scheduledDays: scheduledDays.length > 0 ? scheduledDays : undefined,
     });
+  };
+
+  const toggleDay = (day: number) => {
+    setScheduledDays(prev => 
+      prev.includes(day)
+        ? prev.filter(d => d !== day)
+        : [...prev, day].sort()
+    );
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm animate-fade-in">
-      <div className="relative w-full max-w-md rounded-2xl border border-border/50 bg-card p-6 shadow-xl animate-scale-in">
+      <div className="relative w-full max-w-md rounded-2xl border border-border/50 bg-card p-6 shadow-xl animate-scale-in max-h-[90vh] overflow-y-auto">
         <button
           onClick={onCancel}
           className="absolute right-4 top-4 rounded-lg p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
@@ -103,6 +125,46 @@ export const HabitForm = ({ habit, onSave, onCancel }: HabitFormProps) => {
                 />
               ))}
             </div>
+          </div>
+
+          {/* Scheduling - Time */}
+          <div className="space-y-2">
+            <Label htmlFor="scheduledTime" className="flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              Horário (opcional)
+            </Label>
+            <Input
+              id="scheduledTime"
+              type="time"
+              value={scheduledTime}
+              onChange={(e) => setScheduledTime(e.target.value)}
+              className="bg-secondary/50"
+            />
+            <p className="text-xs text-muted-foreground">
+              Define um horário para lembrete
+            </p>
+          </div>
+
+          {/* Scheduling - Days */}
+          <div className="space-y-2">
+            <Label>Dias da semana (opcional)</Label>
+            <div className="flex gap-1">
+              {WEEKDAYS.map(day => (
+                <Button
+                  key={day.value}
+                  type="button"
+                  variant={scheduledDays.includes(day.value) ? "default" : "outline"}
+                  size="sm"
+                  className="w-10 h-10"
+                  onClick={() => toggleDay(day.value)}
+                >
+                  {day.label}
+                </Button>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Deixar vazio = todos os dias
+            </p>
           </div>
 
           {/* Active toggle */}

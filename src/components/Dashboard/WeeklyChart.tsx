@@ -6,12 +6,15 @@ import {
   ResponsiveContainer,
   Area,
   AreaChart,
+  Bar,
+  BarChart,
 } from "recharts";
 import { useI18n } from "@/i18n/I18nContext";
 import { WeeklySummary } from "@/data/types";
 
 interface WeeklyChartProps {
   data: WeeklySummary[];
+  onWeekClick?: (weekNumber: number) => void;
 }
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -26,20 +29,31 @@ const CustomTooltip = ({ active, payload, label }: any) => {
         <p className="text-lg font-bold text-primary">
           {payload[0].value} {t.chart.daysCompleted}
         </p>
+        <p className="text-xs text-muted-foreground mt-1">
+          Clica para ver detalhes
+        </p>
       </div>
     );
   }
   return null;
 };
 
-export const WeeklyChart = ({ data }: WeeklyChartProps) => {
+export const WeeklyChart = ({ data, onWeekClick }: WeeklyChartProps) => {
   const chartData = data.map((week) => ({
     name: week.weekLabel,
     value: week.totalDone,
     total: week.totalPossible,
+    weekNumber: week.weekNumber,
   }));
 
   const maxValue = Math.max(...data.map((d) => d.totalPossible), 7);
+
+  const handleClick = (data: any) => {
+    if (onWeekClick && data && data.activePayload && data.activePayload[0]) {
+      const weekNumber = data.activePayload[0].payload.weekNumber;
+      onWeekClick(weekNumber);
+    }
+  };
 
   return (
     <div className="h-64 w-full fade-in">
@@ -47,6 +61,8 @@ export const WeeklyChart = ({ data }: WeeklyChartProps) => {
         <AreaChart
           data={chartData}
           margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+          onClick={handleClick}
+          style={{ cursor: onWeekClick ? 'pointer' : 'default' }}
         >
           <defs>
             <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
