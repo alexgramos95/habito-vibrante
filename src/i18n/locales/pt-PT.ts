@@ -548,6 +548,30 @@ export const ptPT = {
     description: "Reflexões personalizadas baseadas nos teus padrões.",
     premium: "Funcionalidade premium",
   },
+  bounceback: {
+    recover: "Recuperar",
+    recovered: "Recuperado",
+    win: "Concluído",
+    miss: "Falhado",
+    weeklyConsistency: "Semanal",
+    thisWeek: "esta semana",
+    bouncebacksThisWeek: "Recuperações",
+    recoverDay: "Recuperar este dia?",
+    dayRecovered: "Dia recuperado.",
+    streakProtected: "Streak protegida.",
+    signals: {
+      consistent: "Semana Consistente",
+      recovered: "Semana Recuperada",
+      bounceback: "Semana Bounceback",
+      building: "A Construir",
+    },
+    winState: "Completo",
+    bouncebackWin: "Recuperado",
+    missState: "Incompleto",
+    recoverPrompt: "Falhaste ontem?",
+    recoverAction: "Recuperar",
+    skipAction: "Saltar",
+  },
 };
 
 export type Translations = {
@@ -583,4 +607,23 @@ export type Translations = {
   investmentPlatforms: { [key: string]: string };
   trackerTemplates: { [key: string]: { name: string; unit: string; unitPlural: string } };
   ai: { [key: string]: string };
+  bounceback: {
+    recover: string;
+    recovered: string;
+    win: string;
+    miss: string;
+    weeklyConsistency: string;
+    thisWeek: string;
+    bouncebacksThisWeek: string;
+    recoverDay: string;
+    dayRecovered: string;
+    streakProtected: string;
+    signals: { consistent: string; recovered: string; bounceback: string; building: string };
+    winState: string;
+    bouncebackWin: string;
+    missState: string;
+    recoverPrompt: string;
+    recoverAction: string;
+    skipAction: string;
+  };
 };
