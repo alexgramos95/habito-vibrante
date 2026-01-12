@@ -3,7 +3,7 @@ import { format, parseISO } from "date-fns";
 import { pt, enUS as enUSLocale } from "date-fns/locale";
 import {
   Wallet, TrendingUp, PiggyBank, BarChart3, Award,
-  ChevronLeft, ChevronRight, Target, ArrowUpRight, Plus, Tag, Trash2, Pencil
+  ChevronLeft, ChevronRight, Target, ArrowUpRight, Plus, Tag, Trash2, Pencil, Lock
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Navigation } from "@/components/Layout/Navigation";
@@ -23,6 +23,9 @@ import {
 import { cn } from "@/lib/utils";
 import { ExternalDepositDialog } from "@/components/Finance/ExternalDepositDialog";
 import { useToast } from "@/hooks/use-toast";
+import { useSubscription } from "@/hooks/useSubscription";
+import { PaywallModal } from "@/components/Paywall/PaywallModal";
+import { ProBadge } from "@/components/Paywall/UpgradeButton";
 
 const Financas = () => {
   const { toast } = useToast();
@@ -30,11 +33,20 @@ const Financas = () => {
   const [state, setState] = useState<AppState>(() => loadState());
   const [showDepositDialog, setShowDepositDialog] = useState(false);
   const [editingDeposit, setEditingDeposit] = useState<SavingsEntry | null>(null);
+  const [showPaywall, setShowPaywall] = useState(false);
+  const { isPro, trialStatus, upgradeToPro } = useSubscription();
   const today = new Date();
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   
   const dateLocale = locale === 'pt-PT' ? pt : enUSLocale;
+
+  // Show paywall if not Pro
+  useEffect(() => {
+    if (!isPro) {
+      setShowPaywall(true);
+    }
+  }, [isPro]);
 
   // Calculate financial overview from trackers
   const financialOverview = calculateTrackerFinancials(
@@ -518,6 +530,15 @@ const Financas = () => {
         open={showDepositDialog}
         onOpenChange={setShowDepositDialog}
         onSave={handleAddDeposit}
+      />
+
+      {/* Paywall Modal */}
+      <PaywallModal
+        open={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        onUpgrade={upgradeToPro}
+        trigger="finances"
+        trialDaysLeft={trialStatus.daysRemaining}
       />
     </div>
   );

@@ -65,6 +65,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { useSubscription } from "@/hooks/useSubscription";
+import { PaywallModal } from "@/components/Paywall/PaywallModal";
+import { TrialBanner } from "@/components/Paywall/TrialBanner";
 
 // Calculate tracker summary for dashboard
 const calculateTrackerDashboardSummary = (
@@ -129,6 +132,11 @@ const Index = () => {
   const [showHabitForm, setShowHabitForm] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
   const [deletingHabitId, setDeletingHabitId] = useState<string | null>(null);
+  const [showPaywall, setShowPaywall] = useState(false);
+  
+  // Subscription
+  const { isPro, trialStatus, upgradeToPro, getLimits } = useSubscription();
+  const limits = getLimits();
   
   // Drilldown Modal States
   const [showStreakDrilldown, setShowStreakDrilldown] = useState(false);
@@ -236,6 +244,15 @@ const Index = () => {
       setState((prev) => updateHabit(prev, editingHabit.id, data));
       toast({ title: t.habits.habitUpdated });
     } else {
+      // Check habit limit for free users
+      const currentHabitCount = state.habits.filter(h => h.active).length;
+      const maxHabits = limits.maxHabits as number;
+      
+      if (!isPro && currentHabitCount >= maxHabits) {
+        setShowPaywall(true);
+        return;
+      }
+      
       setState((prev) => addHabit(prev, data));
       toast({ title: t.habits.habitCreated });
     }
@@ -641,6 +658,15 @@ const Index = () => {
         month={currentMonth}
         state={state}
         locale={locale}
+      />
+      
+      {/* Paywall Modal */}
+      <PaywallModal
+        open={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        onUpgrade={upgradeToPro}
+        trigger="habits"
+        trialDaysLeft={trialStatus.daysRemaining}
       />
     </div>
   );

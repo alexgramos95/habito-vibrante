@@ -649,4 +649,5 @@ export type Translations = {
     recoverAction: string;
     skipAction: string;
   };
+  subscription: { [key: string]: string };
 };
