@@ -30,12 +30,10 @@ const Landing = () => {
   const navigate = useNavigate();
   const [showPaywall, setShowPaywall] = useState(false);
   const [selectedPricing, setSelectedPricing] = useState<"monthly" | "yearly" | "lifetime">("yearly");
+
+  // Não iniciamos trial a partir da Landing; apenas navegamos
   const { needsOnboarding, upgradeToPro } = useSubscription();
 
-  // Landing CTA: nunca inicia trial aqui.
-  // Apenas abre o funil da app:
-  //  - se precisa de onboarding -> /onboarding
-  //  - senão -> /app
   const handleStart = () => {
     if (needsOnboarding) {
       navigate("/onboarding");
