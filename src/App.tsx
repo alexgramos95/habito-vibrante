@@ -44,8 +44,11 @@ const App = () => (
           <BrowserRouter>
             <Suspense fallback={<PageLoader />}>
               <Routes>
-                {/* Main routes */}
-                <Route path="/" element={<Index />} />
+                {/* Landing page is the root */}
+                <Route path="/" element={<Landing />} />
+                
+                {/* App shell routes */}
+                <Route path="/app" element={<Index />} />
                 <Route path="/objetivos" element={<Objetivos />} />
                 <Route path="/trackers" element={<Objetivos />} />
                 <Route path="/calendario" element={<Calendario />} />

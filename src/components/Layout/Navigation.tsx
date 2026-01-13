@@ -10,7 +10,7 @@ export const Navigation = () => {
   const { t } = useI18n();
 
   const mainNavItems = [
-    { to: "/", label: t.nav.habits, icon: LayoutDashboard },
+    { to: "/app", label: t.nav.habits, icon: LayoutDashboard },
     { to: "/calendario", label: t.nav.calendar, icon: Calendar },
     { to: "/objetivos", label: t.nav.trackers, icon: Target },
     { to: "/financas", label: t.nav.finances, icon: Wallet },
@@ -22,7 +22,7 @@ export const Navigation = () => {
   ];
 
   const allMobileItems = [
-    { to: "/", label: t.nav.habits, icon: LayoutDashboard },
+    { to: "/app", label: t.nav.habits, icon: LayoutDashboard },
     { to: "/calendario", label: t.nav.calendar, icon: Calendar },
     { to: "/objetivos", label: t.nav.trackers, icon: Target },
     { to: "/financas", label: t.nav.finances, icon: Wallet },
