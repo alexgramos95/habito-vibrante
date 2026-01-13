@@ -9,15 +9,15 @@ const corsHeaders = {
 
 // Helper logging function for debugging
 const logStep = (step: string, details?: Record<string, unknown>) => {
-  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : "";
   console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
 };
 
 // Price IDs - REPLACE with your actual Stripe price IDs
 const PRICE_IDS = {
-  monthly: 'price_MONTHLY_PLACEHOLDER', // Replace with actual price ID
-  yearly: 'price_YEARLY_PLACEHOLDER',   // Replace with actual price ID
-  lifetime: 'price_LIFETIME_PLACEHOLDER', // Replace with actual price ID (one-time)
+  monthly: "prod_TmU4geRW1u9g0S", // Replace with actual price ID
+  yearly: "prod_TmUDYi3kN4xKAk", // Replace with actual price ID
+  lifetime: "prod_TmUEwnKdigDaEP", // Replace with actual price ID (one-time)
 };
 
 serve(async (req) => {
@@ -38,17 +38,15 @@ serve(async (req) => {
 
     // For now, use placeholder - in production replace with actual price IDs
     let priceId = PRICE_IDS[priceType as keyof typeof PRICE_IDS];
-    let mode: 'subscription' | 'payment' = priceType === 'lifetime' ? 'payment' : 'subscription';
-    
+    let mode: "subscription" | "payment" = priceType === "lifetime" ? "payment" : "subscription";
+    const isSubscription = priceType === "monthly";
+
     // If placeholder, we'll still proceed but log warning
-    if (priceId.includes('PLACEHOLDER')) {
+    if (priceId.includes("PLACEHOLDER")) {
       logStep("WARNING: Using placeholder price ID - replace with actual Stripe price IDs");
     }
 
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
-    );
+    const supabaseClient = createClient(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_ANON_KEY") ?? "");
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("No authorization header provided");
@@ -62,7 +60,7 @@ serve(async (req) => {
     logStep("User authenticated", { userId: user.id, email: user.email });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
-    
+
     // Check for existing customer
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     let customerId: string | undefined;
@@ -90,6 +88,12 @@ serve(async (req) => {
         user_id: user.id,
         price_type: priceType,
       },
+      ...(isSubscription && {
+        subscription_data: {
+          // aqui defines o período de trial (em dias)
+          trial_period_days: 7, // ou 2, se quiseres alinhar com o que tens agora
+        },
+      }),
     };
 
     const session = await stripe.checkout.sessions.create(sessionParams);
