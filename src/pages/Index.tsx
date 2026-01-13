@@ -186,14 +186,16 @@ const Index = () => {
 
   // Guest redirect: fresh guests who haven't completed onboarding go to onboarding
   useEffect(() => {
-    const hasCompletedOnboarding = !needsOnboarding;
+    // Canonical onboarding completion check from localStorage
+    const onboardingDone = localStorage.getItem("itero-onboarding-complete") === "true";
 
-    // Fresh guest (no onboarding completed) → redirect to onboarding, NOT landing
-    // Guests who completed onboarding stay on /app in FREE mode
-    if (!hasCompletedOnboarding && !isAuthenticated) {
+    // Only redirect to onboarding if localStorage flag is NOT set
+    // Guests who completed onboarding stay on /app in FREE mode (no redirect)
+    if (!onboardingDone && !isAuthenticated) {
       navigate("/onboarding", { replace: true });
     }
-  }, [needsOnboarding, isAuthenticated, navigate]);
+    // FREE guests (onboardingDone && !trial && !pro) are allowed on /app/*
+  }, [isAuthenticated, navigate]);
 
   // Bounceback hook
   const { weeklyStats, yesterdayRecovery } = useBounceback(state);
