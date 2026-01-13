@@ -13,32 +13,35 @@ import { useNavigate } from "react-router-dom";
 interface PaywallModalProps {
   open: boolean;
   onClose: () => void;
-  onUpgrade: (plan: 'monthly' | 'yearly' | 'lifetime') => void;
+  onUpgrade: (plan: "monthly" | "yearly" | "lifetime") => void;
   trigger?: string;
   trialDaysLeft?: number;
 }
 
+// PRICING ALIGNED WITH STRIPE (EUR)
+// Monthly inclui trial de 2 dias
 const PLANS = [
   {
-    id: 'monthly' as const,
-    price: 4.99,
-    period: '/mo',
+    id: "monthly" as const,
+    price: 9.99,
+    period: "/month",
     popular: false,
+    trialDays: 2, // 2-day free trial
   },
   {
-    id: 'yearly' as const,
-    price: 39.99,
-    period: '/yr',
+    id: "yearly" as const,
+    price: 89.99,
+    period: "/year",
     popular: true,
-    discount: '35%',
-    monthlyEquivalent: 3.33,
+    discount: "25%",
+    monthlyEquivalent: 7.5,
   },
   {
-    id: 'lifetime' as const,
-    price: 79.99,
-    period: 'once',
+    id: "lifetime" as const,
+    price: 149.99,
+    period: "once",
     popular: false,
-    note: 'forever',
+    note: "forever",
   },
 ];
 
@@ -51,18 +54,12 @@ const PRO_FEATURES = [
   { icon: Bell, label: "Cloud sync + restore" },
 ];
 
-export const PaywallModal = ({ 
-  open, 
-  onClose, 
-  onUpgrade,
-  trigger,
-  trialDaysLeft = 0,
-}: PaywallModalProps) => {
+export const PaywallModal = ({ open, onClose, onUpgrade, trigger, trialDaysLeft = 0 }: PaywallModalProps) => {
   const { t, locale } = useI18n();
   const { isAuthenticated, session } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly' | 'lifetime'>('yearly');
+  const [selectedPlan, setSelectedPlan] = useState<"monthly" | "yearly" | "lifetime">("yearly");
   const [loading, setLoading] = useState(false);
   const [restoring, setRestoring] = useState(false);
 
@@ -70,14 +67,14 @@ export const PaywallModal = ({
     // If not authenticated, redirect to auth page
     if (!isAuthenticated) {
       onClose();
-      navigate('/auth');
+      navigate("/auth");
       return;
     }
 
     setLoading(true);
     try {
       // Call Stripe checkout edge function
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
         body: { priceType: selectedPlan },
         headers: {
           Authorization: `Bearer ${session?.access_token}`,
@@ -88,14 +85,14 @@ export const PaywallModal = ({
 
       if (data?.url) {
         // Open Stripe checkout in new tab
-        window.open(data.url, '_blank');
+        window.open(data.url, "_blank");
         toast({
           title: "Checkout opened",
           description: "Complete your purchase in the new tab.",
         });
       }
     } catch (err) {
-      console.error('Checkout error:', err);
+      console.error("Checkout error:", err);
       toast({
         title: "Checkout failed",
         description: "Please try again or contact support.",
@@ -112,14 +109,14 @@ export const PaywallModal = ({
   const handleRestore = async () => {
     if (!isAuthenticated) {
       onClose();
-      navigate('/auth');
+      navigate("/auth");
       return;
     }
 
     setRestoring(true);
     try {
-      const { data, error } = await supabase.functions.invoke('restore-purchases', {
-        body: { platform: 'stripe' },
+      const { data, error } = await supabase.functions.invoke("restore-purchases", {
+        body: { platform: "stripe" },
         headers: {
           Authorization: `Bearer ${session?.access_token}`,
         },
@@ -142,7 +139,7 @@ export const PaywallModal = ({
         });
       }
     } catch (err) {
-      console.error('Restore error:', err);
+      console.error("Restore error:", err);
       toast({
         title: "Restore failed",
         description: "Please try again or contact support.",
@@ -156,13 +153,13 @@ export const PaywallModal = ({
   // Warrior + Coach messages based on trigger
   const getHeadline = () => {
     switch (trigger) {
-      case 'habits':
+      case "habits":
         return "You've hit your limit.";
-      case 'calendar':
+      case "calendar":
         return "Your trial week ended.";
-      case 'finances':
+      case "finances":
         return "Finances are Pro-only.";
-      case 'export':
+      case "export":
         return "Export is Pro-only.";
       default:
         return "Upgrade to Pro";
@@ -171,18 +168,20 @@ export const PaywallModal = ({
 
   const getSubheadline = () => {
     switch (trigger) {
-      case 'habits':
+      case "habits":
         return "Serious about discipline? Remove the limits.";
-      case 'calendar':
+      case "calendar":
         return "Don't break your streak. Keep building.";
-      case 'finances':
+      case "finances":
         return "See the compound effect of your discipline.";
-      case 'export':
+      case "export":
         return "Own your data. Track your transformation.";
       default:
         return "Become who you're aiming to be.";
     }
   };
+
+  const monthlyPlan = PLANS.find((p) => p.id === "monthly");
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -196,18 +195,14 @@ export const PaywallModal = ({
                 PRO
               </Badge>
             </div>
-            <DialogTitle className="text-2xl font-bold">
-              {getHeadline()}
-            </DialogTitle>
-            <DialogDescription className="text-base text-muted-foreground">
-              {getSubheadline()}
-            </DialogDescription>
+            <DialogTitle className="text-2xl font-bold">{getHeadline()}</DialogTitle>
+            <DialogDescription className="text-base text-muted-foreground">{getSubheadline()}</DialogDescription>
           </DialogHeader>
 
           {trialDaysLeft > 0 && (
             <div className="mt-4 p-3 rounded-lg bg-warning/10 border border-warning/20">
               <p className="text-sm text-warning font-medium">
-                ⏳ {trialDaysLeft} {trialDaysLeft === 1 ? 'day' : 'days'} left in your trial
+                ⏳ {trialDaysLeft} {trialDaysLeft === 1 ? "day" : "days"} left in your trial
               </p>
             </div>
           )}
@@ -222,37 +217,28 @@ export const PaywallModal = ({
                 onClick={() => setSelectedPlan(plan.id)}
                 className={cn(
                   "relative w-full p-4 rounded-xl border-2 text-left transition-all",
-                  selectedPlan === plan.id
-                    ? "border-primary bg-primary/5"
-                    : "border-border/50 hover:border-border"
+                  selectedPlan === plan.id ? "border-primary bg-primary/5" : "border-border/50 hover:border-border",
                 )}
               >
-                {plan.popular && (
-                  <Badge className="absolute -top-2 right-4 bg-primary">
-                    Most Popular
-                  </Badge>
-                )}
-                
+                {plan.popular && <Badge className="absolute -top-2 right-4 bg-primary">Most Popular</Badge>}
+
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-semibold capitalize">{plan.id}</p>
                     {plan.monthlyEquivalent && (
                       <p className="text-xs text-muted-foreground">
-                        ${plan.monthlyEquivalent.toFixed(2)}/mo equivalent
+                        €{plan.monthlyEquivalent.toFixed(2)}/mo equivalent
                       </p>
                     )}
-                    {plan.note && (
-                      <p className="text-xs text-success">
-                        Pay {plan.note}
-                      </p>
+                    {plan.trialDays && (
+                      <p className="text-xs text-warning font-medium">{plan.trialDays}-day free trial</p>
                     )}
+                    {plan.note && <p className="text-xs text-success">Pay {plan.note}</p>}
                   </div>
                   <div className="text-right">
                     <div className="flex items-baseline gap-1">
-                      <span className="text-2xl font-bold">${plan.price}</span>
-                      <span className="text-sm text-muted-foreground">
-                        {plan.period}
-                      </span>
+                      <span className="text-2xl font-bold">€{plan.price}</span>
+                      <span className="text-sm text-muted-foreground">{plan.period}</span>
                     </div>
                     {plan.discount && (
                       <Badge variant="secondary" className="text-success">
@@ -280,11 +266,7 @@ export const PaywallModal = ({
 
           {/* CTA */}
           <div className="pt-4 space-y-3">
-            <Button 
-              onClick={handleUpgrade} 
-              className="w-full h-12 text-base font-semibold gap-2"
-              disabled={loading}
-            >
+            <Button onClick={handleUpgrade} className="w-full h-12 text-base font-semibold gap-2" disabled={loading}>
               {loading ? (
                 <>
                   <RefreshCw className="h-5 w-5 animate-spin" />
@@ -304,12 +286,7 @@ export const PaywallModal = ({
             </Button>
 
             {/* Restore Purchases */}
-            <Button 
-              variant="outline" 
-              onClick={handleRestore}
-              className="w-full gap-2"
-              disabled={restoring}
-            >
+            <Button variant="outline" onClick={handleRestore} className="w-full gap-2" disabled={restoring}>
               {restoring ? (
                 <>
                   <RefreshCw className="h-4 w-4 animate-spin" />
@@ -322,23 +299,30 @@ export const PaywallModal = ({
                 </>
               )}
             </Button>
-            
-            <Button 
-              variant="ghost" 
-              onClick={onClose}
-              className="w-full text-muted-foreground"
-            >
+
+            <Button variant="ghost" onClick={onClose} className="w-full text-muted-foreground">
               Maybe later
             </Button>
           </div>
 
           {/* Trust + Disclosures */}
           <div className="text-center text-xs text-muted-foreground pt-2 space-y-1">
+            {monthlyPlan?.trialDays && (
+              <p>
+                Monthly plan includes a {monthlyPlan.trialDays}-day free trial. You won&apos;t be charged if you cancel
+                before the trial ends.
+              </p>
+            )}
             <p>This is where discipline compounds.</p>
             <p>
-              Subscriptions auto-renew. Cancel anytime.{' '}
-              <a href="/terms" className="underline">Terms</a> ·{' '}
-              <a href="/privacy" className="underline">Privacy</a>
+              Subscriptions auto-renew. Cancel anytime.{" "}
+              <a href="/terms" className="underline">
+                Terms
+              </a>{" "}
+              ·{" "}
+              <a href="/privacy" className="underline">
+                Privacy
+              </a>
             </p>
           </div>
         </div>
