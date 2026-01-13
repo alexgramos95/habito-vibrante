@@ -87,10 +87,7 @@ const Onboarding = () => {
   };
 
   const handleComplete = () => {
-    // Start trial
-    startTrial();
-    
-    // Save onboarding data
+    // Save onboarding data (do NOT start trial - guest mode first)
     completeOnboarding({
       improvementAreas: selectedAreas,
       identityVectors: [...selectedIdentity, customIdentity].filter(Boolean),
@@ -100,7 +97,7 @@ const Onboarding = () => {
     // Mark legacy flag too for compatibility
     localStorage.setItem('itero-onboarding-complete', 'true');
     
-    // Navigate to main app
+    // Navigate to main app as Guest (FREE mode)
     navigate('/app');
   };
 
@@ -456,9 +453,9 @@ const Onboarding = () => {
               </div>
 
               <div>
-                <h2 className="text-3xl font-bold mb-3">Your trial starts now.</h2>
+                <h2 className="text-3xl font-bold mb-3">You're ready to start.</h2>
                 <p className="text-lg text-muted-foreground">
-                  2 days of full access. Build your streak.
+                  Build your first habit and become who you're aiming to be.
                 </p>
               </div>
 
@@ -484,7 +481,7 @@ const Onboarding = () => {
                   Start Building
                 </Button>
                 <p className="text-xs text-muted-foreground">
-                  No credit card required for trial.
+                  Start free. Unlock Pro with a 2-day trial anytime.
                 </p>
               </div>
             </div>
