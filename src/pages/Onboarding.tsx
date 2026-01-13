@@ -25,6 +25,7 @@ import { Input } from "@/components/ui/input";
 import { useI18n } from "@/i18n/I18nContext";
 import { localeNames, currencyNames, type Locale, type Currency } from "@/i18n";
 import { cn } from "@/lib/utils";
+import { useSubscription } from "@/hooks/useSubscription";
 
 // Improvement areas
 const IMPROVEMENT_AREAS = [
@@ -62,6 +63,7 @@ type Step = "welcome" | "areas" | "identity" | "presets" | "settings" | "ready";
 const Onboarding = () => {
   const navigate = useNavigate();
   const { t, locale, setLocale, currency, setCurrency } = useI18n();
+  const { completeOnboarding } = useSubscription();
 
   const [step, setStep] = useState<Step>("welcome");
   const [selectedAreas, setSelectedAreas] = useState<string[]>([]);
@@ -88,7 +90,7 @@ const Onboarding = () => {
   };
 
   const handleComplete = () => {
-    // Guardar dados de onboarding apenas em localStorage
+    // Save onboarding data to localStorage
     const payload = {
       improvementAreas: selectedAreas,
       identityVectors: [...selectedIdentity, customIdentity].filter(Boolean),
@@ -100,13 +102,21 @@ const Onboarding = () => {
     try {
       localStorage.setItem("become-onboarding-data", JSON.stringify(payload));
       localStorage.setItem("become-onboarding-complete", "true");
-      // compatibilidade com chaves antigas, se existirem
+      // Legacy key compatibility
       localStorage.setItem("itero-onboarding-complete", "true");
     } catch {
-      // se localStorage falhar (modo privado, etc.), simplesmente ignoramos
+      // If localStorage fails (private mode, etc.), ignore
     }
 
-    // Não inicia trial aqui. Mantém FREE guest e entra na app.
+    // Mark onboarding as completed in subscription state
+    // This sets become-onboarding-state.completed = true
+    completeOnboarding({
+      improvementAreas: selectedAreas,
+      identityVectors: [...selectedIdentity, customIdentity].filter(Boolean),
+      selectedPresets,
+    });
+
+    // Navigate to app as FREE guest (no trial started)
     navigate("/app");
   };
 
