@@ -29,9 +29,7 @@ import { storeMetadata, icpMessaging, pricingDisplay } from "@/data/storeMetadat
 const Landing = () => {
   const navigate = useNavigate();
   const [showPaywall, setShowPaywall] = useState(false);
-  const [selectedPricing, setSelectedPricing] = useState<
-    "monthly" | "yearly" | "lifetime"
-  >("yearly");
+  const [selectedPricing, setSelectedPricing] = useState<"monthly" | "yearly" | "lifetime">("yearly");
   const { needsOnboarding, startTrial, upgradeToPro } = useSubscription();
 
   const handleStartTrial = () => {
@@ -87,10 +85,7 @@ const Landing = () => {
             <span className="font-bold text-lg">becoMe</span>
           </div>
           <div className="flex items-center gap-4">
-            <Link
-              to="/auth"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
+            <Link to="/auth" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Sign In
             </Link>
             <Button size="sm" onClick={handleStartTrial}>
@@ -113,31 +108,22 @@ const Landing = () => {
           </h1>
 
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Track habits. See savings. Become who you're aiming to be. A
-            scientific approach to consistency without the guilt.
+            Track habits. See savings. Become who you're aiming to be. A scientific approach to consistency without the
+            guilt.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              size="lg"
-              onClick={handleStartTrial}
-              className="gap-2 text-lg px-8"
-            >
+            <Button size="lg" onClick={handleStartTrial} className="gap-2 text-lg px-8">
               Start Your 2-Day Trial
               <ArrowRight className="h-5 w-5" />
             </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              onClick={() => setShowPaywall(true)}
-            >
+            <Button size="lg" variant="outline" onClick={() => setShowPaywall(true)}>
               View Pricing
             </Button>
           </div>
 
           <p className="text-sm text-muted-foreground mt-6">
-            Join thousands building lasting habits through identity, not
-            willpower.
+            Join thousands building lasting habits through identity, not willpower.
           </p>
         </div>
       </section>
@@ -185,10 +171,7 @@ const Landing = () => {
                 desc: "Define who you're becoming. Let habits flow from identity.",
               },
             ].map((item, i) => (
-              <Card
-                key={i}
-                className="glass border-border/30 group hover:glow-subtle transition-all"
-              >
+              <Card key={i} className="glass border-border/30 group hover:glow-subtle transition-all">
                 <CardContent className="p-6">
                   <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                     <item.icon className="h-6 w-6 text-primary" />
@@ -207,33 +190,21 @@ const Landing = () => {
         <div className="container">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold mb-4">Why It Matters</h2>
-            <p className="text-muted-foreground max-w-xl mx-auto">
-              Different people, same goal: lasting change
-            </p>
+            <p className="text-muted-foreground max-w-xl mx-auto">Different people, same goal: lasting change</p>
           </div>
 
           <div className="grid gap-6 md:grid-cols-2">
             {Object.entries(icpMessaging).map(([key, segment]) => (
-              <Card
-                key={key}
-                className="glass border-border/30 overflow-hidden"
-              >
+              <Card key={key} className="glass border-border/30 overflow-hidden">
                 <CardContent className="p-6">
                   <Badge variant="outline" className="mb-4 capitalize">
                     {key}
                   </Badge>
-                  <h3 className="text-xl font-bold mb-2">
-                    {segment.headline}
-                  </h3>
-                  <p className="text-muted-foreground mb-4">
-                    {segment.subheadline}
-                  </p>
+                  <h3 className="text-xl font-bold mb-2">{segment.headline}</h3>
+                  <p className="text-muted-foreground mb-4">{segment.subheadline}</p>
                   <ul className="space-y-2">
                     {segment.benefits.map((benefit, i) => (
-                      <li
-                        key={i}
-                        className="flex items-center gap-2 text-sm"
-                      >
+                      <li key={i} className="flex items-center gap-2 text-sm">
                         <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                         {benefit}
                       </li>
@@ -251,9 +222,7 @@ const Landing = () => {
         <div className="container max-w-4xl">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4">Simple Pricing</h2>
-            <p className="text-muted-foreground">
-              Start free. Upgrade when you're ready.
-            </p>
+            <p className="text-muted-foreground">Start free. Upgrade when you're ready.</p>
           </div>
 
           <div className="grid gap-6 md:grid-cols-3">
@@ -274,15 +243,9 @@ const Landing = () => {
                   <h3 className="font-semibold mb-1">{plan.label}</h3>
                   <div className="flex items-baseline gap-1 mb-4">
                     <span className="text-4xl font-bold">${plan.price}</span>
-                    {plan.period !== "once" && (
-                      <span className="text-muted-foreground">
-                        /{plan.period}
-                      </span>
-                    )}
+                    {plan.period !== "once" && <span className="text-muted-foreground">/{plan.period}</span>}
                   </div>
-                  <p className="text-sm text-muted-foreground mb-6">
-                    {plan.description}
-                  </p>
+                  <p className="text-sm text-muted-foreground mb-6">{plan.description}</p>
                   <Button
                     className="w-full"
                     variant={plan.popular ? "default" : "outline"}
@@ -291,9 +254,7 @@ const Landing = () => {
                       setShowPaywall(true);
                     }}
                   >
-                    {key === "lifetime"
-                      ? "Get Lifetime Access"
-                      : "Choose Plan"}
+                    {key === "lifetime" ? "Get Lifetime Access" : "Choose Plan"}
                   </Button>
                 </CardContent>
               </Card>
@@ -301,8 +262,8 @@ const Landing = () => {
           </div>
 
           <p className="text-center text-sm text-muted-foreground mt-8">
-            All plans include: Unlimited habits • Unlimited trackers • Full
-            calendar • Financial tracking • Export • No ads
+            All plans include: Unlimited habits • Unlimited trackers • Full calendar • Financial tracking • Export • No
+            ads
           </p>
         </div>
       </section>
@@ -336,10 +297,7 @@ const Landing = () => {
                 <CardContent className="p-6">
                   <div className="flex items-center gap-1 mb-4">
                     {[1, 2, 3, 4, 5].map((s) => (
-                      <Star
-                        key={s}
-                        className="h-4 w-4 fill-warning text-warning"
-                      />
+                      <Star key={s} className="h-4 w-4 fill-warning text-warning" />
                     ))}
                   </div>
                   <p className="text-sm mb-4 italic">"{t.text}"</p>
@@ -349,9 +307,7 @@ const Landing = () => {
                     </div>
                     <div>
                       <p className="font-medium text-sm">{t.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {t.role}
-                      </p>
+                      <p className="text-xs text-muted-foreground">{t.role}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -370,29 +326,17 @@ const Landing = () => {
 
           <div className="space-y-4">
             {faqs.map((faq, i) => (
-              <div
-                key={i}
-                className="glass border border-border/30 rounded-xl overflow-hidden"
-              >
+              <div key={i} className="glass border border-border/30 rounded-xl overflow-hidden">
                 <button
-                  onClick={() =>
-                    setOpenFaq(openFaq === i ? null : i)
-                  }
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   className="w-full flex items-center justify-between p-4 text-left"
                 >
                   <span className="font-medium">{faq.q}</span>
                   <ChevronDown
-                    className={cn(
-                      "h-5 w-5 text-muted-foreground transition-transform",
-                      openFaq === i && "rotate-180",
-                    )}
+                    className={cn("h-5 w-5 text-muted-foreground transition-transform", openFaq === i && "rotate-180")}
                   />
                 </button>
-                {openFaq === i && (
-                  <div className="px-4 pb-4 text-sm text-muted-foreground">
-                    {faq.a}
-                  </div>
-                )}
+                {openFaq === i && <div className="px-4 pb-4 text-sm text-muted-foreground">{faq.a}</div>}
               </div>
             ))}
           </div>
@@ -403,14 +347,8 @@ const Landing = () => {
       <section className="py-20">
         <div className="container max-w-2xl text-center">
           <h2 className="text-3xl font-bold mb-4">Ready to become?</h2>
-          <p className="text-muted-foreground mb-8">
-            Start your 2-day free trial. No credit card required.
-          </p>
-          <Button
-            size="lg"
-            onClick={handleStartTrial}
-            className="gap-2 text-lg px-8"
-          >
+          <p className="text-muted-foreground mb-8">Start your 2-day free trial. No credit card required.</p>
+          <Button size="lg" onClick={handleStartTrial} className="gap-2 text-lg px-8">
             Start Your 2-Day Trial
             <ArrowRight className="h-5 w-5" />
           </Button>
@@ -428,28 +366,17 @@ const Landing = () => {
               <span className="font-bold">becoMe</span>
             </div>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
-              <a
-                href="/privacy"
-                className="hover:text-foreground transition-colors"
-              >
+              <a href="/privacy" className="hover:text-foreground transition-colors">
                 Privacy
               </a>
-              <a
-                href="/terms"
-                className="hover:text-foreground transition-colors"
-              >
+              <a href="/terms" className="hover:text-foreground transition-colors">
                 Terms
               </a>
-              <a
-                href="mailto:support@become.app"
-                className="hover:text-foreground transition-colors"
-              >
+              <a href="mailto:support@become.app" className="hover:text-foreground transition-colors">
                 Contact
               </a>
             </div>
-            <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} becoMe. All rights reserved.
-            </p>
+            <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} becoMe. All rights reserved.</p>
           </div>
         </div>
       </footer>
@@ -467,5 +394,3 @@ const Landing = () => {
 };
 
 export default Landing;
-
-::contentReference[oaicite:0]{index=0}
