@@ -11,22 +11,22 @@ export const Navigation = () => {
 
   const mainNavItems = [
     { to: "/app", label: t.nav.habits, icon: LayoutDashboard },
-    { to: "/calendario", label: t.nav.calendar, icon: Calendar },
-    { to: "/objetivos", label: t.nav.trackers, icon: Target },
-    { to: "/financas", label: t.nav.finances, icon: Wallet },
-    { to: "/compras", label: t.nav.shopping, icon: ShoppingCart },
+    { to: "/app/calendar", label: t.nav.calendar, icon: Calendar },
+    { to: "/app/trackers", label: t.nav.trackers, icon: Target },
+    { to: "/app/finances", label: t.nav.finances, icon: Wallet },
+    { to: "/app/shopping", label: t.nav.shopping, icon: ShoppingCart },
   ];
 
   const secondaryNavItems = [
-    { to: "/perfil", label: t.nav.profile, icon: User },
+    { to: "/app/profile", label: t.nav.profile, icon: User },
   ];
 
   const allMobileItems = [
     { to: "/app", label: t.nav.habits, icon: LayoutDashboard },
-    { to: "/calendario", label: t.nav.calendar, icon: Calendar },
-    { to: "/objetivos", label: t.nav.trackers, icon: Target },
-    { to: "/financas", label: t.nav.finances, icon: Wallet },
-    { to: "/perfil", label: t.nav.profile, icon: User },
+    { to: "/app/calendar", label: t.nav.calendar, icon: Calendar },
+    { to: "/app/trackers", label: t.nav.trackers, icon: Target },
+    { to: "/app/finances", label: t.nav.finances, icon: Wallet },
+    { to: "/app/profile", label: t.nav.profile, icon: User },
   ];
 
   return (

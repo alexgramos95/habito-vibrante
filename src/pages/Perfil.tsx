@@ -602,59 +602,63 @@ const Perfil = () => {
           </CardContent>
         </Card>
 
-        {/* Demo Mode Card */}
-        <Card className="glass border-border/30">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-sm font-medium">
-              <Camera className="h-5 w-5 text-primary" />
-              {locale === 'pt-PT' ? "Modo Screenshot" : "Screenshot Mode"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium">
-                  {locale === 'pt-PT' ? "Dados de demonstração" : "Demo data"}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {locale === 'pt-PT' 
-                    ? "Carrega dados fictícios para screenshots e marketing" 
-                    : "Load sample data for screenshots and marketing"}
-                </p>
-              </div>
-              <Switch
-                checked={isDemoMode}
-                onCheckedChange={(checked) => {
-                  if (checked) enableDemoMode();
-                  else disableDemoMode();
-                }}
-              />
-            </div>
-            {isDemoMode && (
-              <Badge variant="outline" className="text-warning border-warning/50">
-                {locale === 'pt-PT' ? "Modo demo ativo" : "Demo mode active"}
-              </Badge>
-            )}
-          </CardContent>
-        </Card>
+        {/* Screenshot/Demo Mode Card - Only shown when VITE_ENABLE_SCREENSHOT_MODE is enabled */}
+        {import.meta.env.VITE_ENABLE_SCREENSHOT_MODE === 'true' && (
+          <>
+            <Card className="glass border-border/30">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-sm font-medium">
+                  <Camera className="h-5 w-5 text-primary" />
+                  {locale === 'pt-PT' ? "Modo Screenshot" : "Screenshot Mode"}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium">
+                      {locale === 'pt-PT' ? "Dados de demonstração" : "Demo data"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {locale === 'pt-PT' 
+                        ? "Carrega dados fictícios para screenshots e marketing" 
+                        : "Load sample data for screenshots and marketing"}
+                    </p>
+                  </div>
+                  <Switch
+                    checked={isDemoMode}
+                    onCheckedChange={(checked) => {
+                      if (checked) enableDemoMode();
+                      else disableDemoMode();
+                    }}
+                  />
+                </div>
+                {isDemoMode && (
+                  <Badge variant="outline" className="text-warning border-warning/50">
+                    {locale === 'pt-PT' ? "Modo demo ativo" : "Demo mode active"}
+                  </Badge>
+                )}
+              </CardContent>
+            </Card>
 
-        {/* Links */}
-        <Card className="glass border-border/30">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-sm font-medium">
-              <ExternalLink className="h-5 w-5" />
-              {locale === 'pt-PT' ? "Links" : "Links"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <Button variant="outline" className="w-full justify-start gap-2" asChild>
-              <a href="/landing" target="_blank">
-                <ExternalLink className="h-4 w-4" />
-                {locale === 'pt-PT' ? "Ver Landing Page" : "View Landing Page"}
-              </a>
-            </Button>
-          </CardContent>
-        </Card>
+            {/* Links - Also dev-only */}
+            <Card className="glass border-border/30">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-sm font-medium">
+                  <ExternalLink className="h-5 w-5" />
+                  {locale === 'pt-PT' ? "Links" : "Links"}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <Button variant="outline" className="w-full justify-start gap-2" asChild>
+                  <a href="/landing" target="_blank">
+                    <ExternalLink className="h-4 w-4" />
+                    {locale === 'pt-PT' ? "Ver Landing Page" : "View Landing Page"}
+                  </a>
+                </Button>
+              </CardContent>
+            </Card>
+          </>
+        )}
 
         {/* Invite Others */}
         <Card className="glass border-border/30">

@@ -4,7 +4,7 @@ import {
   Flame, Trophy, TrendingUp, Target, PiggyBank, ShoppingCart, 
   Activity, Zap, ChevronRight, Sparkles, CheckCircle2
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useI18n } from "@/i18n/I18nContext";
 import { AppState, Habit, Tracker, TrackerEntry, DailyReflection, FutureSelfEntry } from "@/data/types";
 import {
@@ -126,6 +126,7 @@ const calculateTrackerDashboardSummary = (
 
 const Index = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
   const { t, tr, formatCurrency, formatDate, locale } = useI18n();
   const { isAuthenticated } = useAuth();
@@ -160,6 +161,16 @@ const Index = () => {
   const [bouncebackDismissed, setBouncebackDismissed] = useState(false);
 
   const today = format(new Date(), "yyyy-MM-dd");
+  
+  // Check for showTrial param (from Auth redirect after login)
+  useEffect(() => {
+    if (searchParams.get('showTrial') === 'true') {
+      setShowTrialOffer(true);
+      // Clear the param from URL
+      searchParams.delete('showTrial');
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
   
   // Guest redirect: fresh guests with no habits go to landing
   useEffect(() => {
