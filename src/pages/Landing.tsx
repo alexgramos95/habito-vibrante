@@ -30,15 +30,11 @@ const Landing = () => {
   const navigate = useNavigate();
   const [showPaywall, setShowPaywall] = useState(false);
   const [selectedPricing, setSelectedPricing] = useState<"monthly" | "yearly" | "lifetime">("yearly");
-  const { needsOnboarding, startTrial, upgradeToPro } = useSubscription();
+  const { upgradeToPro } = useSubscription();
 
   const handleStartTrial = () => {
-    if (needsOnboarding) {
-      navigate("/onboarding");
-    } else {
-      startTrial();
-      navigate("/app");
-    }
+    // Always require login first - trial starts after auth
+    navigate("/auth?next=trial");
   };
 
   const handleUpgrade = (plan: "monthly" | "yearly" | "lifetime") => {
