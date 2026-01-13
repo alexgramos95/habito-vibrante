@@ -184,17 +184,11 @@ const Index = () => {
     }
   }, [searchParams, setSearchParams]);
 
-  // Guest redirect: fresh guests who haven't completed onboarding go to onboarding
+  // Auth guard: require login before accessing /app
   useEffect(() => {
-    // Canonical onboarding completion check from localStorage
-    const onboardingDone = localStorage.getItem("itero-onboarding-complete") === "true";
-
-    // Only redirect to onboarding if localStorage flag is NOT set
-    // Guests who completed onboarding stay on /app in FREE mode (no redirect)
-    if (!onboardingDone && !isAuthenticated) {
-      navigate("/onboarding", { replace: true });
+    if (!isAuthenticated) {
+      navigate("/auth?next=trial", { replace: true });
     }
-    // FREE guests (onboardingDone && !trial && !pro) are allowed on /app/*
   }, [isAuthenticated, navigate]);
 
   // Bounceback hook
