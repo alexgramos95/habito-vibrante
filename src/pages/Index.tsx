@@ -184,16 +184,16 @@ const Index = () => {
     }
   }, [searchParams, setSearchParams]);
 
-  // Guest redirect: fresh guests with no habits go to landing
+  // Guest redirect: fresh guests who haven't completed onboarding go to onboarding
   useEffect(() => {
-    const hasHabits = state.habits.length > 0;
     const hasCompletedOnboarding = !needsOnboarding;
 
-    // Fresh guest (no habits, no onboarding) → redirect to landing
-    if (!hasHabits && !hasCompletedOnboarding && !isAuthenticated) {
-      navigate("/");
+    // Fresh guest (no onboarding completed) → redirect to onboarding, NOT landing
+    // Guests who completed onboarding stay on /app in FREE mode
+    if (!hasCompletedOnboarding && !isAuthenticated) {
+      navigate("/onboarding", { replace: true });
     }
-  }, [state.habits.length, needsOnboarding, isAuthenticated, navigate]);
+  }, [needsOnboarding, isAuthenticated, navigate]);
 
   // Bounceback hook
   const { weeklyStats, yesterdayRecovery } = useBounceback(state);
