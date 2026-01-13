@@ -24,14 +24,14 @@ const Landing = () => {
       navigate('/onboarding');
     } else {
       startTrial();
-      navigate('/');
+      navigate('/app');
     }
   };
 
   const handleUpgrade = (plan: 'monthly' | 'yearly' | 'lifetime') => {
     upgradeToPro(plan);
     setShowPaywall(false);
-    navigate('/');
+    navigate('/app');
   };
 
   // FAQ items
@@ -72,7 +72,7 @@ const Landing = () => {
             <span className="font-bold text-lg">becoMe</span>
           </div>
           <div className="flex items-center gap-4">
-            <Link to="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <Link to="/app" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Dashboard
             </Link>
             <Button size="sm" onClick={handleStartTrial}>

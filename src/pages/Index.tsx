@@ -4,7 +4,7 @@ import {
   Flame, Trophy, TrendingUp, Target, PiggyBank, ShoppingCart, 
   Activity, Zap, ChevronRight, Sparkles, CheckCircle2
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useI18n } from "@/i18n/I18nContext";
 import { AppState, Habit, Tracker, TrackerEntry, DailyReflection, FutureSelfEntry } from "@/data/types";
 import {
@@ -32,6 +32,8 @@ import {
   getShoppingItemsForWeek,
 } from "@/logic/computations";
 import { useBounceback } from "@/hooks/useBounceback";
+import { useLoginTrigger } from "@/hooks/useLoginTrigger";
+import { useAuth } from "@/contexts/AuthContext";
 import { Navigation } from "@/components/Layout/Navigation";
 import { PageHeader } from "@/components/Layout/PageHeader";
 import { KPICard } from "@/components/Dashboard/KPICard";
@@ -51,6 +53,8 @@ import { FutureSelfModal } from "@/components/Dashboard/FutureSelfModal";
 import { WeeklyDrilldownModal } from "@/components/Dashboard/WeeklyDrilldownModal";
 import { WeeklyConsistencyCard } from "@/components/Dashboard/WeeklyConsistencyCard";
 import { BouncebackPrompt } from "@/components/Dashboard/BouncebackPrompt";
+import { LoginTriggerModal } from "@/components/Auth/LoginTriggerModal";
+import { TrialOfferModal } from "@/components/Auth/TrialOfferModal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -121,8 +125,10 @@ const calculateTrackerDashboardSummary = (
 };
 
 const Index = () => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const { t, tr, formatCurrency, formatDate, locale } = useI18n();
+  const { isAuthenticated } = useAuth();
   const [state, setState] = useState<AppState>(() => loadState());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
@@ -133,10 +139,14 @@ const Index = () => {
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
   const [deletingHabitId, setDeletingHabitId] = useState<string | null>(null);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [showTrialOffer, setShowTrialOffer] = useState(false);
   
   // Subscription
-  const { isPro, trialStatus, upgradeToPro, getLimits } = useSubscription();
+  const { isPro, trialStatus, upgradeToPro, getLimits, needsOnboarding } = useSubscription();
   const limits = getLimits();
+  
+  // Login trigger
+  const { showLoginModal, checkLoginTrigger, closeLoginModal } = useLoginTrigger();
   
   // Drilldown Modal States
   const [showStreakDrilldown, setShowStreakDrilldown] = useState(false);
@@ -150,6 +160,17 @@ const Index = () => {
   const [bouncebackDismissed, setBouncebackDismissed] = useState(false);
 
   const today = format(new Date(), "yyyy-MM-dd");
+  
+  // Guest redirect: fresh guests with no habits go to landing
+  useEffect(() => {
+    const hasHabits = state.habits.length > 0;
+    const hasCompletedOnboarding = !needsOnboarding;
+    
+    // Fresh guest (no habits, no onboarding) → redirect to landing
+    if (!hasHabits && !hasCompletedOnboarding && !isAuthenticated) {
+      navigate('/');
+    }
+  }, [state.habits.length, needsOnboarding, isAuthenticated, navigate]);
   
   // Bounceback hook
   const { weeklyStats, yesterdayRecovery } = useBounceback(state);
@@ -255,6 +276,16 @@ const Index = () => {
       
       setState((prev) => addHabit(prev, data));
       toast({ title: t.habits.habitCreated });
+      
+      // After adding habit, check if we should trigger login modal
+      // This happens after state update, so we check with newCount
+      const newHabitCount = currentHabitCount + 1;
+      if (newHabitCount >= 2 && !isAuthenticated) {
+        // Slight delay to let the toast show first
+        setTimeout(() => {
+          checkLoginTrigger();
+        }, 500);
+      }
     }
     setShowHabitForm(false);
     setEditingHabit(null);
@@ -682,6 +713,22 @@ const Index = () => {
         onUpgrade={upgradeToPro}
         trigger="habits"
         trialDaysLeft={trialStatus.daysRemaining}
+      />
+      
+      {/* Login Trigger Modal */}
+      <LoginTriggerModal
+        open={showLoginModal}
+        onClose={closeLoginModal}
+      />
+      
+      {/* Trial Offer Modal */}
+      <TrialOfferModal
+        open={showTrialOffer}
+        onClose={() => setShowTrialOffer(false)}
+        onStartTrial={() => {
+          toast({ title: locale === 'pt-PT' ? 'Trial iniciado!' : 'Trial started!' });
+        }}
+        onViewPricing={() => setShowPaywall(true)}
       />
     </div>
   );

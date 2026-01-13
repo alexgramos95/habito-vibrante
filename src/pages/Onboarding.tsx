@@ -101,7 +101,7 @@ const Onboarding = () => {
     localStorage.setItem('itero-onboarding-complete', 'true');
     
     // Navigate to main app
-    navigate('/');
+    navigate('/app');
   };
 
   const toggleArea = (id: string) => {
