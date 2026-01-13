@@ -156,7 +156,7 @@ export const PaywallModal = ({ open, onClose, onUpgrade, trigger, trialDaysLeft 
       case "habits":
         return "You've hit your limit.";
       case "calendar":
-        return "Your trial week ended.";
+        return "Your trial ended.";
       case "finances":
         return "Finances are Pro-only.";
       case "export":
