@@ -1,11 +1,12 @@
+import { lazy, Suspense } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { I18nProvider } from "@/i18n/I18nContext";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { lazy, Suspense } from "react";
 
 // Lazy load pages to ensure proper provider context
 const Index = lazy(() => import("./pages/Index"));
@@ -46,7 +47,7 @@ const App = () => (
               <Routes>
                 {/* Landing page is the root */}
                 <Route path="/" element={<Landing />} />
-                
+
                 {/* App shell routes - consistent /app/* paths */}
                 <Route path="/app" element={<Index />} />
                 <Route path="/app/trackers" element={<Objetivos />} />
@@ -56,14 +57,14 @@ const App = () => (
                 <Route path="/app/profile" element={<Perfil />} />
                 <Route path="/app/progress" element={<Progresso />} />
                 <Route path="/app/settings" element={<Definicoes />} />
-                
+
                 {/* Standalone pages */}
                 <Route path="/onboarding" element={<Onboarding />} />
                 <Route path="/landing" element={<Landing />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/privacy" element={<Privacy />} />
-                
+
                 {/* Legacy routes for backwards compatibility */}
                 <Route path="/habitos" element={<Index />} />
                 <Route path="/habits" element={<Index />} />
@@ -82,7 +83,7 @@ const App = () => (
                 <Route path="/progress" element={<Progresso />} />
                 <Route path="/definicoes" element={<Definicoes />} />
                 <Route path="/settings" element={<Definicoes />} />
-                
+
                 {/* Catch-all */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
