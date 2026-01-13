@@ -21,7 +21,7 @@ export interface OnboardingState {
 
 const SUBSCRIPTION_KEY = 'become-subscription';
 const ONBOARDING_KEY = 'become-onboarding-state';
-const TRIAL_DURATION_DAYS = 7;
+const TRIAL_DURATION_DAYS = 2;
 
 // Feature limits
 export const FREE_LIMITS = {

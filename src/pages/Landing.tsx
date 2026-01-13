@@ -42,7 +42,7 @@ const Landing = () => {
     },
     {
       q: "How does the free trial work?",
-      a: "You get 7 days of full Pro access. No credit card required. After the trial, you can continue with limited free access (3 habits, 7-day calendar) or upgrade to Pro.",
+      a: "You get 2 days of full Pro access with the Monthly plan. No credit card required. After the trial, you can continue with limited free access (3 habits, 7-day calendar) or upgrade to Pro.",
     },
     {
       q: "Can I export my data?",
@@ -87,7 +87,7 @@ const Landing = () => {
         <div className="container max-w-4xl mx-auto text-center">
           <Badge variant="outline" className="mb-6 px-4 py-1.5 text-sm">
             <Sparkles className="h-3.5 w-3.5 mr-1.5" />
-            7-day free trial • No credit card required
+            2-day free trial • No credit card required
           </Badge>
           
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6">
@@ -101,7 +101,7 @@ const Landing = () => {
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" onClick={handleStartTrial} className="gap-2 text-lg px-8">
-              Start Your 7-Day Trial
+              Start Your 2-Day Trial
               <ArrowRight className="h-5 w-5" />
             </Button>
             <Button size="lg" variant="outline" onClick={() => setShowPaywall(true)}>
@@ -308,10 +308,10 @@ const Landing = () => {
         <div className="container max-w-2xl text-center">
           <h2 className="text-3xl font-bold mb-4">Ready to become?</h2>
           <p className="text-muted-foreground mb-8">
-            Start your 7-day free trial. No credit card required.
+            Start your 2-day free trial. No credit card required.
           </p>
           <Button size="lg" onClick={handleStartTrial} className="gap-2 text-lg px-8">
-            Start Your Free Trial
+            Start Your 2-Day Trial
             <ArrowRight className="h-5 w-5" />
           </Button>
         </div>
@@ -345,7 +345,7 @@ const Landing = () => {
         onClose={() => setShowPaywall(false)}
         onUpgrade={handleUpgrade}
         trigger="calendar"
-        trialDaysLeft={7}
+        trialDaysLeft={2}
       />
     </div>
   );

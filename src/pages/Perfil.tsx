@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { format } from "date-fns";
+import { useNavigate } from "react-router-dom";
 import { 
   Globe, Sun, Moon, Trophy, Target, Star, TrendingUp,
   PenLine, Sparkles, PiggyBank, Trash2, AlertTriangle, User,
-  Crown, Download, Camera, ExternalLink
+  Crown, Download, Camera, ExternalLink, LogIn, UserPlus, Copy
 } from "lucide-react";
 import { Navigation } from "@/components/Layout/Navigation";
 import { PageHeader } from "@/components/Layout/PageHeader";
@@ -26,10 +27,13 @@ import { useDemoMode } from "@/hooks/useDemoMode";
 import { PaywallModal } from "@/components/Paywall/PaywallModal";
 import { TrialBanner } from "@/components/Paywall/TrialBanner";
 import { ExportDialog } from "@/components/Export/ExportDialog";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Perfil = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const { t, locale, setLocale, currency, setCurrency, formatCurrency } = useI18n();
+  const { isAuthenticated, user, signOut } = useAuth();
   const [state, setState] = useState<AppState>(() => loadState());
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
@@ -43,6 +47,50 @@ const Perfil = () => {
       return 'moderate';
     }
   });
+
+  // Get display name with fallback logic
+  const getDisplayName = () => {
+    if (!user) return locale === 'pt-PT' ? 'Visitante' : 'Guest';
+    if (user.user_metadata?.full_name) return user.user_metadata.full_name;
+    if (user.email) return user.email.split('@')[0];
+    return locale === 'pt-PT' ? 'Visitante' : 'Guest';
+  };
+
+  const displayName = getDisplayName();
+  const displayEmail = user?.email || (locale === 'pt-PT' ? 'Não autenticado' : 'Not signed in');
+
+  // Handle invite link copy
+  const handleCopyInviteLink = async () => {
+    const baseUrl = window.location.origin;
+    const ref = isAuthenticated && user?.id ? user.id : null;
+    const inviteLink = ref ? `${baseUrl}/?ref=${ref}` : baseUrl;
+
+    try {
+      await navigator.clipboard.writeText(inviteLink);
+      toast({
+        title: locale === 'pt-PT' ? "Link copiado" : "Invite link copied",
+        description: locale === 'pt-PT' 
+          ? "Cola onde quiseres para convidar alguém para o becoMe." 
+          : "Paste it anywhere to invite someone to becoMe.",
+      });
+    } catch {
+      toast({
+        title: locale === 'pt-PT' ? "Não foi possível copiar" : "Could not copy link",
+        description: inviteLink,
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handle manage billing stub
+  const handleManageBilling = () => {
+    toast({
+      title: locale === 'pt-PT' ? "Gerir faturação" : "Manage billing",
+      description: locale === 'pt-PT' 
+        ? "Por agora, contacta o suporte para cancelar ou alterar os teus dados de pagamento."
+        : "For now, contact support to cancel or change your billing details.",
+    });
+  };
 
   const today = new Date();
   const todayStr = format(today, "yyyy-MM-dd");
@@ -127,12 +175,39 @@ const Perfil = () => {
           </div>
         </PageHeader>
 
-        {/* Subscription Status */}
+        {/* Account Header */}
+        <Card className="glass border-border/30">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center font-semibold text-lg text-primary">
+                  {displayName[0]?.toUpperCase() || 'G'}
+                </div>
+                <div>
+                  <p className="font-semibold">{displayName}</p>
+                  <p className="text-sm text-muted-foreground">{displayEmail}</p>
+                </div>
+              </div>
+              {isAuthenticated ? (
+                <Button variant="outline" size="sm" onClick={() => navigate('/auth')}>
+                  {locale === 'pt-PT' ? 'Gerir conta' : 'Manage account'}
+                </Button>
+              ) : (
+                <Button size="sm" onClick={() => navigate('/auth')} className="gap-2">
+                  <LogIn className="h-4 w-4" />
+                  {locale === 'pt-PT' ? 'Entrar / Criar conta' : 'Sign in / Create account'}
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Subscription Section */}
         <Card className={cn(
           "glass border-border/30",
           isPro && subscription.plan === 'pro' && "border-warning/30 bg-warning/5"
         )}>
-          <CardContent className="p-4">
+          <CardContent className="p-4 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className={cn(
@@ -146,37 +221,41 @@ const Perfil = () => {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold capitalize">
+                    <span className="font-semibold">
                       {subscription.plan === 'pro' 
-                        ? `Pro (${subscription.purchasePlan})` 
+                        ? `Pro (${subscription.purchasePlan === 'monthly' ? (locale === 'pt-PT' ? 'Mensal' : 'Monthly') : subscription.purchasePlan === 'yearly' ? (locale === 'pt-PT' ? 'Anual' : 'Yearly') : 'Lifetime'}) · ${locale === 'pt-PT' ? 'Ativo' : 'Active'}` 
                         : subscription.plan === 'trial' 
                           ? 'Trial' 
-                          : 'Free'}
+                          : (locale === 'pt-PT' ? 'Plano gratuito' : 'Free plan')}
                     </span>
-                    {isPro && (
-                      <Badge variant="outline" className="text-warning border-warning/50 text-xs">
-                        ACTIVE
-                      </Badge>
-                    )}
                   </div>
                   {trialStatus.isActive && (
                     <p className="text-sm text-muted-foreground">
-                      {trialStatus.daysRemaining} {trialStatus.daysRemaining === 1 ? 'day' : 'days'} remaining
-                    </p>
-                  )}
-                  {subscription.plan === 'free' && (
-                    <p className="text-sm text-muted-foreground">
-                      Limited to 3 habits • 7-day calendar
+                      {trialStatus.daysRemaining} {trialStatus.daysRemaining === 1 ? (locale === 'pt-PT' ? 'dia restante' : 'day remaining') : (locale === 'pt-PT' ? 'dias restantes' : 'days remaining')}
                     </p>
                   )}
                 </div>
               </div>
-              {!isPro || trialStatus.isActive ? (
-                <Button onClick={() => setShowPaywall(true)} size="sm" className="gap-2">
-                  <Crown className="h-4 w-4" />
-                  Upgrade
-                </Button>
-              ) : null}
+              <Badge variant={isPro ? "default" : "secondary"} className={cn(
+                isPro && "bg-warning text-warning-foreground"
+              )}>
+                {isPro ? (locale === 'pt-PT' ? 'ATIVO' : 'ACTIVE') : 'FREE'}
+              </Badge>
+            </div>
+            
+            <p className="text-sm text-muted-foreground">
+              {locale === 'pt-PT' 
+                ? 'Ver ou alterar o teu plano. A faturação é gerida de forma segura pelo Stripe.'
+                : 'View or change your plan. Billing is handled securely by Stripe.'}
+            </p>
+
+            <div className="flex gap-2">
+              <Button size="sm" onClick={() => setShowPaywall(true)}>
+                {locale === 'pt-PT' ? 'Alterar plano' : 'Change plan'}
+              </Button>
+              <Button size="sm" variant="outline" onClick={handleManageBilling}>
+                {locale === 'pt-PT' ? 'Gerir faturação' : 'Manage billing'}
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -550,7 +629,29 @@ const Perfil = () => {
           </CardContent>
         </Card>
 
-        {/* Danger Zone - Reset */}
+        {/* Invite Others */}
+        <Card className="glass border-border/30">
+          <CardContent className="p-4 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-semibold">{locale === 'pt-PT' ? 'Convidar outros' : 'Invite others'}</p>
+                <p className="text-sm text-muted-foreground">
+                  {locale === 'pt-PT' 
+                    ? 'Partilha o becoMe com pessoas que valorizam disciplina tanto quanto tu.'
+                    : 'Share becoMe with people who care about discipline as much as you do.'}
+                </p>
+              </div>
+              <div className="p-2 rounded-lg bg-primary/10">
+                <UserPlus className="h-5 w-5 text-primary" />
+              </div>
+            </div>
+            <Button onClick={handleCopyInviteLink} className="w-full gap-2">
+              <Copy className="h-4 w-4" />
+              {locale === 'pt-PT' ? 'Copiar link de convite' : 'Copy invite link'}
+            </Button>
+          </CardContent>
+        </Card>
+
         <Card className="glass border-destructive/30">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-destructive">
