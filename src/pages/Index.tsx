@@ -1,8 +1,17 @@
 import { useState, useEffect, useCallback } from "react";
 import { format, isToday, isFuture, subDays } from "date-fns";
-import { 
-  Flame, Trophy, TrendingUp, Target, PiggyBank, ShoppingCart, 
-  Activity, Zap, ChevronRight, Sparkles, CheckCircle2
+import {
+  Flame,
+  Trophy,
+  TrendingUp,
+  Target,
+  PiggyBank,
+  ShoppingCart,
+  Activity,
+  Zap,
+  ChevronRight,
+  Sparkles,
+  CheckCircle2,
 } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useI18n } from "@/i18n/I18nContext";
@@ -45,8 +54,11 @@ import { MotivationalBanner } from "@/components/Feedback/MotivationalBanner";
 import { ReflectionCard } from "@/components/Modules/ReflectionCard";
 import { FutureSelfCard } from "@/components/Modules/FutureSelfCard";
 import { TrackerQuickAdd } from "@/components/Modules/TrackerQuickAdd";
-import { 
-  StreakDrilldown, ConsistencyDrilldown, TrackersDrilldown, SavingsDrilldown 
+import {
+  StreakDrilldown,
+  ConsistencyDrilldown,
+  TrackersDrilldown,
+  SavingsDrilldown,
 } from "@/components/Dashboard/DrilldownModals";
 import { ReflectionModal } from "@/components/Dashboard/ReflectionModal";
 import { FutureSelfModal } from "@/components/Dashboard/FutureSelfModal";
@@ -77,44 +89,44 @@ import { TrialBanner } from "@/components/Paywall/TrialBanner";
 const calculateTrackerDashboardSummary = (
   trackers: Tracker[],
   entries: TrackerEntry[],
-  formatCurrency: (v: number) => string
+  formatCurrency: (v: number) => string,
 ) => {
   const today = format(new Date(), "yyyy-MM-dd");
-  const activeTrackers = trackers.filter(t => t.active);
-  
+  const activeTrackers = trackers.filter((t) => t.active);
+
   let todayTotalSavings = 0;
   let monthTotalSavings = 0;
-  
+
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
-  
-  activeTrackers.forEach(tracker => {
+
+  activeTrackers.forEach((tracker) => {
     if (tracker.valuePerUnit <= 0) return;
-    
-    const todayEntries = entries.filter(e => e.trackerId === tracker.id && e.date === today);
+
+    const todayEntries = entries.filter((e) => e.trackerId === tracker.id && e.date === today);
     const todayCount = todayEntries.reduce((sum, e) => sum + e.quantity, 0);
-    
-    if (tracker.type === 'reduce') {
+
+    if (tracker.type === "reduce") {
       const dailySaving = (tracker.baseline - todayCount) * tracker.valuePerUnit;
       todayTotalSavings += Math.max(0, dailySaving);
     }
-    
+
     // Month savings
-    const monthEntries = entries.filter(e => {
+    const monthEntries = entries.filter((e) => {
       if (e.trackerId !== tracker.id) return false;
       const date = new Date(e.date);
       return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
     });
-    
+
     const daysInMonth = new Date().getDate();
     const monthBaseline = tracker.baseline * daysInMonth;
     const monthActual = monthEntries.reduce((sum, e) => sum + e.quantity, 0);
-    
-    if (tracker.type === 'reduce') {
+
+    if (tracker.type === "reduce") {
       monthTotalSavings += Math.max(0, (monthBaseline - monthActual) * tracker.valuePerUnit);
     }
   });
-  
+
   return {
     activeCount: activeTrackers.length,
     todaySavings: todayTotalSavings,
@@ -134,21 +146,21 @@ const Index = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
-  
+
   // UI State
   const [showHabitForm, setShowHabitForm] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
   const [deletingHabitId, setDeletingHabitId] = useState<string | null>(null);
   const [showPaywall, setShowPaywall] = useState(false);
   const [showTrialOffer, setShowTrialOffer] = useState(false);
-  
+
   // Subscription
   const { isPro, trialStatus, upgradeToPro, getLimits, needsOnboarding } = useSubscription();
   const limits = getLimits();
-  
+
   // Login trigger
   const { showLoginModal, checkLoginTrigger, closeLoginModal } = useLoginTrigger();
-  
+
   // Drilldown Modal States
   const [showStreakDrilldown, setShowStreakDrilldown] = useState(false);
   const [showConsistencyDrilldown, setShowConsistencyDrilldown] = useState(false);
@@ -161,28 +173,28 @@ const Index = () => {
   const [bouncebackDismissed, setBouncebackDismissed] = useState(false);
 
   const today = format(new Date(), "yyyy-MM-dd");
-  
+
   // Check for showTrial param (from Auth redirect after login)
   useEffect(() => {
-    if (searchParams.get('showTrial') === 'true') {
+    if (searchParams.get("showTrial") === "true") {
       setShowTrialOffer(true);
       // Clear the param from URL
-      searchParams.delete('showTrial');
+      searchParams.delete("showTrial");
       setSearchParams(searchParams, { replace: true });
     }
   }, [searchParams, setSearchParams]);
-  
+
   // Guest redirect: fresh guests with no habits go to landing
   useEffect(() => {
     const hasHabits = state.habits.length > 0;
     const hasCompletedOnboarding = !needsOnboarding;
-    
+
     // Fresh guest (no habits, no onboarding) → redirect to landing
     if (!hasHabits && !hasCompletedOnboarding && !isAuthenticated) {
-      navigate('/');
+      navigate("/");
     }
   }, [state.habits.length, needsOnboarding, isAuthenticated, navigate]);
-  
+
   // Bounceback hook
   const { weeklyStats, yesterdayRecovery } = useBounceback(state);
 
@@ -216,15 +228,14 @@ const Index = () => {
   const weekStartDate = getWeekStartDate(new Date());
   const shoppingData = getShoppingItemsForWeek(state, weekStartDate);
   const trackerSummary = calculateTrackerDashboardSummary(
-    state.trackers || [], 
+    state.trackers || [],
     state.trackerEntries || [],
-    formatCurrency
+    formatCurrency,
   );
 
   // Calculate consistency score (percentage of days with all habits done)
-  const consistencyScore = monthlySummary.totalPossible > 0 
-    ? Math.round((monthlySummary.totalDone / monthlySummary.totalPossible) * 100)
-    : 0;
+  const consistencyScore =
+    monthlySummary.totalPossible > 0 ? Math.round((monthlySummary.totalDone / monthlySummary.totalPossible) * 100) : 0;
 
   // Handlers
   const handlePreviousMonth = () => {
@@ -258,18 +269,21 @@ const Index = () => {
     }
   };
 
-  const handleToggleHabit = useCallback((habitId: string) => {
-    const dateStr = format(selectedDate, "yyyy-MM-dd");
-    const result = toggleDailyLog(state, habitId, dateStr);
-    setState(result.newState);
-    
-    if (result.wasCompleted) {
-      toast({
-        title: t.habits.goodWork,
-        description: tr("habits.dayCompleted", { habitName: result.habitName }),
-      });
-    }
-  }, [selectedDate, state, toast, t, tr]);
+  const handleToggleHabit = useCallback(
+    (habitId: string) => {
+      const dateStr = format(selectedDate, "yyyy-MM-dd");
+      const result = toggleDailyLog(state, habitId, dateStr);
+      setState(result.newState);
+
+      if (result.wasCompleted) {
+        toast({
+          title: t.habits.goodWork,
+          description: tr("habits.dayCompleted", { habitName: result.habitName }),
+        });
+      }
+    },
+    [selectedDate, state, toast, t, tr],
+  );
 
   const handleSaveHabit = (data: Omit<Habit, "id" | "createdAt">) => {
     if (editingHabit) {
@@ -277,17 +291,17 @@ const Index = () => {
       toast({ title: t.habits.habitUpdated });
     } else {
       // Check habit limit for free users
-      const currentHabitCount = state.habits.filter(h => h.active).length;
+      const currentHabitCount = state.habits.filter((h) => h.active).length;
       const maxHabits = limits.maxHabits as number;
-      
+
       if (!isPro && currentHabitCount >= maxHabits) {
         setShowPaywall(true);
         return;
       }
-      
+
       setState((prev) => addHabit(prev, data));
       toast({ title: t.habits.habitCreated });
-      
+
       // After adding habit, check if we should trigger login modal
       // This happens after state update, so we check with newCount
       const newHabitCount = currentHabitCount + 1;
@@ -304,10 +318,10 @@ const Index = () => {
 
   const handleDeleteHabit = () => {
     if (!deletingHabitId) return;
-    
+
     const activeCount = getActiveHabits(state).length;
     const habitToDelete = state.habits.find((h) => h.id === deletingHabitId);
-    
+
     if (activeCount <= 1 && habitToDelete?.active) {
       toast({
         title: t.habits.atLeastOne,
@@ -316,34 +330,38 @@ const Index = () => {
       setDeletingHabitId(null);
       return;
     }
-    
+
     setState((prev) => deleteHabit(prev, deletingHabitId));
     toast({ title: t.habits.habitDeleted });
     setDeletingHabitId(null);
   };
 
-  const handleSaveReflection = (text: string, mood: 'positive' | 'neutral' | 'challenging') => {
-    setState(prev => addReflection(prev, {
-      date: today,
-      text,
-      mood,
-    }));
+  const handleSaveReflection = (text: string, mood: "positive" | "neutral" | "challenging") => {
+    setState((prev) =>
+      addReflection(prev, {
+        date: today,
+        text,
+        mood,
+      }),
+    );
     toast({ title: t.reflection.saved });
   };
 
   const handleSaveFutureSelf = (narrative: string, themes: string[]) => {
-    setState(prev => addFutureSelfEntry(prev, {
-      date: today,
-      narrative,
-      themes,
-    }));
+    setState((prev) =>
+      addFutureSelfEntry(prev, {
+        date: today,
+        narrative,
+        themes,
+      }),
+    );
     toast({ title: t.futureSelf.saved });
   };
 
   const handleTrackerQuickAdd = (trackerId: string) => {
-    setState(prev => addTrackerEntry(prev, trackerId, 1));
-    const tracker = state.trackers.find(t => t.id === trackerId);
-    toast({ 
+    setState((prev) => addTrackerEntry(prev, trackerId, 1));
+    const tracker = state.trackers.find((t) => t.id === trackerId);
+    toast({
       title: `+1 ${tracker?.unitSingular || t.trackers.entry}`,
       description: tracker?.name,
     });
@@ -352,7 +370,7 @@ const Index = () => {
   // Bounceback: recover yesterday
   const handleRecoverYesterday = () => {
     const yesterday = format(subDays(new Date(), 1), "yyyy-MM-dd");
-    setState(prev => recoverHabitsForDate(prev, yesterday));
+    setState((prev) => recoverHabitsForDate(prev, yesterday));
     setBouncebackDismissed(true);
     toast({
       title: t.bounceback.dayRecovered,
@@ -360,9 +378,9 @@ const Index = () => {
     });
   };
 
-  const dateLabel = isToday(selectedDate) 
-    ? t.dashboard.today 
-    : formatDate(selectedDate, locale === 'pt-PT' ? "d 'de' MMMM" : "MMMM d");
+  const dateLabel = isToday(selectedDate)
+    ? t.dashboard.today
+    : formatDate(selectedDate, locale === "pt-PT" ? "d 'de' MMMM" : "MMMM d");
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
@@ -378,9 +396,9 @@ const Index = () => {
             icon: Flame,
             label: t.habits.add,
             onClick: () => {
-              const currentHabitCount = state.habits.filter(h => h.active).length;
+              const currentHabitCount = state.habits.filter((h) => h.active).length;
               const maxHabits = limits.maxHabits as number;
-              
+
               if (!isPro && currentHabitCount >= maxHabits) {
                 setShowPaywall(true);
                 return;
@@ -392,7 +410,9 @@ const Index = () => {
         >
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full glass text-sm">
             <Zap className="h-4 w-4 text-primary" />
-            <span className="font-medium">{t.kpis.level} {state.gamification?.nivel || 1}</span>
+            <span className="font-medium">
+              {t.kpis.level} {state.gamification?.nivel || 1}
+            </span>
           </div>
         </PageHeader>
 
@@ -455,9 +475,7 @@ const Index = () => {
             {/* Weekly Chart - Premium Card */}
             <Card className="premium-card border-border/30 overflow-hidden">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-lg font-semibold">
-                  {t.dashboard.weeklyEvolution}
-                </CardTitle>
+                <CardTitle className="text-lg font-semibold">{t.dashboard.weeklyEvolution}</CardTitle>
                 <MonthSelector
                   year={currentYear}
                   month={currentMonth}
@@ -467,8 +485,8 @@ const Index = () => {
                 />
               </CardHeader>
               <CardContent>
-                <WeeklyChart 
-                  data={weeklySummaries} 
+                <WeeklyChart
+                  data={weeklySummaries}
                   onWeekClick={(weekNum) => {
                     setSelectedWeek(weekNum);
                     setShowWeeklyDrilldown(true);
@@ -506,10 +524,17 @@ const Index = () => {
                     <p className="text-xs text-muted-foreground">{t.dashboard.thisMonth}</p>
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    {t.dashboard.total}: <span className="font-medium text-foreground">{formatCurrency(savingsSummary.totalPoupadoAllTime)}</span>
+                    {t.dashboard.total}:{" "}
+                    <span className="font-medium text-foreground">
+                      {formatCurrency(savingsSummary.totalPoupadoAllTime)}
+                    </span>
                   </div>
                   <Link to="/financas">
-                    <Button variant="ghost" size="sm" className="w-full mt-1 group-hover:bg-success/10 group-hover:text-success">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full mt-1 group-hover:bg-success/10 group-hover:text-success"
+                    >
                       {t.dashboard.viewDetails}
                       <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
@@ -529,16 +554,18 @@ const Index = () => {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div>
-                    <p className="text-2xl font-bold text-primary">
-                      {trackerSummary.formattedMonthSavings}
-                    </p>
+                    <p className="text-2xl font-bold text-primary">{trackerSummary.formattedMonthSavings}</p>
                     <p className="text-xs text-muted-foreground">{t.trackers.monthSavings}</p>
                   </div>
                   <div className="text-xs text-muted-foreground">
                     {trackerSummary.activeCount} {t.kpis.activeHabits.toLowerCase()}
                   </div>
                   <Link to="/objetivos">
-                    <Button variant="ghost" size="sm" className="w-full mt-1 group-hover:bg-primary/10 group-hover:text-primary">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full mt-1 group-hover:bg-primary/10 group-hover:text-primary"
+                    >
                       {t.dashboard.viewDetails}
                       <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
@@ -564,13 +591,14 @@ const Index = () => {
                     <p className="text-xs text-muted-foreground">{t.dashboard.itemsThisWeek}</p>
                   </div>
                   {shoppingData.totalCount > 0 && (
-                    <Progress 
-                      value={(shoppingData.doneCount / shoppingData.totalCount) * 100} 
-                      className="h-1.5"
-                    />
+                    <Progress value={(shoppingData.doneCount / shoppingData.totalCount) * 100} className="h-1.5" />
                   )}
                   <Link to="/compras">
-                    <Button variant="ghost" size="sm" className="w-full mt-1 group-hover:bg-warning/10 group-hover:text-warning">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full mt-1 group-hover:bg-warning/10 group-hover:text-warning"
+                    >
                       {t.dashboard.viewList}
                       <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
@@ -582,18 +610,10 @@ const Index = () => {
             {/* Reflection and Future Self Cards - Clickable */}
             <div className="grid gap-4 sm:grid-cols-2">
               <div onClick={() => setShowReflectionModal(true)} className="cursor-pointer">
-                <ReflectionCard 
-                  reflection={todayReflection}
-                  onSave={handleSaveReflection}
-                  compact
-                />
+                <ReflectionCard reflection={todayReflection} onSave={handleSaveReflection} compact />
               </div>
               <div onClick={() => setShowFutureSelfModal(true)} className="cursor-pointer">
-                <FutureSelfCard 
-                  entry={latestFutureSelf}
-                  onSave={handleSaveFutureSelf}
-                  compact
-                />
+                <FutureSelfCard entry={latestFutureSelf} onSave={handleSaveFutureSelf} compact />
               </div>
             </div>
           </div>
@@ -602,9 +622,7 @@ const Index = () => {
           <Card className="premium-card h-fit">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between">
-                <span className="text-sm font-medium text-muted-foreground">
-                  {dateLabel}
-                </span>
+                <span className="text-sm font-medium text-muted-foreground">{dateLabel}</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -640,22 +658,15 @@ const Index = () => {
       )}
 
       {/* Delete Confirmation */}
-      <AlertDialog
-        open={!!deletingHabitId}
-        onOpenChange={() => setDeletingHabitId(null)}
-      >
+      <AlertDialog open={!!deletingHabitId} onOpenChange={() => setDeletingHabitId(null)}>
         <AlertDialogContent className="glass-strong">
           <AlertDialogHeader>
             <AlertDialogTitle>{t.habits.delete}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t.habits.confirmDelete}
-            </AlertDialogDescription>
+            <AlertDialogDescription>{t.habits.confirmDelete}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t.habits.cancel}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteHabit}>
-              {t.habits.delete}
-            </AlertDialogAction>
+            <AlertDialogAction onClick={handleDeleteHabit}>{t.habits.delete}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -709,14 +720,14 @@ const Index = () => {
       <WeeklyDrilldownModal
         open={showWeeklyDrilldown}
         onOpenChange={setShowWeeklyDrilldown}
-        weekSummary={weeklySummaries.find(w => w.weekNumber === selectedWeek) || weeklySummaries[0]}
+        weekSummary={weeklySummaries.find((w) => w.weekNumber === selectedWeek) || weeklySummaries[0]}
         weekNumber={selectedWeek}
         year={currentYear}
         month={currentMonth}
         state={state}
         locale={locale}
       />
-      
+
       {/* Paywall Modal */}
       <PaywallModal
         open={showPaywall}
@@ -725,19 +736,16 @@ const Index = () => {
         trigger="habits"
         trialDaysLeft={trialStatus.daysRemaining}
       />
-      
+
       {/* Login Trigger Modal */}
-      <LoginTriggerModal
-        open={showLoginModal}
-        onClose={closeLoginModal}
-      />
-      
+      <LoginTriggerModal open={showLoginModal} onClose={closeLoginModal} />
+
       {/* Trial Offer Modal */}
       <TrialOfferModal
         open={showTrialOffer}
         onClose={() => setShowTrialOffer(false)}
         onStartTrial={() => {
-          toast({ title: locale === 'pt-PT' ? 'Trial iniciado!' : 'Trial started!' });
+          toast({ title: locale === "pt-PT" ? "Trial iniciado!" : "Trial started!" });
         }}
         onViewPricing={() => setShowPaywall(true)}
       />
