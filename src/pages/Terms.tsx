@@ -62,7 +62,7 @@ const Terms = () => {
           <section className="space-y-4">
             <h2 className="text-xl font-semibold">5. Free Trial</h2>
             <p className="text-muted-foreground">
-              New users may be eligible for a 7-day free trial of Pro features. 
+              New users may be eligible for a 2-day free trial of Pro features with the Monthly plan. 
               No payment information is required during the trial period. 
               After the trial ends, you will be downgraded to the free plan unless you subscribe.
             </p>

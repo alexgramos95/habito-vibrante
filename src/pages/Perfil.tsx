@@ -4,7 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { 
   Globe, Sun, Moon, Trophy, Target, Star, TrendingUp,
   PenLine, Sparkles, PiggyBank, Trash2, AlertTriangle, User,
-  Crown, Download, Camera, ExternalLink, LogIn, UserPlus, Copy
+  Crown, Download, Camera, ExternalLink, LogIn, UserPlus, Copy,
+  LogOut, RotateCcw, FileText, Shield, Mail, HelpCircle
 } from "lucide-react";
 import { Navigation } from "@/components/Layout/Navigation";
 import { PageHeader } from "@/components/Layout/PageHeader";
@@ -90,6 +91,28 @@ const Perfil = () => {
         ? "Por agora, contacta o suporte para cancelar ou alterar os teus dados de pagamento."
         : "For now, contact support to cancel or change your billing details.",
     });
+  };
+
+  // Handle restore purchases stub
+  const handleRestorePurchases = () => {
+    toast({
+      title: locale === 'pt-PT' ? "Restaurar compras" : "Restore purchases",
+      description: locale === 'pt-PT' 
+        ? "Se subscreveste anteriormente, a tua subscrição será restaurada automaticamente quando iniciares sessão."
+        : "If you previously subscribed, your subscription will be restored automatically when you sign in.",
+    });
+  };
+
+  // Handle logout
+  const handleLogout = async () => {
+    await signOut();
+    toast({
+      title: locale === 'pt-PT' ? "Sessão terminada" : "Signed out",
+      description: locale === 'pt-PT' 
+        ? "Até breve!"
+        : "See you soon!",
+    });
+    navigate('/');
   };
 
   const today = new Date();
@@ -249,12 +272,16 @@ const Perfil = () => {
                 : 'View or change your plan. Billing is handled securely by Stripe.'}
             </p>
 
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button size="sm" onClick={() => setShowPaywall(true)}>
                 {locale === 'pt-PT' ? 'Alterar plano' : 'Change plan'}
               </Button>
               <Button size="sm" variant="outline" onClick={handleManageBilling}>
                 {locale === 'pt-PT' ? 'Gerir faturação' : 'Manage billing'}
+              </Button>
+              <Button size="sm" variant="outline" onClick={handleRestorePurchases} className="gap-1">
+                <RotateCcw className="h-3 w-3" />
+                {locale === 'pt-PT' ? 'Restaurar' : 'Restore'}
               </Button>
             </div>
           </CardContent>
@@ -652,6 +679,66 @@ const Perfil = () => {
           </CardContent>
         </Card>
 
+        {/* Legal & Support */}
+        <Card className="glass border-border/30">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-sm font-medium">
+              <HelpCircle className="h-5 w-5" />
+              {locale === 'pt-PT' ? 'Legal e Suporte' : 'Legal & Support'}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <Button variant="outline" className="w-full justify-start gap-2" asChild>
+              <a href="/terms">
+                <FileText className="h-4 w-4" />
+                {locale === 'pt-PT' ? 'Termos de Serviço' : 'Terms of Service'}
+              </a>
+            </Button>
+            <Button variant="outline" className="w-full justify-start gap-2" asChild>
+              <a href="/privacy">
+                <Shield className="h-4 w-4" />
+                {locale === 'pt-PT' ? 'Política de Privacidade' : 'Privacy Policy'}
+              </a>
+            </Button>
+            <Button variant="outline" className="w-full justify-start gap-2" asChild>
+              <a href="mailto:support@become.app">
+                <Mail className="h-4 w-4" />
+                {locale === 'pt-PT' ? 'Contactar Suporte' : 'Contact Support'}
+              </a>
+            </Button>
+            <div className="pt-3 mt-3 border-t border-border/30">
+              <p className="text-xs text-muted-foreground space-y-1">
+                <span className="block">
+                  {locale === 'pt-PT' 
+                    ? '• As subscrições mensais e anuais renovam automaticamente até serem canceladas.'
+                    : '• Monthly and yearly subscriptions auto-renew until cancelled.'}
+                </span>
+                <span className="block">
+                  {locale === 'pt-PT'
+                    ? '• Podes cancelar a qualquer momento. O acesso continua até ao fim do período pago.'
+                    : '• Cancel anytime. Access continues until the end of your billing period.'}
+                </span>
+                <span className="block">
+                  {locale === 'pt-PT'
+                    ? '• O plano Mensal inclui um período experimental de 2 dias.'
+                    : '• The Monthly plan includes a 2-day free trial.'}
+                </span>
+                <span className="block">
+                  {locale === 'pt-PT'
+                    ? '• Funcionalidades PRO requerem subscrição ativa.'
+                    : '• PRO features require an active subscription.'}
+                </span>
+                <span className="block">
+                  {locale === 'pt-PT'
+                    ? '• Os reembolsos são processados de acordo com as políticas da Stripe/App Store/Play Store.'
+                    : '• Refunds are processed according to Stripe/App Store/Play Store policies.'}
+                </span>
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Danger Zone */}
         <Card className="glass border-destructive/30">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-destructive">
@@ -660,6 +747,30 @@ const Perfil = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Logout */}
+            {isAuthenticated && (
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="font-medium">{locale === 'pt-PT' ? 'Terminar sessão' : 'Sign out'}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {locale === 'pt-PT' 
+                      ? "Os teus dados locais serão mantidos neste dispositivo." 
+                      : "Your local data will be kept on this device."}
+                  </p>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleLogout}
+                  className="shrink-0 gap-2"
+                >
+                  <LogOut className="h-4 w-4" />
+                  {locale === 'pt-PT' ? 'Sair' : 'Sign out'}
+                </Button>
+              </div>
+            )}
+            
+            {/* Reset Data */}
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="font-medium">{t.settings.resetData}</p>

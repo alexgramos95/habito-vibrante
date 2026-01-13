@@ -132,7 +132,7 @@ const Auth = () => {
             <CardDescription>
               {mode === 'signin' 
                 ? 'Sign in to continue your journey' 
-                : 'Start your 7-day free trial'}
+                : 'Start your 2-day free trial'}
             </CardDescription>
           </CardHeader>
           <CardContent>

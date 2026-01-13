@@ -42,7 +42,7 @@ const Landing = () => {
     },
     {
       q: "How does the free trial work?",
-      a: "You get 2 days of full Pro access with the Monthly plan. No credit card required. After the trial, you can continue with limited free access (3 habits, 7-day calendar) or upgrade to Pro.",
+      a: "You get 2 days of full Pro access with the Monthly plan. No credit card required. After the trial, you can continue with limited free access (3 habits, limited calendar) or upgrade to Pro.",
     },
     {
       q: "Can I export my data?",
