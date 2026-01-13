@@ -116,8 +116,8 @@ const Onboarding = () => {
       selectedPresets,
     });
 
-    // Navigate to app as FREE guest (no trial started)
-    navigate("/app");
+    // Navigate to auth - trial starts after login
+    navigate("/auth?next=trial");
   };
 
   const toggleArea = (id: string) => {
