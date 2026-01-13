@@ -8,14 +8,14 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { I18nProvider } from "@/i18n/I18nContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 
-// Lazy load pages to ensure proper provider context
+// Lazy load pages (except Onboarding, que importamos diretamente)
 const Index = lazy(() => import("./pages/Index"));
 const Objetivos = lazy(() => import("./pages/Objetivos"));
 const Calendario = lazy(() => import("./pages/Calendario"));
 const Financas = lazy(() => import("./pages/Financas"));
 const Compras = lazy(() => import("./pages/Compras"));
 const Perfil = lazy(() => import("./pages/Perfil"));
-const Onboarding = lazy(() => import("./pages/Onboarding"));
+// const Onboarding = lazy(() => import("./pages/Onboarding")); // <- removido
 const Progresso = lazy(() => import("./pages/Progresso"));
 const Definicoes = lazy(() => import("./pages/Definicoes"));
 const Landing = lazy(() => import("./pages/Landing"));
@@ -23,6 +23,9 @@ const Auth = lazy(() => import("./pages/Auth"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+
+// Onboarding importado de forma direta (sem React.lazy)
+import Onboarding from "./pages/Onboarding";
 
 // Keep QueryClient outside component to prevent recreation
 const queryClient = new QueryClient();
