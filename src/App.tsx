@@ -47,18 +47,17 @@ const App = () => (
                 {/* Landing page is the root */}
                 <Route path="/" element={<Landing />} />
                 
-                {/* App shell routes */}
+                {/* App shell routes - consistent /app/* paths */}
                 <Route path="/app" element={<Index />} />
-                <Route path="/objetivos" element={<Objetivos />} />
-                <Route path="/trackers" element={<Objetivos />} />
-                <Route path="/calendario" element={<Calendario />} />
-                <Route path="/calendar" element={<Calendario />} />
-                <Route path="/financas" element={<Financas />} />
-                <Route path="/finances" element={<Financas />} />
-                <Route path="/compras" element={<Compras />} />
-                <Route path="/shopping" element={<Compras />} />
-                <Route path="/perfil" element={<Perfil />} />
-                <Route path="/profile" element={<Perfil />} />
+                <Route path="/app/trackers" element={<Objetivos />} />
+                <Route path="/app/calendar" element={<Calendario />} />
+                <Route path="/app/finances" element={<Financas />} />
+                <Route path="/app/shopping" element={<Compras />} />
+                <Route path="/app/profile" element={<Perfil />} />
+                <Route path="/app/progress" element={<Progresso />} />
+                <Route path="/app/settings" element={<Definicoes />} />
+                
+                {/* Standalone pages */}
                 <Route path="/onboarding" element={<Onboarding />} />
                 <Route path="/landing" element={<Landing />} />
                 <Route path="/auth" element={<Auth />} />
@@ -69,6 +68,16 @@ const App = () => (
                 <Route path="/habitos" element={<Index />} />
                 <Route path="/habits" element={<Index />} />
                 <Route path="/triggers" element={<Index />} />
+                <Route path="/objetivos" element={<Objetivos />} />
+                <Route path="/trackers" element={<Objetivos />} />
+                <Route path="/calendario" element={<Calendario />} />
+                <Route path="/calendar" element={<Calendario />} />
+                <Route path="/financas" element={<Financas />} />
+                <Route path="/finances" element={<Financas />} />
+                <Route path="/compras" element={<Compras />} />
+                <Route path="/shopping" element={<Compras />} />
+                <Route path="/perfil" element={<Perfil />} />
+                <Route path="/profile" element={<Perfil />} />
                 <Route path="/progresso" element={<Progresso />} />
                 <Route path="/progress" element={<Progresso />} />
                 <Route path="/definicoes" element={<Definicoes />} />

@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday, isFuture, getDay, startOfWeek, endOfWeek, addDays, subDays, addWeeks, subWeeks, differenceInWeeks } from "date-fns";
 import { pt, enUS as enUSLocale } from "date-fns/locale";
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Flame, Check, X, Clock, PenLine, ShoppingCart, Lock } from "lucide-react";
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Flame, Check, X, Clock, PenLine, ShoppingCart, Lock, Bell } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { AppState, Habit, Tracker, DailyReflection, ShoppingItem } from "@/data/types";
 import { loadState, saveState, toggleDailyLog, getReflectionForDate } from "@/data/storage";
 import { getCompletedHabitsOnDate, getActiveHabits } from "@/logic/computations";
@@ -22,6 +23,7 @@ import { TrialBanner } from "@/components/Paywall/TrialBanner";
 type ViewMode = "daily" | "weekly" | "monthly";
 
 const Calendario = () => {
+  const navigate = useNavigate();
   const { t, locale, formatDate } = useI18n();
   const [state, setState] = useState<AppState>(() => loadState());
   const [viewMode, setViewMode] = useState<ViewMode>("monthly");
@@ -130,6 +132,13 @@ const Calendario = () => {
   const activeHabits = getActiveHabits(state);
   const activeTrackers = (state.trackers || []).filter(t => t.active);
 
+  // Get daily tracker reminders (trackers with frequency=daily and scheduledTime set)
+  const dailyTrackerReminders = useMemo(() => {
+    return activeTrackers.filter(t => 
+      t.frequency === 'daily' && t.scheduledTime
+    );
+  }, [activeTrackers]);
+
   const getDayData = (date: Date) => {
     const dateStr = format(date, "yyyy-MM-dd");
     const completedHabits = getCompletedHabitsOnDate(state, date);
@@ -145,6 +154,14 @@ const Calendario = () => {
     
     const triggers = (state.triggers || []).filter(trigger => trigger.active);
 
+    // Get daily tracker reminders for this date
+    const trackerReminders = dailyTrackerReminders.map(tracker => ({
+      trackerId: tracker.id,
+      name: tracker.name,
+      icon: tracker.icon,
+      time: tracker.scheduledTime!,
+    }));
+
     return {
       completedHabits,
       totalHabits: activeHabits.length,
@@ -153,6 +170,7 @@ const Calendario = () => {
       trackerCount,
       shoppingItems,
       triggers,
+      trackerReminders,
     };
   };
 
@@ -240,6 +258,7 @@ const Calendario = () => {
           <div className="absolute bottom-1 flex gap-0.5">
             {hasReflection && <div className="w-1.5 h-1.5 rounded-full bg-accent" />}
             {hasTrackerActivity && <div className="w-1.5 h-1.5 rounded-full bg-warning" />}
+            {data.trackerReminders.length > 0 && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
           </div>
         )}
       </button>
@@ -340,6 +359,36 @@ const Calendario = () => {
               </div>
             )}
 
+            {/* Tracker Reminders (Scheduled) */}
+            {data.trackerReminders.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <Bell className="h-4 w-4" />
+                  {locale === 'pt-PT' ? 'Lembretes de Trackers' : 'Tracker Reminders'}
+                </h4>
+                <div className="space-y-1">
+                  {data.trackerReminders.map(reminder => (
+                    <button
+                      key={reminder.trackerId}
+                      onClick={() => {
+                        setShowDayDetail(false);
+                        navigate('/app/trackers');
+                      }}
+                      className="w-full flex items-center justify-between p-2 rounded-lg bg-primary/10 border border-primary/30 hover:bg-primary/20 transition-colors"
+                    >
+                      <span className="text-sm">
+                        {reminder.icon} {reminder.name}
+                      </span>
+                      <span className="text-sm font-medium text-primary flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {reminder.time}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Tracker Activity */}
             {data.trackerEntries.length > 0 && (
               <div className="space-y-2">
@@ -404,7 +453,7 @@ const Calendario = () => {
             )}
 
             {/* Empty State */}
-            {data.completedHabits === 0 && data.trackerEntries.length === 0 && !data.reflection && dailyShoppingItems.length === 0 && (
+            {data.completedHabits === 0 && data.trackerEntries.length === 0 && data.trackerReminders.length === 0 && !data.reflection && dailyShoppingItems.length === 0 && (
               <div className="text-center py-8 text-muted-foreground">
                 <CalendarIcon className="h-10 w-10 mx-auto mb-2 opacity-50" />
                 <p className="text-sm">
@@ -491,6 +540,10 @@ const Calendario = () => {
                   <div className="flex items-center gap-2">
                     <div className="w-1.5 h-1.5 rounded-full bg-warning" />
                     <span>{locale === 'pt-PT' ? 'Tracker' : 'Tracker'}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                    <span>{locale === 'pt-PT' ? 'Lembrete' : 'Reminder'}</span>
                   </div>
                 </div>
               </CardContent>

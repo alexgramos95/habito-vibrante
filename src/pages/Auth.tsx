@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Mail, Lock, User, ArrowRight, Flame } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,15 +21,24 @@ const Auth = () => {
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const { signIn, signUp, isAuthenticated } = useAuth();
+  
+  // Check for next=trial param
+  const nextAction = searchParams.get('next');
 
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/');
+      if (nextAction === 'trial') {
+        // Redirect to app with trial flag
+        navigate('/app?showTrial=true');
+      } else {
+        navigate('/app');
+      }
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, nextAction]);
 
   const validateForm = () => {
     const newErrors: { email?: string; password?: string } = {};
@@ -102,7 +111,11 @@ const Auth = () => {
             });
           }
         } else {
-          navigate('/');
+          if (nextAction === 'trial') {
+            navigate('/app?showTrial=true');
+          } else {
+            navigate('/app');
+          }
         }
       }
     } finally {
