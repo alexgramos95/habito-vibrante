@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef, ReactNode } from 'react';
-import { User, Session } from '@supabase/supabase-js';
+import { User, Session, Provider } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
 interface AuthContextType {
@@ -7,9 +7,14 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   isAuthenticated: boolean;
+  isEmailVerified: boolean;
   signUp: (email: string, password: string, displayName?: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signInWithGoogle: () => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<{ error: Error | null }>;
+  updatePassword: (newPassword: string) => Promise<{ error: Error | null }>;
+  resendVerificationEmail: () => Promise<{ error: Error | null }>;
   refreshSubscription: () => Promise<void>;
   subscriptionStatus: {
     subscribed: boolean;
@@ -48,6 +53,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     sessionRef.current = session;
   }, [session]);
+
+  // Check if email is verified
+  const isEmailVerified = Boolean(user?.email_confirmed_at);
 
   const refreshSubscription = useCallback(async (force = false) => {
     const currentSession = sessionRef.current;
@@ -149,7 +157,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [session, refreshSubscription]);
 
   const signUp = async (email: string, password: string, displayName?: string) => {
-    const redirectUrl = `${window.location.origin}/`;
+    const redirectUrl = `${window.location.origin}/auth?verified=true`;
     
     const { error } = await supabase.auth.signUp({
       email,
@@ -174,9 +182,52 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return { error: error ? new Error(error.message) : null };
   };
 
+  const signInWithGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google' as Provider,
+      options: {
+        redirectTo: `${window.location.origin}/auth?verified=true`,
+      },
+    });
+
+    return { error: error ? new Error(error.message) : null };
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
     setSubscriptionStatus(defaultSubscriptionStatus);
+  };
+
+  const resetPassword = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth?mode=reset-password`,
+    });
+
+    return { error: error ? new Error(error.message) : null };
+  };
+
+  const updatePassword = async (newPassword: string) => {
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+
+    return { error: error ? new Error(error.message) : null };
+  };
+
+  const resendVerificationEmail = async () => {
+    if (!user?.email) {
+      return { error: new Error('No email address found') };
+    }
+
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: user.email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth?verified=true`,
+      },
+    });
+
+    return { error: error ? new Error(error.message) : null };
   };
 
   return (
@@ -186,9 +237,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         session,
         loading,
         isAuthenticated: !!user,
+        isEmailVerified,
         signUp,
         signIn,
+        signInWithGoogle,
         signOut,
+        resetPassword,
+        updatePassword,
+        resendVerificationEmail,
         refreshSubscription: () => refreshSubscription(true),
         subscriptionStatus,
       }}
