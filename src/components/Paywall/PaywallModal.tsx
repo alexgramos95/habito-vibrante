@@ -1,11 +1,14 @@
 import { useState } from "react";
-import { Crown, Check, Flame, Target, Calendar, Download, Bell, Zap } from "lucide-react";
+import { Crown, Check, Flame, Target, Calendar, Download, Bell, Zap, RefreshCw, LogIn } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/i18n/I18nContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 
 interface PaywallModalProps {
   open: boolean;
@@ -18,21 +21,21 @@ interface PaywallModalProps {
 const PLANS = [
   {
     id: 'monthly' as const,
-    price: 9.99,
+    price: 4.99,
     period: '/mo',
     popular: false,
   },
   {
     id: 'yearly' as const,
-    price: 79,
+    price: 39.99,
     period: '/yr',
     popular: true,
     discount: '35%',
-    monthlyEquivalent: 6.58,
+    monthlyEquivalent: 3.33,
   },
   {
     id: 'lifetime' as const,
-    price: 149,
+    price: 79.99,
     period: 'once',
     popular: false,
     note: 'forever',
@@ -45,7 +48,7 @@ const PRO_FEATURES = [
   { icon: Calendar, label: "Full calendar history" },
   { icon: Zap, label: "Finances dashboard" },
   { icon: Download, label: "Export (CSV/PDF)" },
-  { icon: Bell, label: "Full reminders" },
+  { icon: Bell, label: "Cloud sync + restore" },
 ];
 
 export const PaywallModal = ({ 
@@ -56,11 +59,98 @@ export const PaywallModal = ({
   trialDaysLeft = 0,
 }: PaywallModalProps) => {
   const { t, locale } = useI18n();
+  const { isAuthenticated, session } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly' | 'lifetime'>('yearly');
+  const [loading, setLoading] = useState(false);
+  const [restoring, setRestoring] = useState(false);
 
-  const handleUpgrade = () => {
-    onUpgrade(selectedPlan);
-    onClose();
+  const handleUpgrade = async () => {
+    // If not authenticated, redirect to auth page
+    if (!isAuthenticated) {
+      onClose();
+      navigate('/auth');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Call Stripe checkout edge function
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { priceType: selectedPlan },
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        // Open Stripe checkout in new tab
+        window.open(data.url, '_blank');
+        toast({
+          title: "Checkout opened",
+          description: "Complete your purchase in the new tab.",
+        });
+      }
+    } catch (err) {
+      console.error('Checkout error:', err);
+      toast({
+        title: "Checkout failed",
+        description: "Please try again or contact support.",
+        variant: "destructive",
+      });
+      // Fallback to local upgrade for now
+      onUpgrade(selectedPlan);
+    } finally {
+      setLoading(false);
+      onClose();
+    }
+  };
+
+  const handleRestore = async () => {
+    if (!isAuthenticated) {
+      onClose();
+      navigate('/auth');
+      return;
+    }
+
+    setRestoring(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('restore-purchases', {
+        body: { platform: 'stripe' },
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        toast({
+          title: "Purchases restored!",
+          description: `Your ${data.purchase_plan} subscription has been restored.`,
+        });
+        onClose();
+        window.location.reload();
+      } else {
+        toast({
+          title: "No purchases found",
+          description: data?.message || "No active subscription found for this account.",
+          variant: "destructive",
+        });
+      }
+    } catch (err) {
+      console.error('Restore error:', err);
+      toast({
+        title: "Restore failed",
+        description: "Please try again or contact support.",
+        variant: "destructive",
+      });
+    } finally {
+      setRestoring(false);
+    }
   };
 
   // Warrior + Coach messages based on trigger
@@ -193,9 +283,44 @@ export const PaywallModal = ({
             <Button 
               onClick={handleUpgrade} 
               className="w-full h-12 text-base font-semibold gap-2"
+              disabled={loading}
             >
-              <Crown className="h-5 w-5" />
-              Upgrade to Pro
+              {loading ? (
+                <>
+                  <RefreshCw className="h-5 w-5 animate-spin" />
+                  Processing...
+                </>
+              ) : !isAuthenticated ? (
+                <>
+                  <LogIn className="h-5 w-5" />
+                  Sign In to Upgrade
+                </>
+              ) : (
+                <>
+                  <Crown className="h-5 w-5" />
+                  Upgrade to Pro
+                </>
+              )}
+            </Button>
+
+            {/* Restore Purchases */}
+            <Button 
+              variant="outline" 
+              onClick={handleRestore}
+              className="w-full gap-2"
+              disabled={restoring}
+            >
+              {restoring ? (
+                <>
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                  Restoring...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="h-4 w-4" />
+                  Restore Purchases
+                </>
+              )}
             </Button>
             
             <Button 
@@ -207,10 +332,15 @@ export const PaywallModal = ({
             </Button>
           </div>
 
-          {/* Trust */}
-          <p className="text-center text-xs text-muted-foreground pt-2">
-            This is where discipline compounds.
-          </p>
+          {/* Trust + Disclosures */}
+          <div className="text-center text-xs text-muted-foreground pt-2 space-y-1">
+            <p>This is where discipline compounds.</p>
+            <p>
+              Subscriptions auto-renew. Cancel anytime.{' '}
+              <a href="/terms" className="underline">Terms</a> ·{' '}
+              <a href="/privacy" className="underline">Privacy</a>
+            </p>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
