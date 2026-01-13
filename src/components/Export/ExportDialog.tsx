@@ -73,7 +73,9 @@ export const ExportDialog = ({
             {!isPro && <ProBadge />}
           </div>
           <DialogDescription>
-            Download your progress data for analysis.
+            {isPro 
+              ? "Download your progress data for analysis."
+              : "Own your data. Export requires PRO."}
           </DialogDescription>
         </DialogHeader>
 

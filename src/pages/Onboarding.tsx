@@ -169,7 +169,7 @@ const Onboarding = () => {
                 <p className="text-lg text-muted-foreground">Identity-Based Discipline</p>
               </div>
               <p className="text-muted-foreground max-w-sm mx-auto">
-                Small consistent actions compound into who you become. Start your 7-day trial.
+                Small consistent actions compound into who you become. Start your 2-day free trial.
               </p>
               <Button onClick={handleNext} size="lg" className="w-full gap-2">
                 Start Building
@@ -458,7 +458,7 @@ const Onboarding = () => {
               <div>
                 <h2 className="text-3xl font-bold mb-3">Your trial starts now.</h2>
                 <p className="text-lg text-muted-foreground">
-                  7 days of full access. Build your streak.
+                  2 days of full access. Build your streak.
                 </p>
               </div>
 

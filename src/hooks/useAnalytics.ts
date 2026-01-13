@@ -72,7 +72,7 @@ export const trialEvents = {
 // Funnel email/push copy stubs (EN-first)
 export const funnelCopy = {
   trial_start: {
-    subject: "Your 7-day trial starts now",
+    subject: "Your 2-day trial starts now",
     body: "Track habits. See savings. Become who you're aiming to be.",
   },
   day2: {

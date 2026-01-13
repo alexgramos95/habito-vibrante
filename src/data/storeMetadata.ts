@@ -54,13 +54,13 @@ WHO IS BECOME FOR:
 
 PRICING:
 
-• Free: 3 habits, 7-day calendar
+• Free: 3 habits, limited calendar history
 • Pro: Unlimited everything
-• 7-day free trial included
+• 2-day free trial with Monthly plan (no credit card required)
 
 No ads. No data selling. Just a tool that works.
 
-Start your 7-day trial. Become who you're aiming to be.`,
+Start your 2-day free trial. Become who you're aiming to be.`,
 
   // Feature bullets
   features: [
