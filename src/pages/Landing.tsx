@@ -85,7 +85,7 @@ const Landing = () => {
               Sign In
             </Link>
             <Button size="sm" onClick={handleStartTrial}>
-              Start Free Trial
+              Start Building
             </Button>
           </div>
         </div>
@@ -110,7 +110,7 @@ const Landing = () => {
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" onClick={handleStartTrial} className="gap-2 text-lg px-8">
-              Start Your 2-Day Trial
+              Start Building
               <ArrowRight className="h-5 w-5" />
             </Button>
             <Button size="lg" variant="outline" onClick={() => setShowPaywall(true)}>
@@ -345,7 +345,7 @@ const Landing = () => {
           <h2 className="text-3xl font-bold mb-4">Ready to become?</h2>
           <p className="text-muted-foreground mb-8">Start your 2-day free trial. No credit card required.</p>
           <Button size="lg" onClick={handleStartTrial} className="gap-2 text-lg px-8">
-            Start Your 2-Day Trial
+            Start Building
             <ArrowRight className="h-5 w-5" />
           </Button>
         </div>
