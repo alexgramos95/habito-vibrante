@@ -31,7 +31,7 @@ const Landing = () => {
   const [showPaywall, setShowPaywall] = useState(false);
   const [selectedPricing, setSelectedPricing] = useState<"monthly" | "yearly" | "lifetime">("yearly");
 
-  // Não iniciamos trial a partir da Landing; apenas navegamos
+  // Não iniciamos trial na landing – apenas navegamos
   const { needsOnboarding, upgradeToPro } = useSubscription();
 
   const handleStart = () => {
@@ -146,14 +146,26 @@ const Landing = () => {
                 title: "Habit Tracking",
                 desc: "Simple, visual, effective. Track daily and weekly habits.",
               },
-              { icon: Target, title: "Custom Trackers", desc: "Monitor any metric that matters. Reduce or increase." },
-              { icon: PiggyBank, title: "Financial Impact", desc: "See real savings from behavior changes." },
+              {
+                icon: Target,
+                title: "Custom Trackers",
+                desc: "Monitor any metric that matters. Reduce or increase.",
+              },
+              {
+                icon: PiggyBank,
+                title: "Financial Impact",
+                desc: "See real savings from behavior changes.",
+              },
               {
                 icon: Calendar,
                 title: "Weekly Cycles",
                 desc: "Life isn't about perfect days. It's about consistent weeks.",
               },
-              { icon: BarChart3, title: "Visual Progress", desc: "Charts and calendars that show your journey." },
+              {
+                icon: BarChart3,
+                title: "Visual Progress",
+                desc: "Charts and calendars that show your journey.",
+              },
               {
                 icon: Sparkles,
                 title: "Future Self",
