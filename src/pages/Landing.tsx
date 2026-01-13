@@ -33,8 +33,8 @@ const Landing = () => {
   const { upgradeToPro } = useSubscription();
 
   const handleStartTrial = () => {
-    // Always require login first - trial starts after auth
-    navigate("/auth?next=trial");
+    // Start with onboarding, then auth
+    navigate("/onboarding");
   };
 
   const handleUpgrade = (plan: "monthly" | "yearly" | "lifetime") => {
