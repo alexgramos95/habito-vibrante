@@ -141,7 +141,7 @@ const Index = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
   const { t, tr, formatCurrency, formatDate, locale } = useI18n();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isEmailVerified } = useAuth();
   const [state, setState] = useState<AppState>(() => loadState());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
@@ -184,12 +184,15 @@ const Index = () => {
     }
   }, [searchParams, setSearchParams]);
 
-  // Auth guard: require login before accessing /app
+  // Auth guard: require login AND email verification before accessing /app
   useEffect(() => {
     if (!isAuthenticated) {
       navigate("/auth?next=trial", { replace: true });
+    } else if (!isEmailVerified) {
+      // User is logged in but email not verified - redirect to verify screen
+      navigate("/auth?verify=required", { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, isEmailVerified, navigate]);
 
   // Bounceback hook
   const { weeklyStats, yesterdayRecovery } = useBounceback(state);
