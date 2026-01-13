@@ -1,9 +1,22 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { 
-  Flame, Target, TrendingUp, PiggyBank, Calendar, CheckCircle2, 
-  ArrowRight, Star, Shield, Zap, ChevronDown, Crown, BarChart3,
-  Sparkles, Clock, Award
+import {
+  Flame,
+  Target,
+  TrendingUp,
+  PiggyBank,
+  Calendar,
+  CheckCircle2,
+  ArrowRight,
+  Star,
+  Shield,
+  Zap,
+  ChevronDown,
+  Crown,
+  BarChart3,
+  Sparkles,
+  Clock,
+  Award,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,22 +29,25 @@ import { storeMetadata, icpMessaging, pricingDisplay } from "@/data/storeMetadat
 const Landing = () => {
   const navigate = useNavigate();
   const [showPaywall, setShowPaywall] = useState(false);
-  const [selectedPricing, setSelectedPricing] = useState<'monthly' | 'yearly' | 'lifetime'>('yearly');
-  const { needsOnboarding, startTrial, upgradeToPro } = useSubscription();
-  
-  const handleStartTrial = () => {
+  const [selectedPricing, setSelectedPricing] = useState<"monthly" | "yearly" | "lifetime">("yearly");
+  const { needsOnboarding, upgradeToPro } = useSubscription();
+
+  // Landing CTA: nunca inicia trial aqui.
+  // Apenas abre o funil da app:
+  //  - se precisa de onboarding -> /onboarding
+  //  - senão -> /app
+  const handleStart = () => {
     if (needsOnboarding) {
-      navigate('/onboarding');
+      navigate("/onboarding");
     } else {
-      startTrial();
-      navigate('/app');
+      navigate("/app");
     }
   };
 
-  const handleUpgrade = (plan: 'monthly' | 'yearly' | 'lifetime') => {
+  const handleUpgrade = (plan: "monthly" | "yearly" | "lifetime") => {
     upgradeToPro(plan);
     setShowPaywall(false);
-    navigate('/app');
+    navigate("/app");
   };
 
   // FAQ items
@@ -75,7 +91,7 @@ const Landing = () => {
             <Link to="/auth" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Sign In
             </Link>
-            <Button size="sm" onClick={handleStartTrial}>
+            <Button size="sm" onClick={handleStart}>
               Start Free Trial
             </Button>
           </div>
@@ -89,18 +105,18 @@ const Landing = () => {
             <Sparkles className="h-3.5 w-3.5 mr-1.5" />
             2-day free trial • No credit card required
           </Badge>
-          
+
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6">
             Identity <span className="text-gradient">&gt;</span> Intensity
           </h1>
-          
+
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Track habits. See savings. Become who you're aiming to be. 
-            A scientific approach to consistency without the guilt.
+            Track habits. See savings. Become who you're aiming to be. A scientific approach to consistency without the
+            guilt.
           </p>
-          
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" onClick={handleStartTrial} className="gap-2 text-lg px-8">
+            <Button size="lg" onClick={handleStart} className="gap-2 text-lg px-8">
               Start Your 2-Day Trial
               <ArrowRight className="h-5 w-5" />
             </Button>
@@ -108,7 +124,7 @@ const Landing = () => {
               View Pricing
             </Button>
           </div>
-          
+
           <p className="text-sm text-muted-foreground mt-6">
             Join thousands building lasting habits through identity, not willpower.
           </p>
@@ -124,15 +140,27 @@ const Landing = () => {
               A complete system for identity-driven behavior change
             </p>
           </div>
-          
+
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[
-              { icon: CheckCircle2, title: "Habit Tracking", desc: "Simple, visual, effective. Track daily and weekly habits." },
+              {
+                icon: CheckCircle2,
+                title: "Habit Tracking",
+                desc: "Simple, visual, effective. Track daily and weekly habits.",
+              },
               { icon: Target, title: "Custom Trackers", desc: "Monitor any metric that matters. Reduce or increase." },
               { icon: PiggyBank, title: "Financial Impact", desc: "See real savings from behavior changes." },
-              { icon: Calendar, title: "Weekly Cycles", desc: "Life isn't about perfect days. It's about consistent weeks." },
+              {
+                icon: Calendar,
+                title: "Weekly Cycles",
+                desc: "Life isn't about perfect days. It's about consistent weeks.",
+              },
               { icon: BarChart3, title: "Visual Progress", desc: "Charts and calendars that show your journey." },
-              { icon: Sparkles, title: "Future Self", desc: "Define who you're becoming. Let habits flow from identity." },
+              {
+                icon: Sparkles,
+                title: "Future Self",
+                desc: "Define who you're becoming. Let habits flow from identity.",
+              },
             ].map((item, i) => (
               <Card key={i} className="glass border-border/30 group hover:glow-subtle transition-all">
                 <CardContent className="p-6">
@@ -153,16 +181,16 @@ const Landing = () => {
         <div className="container">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold mb-4">Why It Matters</h2>
-            <p className="text-muted-foreground max-w-xl mx-auto">
-              Different people, same goal: lasting change
-            </p>
+            <p className="text-muted-foreground max-w-xl mx-auto">Different people, same goal: lasting change</p>
           </div>
-          
+
           <div className="grid gap-6 md:grid-cols-2">
             {Object.entries(icpMessaging).map(([key, segment]) => (
               <Card key={key} className="glass border-border/30 overflow-hidden">
                 <CardContent className="p-6">
-                  <Badge variant="outline" className="mb-4 capitalize">{key}</Badge>
+                  <Badge variant="outline" className="mb-4 capitalize">
+                    {key}
+                  </Badge>
                   <h3 className="text-xl font-bold mb-2">{segment.headline}</h3>
                   <p className="text-muted-foreground mb-4">{segment.subheadline}</p>
                   <ul className="space-y-2">
@@ -185,18 +213,16 @@ const Landing = () => {
         <div className="container max-w-4xl">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4">Simple Pricing</h2>
-            <p className="text-muted-foreground">
-              Start free. Upgrade when you're ready.
-            </p>
+            <p className="text-muted-foreground">Start free. Upgrade when you're ready.</p>
           </div>
-          
+
           <div className="grid gap-6 md:grid-cols-3">
             {Object.entries(pricingDisplay).map(([key, plan]) => (
-              <Card 
+              <Card
                 key={key}
                 className={cn(
                   "glass border-border/30 relative overflow-hidden transition-all",
-                  plan.popular && "border-primary/50 ring-2 ring-primary/20"
+                  plan.popular && "border-primary/50 ring-2 ring-primary/20",
                 )}
               >
                 {plan.popular && (
@@ -208,28 +234,27 @@ const Landing = () => {
                   <h3 className="font-semibold mb-1">{plan.label}</h3>
                   <div className="flex items-baseline gap-1 mb-4">
                     <span className="text-4xl font-bold">${plan.price}</span>
-                    {plan.period !== 'once' && (
-                      <span className="text-muted-foreground">/{plan.period}</span>
-                    )}
+                    {plan.period !== "once" && <span className="text-muted-foreground">/{plan.period}</span>}
                   </div>
                   <p className="text-sm text-muted-foreground mb-6">{plan.description}</p>
-                  <Button 
-                    className="w-full" 
+                  <Button
+                    className="w-full"
                     variant={plan.popular ? "default" : "outline"}
                     onClick={() => {
                       setSelectedPricing(key as any);
                       setShowPaywall(true);
                     }}
                   >
-                    {key === 'lifetime' ? 'Get Lifetime Access' : 'Choose Plan'}
+                    {key === "lifetime" ? "Get Lifetime Access" : "Choose Plan"}
                   </Button>
                 </CardContent>
               </Card>
             ))}
           </div>
-          
+
           <p className="text-center text-sm text-muted-foreground mt-8">
-            All plans include: Unlimited habits • Unlimited trackers • Full calendar • Financial tracking • Export • No ads
+            All plans include: Unlimited habits • Unlimited trackers • Full calendar • Financial tracking • Export • No
+            ads
           </p>
         </div>
       </section>
@@ -240,17 +265,31 @@ const Landing = () => {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4">What Users Say</h2>
           </div>
-          
+
           <div className="grid gap-6 md:grid-cols-3">
             {[
-              { name: "Alex", role: "Engineer", text: "Finally, a habit app that doesn't treat me like a child. Data-driven and no guilt trips." },
-              { name: "Maria", role: "Designer", text: "The financial tracking opened my eyes. I've saved €200/month just by tracking my coffee habit." },
-              { name: "James", role: "Entrepreneur", text: "Weekly cycles > daily perfection. This app gets how life actually works." },
+              {
+                name: "Alex",
+                role: "Engineer",
+                text: "Finally, a habit app that doesn't treat me like a child. Data-driven and no guilt trips.",
+              },
+              {
+                name: "Maria",
+                role: "Designer",
+                text: "The financial tracking opened my eyes. I've saved €200/month just by tracking my coffee habit.",
+              },
+              {
+                name: "James",
+                role: "Entrepreneur",
+                text: "Weekly cycles > daily perfection. This app gets how life actually works.",
+              },
             ].map((t, i) => (
               <Card key={i} className="glass border-border/30">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-1 mb-4">
-                    {[1,2,3,4,5].map(s => <Star key={s} className="h-4 w-4 fill-warning text-warning" />)}
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <Star key={s} className="h-4 w-4 fill-warning text-warning" />
+                    ))}
                   </div>
                   <p className="text-sm mb-4 italic">"{t.text}"</p>
                   <div className="flex items-center gap-3">
@@ -275,28 +314,20 @@ const Landing = () => {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4">Frequently Asked Questions</h2>
           </div>
-          
+
           <div className="space-y-4">
             {faqs.map((faq, i) => (
-              <div
-                key={i}
-                className="glass border border-border/30 rounded-xl overflow-hidden"
-              >
+              <div key={i} className="glass border border-border/30 rounded-xl overflow-hidden">
                 <button
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   className="w-full flex items-center justify-between p-4 text-left"
                 >
                   <span className="font-medium">{faq.q}</span>
-                  <ChevronDown className={cn(
-                    "h-5 w-5 text-muted-foreground transition-transform",
-                    openFaq === i && "rotate-180"
-                  )} />
+                  <ChevronDown
+                    className={cn("h-5 w-5 text-muted-foreground transition-transform", openFaq === i && "rotate-180")}
+                  />
                 </button>
-                {openFaq === i && (
-                  <div className="px-4 pb-4 text-sm text-muted-foreground">
-                    {faq.a}
-                  </div>
-                )}
+                {openFaq === i && <div className="px-4 pb-4 text-sm text-muted-foreground">{faq.a}</div>}
               </div>
             ))}
           </div>
@@ -307,10 +338,8 @@ const Landing = () => {
       <section className="py-20">
         <div className="container max-w-2xl text-center">
           <h2 className="text-3xl font-bold mb-4">Ready to become?</h2>
-          <p className="text-muted-foreground mb-8">
-            Start your 2-day free trial. No credit card required.
-          </p>
-          <Button size="lg" onClick={handleStartTrial} className="gap-2 text-lg px-8">
+          <p className="text-muted-foreground mb-8">Start your 2-day free trial. No credit card required.</p>
+          <Button size="lg" onClick={handleStart} className="gap-2 text-lg px-8">
             Start Your 2-Day Trial
             <ArrowRight className="h-5 w-5" />
           </Button>
@@ -328,13 +357,17 @@ const Landing = () => {
               <span className="font-bold">becoMe</span>
             </div>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
-              <a href="/privacy" className="hover:text-foreground transition-colors">Privacy</a>
-              <a href="/terms" className="hover:text-foreground transition-colors">Terms</a>
-              <a href="mailto:support@become.app" className="hover:text-foreground transition-colors">Contact</a>
+              <a href="/privacy" className="hover:text-foreground transition-colors">
+                Privacy
+              </a>
+              <a href="/terms" className="hover:text-foreground transition-colors">
+                Terms
+              </a>
+              <a href="mailto:support@become.app" className="hover:text-foreground transition-colors">
+                Contact
+              </a>
             </div>
-            <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} becoMe. All rights reserved.
-            </p>
+            <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} becoMe. All rights reserved.</p>
           </div>
         </div>
       </footer>
