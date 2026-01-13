@@ -62,7 +62,7 @@ const Landing = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation */}
+      {/* Marketing Navigation - No app links */}
       <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/30">
         <div className="container flex items-center justify-between h-16">
           <div className="flex items-center gap-2">
@@ -72,8 +72,8 @@ const Landing = () => {
             <span className="font-bold text-lg">becoMe</span>
           </div>
           <div className="flex items-center gap-4">
-            <Link to="/app" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Dashboard
+            <Link to="/auth" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              Sign In
             </Link>
             <Button size="sm" onClick={handleStartTrial}>
               Start Free Trial

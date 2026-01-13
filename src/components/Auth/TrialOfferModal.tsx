@@ -32,6 +32,8 @@ export const TrialOfferModal = ({ open, onClose, onStartTrial, onViewPricing }: 
     startTrial();
     onStartTrial();
     onClose();
+    // After starting trial, show paywall for conversion
+    onViewPricing();
   };
 
   const handleViewPricing = () => {
