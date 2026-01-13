@@ -13,6 +13,24 @@ const logStep = (step: string, details?: Record<string, unknown>) => {
   console.log(`[CUSTOMER-PORTAL] ${step}${detailsStr}`);
 };
 
+// Safe error mapping
+const getSafeErrorMessage = (rawMessage: string): string => {
+  const errorMappings: Record<string, string> = {
+    "STRIPE_SECRET_KEY is not set": "Payment service unavailable",
+    "No authorization header": "Authentication required",
+    "Authentication error": "Invalid credentials",
+    "User not authenticated": "Please sign in to continue",
+    "No Stripe customer found": "No billing account found. Please make a purchase first.",
+  };
+  
+  for (const [key, safeMessage] of Object.entries(errorMappings)) {
+    if (rawMessage.includes(key)) {
+      return safeMessage;
+    }
+  }
+  return "An error occurred. Please try again.";
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -64,9 +82,10 @@ serve(async (req) => {
       status: 200,
     });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR in customer-portal", { message: errorMessage });
-    return new Response(JSON.stringify({ error: errorMessage }), {
+    const rawMessage = error instanceof Error ? error.message : String(error);
+    logStep("ERROR in customer-portal", { message: rawMessage });
+    const safeMessage = getSafeErrorMessage(rawMessage);
+    return new Response(JSON.stringify({ error: safeMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });

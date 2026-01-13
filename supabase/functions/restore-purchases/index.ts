@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,6 +12,30 @@ const corsHeaders = {
 const logStep = (step: string, details?: Record<string, unknown>) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[RESTORE-PURCHASES] ${step}${detailsStr}`);
+};
+
+// Input validation schema
+const RestoreSchema = z.object({
+  platform: z.enum(["stripe", "apple", "google"]),
+});
+
+// Safe error mapping
+const getSafeErrorMessage = (rawMessage: string): string => {
+  const errorMappings: Record<string, string> = {
+    "STRIPE_SECRET_KEY is not set": "Payment service unavailable",
+    "No authorization header": "Authentication required",
+    "Authentication error": "Invalid credentials",
+    "User not authenticated": "Please sign in to continue",
+    "Invalid input": "Invalid request data",
+    "Invalid platform": "Invalid platform specified",
+  };
+  
+  for (const [key, safeMessage] of Object.entries(errorMappings)) {
+    if (rawMessage.includes(key)) {
+      return safeMessage;
+    }
+  }
+  return "An error occurred. Please try again.";
 };
 
 serve(async (req) => {
@@ -40,8 +65,14 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const body = await req.json();
-    const { platform } = body; // 'stripe', 'apple', 'google'
+    // Validate input
+    const rawBody = await req.json();
+    const parseResult = RestoreSchema.safeParse(rawBody);
+    if (!parseResult.success) {
+      throw new Error(`Invalid input: ${parseResult.error.issues.map(i => i.message).join(", ")}`);
+    }
+    const { platform } = parseResult.data;
+    logStep("Request validated", { platform });
 
     if (platform === 'stripe') {
       const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
@@ -167,9 +198,10 @@ serve(async (req) => {
       throw new Error("Invalid platform. Use 'stripe', 'apple', or 'google'");
     }
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR in restore-purchases", { message: errorMessage });
-    return new Response(JSON.stringify({ error: errorMessage }), {
+    const rawMessage = error instanceof Error ? error.message : String(error);
+    logStep("ERROR in restore-purchases", { message: rawMessage });
+    const safeMessage = getSafeErrorMessage(rawMessage);
+    return new Response(JSON.stringify({ error: safeMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });

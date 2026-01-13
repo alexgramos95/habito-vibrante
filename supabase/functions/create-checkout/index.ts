@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,6 +12,29 @@ const corsHeaders = {
 const logStep = (step: string, details?: Record<string, unknown>) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : "";
   console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
+};
+
+// Input validation schema
+const CheckoutSchema = z.object({
+  priceType: z.enum(["monthly", "yearly", "lifetime"]),
+});
+
+// Safe error mapping - maps internal errors to user-safe messages
+const getSafeErrorMessage = (rawMessage: string): string => {
+  const errorMappings: Record<string, string> = {
+    "STRIPE_SECRET_KEY is not set": "Payment service unavailable",
+    "No authorization header": "Authentication required",
+    "Authentication error": "Invalid credentials",
+    "User not authenticated": "Please sign in to continue",
+    "Invalid input": "Invalid request data",
+  };
+  
+  for (const [key, safeMessage] of Object.entries(errorMappings)) {
+    if (rawMessage.includes(key)) {
+      return safeMessage;
+    }
+  }
+  return "An error occurred. Please try again.";
 };
 
 // Price IDs - REPLACE with your actual Stripe price IDs
@@ -32,12 +56,17 @@ serve(async (req) => {
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
     logStep("Stripe key verified");
 
-    // Get request body
-    const { priceType } = await req.json();
-    logStep("Request body parsed", { priceType });
+    // Get and validate request body
+    const rawBody = await req.json();
+    const parseResult = CheckoutSchema.safeParse(rawBody);
+    if (!parseResult.success) {
+      throw new Error(`Invalid input: ${parseResult.error.issues.map(i => i.message).join(", ")}`);
+    }
+    const { priceType } = parseResult.data;
+    logStep("Request body validated", { priceType });
 
     // For now, use placeholder - in production replace with actual price IDs
-    let priceId = PRICE_IDS[priceType as keyof typeof PRICE_IDS];
+    let priceId = PRICE_IDS[priceType];
     let mode: "subscription" | "payment" = priceType === "lifetime" ? "payment" : "subscription";
     const isSubscription = priceType === "monthly";
 
@@ -104,9 +133,10 @@ serve(async (req) => {
       status: 200,
     });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR in create-checkout", { message: errorMessage });
-    return new Response(JSON.stringify({ error: errorMessage }), {
+    const rawMessage = error instanceof Error ? error.message : String(error);
+    logStep("ERROR in create-checkout", { message: rawMessage });
+    const safeMessage = getSafeErrorMessage(rawMessage);
+    return new Response(JSON.stringify({ error: safeMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });

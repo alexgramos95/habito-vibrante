@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,6 +11,43 @@ const corsHeaders = {
 const logStep = (step: string, details?: Record<string, unknown>) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[SYNC-DATA] ${step}${detailsStr}`);
+};
+
+// Input validation schemas
+const SyncDataSchema = z.object({
+  habits: z.array(z.unknown()).optional(),
+  trackerEntries: z.array(z.unknown()).optional(),
+  trackers: z.array(z.unknown()).optional(),
+  reflections: z.array(z.unknown()).optional(),
+  futureSelfEntries: z.array(z.unknown()).optional(),
+  investmentGoals: z.array(z.unknown()).optional(),
+  shoppingItems: z.array(z.unknown()).optional(),
+  gamification: z.record(z.unknown()).optional(),
+});
+
+const SyncRequestSchema = z.object({
+  action: z.enum(["upload", "download"]),
+  data: SyncDataSchema.optional(),
+});
+
+// Safe error mapping
+const getSafeErrorMessage = (rawMessage: string): string => {
+  const errorMappings: Record<string, string> = {
+    "No authorization header": "Authentication required",
+    "Authentication error": "Invalid credentials",
+    "User not authenticated": "Please sign in to continue",
+    "Sync requires Pro": "Upgrade to Pro for cloud sync",
+    "Invalid input": "Invalid request data",
+    "Sync upload failed": "Failed to save data. Please try again.",
+    "Sync download failed": "Failed to load data. Please try again.",
+  };
+  
+  for (const [key, safeMessage] of Object.entries(errorMappings)) {
+    if (rawMessage.includes(key)) {
+      return safeMessage;
+    }
+  }
+  return "An error occurred. Please try again.";
 };
 
 serve(async (req) => {
@@ -48,10 +86,20 @@ serve(async (req) => {
     }
     logStep("Pro subscription verified");
 
-    const body = await req.json();
-    const { action, data } = body;
+    // Validate input
+    const rawBody = await req.json();
+    const parseResult = SyncRequestSchema.safeParse(rawBody);
+    if (!parseResult.success) {
+      throw new Error(`Invalid input: ${parseResult.error.issues.map(i => i.message).join(", ")}`);
+    }
+    const { action, data } = parseResult.data;
+    logStep("Request validated", { action });
 
     if (action === 'upload') {
+      if (!data) {
+        throw new Error("Invalid input: data is required for upload");
+      }
+      
       // Upload local data to cloud
       const { error: upsertError } = await supabaseClient
         .from('user_data')
@@ -116,12 +164,13 @@ serve(async (req) => {
         status: 200,
       });
     } else {
-      throw new Error("Invalid action. Use 'upload' or 'download'");
+      throw new Error("Invalid input: action must be 'upload' or 'download'");
     }
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR in sync-data", { message: errorMessage });
-    return new Response(JSON.stringify({ error: errorMessage }), {
+    const rawMessage = error instanceof Error ? error.message : String(error);
+    logStep("ERROR in sync-data", { message: rawMessage });
+    const safeMessage = getSafeErrorMessage(rawMessage);
+    return new Response(JSON.stringify({ error: safeMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });
