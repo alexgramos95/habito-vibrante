@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useRef, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -28,6 +28,9 @@ const defaultSubscriptionStatus = {
   trialEnd: null,
 };
 
+// Minimum time between subscription checks (30 seconds)
+const SUBSCRIPTION_CHECK_COOLDOWN = 30000;
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -35,14 +38,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [subscriptionStatus, setSubscriptionStatus] = useState(defaultSubscriptionStatus);
+  
+  // Track last check time to prevent rate limiting
+  const lastCheckRef = useRef<number>(0);
+  const isCheckingRef = useRef<boolean>(false);
+  const sessionRef = useRef<Session | null>(null);
 
-  const refreshSubscription = useCallback(async () => {
-    if (!session) return;
+  // Keep session ref in sync
+  useEffect(() => {
+    sessionRef.current = session;
+  }, [session]);
+
+  const refreshSubscription = useCallback(async (force = false) => {
+    const currentSession = sessionRef.current;
+    if (!currentSession) return;
+    
+    const now = Date.now();
+    
+    // Prevent concurrent checks and respect cooldown (unless forced)
+    if (isCheckingRef.current) return;
+    if (!force && (now - lastCheckRef.current) < SUBSCRIPTION_CHECK_COOLDOWN) {
+      return;
+    }
+    
+    isCheckingRef.current = true;
+    lastCheckRef.current = now;
     
     try {
       const { data, error } = await supabase.functions.invoke('check-subscription', {
         headers: {
-          Authorization: `Bearer ${session.access_token}`,
+          Authorization: `Bearer ${currentSession.access_token}`,
         },
       });
 
@@ -62,51 +87,63 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     } catch (err) {
       console.error('Failed to check subscription:', err);
+    } finally {
+      isCheckingRef.current = false;
     }
-  }, [session]);
+  }, []);
 
   useEffect(() => {
+    let isMounted = true;
+    
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+      (event, newSession) => {
+        if (!isMounted) return;
+        
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
         setLoading(false);
         
-        // Defer subscription check to avoid deadlock
-        if (session?.user) {
+        // Only check subscription on sign in events, not every state change
+        if (newSession?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
           setTimeout(() => {
-            refreshSubscription();
-          }, 0);
-        } else {
+            refreshSubscription(true); // Force check on sign in
+          }, 100);
+        } else if (!newSession) {
           setSubscriptionStatus(defaultSubscriptionStatus);
         }
       }
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    supabase.auth.getSession().then(({ data: { session: existingSession } }) => {
+      if (!isMounted) return;
+      
+      setSession(existingSession);
+      setUser(existingSession?.user ?? null);
       setLoading(false);
       
-      if (session?.user) {
+      if (existingSession?.user) {
+        // Initial check with slight delay
         setTimeout(() => {
-          refreshSubscription();
-        }, 0);
+          refreshSubscription(true);
+        }, 500);
       }
     });
 
-    return () => subscription.unsubscribe();
-  }, [refreshSubscription]);
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, []); // Empty dependency array - only run once on mount
 
-  // Periodic subscription check every minute
+  // Periodic subscription check every 2 minutes (reduced frequency)
   useEffect(() => {
     if (!session) return;
     
     const interval = setInterval(() => {
       refreshSubscription();
-    }, 60000);
+    }, 120000); // 2 minutes
 
     return () => clearInterval(interval);
   }, [session, refreshSubscription]);
@@ -152,7 +189,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         signUp,
         signIn,
         signOut,
-        refreshSubscription,
+        refreshSubscription: () => refreshSubscription(true),
         subscriptionStatus,
       }}
     >
