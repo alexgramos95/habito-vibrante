@@ -129,7 +129,17 @@ const Calendario = () => {
     return Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
   }, [selectedDate]);
 
-  const activeHabits = getActiveHabits(state);
+  // Get active habits sorted by scheduled time
+  const activeHabits = useMemo(() => {
+    const habits = getActiveHabits(state);
+    return habits.sort((a, b) => {
+      if (!a.scheduledTime && !b.scheduledTime) return 0;
+      if (!a.scheduledTime) return 1;
+      if (!b.scheduledTime) return -1;
+      return a.scheduledTime.localeCompare(b.scheduledTime);
+    });
+  }, [state]);
+  
   const activeTrackers = (state.trackers || []).filter(t => t.active);
 
   // Get daily tracker reminders (trackers with frequency=daily and scheduledTime set)

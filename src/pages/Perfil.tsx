@@ -254,7 +254,8 @@ const Perfil = () => {
                   </div>
                   {trialStatus.isActive && (
                     <p className="text-sm text-muted-foreground">
-                      {trialStatus.daysRemaining} {trialStatus.daysRemaining === 1 ? (locale === 'pt-PT' ? 'dia restante' : 'day remaining') : (locale === 'pt-PT' ? 'dias restantes' : 'days remaining')}
+                      {trialStatus.daysRemaining > 0 && `${trialStatus.daysRemaining}d `}
+                      {trialStatus.hoursRemaining}h {trialStatus.minutesRemaining}m {locale === 'pt-PT' ? 'restantes' : 'remaining'}
                     </p>
                   )}
                 </div>
@@ -303,7 +304,7 @@ const Perfil = () => {
         </Card>
 
         {/* Stats Overview */}
-        <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
+        <div className="grid gap-4 grid-cols-3">
           <Card className="glass border-border/30">
             <CardContent className="p-4 text-center">
               <Star className="h-6 w-6 text-warning mx-auto mb-2" />
@@ -323,13 +324,6 @@ const Perfil = () => {
               <Target className="h-6 w-6 text-success mx-auto mb-2" />
               <p className="text-2xl font-bold">{state.habits.length + (state.trackers?.length || 0)}</p>
               <p className="text-xs text-muted-foreground">{t.profile.totalHabits}</p>
-            </CardContent>
-          </Card>
-          <Card className="glass border-border/30">
-            <CardContent className="p-4 text-center">
-              <Trophy className="h-6 w-6 text-accent mx-auto mb-2" />
-              <p className="text-2xl font-bold">{formatCurrency(trackerFinancials.accumulatedSavings)}</p>
-              <p className="text-xs text-muted-foreground">{t.profile.totalSavings}</p>
             </CardContent>
           </Card>
         </div>
@@ -576,31 +570,6 @@ const Perfil = () => {
           </Card>
         )}
 
-        {/* Export Data */}
-        <Card className="glass border-border/30">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <Download className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="font-medium">Export Data</p>
-                  <p className="text-sm text-muted-foreground">Download your progress (CSV/PDF)</p>
-                </div>
-              </div>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => setShowExport(true)}
-                className="gap-2"
-              >
-                {!isPro && <Crown className="h-4 w-4 text-warning" />}
-                Export
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Screenshot/Demo Mode Card - Only shown when VITE_ENABLE_SCREENSHOT_MODE is enabled */}
         {import.meta.env.VITE_ENABLE_SCREENSHOT_MODE === 'true' && (

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useContext } from 'react';
-import { differenceInDays, parseISO } from 'date-fns';
+import { differenceInDays, differenceInHours, differenceInMinutes, parseISO } from 'date-fns';
 import { AuthContext } from '@/contexts/AuthContext';
 
 export type PlanType = 'free' | 'trial' | 'pro';
@@ -94,26 +94,33 @@ export const useSubscription = () => {
   // Calculate trial status from context
   const getTrialStatus = useCallback(() => {
     if (subscriptionStatus.plan === 'pro') {
-      return { isActive: false, daysRemaining: 0, isExpired: false };
+      return { isActive: false, daysRemaining: 0, hoursRemaining: 0, minutesRemaining: 0, isExpired: false };
     }
 
     // Check if planStatus indicates expired trial
     if (subscriptionStatus.planStatus === 'trial_expired') {
-      return { isActive: false, daysRemaining: 0, isExpired: true };
+      return { isActive: false, daysRemaining: 0, hoursRemaining: 0, minutesRemaining: 0, isExpired: true };
     }
 
     if (subscriptionStatus.plan === 'trial' && subscriptionStatus.trialEnd) {
       const endDate = parseISO(subscriptionStatus.trialEnd);
       const today = new Date();
-      const daysRemaining = differenceInDays(endDate, today);
       
-      if (daysRemaining < 0) {
-        return { isActive: false, daysRemaining: 0, isExpired: true };
+      const totalMinutesRemaining = differenceInMinutes(endDate, today);
+      
+      if (totalMinutesRemaining < 0) {
+        return { isActive: false, daysRemaining: 0, hoursRemaining: 0, minutesRemaining: 0, isExpired: true };
       }
+      
+      const daysRemaining = Math.floor(totalMinutesRemaining / (60 * 24));
+      const hoursRemaining = Math.floor((totalMinutesRemaining % (60 * 24)) / 60);
+      const minutesRemaining = totalMinutesRemaining % 60;
       
       return { 
         isActive: true, 
-        daysRemaining: Math.max(0, daysRemaining + 1), 
+        daysRemaining,
+        hoursRemaining,
+        minutesRemaining,
         isExpired: false 
       };
     }
@@ -122,11 +129,11 @@ export const useSubscription = () => {
     if (subscriptionStatus.trialEnd) {
       const endDate = parseISO(subscriptionStatus.trialEnd);
       if (endDate <= new Date()) {
-        return { isActive: false, daysRemaining: 0, isExpired: true };
+        return { isActive: false, daysRemaining: 0, hoursRemaining: 0, minutesRemaining: 0, isExpired: true };
       }
     }
 
-    return { isActive: false, daysRemaining: 0, isExpired: false };
+    return { isActive: false, daysRemaining: 0, hoursRemaining: 0, minutesRemaining: 0, isExpired: false };
   }, [subscriptionStatus]);
 
   // Start trial - delegate to auth context
