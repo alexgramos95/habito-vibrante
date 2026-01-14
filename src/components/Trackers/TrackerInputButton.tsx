@@ -98,8 +98,8 @@ export const TrackerInputButton = ({
       case "incremental":
         return (
           <>
-            <Plus className="h-5 w-5" />
-            +1 {tracker.unitSingular}
+            <Plus className="h-4 w-4" />
+            1 {tracker.unitSingular}
           </>
         );
       
@@ -114,8 +114,8 @@ export const TrackerInputButton = ({
       default:
         return (
           <>
-            <Plus className="h-5 w-5" />
-            +1 {tracker.unitSingular}
+            <Plus className="h-4 w-4" />
+            1 {tracker.unitSingular}
           </>
         );
     }
@@ -252,7 +252,7 @@ export const TrackerEntryItem = ({
           </button>
         )}
         <span className="text-sm">
-          +{entry.quantity} {entry.quantity === 1 ? tracker.unitSingular : tracker.unitPlural}
+          {entry.quantity} {entry.quantity === 1 ? tracker.unitSingular : tracker.unitPlural}
         </span>
         {entry.note && (
           <span className="text-xs text-muted-foreground">({entry.note})</span>

@@ -363,10 +363,20 @@ const Index = () => {
   const handleTrackerQuickAdd = (trackerId: string) => {
     setState((prev) => addTrackerEntry(prev, trackerId, 1));
     const tracker = state.trackers.find((t) => t.id === trackerId);
-    toast({
-      title: `+1 ${tracker?.unitSingular || t.trackers.entry}`,
-      description: tracker?.name,
-    });
+    
+    // For reduce trackers with value, show loss message
+    if (tracker?.type === 'reduce' && tracker.valuePerUnit > 0) {
+      toast({
+        title: `Perdeste ${formatCurrency(tracker.valuePerUnit)}`,
+        description: `1 ${tracker.unitSingular} registado`,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: `1 ${tracker?.unitSingular || t.trackers.entry}`,
+        description: tracker?.name,
+      });
+    }
   };
 
   // Bounceback: recover yesterday

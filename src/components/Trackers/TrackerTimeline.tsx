@@ -62,8 +62,8 @@ export const TrackerTimeline = ({
           )}
           disabled={isBooleanType && totalToday >= 1}
         >
-          <Plus className="h-6 w-6" />
-          {isBooleanType ? "✓ Feito" : `+1 ${tracker.unitSingular}`}
+          <Plus className="h-5 w-5" />
+          {isBooleanType ? "✓ Feito" : `1 ${tracker.unitSingular}`}
         </Button>
       </div>
 
@@ -117,7 +117,7 @@ export const TrackerTimeline = ({
                     {format(parseISO(entry.timestamp), "HH:mm")}
                   </span>
                   <span className="text-sm">
-                    +{entry.quantity} {entry.quantity === 1 ? tracker.unitSingular : tracker.unitPlural}
+                    {entry.quantity} {entry.quantity === 1 ? tracker.unitSingular : tracker.unitPlural}
                   </span>
                   {entry.note && (
                     <span className="text-xs text-muted-foreground truncate max-w-[100px]">
