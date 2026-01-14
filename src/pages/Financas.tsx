@@ -212,7 +212,7 @@ const Financas = () => {
             </div>
 
             {/* KPI Cards - LOSSES paradigm */}
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
               <Card className="premium-card group hover:glow-subtle">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
@@ -247,6 +247,26 @@ const Financas = () => {
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
                     {t.finances.allTime}
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* NEW: External Deposits Card */}
+              <Card className="premium-card group hover:glow-subtle">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-success/10">
+                      <PiggyBank className="h-4 w-4 text-success" />
+                    </div>
+                    {locale === 'pt-PT' ? 'Depósitos Externos' : 'External Deposits'}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold text-success">
+                    +{formatCurrency(externalDepositsTotal)}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {monthLabel}
                   </p>
                 </CardContent>
               </Card>

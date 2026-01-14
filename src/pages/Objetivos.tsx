@@ -35,6 +35,7 @@ import { cn } from "@/lib/utils";
 import { subDays } from "date-fns";
 
 // Tracker summary computation - for reduction trackers, we compute LOSSES not savings
+// IMPORTANT: Statistics start from first entry, not penalizing days before tracking started
 const calculateTrackerSummary = (
   tracker: Tracker,
   entries: TrackerEntry[],
@@ -43,6 +44,12 @@ const calculateTrackerSummary = (
   const today = new Date();
   const todayStr = format(today, "yyyy-MM-dd");
   const monthStr = format(today, "yyyy-MM");
+  
+  // Get tracker's first entry date (tracking start date)
+  const trackerEntries = allEntries.filter(e => e.trackerId === tracker.id);
+  const trackerStartDate = trackerEntries.length > 0
+    ? trackerEntries.reduce((earliest, e) => e.date < earliest ? e.date : earliest, trackerEntries[0].date)
+    : todayStr; // If no entries, consider today as start
   
   const todayEntries = entries.filter(e => e.date === todayStr);
   const todayCount = todayEntries.reduce((sum, e) => sum + e.quantity, 0);
@@ -60,29 +67,40 @@ const calculateTrackerSummary = (
     ? monthlyCount * tracker.valuePerUnit
     : 0;
   
-  // Days on track
+  // Days on track - ONLY count from tracker start date, not before
   let daysOnTrack = 0;
+  const goal = tracker.dailyGoal ?? tracker.baseline;
+  
   for (let i = 0; i < 30; i++) {
     const checkDate = new Date(today);
     checkDate.setDate(checkDate.getDate() - i);
     const dateStr = format(checkDate, "yyyy-MM-dd");
+    
+    // Skip days before tracking started - they shouldn't count as failures
+    if (dateStr < trackerStartDate) continue;
+    
     const dayCount = allEntries
       .filter(e => e.trackerId === tracker.id && e.date === dateStr)
       .reduce((sum, e) => sum + e.quantity, 0);
     
-    const goal = tracker.dailyGoal ?? tracker.baseline;
     const isOnTrack = tracker.type === 'reduce' ? dayCount <= goal : dayCount >= goal;
     if (isOnTrack) daysOnTrack++;
-    else if (i > 0) break;
+    else if (i > 0) break; // Break streak on first failure (but not if checking today with no entries yet)
   }
   
-  // 30-day average
+  // 30-day average - ONLY count days since tracker started
+  const trackerStartParsed = parseISO(trackerStartDate);
+  const daysSinceStart = Math.min(30, Math.max(1, 
+    Math.floor((today.getTime() - trackerStartParsed.getTime()) / (1000 * 60 * 60 * 24)) + 1
+  ));
+  
   const last30DaysEntries = allEntries.filter(e => {
     const entryDate = parseISO(e.date);
     const diffDays = Math.floor((today.getTime() - entryDate.getTime()) / (1000 * 60 * 60 * 24));
-    return e.trackerId === tracker.id && diffDays < 30;
+    return e.trackerId === tracker.id && diffDays < 30 && e.date >= trackerStartDate;
   });
-  const average30Days = last30DaysEntries.reduce((sum, e) => sum + e.quantity, 0) / 30;
+  
+  const average30Days = last30DaysEntries.reduce((sum, e) => sum + e.quantity, 0) / daysSinceStart;
   
   return {
     todayCount,
@@ -219,20 +237,41 @@ const Objetivos = () => {
     return days;
   };
 
-  // Overall performance chart data (last 30 days, all trackers)
-  const overallChartData = useMemo(() => {
-    const data: { date: string; [key: string]: number | string }[] = [];
+  // Overall performance chart data (last 30 days, all trackers) - FINANCIAL LOSSES
+  const overallLossChartData = useMemo(() => {
+    const financialTrackers = activeTrackers.filter(t => t.type === 'reduce' && t.valuePerUnit > 0);
+    if (financialTrackers.length === 0) return [];
+    
+    const data: { date: string; totalLoss: number; [key: string]: number | string }[] = [];
+    
+    // Get the earliest tracker start date (first entry)
+    const allTrackerEntries = state.trackerEntries.filter(e => 
+      financialTrackers.some(t => t.id === e.trackerId)
+    );
+    const earliestEntryDate = allTrackerEntries.length > 0
+      ? allTrackerEntries.reduce((earliest, e) => e.date < earliest ? e.date : earliest, allTrackerEntries[0].date)
+      : format(today, "yyyy-MM-dd");
     
     for (let i = 29; i >= 0; i--) {
       const date = subDays(today, i);
       const dateStr = format(date, "yyyy-MM-dd");
-      const dayData: { date: string; [key: string]: number | string } = { date: dateStr };
       
-      activeTrackers.forEach(tracker => {
+      // Skip dates before tracking started
+      if (dateStr < earliestEntryDate) continue;
+      
+      const dayData: { date: string; totalLoss: number; [key: string]: number | string } = { 
+        date: dateStr, 
+        totalLoss: 0 
+      };
+      
+      financialTrackers.forEach(tracker => {
         const dayEntries = state.trackerEntries.filter(
           e => e.trackerId === tracker.id && e.date === dateStr
         );
-        dayData[tracker.name] = dayEntries.reduce((sum, e) => sum + e.quantity, 0);
+        const dayCount = dayEntries.reduce((sum, e) => sum + e.quantity, 0);
+        const dayLoss = dayCount * tracker.valuePerUnit;
+        dayData[tracker.name] = dayLoss;
+        dayData.totalLoss += dayLoss;
       });
       
       data.push(dayData);
@@ -241,7 +280,10 @@ const Objetivos = () => {
     return data;
   }, [activeTrackers, state.trackerEntries, today]);
 
-  const chartColors = ["hsl(var(--primary))", "hsl(var(--warning))", "hsl(var(--success))", "hsl(var(--accent))", "hsl(var(--destructive))"];
+  const chartColors = ["hsl(var(--destructive))", "hsl(var(--warning))", "hsl(var(--accent))", "hsl(var(--primary))", "hsl(var(--success))"];
+  
+  // Get financial trackers for the global chart
+  const financialTrackers = activeTrackers.filter(t => t.type === 'reduce' && t.valuePerUnit > 0);
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
@@ -505,6 +547,55 @@ const Objetivos = () => {
                     </ResponsiveContainer>
                   </CardContent>
                 </Card>
+
+                {/* Global Financial Losses Chart */}
+                {financialTrackers.length > 0 && overallLossChartData.length > 0 && (
+                  <Card className="glass border-border/30">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-base">
+                        <TrendingDown className="h-5 w-5 text-destructive" />
+                        {locale === 'pt-PT' ? 'Visão Geral - Perdas Diárias' : 'Overview - Daily Losses'}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ResponsiveContainer width="100%" height={220}>
+                        <BarChart data={overallLossChartData}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                          <XAxis
+                            dataKey="date"
+                            tickFormatter={(val) => format(parseISO(val), "d", { locale: dateLocale })}
+                            stroke="hsl(var(--muted-foreground))"
+                            fontSize={11}
+                          />
+                          <YAxis 
+                            stroke="hsl(var(--muted-foreground))" 
+                            fontSize={11}
+                            tickFormatter={(val) => `${val}€`}
+                          />
+                          <RechartsTooltip
+                            contentStyle={{
+                              backgroundColor: "hsl(var(--card))",
+                              border: "1px solid hsl(var(--border))",
+                              borderRadius: "8px",
+                            }}
+                            labelFormatter={(val) => format(parseISO(val as string), "d MMM", { locale: dateLocale })}
+                            formatter={(value: number, name: string) => [formatCurrency(value), name]}
+                          />
+                          <Legend />
+                          {financialTrackers.map((tracker, index) => (
+                            <Bar 
+                              key={tracker.id}
+                              dataKey={tracker.name}
+                              stackId="losses"
+                              fill={chartColors[index % chartColors.length]}
+                              radius={index === financialTrackers.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]}
+                            />
+                          ))}
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             )}
           </div>

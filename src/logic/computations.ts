@@ -233,7 +233,7 @@ export const calculateMonthlySummary = (
 };
 
 // Dynamic motivational messages - EN primary
-// Note: Removed "matching best streak" message as per user request
+// Note: Removed "matching best streak" and "start today" messages as per user request
 export const getMotivationalMessage = (
   summary: MonthlySummary,
   hasHabits: boolean,
@@ -241,18 +241,18 @@ export const getMotivationalMessage = (
 ): string => {
   const isPortuguese = locale === 'pt-PT';
   
-  // No habits scenario
+  // No habits scenario - just return empty or a neutral message
   if (!hasHabits || summary.habitosAtivos === 0) {
     return isPortuguese 
-      ? "Começa hoje. Pequenos passos criam grandes mudanças."
-      : "Start today. Small steps create big changes.";
+      ? "Cria o teu primeiro hábito para começar."
+      : "Create your first habit to get started.";
   }
   
-  // No streak yet
+  // No streak yet - neutral message without motivational push
   if (summary.streakAtual === 0) {
     return isPortuguese 
-      ? "🚀 Começa hoje. Pequenos passos criam grandes mudanças."
-      : "🚀 Start today. Small steps create big changes.";
+      ? "Regista o primeiro hábito do dia."
+      : "Log your first habit of the day.";
   }
   
   // Progress-based messages
@@ -262,7 +262,7 @@ export const getMotivationalMessage = (
       : `🌟 Excellent! ${Math.round(summary.progressoMensal)}% complete this month.`;
   }
   
-  // Good streak progress (but NOT matching best - that message was removed)
+  // Good streak progress
   if (summary.streakAtual >= 7) {
     return isPortuguese 
       ? `🔥 ${summary.streakAtual} dias seguidos! Excelente consistência.`
@@ -278,19 +278,19 @@ export const getMotivationalMessage = (
   
   if (summary.progressoMensal >= 30 && summary.progressoMensal <= 70) {
     return isPortuguese 
-      ? "👍 Bom ritmo. Mantém a consistência e vais mais longe."
-      : "👍 Good rhythm. Stay consistent and go further.";
+      ? "👍 Bom ritmo. Mantém a consistência."
+      : "👍 Good rhythm. Stay consistent.";
   }
   
   if (summary.progressoMensal < 30) {
     return isPortuguese 
-      ? "🌱 Começos são sempre os mais difíceis. Um hábito de cada vez."
-      : "🌱 Beginnings are hardest. One habit at a time.";
+      ? "🌱 Um hábito de cada vez."
+      : "🌱 One habit at a time.";
   }
   
   return isPortuguese 
     ? "🚀 Continua a construir o teu ritmo!"
-    : "🚀 Keep building your momentum!";
+    : "🚀 Keep building your momentum!"
 };
 
 // Check and award achievements
@@ -653,12 +653,26 @@ export const calculateTrackerFinancials = (
   // Only look at reduction trackers with financial impact
   const financialTrackers = trackers.filter(t => t.active && t.type === 'reduce' && t.valuePerUnit > 0);
   
+  // Get the earliest tracking start date across all financial trackers
+  const allFinancialEntries = entries.filter(e => 
+    financialTrackers.some(t => t.id === e.trackerId)
+  );
+  const userTrackingStartDate = allFinancialEntries.length > 0
+    ? allFinancialEntries.reduce((earliest, e) => e.date < earliest ? e.date : earliest, allFinancialEntries[0].date)
+    : format(today, "yyyy-MM-dd");
+  
   let totalMonthlyLoss = 0;
   let totalAccumulatedLoss = 0;
   const trackerBreakdown: TrackerFinancialSummary[] = [];
   const monthlyData: { date: string; loss: number; tracker: string }[] = [];
   
   financialTrackers.forEach(tracker => {
+    // Get tracker's own start date
+    const trackerEntries = entries.filter(e => e.trackerId === tracker.id);
+    const trackerStartDate = trackerEntries.length > 0
+      ? trackerEntries.reduce((earliest, e) => e.date < earliest ? e.date : earliest, trackerEntries[0].date)
+      : format(today, "yyyy-MM-dd");
+    
     // Monthly loss calculation: count * valuePerUnit
     const monthEntries = entries.filter(e => 
       e.trackerId === tracker.id && e.date.startsWith(monthStr)
@@ -666,14 +680,13 @@ export const calculateTrackerFinancials = (
     const monthCount = monthEntries.reduce((sum, e) => sum + e.quantity, 0);
     const monthlyLoss = monthCount * tracker.valuePerUnit;
     
-    // Accumulated loss (all time)
-    const allEntries = entries.filter(e => e.trackerId === tracker.id);
-    const totalCount = allEntries.reduce((sum, e) => sum + e.quantity, 0);
+    // Accumulated loss (all time) - only from actual entries, not assumed behavior
+    const totalCount = trackerEntries.reduce((sum, e) => sum + e.quantity, 0);
     const accumulatedLoss = totalCount * tracker.valuePerUnit;
     
-    // Days active
-    const firstEntryDate = allEntries.length > 0 
-      ? parseISO(allEntries.sort((a, b) => a.date.localeCompare(b.date))[0].date)
+    // Days active - from first entry
+    const firstEntryDate = trackerEntries.length > 0 
+      ? parseISO(trackerEntries.sort((a, b) => a.date.localeCompare(b.date))[0].date)
       : today;
     const daysActive = Math.max(1, differenceInDays(today, firstEntryDate) + 1);
     
@@ -691,6 +704,7 @@ export const calculateTrackerFinancials = (
     });
     
     // Daily data for chart - get days in month up to today
+    // IMPORTANT: Only show data from tracker start date, not before
     const daysInMonth = today.getMonth() === month && today.getFullYear() === year
       ? today.getDate()
       : new Date(year, month + 1, 0).getDate();
@@ -698,6 +712,9 @@ export const calculateTrackerFinancials = (
     for (let day = 1; day <= daysInMonth; day++) {
       const dateStr = `${monthStr}-${String(day).padStart(2, "0")}`;
       if (parseISO(dateStr) > today) continue;
+      
+      // Skip days before this tracker started - no assumed losses
+      if (dateStr < trackerStartDate) continue;
       
       const dayEntries = entries.filter(e => e.trackerId === tracker.id && e.date === dateStr);
       const dayCount = dayEntries.reduce((sum, e) => sum + e.quantity, 0);
