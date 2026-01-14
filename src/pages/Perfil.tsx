@@ -212,7 +212,7 @@ const Perfil = () => {
                 </div>
               </div>
               {isAuthenticated ? (
-                <Button variant="outline" size="sm" onClick={() => navigate('/auth')}>
+                <Button variant="outline" size="sm" onClick={() => navigate('/definicoes')}>
                   {locale === 'pt-PT' ? 'Gerir conta' : 'Manage account'}
                 </Button>
               ) : (
