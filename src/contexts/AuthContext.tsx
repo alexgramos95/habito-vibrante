@@ -1,6 +1,17 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef, ReactNode } from 'react';
 import { User, Session, Provider } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { addDays } from 'date-fns';
+
+interface SubscriptionStatus {
+  subscribed: boolean;
+  plan: 'free' | 'trial' | 'pro';
+  planStatus: 'free_initial' | 'trial_active' | 'trial_expired' | 'pro_active' | 'lifetime' | null;
+  purchasePlan: 'monthly' | 'yearly' | 'lifetime' | null;
+  subscriptionEnd: string | null;
+  trialEnd: string | null;
+  trialStart: string | null;
+}
 
 interface AuthContextType {
   user: User | null;
@@ -16,25 +27,23 @@ interface AuthContextType {
   updatePassword: (newPassword: string) => Promise<{ error: Error | null }>;
   resendVerificationEmail: () => Promise<{ error: Error | null }>;
   refreshSubscription: () => Promise<void>;
-  subscriptionStatus: {
-    subscribed: boolean;
-    plan: 'free' | 'trial' | 'pro';
-    purchasePlan: 'monthly' | 'yearly' | 'lifetime' | null;
-    subscriptionEnd: string | null;
-    trialEnd: string | null;
-  };
+  startTrial: () => Promise<void>;
+  subscriptionStatus: SubscriptionStatus;
 }
 
-const defaultSubscriptionStatus = {
+const defaultSubscriptionStatus: SubscriptionStatus = {
   subscribed: false,
-  plan: 'free' as const,
+  plan: 'free',
+  planStatus: null,
   purchasePlan: null,
   subscriptionEnd: null,
   trialEnd: null,
+  trialStart: null,
 };
 
 // Minimum time between subscription checks (30 seconds)
 const SUBSCRIPTION_CHECK_COOLDOWN = 30000;
+const TRIAL_DURATION_DAYS = 2;
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -42,7 +51,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [subscriptionStatus, setSubscriptionStatus] = useState(defaultSubscriptionStatus);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus>(defaultSubscriptionStatus);
   
   // Track last check time to prevent rate limiting
   const lastCheckRef = useRef<number>(0);
@@ -56,6 +65,63 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Check if email is verified
   const isEmailVerified = Boolean(user?.email_confirmed_at);
+
+  // Start trial - creates/updates subscription in database
+  const startTrial = useCallback(async () => {
+    const currentSession = sessionRef.current;
+    if (!currentSession?.user) return;
+
+    const now = new Date();
+    const trialEndDate = addDays(now, TRIAL_DURATION_DAYS);
+
+    try {
+      // Check if subscription row exists
+      const { data: existingSub } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', currentSession.user.id)
+        .single();
+
+      if (existingSub) {
+        // Update existing row only if not already pro
+        if (existingSub.plan !== 'pro') {
+          await supabase
+            .from('subscriptions')
+            .update({
+              plan: 'trial',
+              trial_start_date: now.toISOString(),
+              trial_end_date: trialEndDate.toISOString(),
+              status: 'active',
+            })
+            .eq('user_id', currentSession.user.id);
+        }
+      } else {
+        // Create new subscription row with trial
+        await supabase
+          .from('subscriptions')
+          .insert({
+            user_id: currentSession.user.id,
+            plan: 'trial',
+            trial_start_date: now.toISOString(),
+            trial_end_date: trialEndDate.toISOString(),
+            status: 'active',
+          });
+      }
+
+      // Update local state
+      setSubscriptionStatus(prev => ({
+        ...prev,
+        plan: 'trial',
+        planStatus: 'trial_active',
+        trialStart: now.toISOString(),
+        trialEnd: trialEndDate.toISOString(),
+      }));
+
+      console.log('[AUTH] Trial started successfully');
+    } catch (err) {
+      console.error('[AUTH] Failed to start trial:', err);
+    }
+  }, []);
 
   const refreshSubscription = useCallback(async (force = false) => {
     const currentSession = sessionRef.current;
@@ -88,9 +154,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setSubscriptionStatus({
           subscribed: data.subscribed || false,
           plan: data.plan || 'free',
+          planStatus: data.plan === 'trial' ? 'trial_active' : data.plan === 'pro' ? 'pro_active' : 'free_initial',
           purchasePlan: data.purchase_plan || null,
           subscriptionEnd: data.subscription_end || null,
           trialEnd: data.trial_end || null,
+          trialStart: null,
         });
       }
     } catch (err) {
@@ -246,6 +314,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         updatePassword,
         resendVerificationEmail,
         refreshSubscription: () => refreshSubscription(true),
+        startTrial,
         subscriptionStatus,
       }}
     >

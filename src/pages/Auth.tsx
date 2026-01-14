@@ -38,9 +38,10 @@ const Auth = () => {
     resendVerificationEmail,
     isAuthenticated, 
     isEmailVerified,
-    user 
+    user,
+    startTrial
   } = useAuth();
-  const { startTrial, trialStatus } = useSubscription();
+  const { trialStatus } = useSubscription();
   
   // Check for params
   const nextAction = searchParams.get('next');
