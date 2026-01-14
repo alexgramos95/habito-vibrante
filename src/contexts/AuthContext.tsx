@@ -45,7 +45,7 @@ const defaultSubscriptionStatus: SubscriptionStatus = {
 const SUBSCRIPTION_CHECK_COOLDOWN = 30000;
 const TRIAL_DURATION_DAYS = 2;
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);

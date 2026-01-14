@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
-import { differenceInDays, parseISO, addDays } from 'date-fns';
-import { useAuth } from '@/contexts/AuthContext';
+import { useState, useEffect, useCallback, useContext } from 'react';
+import { differenceInDays, parseISO } from 'date-fns';
+import { AuthContext } from '@/contexts/AuthContext';
 
 export type PlanType = 'free' | 'trial' | 'pro';
 
@@ -21,7 +21,6 @@ export interface OnboardingState {
 }
 
 const ONBOARDING_KEY = 'become-onboarding-state';
-const TRIAL_DURATION_DAYS = 2;
 
 // Feature limits
 export const FREE_LIMITS = {
@@ -50,8 +49,23 @@ const defaultOnboarding: OnboardingState = {
   selectedPresets: [],
 };
 
+const defaultSubscriptionStatus = {
+  subscribed: false,
+  plan: 'free' as const,
+  planStatus: null as string | null,
+  purchasePlan: null as 'monthly' | 'yearly' | 'lifetime' | null,
+  subscriptionEnd: null as string | null,
+  trialEnd: null as string | null,
+  trialStart: null as string | null,
+};
+
 export const useSubscription = () => {
-  const { subscriptionStatus, startTrial: authStartTrial, isAuthenticated } = useAuth();
+  // Use context directly without throwing - allows use before auth is ready
+  const authContext = useContext(AuthContext);
+  
+  // Safely extract values with defaults
+  const subscriptionStatus = authContext?.subscriptionStatus ?? defaultSubscriptionStatus;
+  const authStartTrial = authContext?.startTrial ?? (async () => {});
   
   const [onboarding, setOnboarding] = useState<OnboardingState>(() => {
     try {
