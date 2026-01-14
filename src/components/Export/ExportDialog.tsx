@@ -1,10 +1,13 @@
 import { useState } from "react";
-import { FileText, FileSpreadsheet, Download, Crown } from "lucide-react";
+import { FileJson, Download, Crown, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { ProBadge } from "@/components/Paywall/UpgradeButton";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { loadState } from "@/data/storage";
 
 interface ExportDialogProps {
   open: boolean;
@@ -15,18 +18,11 @@ interface ExportDialogProps {
 
 const EXPORT_OPTIONS = [
   {
-    id: 'csv',
-    icon: FileSpreadsheet,
-    title: 'CSV Export',
-    description: 'Spreadsheet-compatible data file',
-    format: '.csv',
-  },
-  {
-    id: 'pdf',
-    icon: FileText,
-    title: 'PDF Report',
-    description: 'Formatted progress summary',
-    format: '.pdf',
+    id: 'json',
+    icon: FileJson,
+    title: 'JSON Export',
+    description: 'Complete data backup file',
+    format: '.json',
   },
 ];
 
@@ -37,30 +33,126 @@ export const ExportDialog = ({
   onShowPaywall,
 }: ExportDialogProps) => {
   const { toast } = useToast();
-  const [selectedFormat, setSelectedFormat] = useState<string>('csv');
+  const { user, session, subscriptionStatus } = useAuth();
+  const [selectedFormat, setSelectedFormat] = useState<string>('json');
+  const [exporting, setExporting] = useState(false);
 
-  const handleExport = () => {
-    if (!isPro) {
-      onClose();
-      onShowPaywall();
-      return;
-    }
+  const handleExport = async () => {
+    // For now, allow export for all users (remove paywall check for basic JSON export)
+    // if (!isPro) {
+    //   onClose();
+    //   onShowPaywall();
+    //   return;
+    // }
 
-    // Stub: In real implementation, this would generate the export
-    toast({
-      title: "Export initiated",
-      description: `Your ${selectedFormat.toUpperCase()} export will download shortly.`,
-    });
+    setExporting(true);
 
-    // Simulate download delay
-    setTimeout(() => {
+    try {
+      // Gather all data from various sources
+      const localState = loadState();
+      
+      // Try to fetch cloud data if user is authenticated
+      let cloudData: Record<string, unknown> | null = null;
+      let profileData: Record<string, unknown> | null = null;
+      let subscriptionData: Record<string, unknown> | null = null;
+      
+      if (user && session) {
+        try {
+          // Fetch user_data from database
+          const { data: userData, error: userDataError } = await supabase
+            .from('user_data')
+            .select('*')
+            .eq('user_id', user.id)
+            .single();
+          
+          if (!userDataError && userData) {
+            cloudData = userData;
+          }
+
+          // Fetch profile
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('user_id', user.id)
+            .single();
+          
+          if (!profileError && profile) {
+            profileData = profile;
+          }
+
+          // Fetch subscription
+          const { data: subscription, error: subscriptionError } = await supabase
+            .from('subscriptions')
+            .select('*')
+            .eq('user_id', user.id)
+            .single();
+          
+          if (!subscriptionError && subscription) {
+            subscriptionData = subscription;
+          }
+        } catch (err) {
+          console.error('Error fetching cloud data:', err);
+        }
+      }
+
+      // Compile export data
+      const exportData = {
+        exportedAt: new Date().toISOString(),
+        version: '1.0',
+        user: user ? {
+          id: user.id,
+          email: user.email,
+          emailVerified: !!user.email_confirmed_at,
+        } : null,
+        subscription: subscriptionData || {
+          plan: subscriptionStatus.plan,
+          status: subscriptionStatus.planStatus,
+          trialEnd: subscriptionStatus.trialEnd,
+        },
+        profile: profileData || null,
+        localData: {
+          habits: localState.habits || [],
+          trackers: localState.trackers || [],
+          trackerEntries: localState.trackerEntries || [],
+          dailyLogs: localState.dailyLogs || [],
+          reflections: localState.reflections || [],
+          futureSelf: localState.futureSelf || [],
+          investmentGoals: localState.investmentGoals || [],
+          purchaseGoals: localState.purchaseGoals || [],
+          shoppingItems: localState.shoppingItems || [],
+          gamification: localState.gamification || {},
+          triggers: localState.triggers || [],
+        },
+        cloudData: cloudData || null,
+      };
+
+      // Create and download the file
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `become-export-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
       toast({
-        title: "Export ready",
-        description: "Export functionality coming soon.",
+        title: "Export complete",
+        description: "Your data has been downloaded as a JSON file.",
       });
-    }, 1500);
 
-    onClose();
+      onClose();
+    } catch (err) {
+      console.error('Export error:', err);
+      toast({
+        title: "Export failed",
+        description: "Could not export your data. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setExporting(false);
+    }
   };
 
   return (
@@ -70,12 +162,9 @@ export const ExportDialog = ({
           <div className="flex items-center gap-2">
             <Download className="h-5 w-5 text-primary" />
             <DialogTitle>Export Data</DialogTitle>
-            {!isPro && <ProBadge />}
           </div>
           <DialogDescription>
-            {isPro 
-              ? "Download your progress data for analysis."
-              : "Own your data. Export requires PRO."}
+            Download your complete progress data as a backup.
           </DialogDescription>
         </DialogHeader>
 
@@ -105,21 +194,30 @@ export const ExportDialog = ({
             ))}
           </div>
 
-          {/* Export Range Info */}
+          {/* Export Info */}
           <div className="p-3 rounded-lg bg-secondary/50">
             <p className="text-sm text-muted-foreground">
-              Includes: habits, trackers, calendar, finances
+              Includes: habits, trackers, calendar, finances, reflections, goals
             </p>
           </div>
 
           {/* Actions */}
           <div className="flex gap-3">
-            <Button variant="outline" onClick={onClose} className="flex-1">
+            <Button variant="outline" onClick={onClose} className="flex-1" disabled={exporting}>
               Cancel
             </Button>
-            <Button onClick={handleExport} className="flex-1 gap-2">
-              {!isPro && <Crown className="h-4 w-4" />}
-              {isPro ? 'Export' : 'Upgrade to Export'}
+            <Button onClick={handleExport} className="flex-1 gap-2" disabled={exporting}>
+              {exporting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Exporting...
+                </>
+              ) : (
+                <>
+                  <Download className="h-4 w-4" />
+                  Download
+                </>
+              )}
             </Button>
           </div>
         </div>

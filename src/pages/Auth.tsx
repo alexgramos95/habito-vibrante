@@ -476,6 +476,7 @@ const Auth = () => {
             </form>
 
             {/* Google OAuth - only for signin/signup */}
+            {/* Google OAuth - DISABLED until provider is configured in Lovable Cloud 
             {(mode === 'signin' || mode === 'signup') && (
               <>
                 <div className="relative my-6">
@@ -517,6 +518,7 @@ const Auth = () => {
                 </Button>
               </>
             )}
+            */}
 
             <div className="mt-6 text-center text-sm">
               {mode === 'signin' && (
