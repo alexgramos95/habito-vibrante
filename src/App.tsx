@@ -20,6 +20,7 @@ const Progresso = lazy(() => import("./pages/Progresso"));
 const Definicoes = lazy(() => import("./pages/Definicoes"));
 const Landing = lazy(() => import("./pages/Landing"));
 const Auth = lazy(() => import("./pages/Auth"));
+const Decision = lazy(() => import("./pages/Decision"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -65,6 +66,7 @@ const App = () => (
                 <Route path="/onboarding" element={<Onboarding />} />
                 <Route path="/landing" element={<Landing />} />
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/decision" element={<Decision />} />
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/privacy" element={<Privacy />} />
 

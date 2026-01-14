@@ -154,11 +154,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setSubscriptionStatus({
           subscribed: data.subscribed || false,
           plan: data.plan || 'free',
-          planStatus: data.plan === 'trial' ? 'trial_active' : data.plan === 'pro' ? 'pro_active' : 'free_initial',
+          planStatus: data.plan_status || (data.plan === 'trial' ? 'trial_active' : data.plan === 'pro' ? 'pro_active' : 'free_initial'),
           purchasePlan: data.purchase_plan || null,
           subscriptionEnd: data.subscription_end || null,
           trialEnd: data.trial_end || null,
-          trialStart: null,
+          trialStart: data.trial_start || null,
         });
       }
     } catch (err) {
