@@ -5,24 +5,42 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/i18n/I18nContext";
 
-interface ReceiptItem {
-  nome: string;
-  quantidade: string;
-  precoUnit: number | null;
-  precoTotal: number;
+export interface ParsedReceiptItem {
+  name: string;
+  quantity: number;
+  price: number;
 }
 
 interface ReceiptScannerProps {
-  onItemsExtracted: (items: ReceiptItem[]) => void;
+  onItemsExtracted: (items: ParsedReceiptItem[]) => void;
 }
 
 export const ReceiptScanner = ({ onItemsExtracted }: ReceiptScannerProps) => {
   const { toast } = useToast();
   const { locale } = useI18n();
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showCamera, setShowCamera] = useState(false);
+  const [showOptions, setShowOptions] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+
+  const normalizeItem = (item: any): ParsedReceiptItem | null => {
+    const name = (item.name || item.nome || "").trim();
+    if (!name || name.length < 2) return null;
+
+    let quantity = item.quantity ?? item.quantidade ?? 1;
+    if (typeof quantity === "string") {
+      quantity = parseInt(quantity, 10) || 1;
+    }
+    quantity = Math.max(1, Math.round(quantity));
+
+    let price = item.price ?? item.precoTotal ?? item.preco ?? 0;
+    if (typeof price === "string") {
+      price = parseFloat(price.replace(",", ".")) || 0;
+    }
+    if (price <= 0 || price > 10000) return null;
+
+    return { name, quantity, price };
+  };
 
   const processImage = async (file: File) => {
     setIsProcessing(true);
@@ -49,27 +67,33 @@ export const ReceiptScanner = ({ onItemsExtracted }: ReceiptScannerProps) => {
         }
       );
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || "Erro ao processar talão");
-      }
-
       const data = await response.json();
 
-      if (data.items && data.items.length > 0) {
-        onItemsExtracted(data.items);
+      if (!response.ok) {
+        throw new Error(data.error || "Erro ao processar talão");
+      }
+
+      // Normalize and filter items
+      const rawItems = data.items || [];
+      const validItems: ParsedReceiptItem[] = rawItems
+        .map(normalizeItem)
+        .filter((item: ParsedReceiptItem | null): item is ParsedReceiptItem => item !== null);
+
+      if (validItems.length > 0) {
+        onItemsExtracted(validItems);
         toast({
           title: locale === "pt-PT" ? "Talão processado" : "Receipt processed",
           description: locale === "pt-PT" 
-            ? `${data.itemCount} itens encontrados` 
-            : `${data.itemCount} items found`,
+            ? `${validItems.length} ${validItems.length === 1 ? "item encontrado" : "itens encontrados"}` 
+            : `${validItems.length} ${validItems.length === 1 ? "item found" : "items found"}`,
         });
       } else {
+        // Show helpful toast when no items found - DO NOT call onItemsExtracted
         toast({
           title: locale === "pt-PT" ? "Nenhum item encontrado" : "No items found",
           description: locale === "pt-PT" 
-            ? "Tenta com uma foto mais nítida" 
-            : "Try with a clearer photo",
+            ? "Não foi possível ler este talão. Tenta outra foto ou verifica a iluminação." 
+            : "Could not read this receipt. Try another photo or check the lighting.",
           variant: "destructive",
         });
       }
@@ -90,7 +114,6 @@ export const ReceiptScanner = ({ onItemsExtracted }: ReceiptScannerProps) => {
     if (file) {
       processImage(file);
     }
-    // Reset input
     e.target.value = "";
   };
 
@@ -121,10 +144,10 @@ export const ReceiptScanner = ({ onItemsExtracted }: ReceiptScannerProps) => {
         onChange={handleFileChange}
       />
 
-      {/* Scan button that opens options */}
+      {/* Scan button */}
       <Button
         variant="outline"
-        onClick={() => setShowCamera(true)}
+        onClick={() => setShowOptions(true)}
         disabled={isProcessing}
         className="gap-2"
       >
@@ -137,7 +160,7 @@ export const ReceiptScanner = ({ onItemsExtracted }: ReceiptScannerProps) => {
       </Button>
 
       {/* Camera/Upload options dialog */}
-      <Dialog open={showCamera} onOpenChange={setShowCamera}>
+      <Dialog open={showOptions} onOpenChange={setShowOptions}>
         <DialogContent className="max-w-xs">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -150,7 +173,7 @@ export const ReceiptScanner = ({ onItemsExtracted }: ReceiptScannerProps) => {
               variant="default"
               className="w-full gap-3 h-14"
               onClick={() => {
-                setShowCamera(false);
+                setShowOptions(false);
                 handleCameraCapture();
               }}
               disabled={isProcessing}
@@ -162,7 +185,7 @@ export const ReceiptScanner = ({ onItemsExtracted }: ReceiptScannerProps) => {
               variant="outline"
               className="w-full gap-3 h-14"
               onClick={() => {
-                setShowCamera(false);
+                setShowOptions(false);
                 handleGalleryUpload();
               }}
               disabled={isProcessing}

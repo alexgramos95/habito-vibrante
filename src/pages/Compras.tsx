@@ -153,13 +153,15 @@ const Compras = () => {
   };
 
   // Receipt OCR handlers
-  const handleReceiptItemsExtracted = (extractedItems: { nome: string; quantidade: string; precoUnit: number | null; precoTotal: number }[]) => {
+  const handleReceiptItemsExtracted = (extractedItems: { name: string; quantity: number; price: number }[]) => {
+    // Only open modal if we have items
+    if (extractedItems.length === 0) return;
+    
     const reviewItems: ReviewItem[] = extractedItems.map((item, index) => ({
       id: `receipt-${Date.now()}-${index}`,
-      nome: item.nome,
-      quantidade: item.quantidade,
-      precoUnit: item.precoUnit,
-      precoTotal: item.precoTotal,
+      name: item.name,
+      quantity: item.quantity,
+      price: item.price,
     }));
     setPendingReceiptItems(reviewItems);
     setShowReceiptReview(true);
@@ -170,10 +172,10 @@ const Compras = () => {
       setState((prev) =>
         addShoppingItem(prev, {
           weekStartDate,
-          nome: item.nome,
-          quantidade: item.quantidade || undefined,
-          categoria: item.categoria || undefined,
-          price: item.precoTotal,
+          nome: item.name,
+          quantidade: item.quantity > 1 ? `${item.quantity} un` : undefined,
+          categoria: item.category || undefined,
+          price: item.price,
         })
       );
     });
