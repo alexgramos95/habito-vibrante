@@ -1,4 +1,5 @@
 import { Plus, Clock } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n/I18nContext";
 import { AppState, Habit } from "@/data/types";
@@ -15,17 +16,25 @@ interface HabitListProps {
   onAddHabit: () => void;
 }
 
-// Filter habits to only show those scheduled for the selected day
+// Filter habits to only show those scheduled for the selected day, sorted by time
 const getHabitsForDay = (habits: Habit[], date: Date): Habit[] => {
   const dayOfWeek = getDay(date); // 0 = Sunday, 1 = Monday, etc.
   
-  return habits.filter(habit => {
+  const filtered = habits.filter(habit => {
     // If no scheduled days set, show every day
     if (!habit.scheduledDays || habit.scheduledDays.length === 0) {
       return true;
     }
     // Show only if this day is in the scheduled days
     return habit.scheduledDays.includes(dayOfWeek);
+  });
+  
+  // Sort by scheduledTime (earliest first), habits without time go last
+  return filtered.sort((a, b) => {
+    if (!a.scheduledTime && !b.scheduledTime) return 0;
+    if (!a.scheduledTime) return 1;
+    if (!b.scheduledTime) return -1;
+    return a.scheduledTime.localeCompare(b.scheduledTime);
   });
 };
 
@@ -46,7 +55,12 @@ export const HabitList = ({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">{t.habits.title}</h2>
+        <Link 
+          to="/app/habitos" 
+          className="text-lg font-semibold hover:text-primary transition-colors cursor-pointer"
+        >
+          {t.habits.title}
+        </Link>
         <Button
           onClick={onAddHabit}
           size="icon"

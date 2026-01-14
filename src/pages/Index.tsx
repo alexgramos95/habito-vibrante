@@ -507,43 +507,7 @@ const Index = () => {
             )}
 
             {/* Mini Cards Row - Premium Design */}
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {/* Savings Mini Card */}
-              <Card className="premium-card group hover:glow-subtle transition-all duration-300">
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                    <div className="p-1.5 rounded-lg bg-success/10">
-                      <PiggyBank className="h-4 w-4 text-success" />
-                    </div>
-                    {t.dashboard.piggyBank}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div>
-                    <p className="text-2xl font-bold text-success">
-                      {formatCurrency(savingsSummary.totalPoupadoMesAtual)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">{t.dashboard.thisMonth}</p>
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {t.dashboard.total}:{" "}
-                    <span className="font-medium text-foreground">
-                      {formatCurrency(savingsSummary.totalPoupadoAllTime)}
-                    </span>
-                  </div>
-                  <Link to="/financas">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="w-full mt-1 group-hover:bg-success/10 group-hover:text-success"
-                    >
-                      {t.dashboard.viewDetails}
-                      <ChevronRight className="h-4 w-4 ml-1" />
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-
+            <div className="grid gap-4 sm:grid-cols-2">
               {/* Trackers Mini Card */}
               <Card className="premium-card group hover:glow-subtle transition-all duration-300">
                 <CardHeader className="pb-2">
@@ -556,11 +520,8 @@ const Index = () => {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div>
-                    <p className="text-2xl font-bold text-primary">{trackerSummary.formattedMonthSavings}</p>
-                    <p className="text-xs text-muted-foreground">{t.trackers.monthSavings}</p>
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {trackerSummary.activeCount} {t.kpis.activeHabits.toLowerCase()}
+                    <p className="text-2xl font-bold text-primary">{trackerSummary.activeCount}</p>
+                    <p className="text-xs text-muted-foreground">{t.trackers.title.toLowerCase()}</p>
                   </div>
                   <Link to="/objetivos">
                     <Button

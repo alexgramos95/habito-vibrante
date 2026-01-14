@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Globe, RotateCcw, Trash2, Coins } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Globe, RotateCcw, Trash2, Coins, ArrowLeft } from "lucide-react";
 import { useI18n } from "@/i18n/I18nContext";
 import { localeNames, currencyNames, type Locale, type Currency } from "@/i18n";
 import { AppState } from "@/data/types";
@@ -22,6 +23,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const Definicoes = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const { t, locale, setLocale, currency, setCurrency } = useI18n();
   const [state, setState] = useState<AppState>(() => loadState());
   const [showResetConfirm, setShowResetConfirm] = useState<"month" | "all" | null>(null);
@@ -58,7 +60,17 @@ const Definicoes = () => {
       <Navigation />
 
       <main className="container py-6 space-y-6">
-        <h1 className="text-2xl font-bold">{t.settings.title}</h1>
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate(-1)}
+            className="h-9 w-9"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-2xl font-bold">{t.settings.title}</h1>
+        </div>
 
         {/* Idioma */}
         <Card>
