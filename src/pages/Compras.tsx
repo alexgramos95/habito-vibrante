@@ -24,6 +24,8 @@ import {
 import { getShoppingItemsForWeek } from "@/logic/computations";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { ReceiptScanner } from "@/components/Shopping/ReceiptScanner";
+import { ReceiptReviewModal, ReviewItem } from "@/components/Shopping/ReceiptReviewModal";
 
 const Compras = () => {
   const { toast } = useToast();
@@ -41,6 +43,10 @@ const Compras = () => {
     categoria: "",
     price: "",
   });
+  
+  // Receipt OCR state
+  const [pendingReceiptItems, setPendingReceiptItems] = useState<ReviewItem[]>([]);
+  const [showReceiptReview, setShowReceiptReview] = useState(false);
 
   useEffect(() => {
     saveState(state);
@@ -146,6 +152,42 @@ const Compras = () => {
     toast({ title: t.shopping.itemDeleted });
   };
 
+  // Receipt OCR handlers
+  const handleReceiptItemsExtracted = (extractedItems: { nome: string; quantidade: string; precoUnit: number | null; precoTotal: number }[]) => {
+    const reviewItems: ReviewItem[] = extractedItems.map((item, index) => ({
+      id: `receipt-${Date.now()}-${index}`,
+      nome: item.nome,
+      quantidade: item.quantidade,
+      precoUnit: item.precoUnit,
+      precoTotal: item.precoTotal,
+    }));
+    setPendingReceiptItems(reviewItems);
+    setShowReceiptReview(true);
+  };
+
+  const handleConfirmReceiptItems = (confirmedItems: ReviewItem[]) => {
+    confirmedItems.forEach((item) => {
+      setState((prev) =>
+        addShoppingItem(prev, {
+          weekStartDate,
+          nome: item.nome,
+          quantidade: item.quantidade || undefined,
+          categoria: item.categoria || undefined,
+          price: item.precoTotal,
+        })
+      );
+    });
+    
+    toast({
+      title: locale === 'pt-PT' ? 'Itens adicionados' : 'Items added',
+      description: locale === 'pt-PT' 
+        ? `${confirmedItems.length} itens do talão adicionados` 
+        : `${confirmedItems.length} receipt items added`,
+    });
+    
+    setPendingReceiptItems([]);
+  };
+
   const weekLabel = locale === 'pt-PT' 
     ? format(selectedWeek, "'Semana de' d 'de' MMMM", { locale: dateLocale })
     : format(selectedWeek, "'Week of' MMMM d", { locale: dateLocale });
@@ -165,7 +207,9 @@ const Compras = () => {
             label: t.shopping.addItem,
             onClick: openAddForm,
           }}
-        />
+        >
+          <ReceiptScanner onItemsExtracted={handleReceiptItemsExtracted} />
+        </PageHeader>
 
         {/* Week Selector */}
         <Card className="glass border-border/30">
@@ -406,6 +450,14 @@ const Compras = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Receipt Review Modal */}
+      <ReceiptReviewModal
+        open={showReceiptReview}
+        onOpenChange={setShowReceiptReview}
+        items={pendingReceiptItems}
+        onConfirm={handleConfirmReceiptItems}
+      />
     </div>
   );
 };
