@@ -1,4 +1,4 @@
-import { Plus, Clock } from "lucide-react";
+import { Plus, Settings2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n/I18nContext";
@@ -61,14 +61,26 @@ export const HabitList = ({
         >
           {t.habits.title}
         </Link>
-        <Button
-          onClick={onAddHabit}
-          size="icon"
-          variant="ghost"
-          className="h-8 w-8 rounded-lg hover:bg-primary/10"
-        >
-          <Plus className="h-4 w-4" />
-        </Button>
+        <div className="flex items-center gap-1">
+          <Link to="/app/habitos">
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-8 gap-1.5 text-muted-foreground hover:text-foreground"
+            >
+              <Settings2 className="h-4 w-4" />
+              <span className="hidden sm:inline">{t.habits.management}</span>
+            </Button>
+          </Link>
+          <Button
+            onClick={onAddHabit}
+            size="icon"
+            variant="ghost"
+            className="h-8 w-8 rounded-lg hover:bg-primary/10"
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       {habitsForDay.length === 0 ? (

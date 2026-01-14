@@ -97,6 +97,8 @@ export const enUS: Translations = {
     noTrackers: "No trackers.",
     noTrackersDescription: "Track behaviors: exercise, meditation, water, reading, etc.",
     createFirst: "Create tracker",
+    todayLoss: "Lost {{amount}} today",
+    monthLoss: "Month loss",
     todaySavings: "{{amount}} saved",
     monthSavings: "Month",
     accumulated: "Total",

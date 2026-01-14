@@ -33,7 +33,7 @@ import {
 } from "recharts";
 import { cn } from "@/lib/utils";
 
-// Tracker summary computation
+// Tracker summary computation - for reduction trackers, we compute LOSSES not savings
 const calculateTrackerSummary = (
   tracker: Tracker,
   entries: TrackerEntry[],
@@ -49,18 +49,14 @@ const calculateTrackerSummary = (
   const monthEntries = allEntries.filter(e => e.trackerId === tracker.id && e.date.startsWith(monthStr));
   const monthlyCount = monthEntries.reduce((sum, e) => sum + e.quantity, 0);
   
-  // Financial impact
-  const baselineFinancial = tracker.baseline * tracker.valuePerUnit;
-  const todayFinancial = todayCount * tracker.valuePerUnit;
-  const todaySavings = tracker.type === 'reduce' 
-    ? Math.max(0, baselineFinancial - todayFinancial)
+  // For reduction trackers: compute LOSSES (how much was lost by consuming)
+  // Loss = count * valuePerUnit (each unit consumed is money lost)
+  const todayLoss = tracker.type === 'reduce' && tracker.valuePerUnit > 0
+    ? todayCount * tracker.valuePerUnit
     : 0;
   
-  const daysInMonth = today.getDate();
-  const monthlyBaseline = baselineFinancial * daysInMonth;
-  const monthlyActual = monthlyCount * tracker.valuePerUnit;
-  const monthlySavings = tracker.type === 'reduce'
-    ? Math.max(0, monthlyBaseline - monthlyActual)
+  const monthlyLoss = tracker.type === 'reduce' && tracker.valuePerUnit > 0
+    ? monthlyCount * tracker.valuePerUnit
     : 0;
   
   // Days on track
@@ -89,9 +85,9 @@ const calculateTrackerSummary = (
   
   return {
     todayCount,
-    todaySavings,
+    todayLoss,
     monthlyCount,
-    monthlySavings,
+    monthlyLoss,
     daysOnTrack,
     average30Days
   };
@@ -372,10 +368,11 @@ const Objetivos = () => {
                       onAddEntry={(qty, ts) => handleAddEntry(currentTracker.id, qty, ts)}
                     />
 
-                    {currentSummary.todaySavings > 0 && (
-                      <div className="text-center p-3 rounded-xl bg-success/10 border border-success/30">
-                        <p className="text-success font-medium">
-                          {t.trackers.todaySavings.replace("{{amount}}", formatCurrency(currentSummary.todaySavings))}
+                    {/* Show loss for reduction trackers */}
+                    {currentTracker.type === 'reduce' && currentSummary.todayLoss > 0 && (
+                      <div className="text-center p-3 rounded-xl bg-destructive/10 border border-destructive/30">
+                        <p className="text-destructive font-medium">
+                          {t.trackers.todayLoss.replace("{{amount}}", formatCurrency(currentSummary.todayLoss))}
                         </p>
                       </div>
                     )}
@@ -416,8 +413,17 @@ const Objetivos = () => {
                   </Card>
                   <Card className="glass border-border/30">
                     <CardContent className="p-4 text-center">
-                      <p className="text-2xl font-bold text-success">{formatCurrency(currentSummary.monthlySavings)}</p>
-                      <p className="text-xs text-muted-foreground">{t.trackers.monthSavings}</p>
+                      <p className={cn(
+                        "text-2xl font-bold",
+                        currentTracker.type === 'reduce' ? "text-destructive" : "text-success"
+                      )}>
+                        {currentTracker.type === 'reduce' 
+                          ? formatCurrency(currentSummary.monthlyLoss) 
+                          : formatCurrency(0)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {currentTracker.type === 'reduce' ? t.trackers.monthLoss : t.trackers.monthSavings}
+                      </p>
                     </CardContent>
                   </Card>
                   <Card className="glass border-border/30">
