@@ -85,7 +85,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { PaywallModal } from "@/components/Paywall/PaywallModal";
 import { TrialBanner } from "@/components/Paywall/TrialBanner";
 
-// Calculate tracker summary for dashboard
+// Calculate tracker summary for dashboard - using LOSS paradigm for reduction trackers
 const calculateTrackerDashboardSummary = (
   trackers: Tracker[],
   entries: TrackerEntry[],
@@ -94,8 +94,8 @@ const calculateTrackerDashboardSummary = (
   const today = format(new Date(), "yyyy-MM-dd");
   const activeTrackers = trackers.filter((t) => t.active);
 
-  let todayTotalSavings = 0;
-  let monthTotalSavings = 0;
+  let todayTotalLoss = 0;
+  let monthTotalLoss = 0;
 
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
@@ -106,33 +106,31 @@ const calculateTrackerDashboardSummary = (
     const todayEntries = entries.filter((e) => e.trackerId === tracker.id && e.date === today);
     const todayCount = todayEntries.reduce((sum, e) => sum + e.quantity, 0);
 
+    // For reduction trackers: loss = count * valuePerUnit (each unit is money lost)
     if (tracker.type === "reduce") {
-      const dailySaving = (tracker.baseline - todayCount) * tracker.valuePerUnit;
-      todayTotalSavings += Math.max(0, dailySaving);
+      todayTotalLoss += todayCount * tracker.valuePerUnit;
     }
 
-    // Month savings
+    // Month loss
     const monthEntries = entries.filter((e) => {
       if (e.trackerId !== tracker.id) return false;
       const date = new Date(e.date);
       return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
     });
 
-    const daysInMonth = new Date().getDate();
-    const monthBaseline = tracker.baseline * daysInMonth;
     const monthActual = monthEntries.reduce((sum, e) => sum + e.quantity, 0);
 
     if (tracker.type === "reduce") {
-      monthTotalSavings += Math.max(0, (monthBaseline - monthActual) * tracker.valuePerUnit);
+      monthTotalLoss += monthActual * tracker.valuePerUnit;
     }
   });
 
   return {
     activeCount: activeTrackers.length,
-    todaySavings: todayTotalSavings,
-    monthSavings: monthTotalSavings,
-    formattedTodaySavings: formatCurrency(todayTotalSavings),
-    formattedMonthSavings: formatCurrency(monthTotalSavings),
+    todayLoss: todayTotalLoss,
+    monthLoss: monthTotalLoss,
+    formattedTodayLoss: formatCurrency(todayTotalLoss),
+    formattedMonthLoss: formatCurrency(monthTotalLoss),
   };
 };
 

@@ -97,6 +97,7 @@ export const ptPT = {
     createFirst: "Criar primeiro tracker",
     todayLoss: "Perdeste {{amount}} hoje",
     monthLoss: "Perdas (mês)",
+    todaySavings: "Poupaste {{amount}}",
     accumulated: "Acumulado",
     daysOnTrack: "Dias no objetivo",
     average30Days: "Média 30 dias",

@@ -117,7 +117,13 @@ const Habitos = () => {
           </div>
         ) : (
           <div className="space-y-3">
-            {state.habits.map((habit) => (
+            {/* Sort habits by scheduledTime (chronologically) */}
+            {[...state.habits].sort((a, b) => {
+              if (!a.scheduledTime && !b.scheduledTime) return 0;
+              if (!a.scheduledTime) return 1;
+              if (!b.scheduledTime) return -1;
+              return a.scheduledTime.localeCompare(b.scheduledTime);
+            }).map((habit) => (
               <div
                 key={habit.id}
                 className={cn(
@@ -132,9 +138,12 @@ const Habitos = () => {
                   />
                   <div>
                     <p className="font-medium">{habit.nome}</p>
-                    {habit.categoria && (
-                      <p className="text-sm text-muted-foreground">{habit.categoria}</p>
-                    )}
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      {habit.categoria && <span>{habit.categoria}</span>}
+                      {habit.scheduledTime && (
+                        <span className="font-mono text-xs">{habit.scheduledTime}</span>
+                      )}
+                    </div>
                   </div>
                 </div>
                 
