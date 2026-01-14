@@ -64,7 +64,7 @@ import { ReflectionModal } from "@/components/Dashboard/ReflectionModal";
 import { FutureSelfModal } from "@/components/Dashboard/FutureSelfModal";
 import { WeeklyDrilldownModal } from "@/components/Dashboard/WeeklyDrilldownModal";
 import { WeeklyConsistencyCard } from "@/components/Dashboard/WeeklyConsistencyCard";
-import { BouncebackPrompt } from "@/components/Dashboard/BouncebackPrompt";
+// BouncebackPrompt removed per user request
 import { LoginTriggerModal } from "@/components/Auth/LoginTriggerModal";
 import { TrialOfferModal } from "@/components/Auth/TrialOfferModal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -168,7 +168,7 @@ const Index = () => {
   const [showFutureSelfModal, setShowFutureSelfModal] = useState(false);
   const [showWeeklyDrilldown, setShowWeeklyDrilldown] = useState(false);
   const [selectedWeek, setSelectedWeek] = useState<number>(1);
-  const [bouncebackDismissed, setBouncebackDismissed] = useState(false);
+  
 
   const today = format(new Date(), "yyyy-MM-dd");
 
@@ -195,8 +195,8 @@ const Index = () => {
     }
   }, [isAuthenticated, isEmailVerified, isPro, trialStatus.isExpired, navigate]);
 
-  // Bounceback hook
-  const { weeklyStats, yesterdayRecovery } = useBounceback(state);
+  // Bounceback hook - keep for weeklyStats used in WeeklyConsistencyCard
+  const { weeklyStats } = useBounceback(state);
 
   // Persist state changes
   useEffect(() => {
@@ -377,16 +377,7 @@ const Index = () => {
     }
   };
 
-  // Bounceback: recover yesterday
-  const handleRecoverYesterday = () => {
-    const yesterday = format(subDays(new Date(), 1), "yyyy-MM-dd");
-    setState((prev) => recoverHabitsForDate(prev, yesterday));
-    setBouncebackDismissed(true);
-    toast({
-      title: t.bounceback.dayRecovered,
-      description: t.bounceback.streakProtected,
-    });
-  };
+  // Bounceback handler removed per user request
 
   const dateLabel = isToday(selectedDate)
     ? t.dashboard.today
@@ -464,14 +455,7 @@ const Index = () => {
           />
         </div>
 
-        {/* Bounceback Prompt */}
-        {yesterdayRecovery.canRecover && !bouncebackDismissed && (
-          <BouncebackPrompt
-            missedHabits={yesterdayRecovery.missedHabits}
-            onRecover={handleRecoverYesterday}
-            onDismiss={() => setBouncebackDismissed(true)}
-          />
-        )}
+        {/* Bounceback Prompt removed per user request */}
 
         {/* Motivational Banner */}
         <MotivationalBanner summary={monthlySummary} hasHabits={state.habits.length > 0} />

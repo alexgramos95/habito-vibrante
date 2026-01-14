@@ -316,7 +316,75 @@ const Objetivos = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-6 lg:grid-cols-3">
+          <div className="space-y-6">
+            {/* Global Financial Losses Chart - Full width at top to fill space */}
+            {financialTrackers.length > 0 && overallLossChartData.length > 0 && (
+              <Card className="premium-card border-border/30 overflow-hidden">
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+                    <TrendingDown className="h-5 w-5 text-destructive" />
+                    {locale === 'pt-PT' ? 'Visão Geral – Perdas Diárias' : 'Overview – Daily Losses'}
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    {locale === 'pt-PT' 
+                      ? 'Impacto financeiro combinado de todos os trackers' 
+                      : 'Combined financial impact of all trackers'}
+                  </p>
+                </CardHeader>
+                <CardContent className="pt-2">
+                  <ResponsiveContainer width="100%" height={280}>
+                    <BarChart data={overallLossChartData} margin={{ top: 10, right: 10, left: 0, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
+                      <XAxis
+                        dataKey="date"
+                        tickFormatter={(val) => format(parseISO(val), "d", { locale: dateLocale })}
+                        stroke="hsl(var(--muted-foreground))"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={{ stroke: 'hsl(var(--border))' }}
+                      />
+                      <YAxis 
+                        stroke="hsl(var(--muted-foreground))" 
+                        fontSize={12}
+                        tickFormatter={(val) => `${val}€`}
+                        tickLine={false}
+                        axisLine={{ stroke: 'hsl(var(--border))' }}
+                        width={50}
+                      />
+                      <RechartsTooltip
+                        contentStyle={{
+                          backgroundColor: "hsl(var(--card))",
+                          border: "1px solid hsl(var(--border))",
+                          borderRadius: "12px",
+                          boxShadow: "0 10px 25px -5px rgba(0,0,0,0.3)",
+                          padding: "12px 16px",
+                        }}
+                        labelStyle={{ fontWeight: 600, marginBottom: 8 }}
+                        labelFormatter={(val) => format(parseISO(val as string), "d MMM yyyy", { locale: dateLocale })}
+                        formatter={(value: number, name: string) => [formatCurrency(value), name]}
+                        cursor={{ fill: 'hsl(var(--muted) / 0.2)' }}
+                      />
+                      <Legend 
+                        wrapperStyle={{ paddingTop: 16 }}
+                        iconType="circle"
+                        iconSize={10}
+                      />
+                      {financialTrackers.map((tracker, index) => (
+                        <Bar 
+                          key={tracker.id}
+                          dataKey={tracker.name}
+                          stackId="losses"
+                          fill={chartColors[index % chartColors.length]}
+                          radius={index === financialTrackers.length - 1 ? [6, 6, 0, 0] : [0, 0, 0, 0]}
+                        />
+                      ))}
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            )}
+
+            <div className="grid gap-6 lg:grid-cols-3">
             {/* Tracker Selector */}
             <div className="space-y-3">
               {activeTrackers.map(tracker => {
@@ -548,56 +616,9 @@ const Objetivos = () => {
                   </CardContent>
                 </Card>
 
-                {/* Global Financial Losses Chart */}
-                {financialTrackers.length > 0 && overallLossChartData.length > 0 && (
-                  <Card className="glass border-border/30">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2 text-base">
-                        <TrendingDown className="h-5 w-5 text-destructive" />
-                        {locale === 'pt-PT' ? 'Visão Geral - Perdas Diárias' : 'Overview - Daily Losses'}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <ResponsiveContainer width="100%" height={220}>
-                        <BarChart data={overallLossChartData}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                          <XAxis
-                            dataKey="date"
-                            tickFormatter={(val) => format(parseISO(val), "d", { locale: dateLocale })}
-                            stroke="hsl(var(--muted-foreground))"
-                            fontSize={11}
-                          />
-                          <YAxis 
-                            stroke="hsl(var(--muted-foreground))" 
-                            fontSize={11}
-                            tickFormatter={(val) => `${val}€`}
-                          />
-                          <RechartsTooltip
-                            contentStyle={{
-                              backgroundColor: "hsl(var(--card))",
-                              border: "1px solid hsl(var(--border))",
-                              borderRadius: "8px",
-                            }}
-                            labelFormatter={(val) => format(parseISO(val as string), "d MMM", { locale: dateLocale })}
-                            formatter={(value: number, name: string) => [formatCurrency(value), name]}
-                          />
-                          <Legend />
-                          {financialTrackers.map((tracker, index) => (
-                            <Bar 
-                              key={tracker.id}
-                              dataKey={tracker.name}
-                              stackId="losses"
-                              fill={chartColors[index % chartColors.length]}
-                              radius={index === financialTrackers.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]}
-                            />
-                          ))}
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </CardContent>
-                  </Card>
-                )}
               </div>
             )}
+            </div>
           </div>
         )}
       </main>
