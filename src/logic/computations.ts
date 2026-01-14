@@ -241,18 +241,9 @@ export const getMotivationalMessage = (
 ): string => {
   const isPortuguese = locale === 'pt-PT';
   
-  // No habits scenario - just return empty or a neutral message
-  if (!hasHabits || summary.habitosAtivos === 0) {
-    return isPortuguese 
-      ? "Cria o teu primeiro hábito para começar."
-      : "Create your first habit to get started.";
-  }
-  
-  // No streak yet - neutral message without motivational push
-  if (summary.streakAtual === 0) {
-    return isPortuguese 
-      ? "Regista o primeiro hábito do dia."
-      : "Log your first habit of the day.";
+  // No habits or no streak scenarios - return empty string (no message)
+  if (!hasHabits || summary.habitosAtivos === 0 || summary.streakAtual === 0) {
+    return "";
   }
   
   // Progress-based messages
