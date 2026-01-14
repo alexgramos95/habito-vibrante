@@ -30,6 +30,7 @@ const Landing = () => {
   const navigate = useNavigate();
   const [showPaywall, setShowPaywall] = useState(false);
   const [selectedPricing, setSelectedPricing] = useState<"monthly" | "yearly" | "lifetime">("yearly");
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
   const { upgradeToPro } = useSubscription();
 
   const handleStartTrial = () => {
@@ -66,8 +67,6 @@ const Landing = () => {
       a: "Yes. If you're not satisfied within 30 days of purchase, we'll refund you. No questions asked.",
     },
   ];
-
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   return (
     <div className="min-h-screen bg-background">
