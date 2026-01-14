@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { differenceInDays, parseISO, addDays } from 'date-fns';
+import { useAuth } from '@/contexts/AuthContext';
 
 export type PlanType = 'free' | 'trial' | 'pro';
 
 export interface SubscriptionState {
   plan: PlanType;
-  trialStartDate: string | null; // ISO date string
+  trialStartDate: string | null;
   trialEndDate: string | null;
   purchaseDate: string | null;
   purchasePlan: 'monthly' | 'yearly' | 'lifetime' | null;
@@ -19,7 +20,6 @@ export interface OnboardingState {
   selectedPresets: string[];
 }
 
-const SUBSCRIPTION_KEY = 'become-subscription';
 const ONBOARDING_KEY = 'become-onboarding-state';
 const TRIAL_DURATION_DAYS = 2;
 
@@ -42,14 +42,6 @@ export const PRO_FEATURES = {
   fullReminders: true,
 };
 
-const defaultSubscription: SubscriptionState = {
-  plan: 'free',
-  trialStartDate: null,
-  trialEndDate: null,
-  purchaseDate: null,
-  purchasePlan: null,
-};
-
 const defaultOnboarding: OnboardingState = {
   completed: false,
   completedAt: null,
@@ -59,16 +51,8 @@ const defaultOnboarding: OnboardingState = {
 };
 
 export const useSubscription = () => {
-  const [subscription, setSubscription] = useState<SubscriptionState>(() => {
-    try {
-      const stored = localStorage.getItem(SUBSCRIPTION_KEY);
-      if (stored) return JSON.parse(stored);
-      return defaultSubscription;
-    } catch {
-      return defaultSubscription;
-    }
-  });
-
+  const { subscriptionStatus, startTrial: authStartTrial, isAuthenticated } = useAuth();
+  
   const [onboarding, setOnboarding] = useState<OnboardingState>(() => {
     try {
       const stored = localStorage.getItem(ONBOARDING_KEY);
@@ -79,29 +63,32 @@ export const useSubscription = () => {
     }
   });
 
-  // Persist subscription changes
-  useEffect(() => {
-    localStorage.setItem(SUBSCRIPTION_KEY, JSON.stringify(subscription));
-  }, [subscription]);
-
   // Persist onboarding changes
   useEffect(() => {
     localStorage.setItem(ONBOARDING_KEY, JSON.stringify(onboarding));
   }, [onboarding]);
 
-  // Calculate trial status
+  // Derive subscription state from auth context
+  const subscription: SubscriptionState = {
+    plan: subscriptionStatus.plan,
+    trialStartDate: subscriptionStatus.trialStart,
+    trialEndDate: subscriptionStatus.trialEnd,
+    purchaseDate: subscriptionStatus.subscriptionEnd,
+    purchasePlan: subscriptionStatus.purchasePlan,
+  };
+
+  // Calculate trial status from context
   const getTrialStatus = useCallback(() => {
-    if (subscription.plan === 'pro') {
+    if (subscriptionStatus.plan === 'pro') {
       return { isActive: false, daysRemaining: 0, isExpired: false };
     }
 
-    if (subscription.plan === 'trial' && subscription.trialEndDate) {
-      const endDate = parseISO(subscription.trialEndDate);
+    if (subscriptionStatus.plan === 'trial' && subscriptionStatus.trialEnd) {
+      const endDate = parseISO(subscriptionStatus.trialEnd);
       const today = new Date();
       const daysRemaining = differenceInDays(endDate, today);
       
       if (daysRemaining < 0) {
-        // Trial expired - switch to free
         return { isActive: false, daysRemaining: 0, isExpired: true };
       }
       
@@ -113,38 +100,17 @@ export const useSubscription = () => {
     }
 
     return { isActive: false, daysRemaining: 0, isExpired: false };
-  }, [subscription]);
+  }, [subscriptionStatus]);
 
-  // Check if trial has expired and update plan
-  useEffect(() => {
-    const status = getTrialStatus();
-    if (status.isExpired && subscription.plan === 'trial') {
-      setSubscription(prev => ({ ...prev, plan: 'free' }));
-    }
-  }, [getTrialStatus, subscription.plan]);
+  // Start trial - delegate to auth context
+  const startTrial = useCallback(async () => {
+    await authStartTrial();
+  }, [authStartTrial]);
 
-  // Start trial
-  const startTrial = useCallback(() => {
-    const now = new Date();
-    const endDate = addDays(now, TRIAL_DURATION_DAYS);
-    
-    setSubscription({
-      plan: 'trial',
-      trialStartDate: now.toISOString(),
-      trialEndDate: endDate.toISOString(),
-      purchaseDate: null,
-      purchasePlan: null,
-    });
-  }, []);
-
-  // Upgrade to Pro (stub - no actual payment)
+  // Upgrade to Pro (stub - triggers Stripe flow in reality)
   const upgradeToPro = useCallback((planType: 'monthly' | 'yearly' | 'lifetime') => {
-    setSubscription(prev => ({
-      ...prev,
-      plan: 'pro',
-      purchaseDate: new Date().toISOString(),
-      purchasePlan: planType,
-    }));
+    // This will be replaced with actual Stripe checkout flow
+    console.log('[SUBSCRIPTION] Upgrade to pro requested:', planType);
   }, []);
 
   // Complete onboarding
@@ -160,30 +126,29 @@ export const useSubscription = () => {
   // Check feature access
   const hasAccess = useCallback((feature: keyof typeof FREE_LIMITS): boolean => {
     const status = getTrialStatus();
-    const isPro = subscription.plan === 'pro' || status.isActive;
+    const isPro = subscriptionStatus.plan === 'pro' || status.isActive;
     
     if (isPro) return true;
     
-    // Check specific feature limits
     if (feature === 'financesAccess' || feature === 'exportAccess' || feature === 'fullReminders') {
       return FREE_LIMITS[feature];
     }
     
-    return true; // For numeric limits, handled elsewhere
-  }, [subscription.plan, getTrialStatus]);
+    return true;
+  }, [subscriptionStatus.plan, getTrialStatus]);
 
   // Get current limits
   const getLimits = useCallback(() => {
     const status = getTrialStatus();
-    const isPro = subscription.plan === 'pro' || status.isActive;
+    const isPro = subscriptionStatus.plan === 'pro' || status.isActive;
     
     return isPro ? PRO_FEATURES : FREE_LIMITS;
-  }, [subscription.plan, getTrialStatus]);
+  }, [subscriptionStatus.plan, getTrialStatus]);
 
   // Check if should show paywall
   const shouldShowPaywall = useCallback((trigger: 'habits' | 'calendar' | 'finances' | 'export'): boolean => {
     const status = getTrialStatus();
-    const isPro = subscription.plan === 'pro' || status.isActive;
+    const isPro = subscriptionStatus.plan === 'pro' || status.isActive;
     
     if (isPro) return false;
     
@@ -192,30 +157,31 @@ export const useSubscription = () => {
       case 'export':
         return true;
       case 'calendar':
-        // Show paywall for week 2+
         return true;
       case 'habits':
-        return false; // Handled by limit check
+        return false;
       default:
         return false;
     }
-  }, [subscription.plan, getTrialStatus]);
+  }, [subscriptionStatus.plan, getTrialStatus]);
 
   // Check if needs onboarding
   const needsOnboarding = !onboarding.completed;
 
-  // Check legacy onboarding flag and migrate
+  // Check legacy onboarding flag
   useEffect(() => {
     const legacyComplete = localStorage.getItem('itero-onboarding-complete');
     if (legacyComplete === 'true' && !onboarding.completed) {
-      // Don't auto-migrate - let new onboarding run for trial start
+      // Legacy migration placeholder
     }
   }, [onboarding.completed]);
+
+  const trialStatus = getTrialStatus();
 
   return {
     subscription,
     onboarding,
-    trialStatus: getTrialStatus(),
+    trialStatus,
     startTrial,
     upgradeToPro,
     completeOnboarding,
@@ -223,6 +189,6 @@ export const useSubscription = () => {
     getLimits,
     shouldShowPaywall,
     needsOnboarding,
-    isPro: subscription.plan === 'pro' || getTrialStatus().isActive,
+    isPro: subscriptionStatus.plan === 'pro' || trialStatus.isActive,
   };
 };
