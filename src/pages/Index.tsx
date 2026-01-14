@@ -12,6 +12,7 @@ import {
   ChevronRight,
   Sparkles,
   CheckCircle2,
+  Settings2,
 } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useI18n } from "@/i18n/I18nContext";
@@ -50,7 +51,7 @@ import { WeeklyChart } from "@/components/Dashboard/WeeklyChart";
 import { MonthSelector } from "@/components/Dashboard/MonthSelector";
 import { HabitList } from "@/components/Habits/HabitList";
 import { HabitForm } from "@/components/Habits/HabitForm";
-import { MotivationalBanner } from "@/components/Feedback/MotivationalBanner";
+// MotivationalBanner removed per user request
 import { ReflectionCard } from "@/components/Modules/ReflectionCard";
 import { FutureSelfCard } from "@/components/Modules/FutureSelfCard";
 import { TrackerQuickAdd } from "@/components/Modules/TrackerQuickAdd";
@@ -388,25 +389,15 @@ const Index = () => {
       <Navigation />
 
       <main className="container py-6 md:py-8 space-y-6 md:space-y-8">
-        {/* Header with Add Habit CTA */}
+        {/* Header with Habit Management CTA */}
         <PageHeader
           title={t.nav.habits}
           subtitle={(t as any).pageSubtitles?.habits || t.app.tagline}
           icon={CheckCircle2}
           action={{
-            icon: Flame,
-            label: t.habits.add,
-            onClick: () => {
-              const currentHabitCount = state.habits.filter((h) => h.active).length;
-              const maxHabits = limits.maxHabits as number;
-
-              if (!isPro && currentHabitCount >= maxHabits) {
-                setShowPaywall(true);
-                return;
-              }
-              setEditingHabit(null);
-              setShowHabitForm(true);
-            },
+            icon: Settings2,
+            label: locale === 'pt-PT' ? 'Gerir Hábitos' : 'Manage Habits',
+            onClick: () => navigate('/app/habitos'),
           }}
         >
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full glass text-sm">
@@ -455,10 +446,7 @@ const Index = () => {
           />
         </div>
 
-        {/* Bounceback Prompt removed per user request */}
-
-        {/* Motivational Banner */}
-        <MotivationalBanner summary={monthlySummary} hasHabits={state.habits.length > 0} />
+        {/* Bounceback Prompt and Motivational Banner removed per user request */}
 
         {/* Main Content Grid */}
         <div className="grid gap-6 lg:grid-cols-3">

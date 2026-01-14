@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { format, parseISO } from "date-fns";
 import { pt, enUS as enUSLocale } from "date-fns/locale";
 import {
@@ -32,7 +32,7 @@ import {
   ResponsiveContainer, BarChart, Bar, Cell, Legend
 } from "recharts";
 import { cn } from "@/lib/utils";
-import { subDays } from "date-fns";
+
 
 // Tracker summary computation - for reduction trackers, we compute LOSSES not savings
 // IMPORTANT: Statistics start from first entry, not penalizing days before tracking started
@@ -237,53 +237,8 @@ const Objetivos = () => {
     return days;
   };
 
-  // Overall performance chart data (last 30 days, all trackers) - FINANCIAL LOSSES
-  const overallLossChartData = useMemo(() => {
-    const financialTrackers = activeTrackers.filter(t => t.type === 'reduce' && t.valuePerUnit > 0);
-    if (financialTrackers.length === 0) return [];
-    
-    const data: { date: string; totalLoss: number; [key: string]: number | string }[] = [];
-    
-    // Get the earliest tracker start date (first entry)
-    const allTrackerEntries = state.trackerEntries.filter(e => 
-      financialTrackers.some(t => t.id === e.trackerId)
-    );
-    const earliestEntryDate = allTrackerEntries.length > 0
-      ? allTrackerEntries.reduce((earliest, e) => e.date < earliest ? e.date : earliest, allTrackerEntries[0].date)
-      : format(today, "yyyy-MM-dd");
-    
-    for (let i = 29; i >= 0; i--) {
-      const date = subDays(today, i);
-      const dateStr = format(date, "yyyy-MM-dd");
-      
-      // Skip dates before tracking started
-      if (dateStr < earliestEntryDate) continue;
-      
-      const dayData: { date: string; totalLoss: number; [key: string]: number | string } = { 
-        date: dateStr, 
-        totalLoss: 0 
-      };
-      
-      financialTrackers.forEach(tracker => {
-        const dayEntries = state.trackerEntries.filter(
-          e => e.trackerId === tracker.id && e.date === dateStr
-        );
-        const dayCount = dayEntries.reduce((sum, e) => sum + e.quantity, 0);
-        const dayLoss = dayCount * tracker.valuePerUnit;
-        dayData[tracker.name] = dayLoss;
-        dayData.totalLoss += dayLoss;
-      });
-      
-      data.push(dayData);
-    }
-    
-    return data;
-  }, [activeTrackers, state.trackerEntries, today]);
-
+  // Chart colors for individual tracker charts
   const chartColors = ["hsl(var(--destructive))", "hsl(var(--warning))", "hsl(var(--accent))", "hsl(var(--primary))", "hsl(var(--success))"];
-  
-  // Get financial trackers for the global chart
-  const financialTrackers = activeTrackers.filter(t => t.type === 'reduce' && t.valuePerUnit > 0);
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
@@ -317,72 +272,7 @@ const Objetivos = () => {
           </Card>
         ) : (
           <div className="space-y-6">
-            {/* Global Financial Losses Chart - Full width at top to fill space */}
-            {financialTrackers.length > 0 && overallLossChartData.length > 0 && (
-              <Card className="premium-card border-border/30 overflow-hidden">
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2 text-lg font-semibold">
-                    <TrendingDown className="h-5 w-5 text-destructive" />
-                    {locale === 'pt-PT' ? 'Visão Geral – Perdas Diárias' : 'Overview – Daily Losses'}
-                  </CardTitle>
-                  <p className="text-sm text-muted-foreground">
-                    {locale === 'pt-PT' 
-                      ? 'Impacto financeiro combinado de todos os trackers' 
-                      : 'Combined financial impact of all trackers'}
-                  </p>
-                </CardHeader>
-                <CardContent className="pt-2">
-                  <ResponsiveContainer width="100%" height={280}>
-                    <BarChart data={overallLossChartData} margin={{ top: 10, right: 10, left: 0, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
-                      <XAxis
-                        dataKey="date"
-                        tickFormatter={(val) => format(parseISO(val), "d", { locale: dateLocale })}
-                        stroke="hsl(var(--muted-foreground))"
-                        fontSize={12}
-                        tickLine={false}
-                        axisLine={{ stroke: 'hsl(var(--border))' }}
-                      />
-                      <YAxis 
-                        stroke="hsl(var(--muted-foreground))" 
-                        fontSize={12}
-                        tickFormatter={(val) => `${val}€`}
-                        tickLine={false}
-                        axisLine={{ stroke: 'hsl(var(--border))' }}
-                        width={50}
-                      />
-                      <RechartsTooltip
-                        contentStyle={{
-                          backgroundColor: "hsl(var(--card))",
-                          border: "1px solid hsl(var(--border))",
-                          borderRadius: "12px",
-                          boxShadow: "0 10px 25px -5px rgba(0,0,0,0.3)",
-                          padding: "12px 16px",
-                        }}
-                        labelStyle={{ fontWeight: 600, marginBottom: 8 }}
-                        labelFormatter={(val) => format(parseISO(val as string), "d MMM yyyy", { locale: dateLocale })}
-                        formatter={(value: number, name: string) => [formatCurrency(value), name]}
-                        cursor={{ fill: 'hsl(var(--muted) / 0.2)' }}
-                      />
-                      <Legend 
-                        wrapperStyle={{ paddingTop: 16 }}
-                        iconType="circle"
-                        iconSize={10}
-                      />
-                      {financialTrackers.map((tracker, index) => (
-                        <Bar 
-                          key={tracker.id}
-                          dataKey={tracker.name}
-                          stackId="losses"
-                          fill={chartColors[index % chartColors.length]}
-                          radius={index === financialTrackers.length - 1 ? [6, 6, 0, 0] : [0, 0, 0, 0]}
-                        />
-                      ))}
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            )}
+            {/* Global Financial Losses Chart removed per user request */}
 
             <div className="grid gap-6 lg:grid-cols-3">
             {/* Tracker Selector */}
