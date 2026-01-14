@@ -139,6 +139,22 @@ const Calendario = () => {
       return a.scheduledTime.localeCompare(b.scheduledTime);
     });
   }, [state]);
+
+  // Helper to check if a habit is scheduled for a specific weekday
+  // weekday: 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  const isHabitScheduledForDay = (habit: Habit, date: Date): boolean => {
+    // If no scheduledDays or empty, habit is scheduled every day
+    if (!habit.scheduledDays || habit.scheduledDays.length === 0) {
+      return true;
+    }
+    const dayOfWeek = getDay(date); // 0 = Sunday
+    return habit.scheduledDays.includes(dayOfWeek);
+  };
+
+  // Get habits for a specific date (filtered by weekday schedule and sorted by time)
+  const getHabitsForDate = (date: Date) => {
+    return activeHabits.filter(habit => isHabitScheduledForDay(habit, date));
+  };
   
   const activeTrackers = (state.trackers || []).filter(t => t.active);
 
@@ -151,7 +167,17 @@ const Calendario = () => {
 
   const getDayData = (date: Date) => {
     const dateStr = format(date, "yyyy-MM-dd");
-    const completedHabits = getCompletedHabitsOnDate(state, date);
+    
+    // Get habits scheduled for this specific day
+    const habitsForDay = getHabitsForDate(date);
+    
+    // Count completed habits that are actually scheduled for this day
+    const completedHabits = habitsForDay.filter(habit =>
+      state.dailyLogs.some(
+        log => log.habitId === habit.id && log.date === dateStr && log.done
+      )
+    ).length;
+    
     const reflection = getReflectionForDate(state, dateStr);
     
     const trackerEntries = (state.trackerEntries || []).filter(e => e.date === dateStr);
@@ -174,7 +200,7 @@ const Calendario = () => {
 
     return {
       completedHabits,
-      totalHabits: activeHabits.length,
+      totalHabits: habitsForDay.length,
       reflection,
       trackerEntries,
       trackerCount,
@@ -324,50 +350,53 @@ const Calendario = () => {
               </div>
             </div>
 
-            {/* Habits List with Toggle */}
-            {activeHabits.length > 0 && (
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium text-muted-foreground">
-                  {locale === 'pt-PT' ? 'Hábitos' : 'Habits'}
-                </h4>
+            {/* Habits List with Toggle - Filtered by weekday schedule */}
+            {(() => {
+              const habitsForDay = getHabitsForDate(detailDate);
+              return habitsForDay.length > 0 && (
                 <div className="space-y-2">
-                  {activeHabits.map(habit => {
-                    const isDone = state.dailyLogs.some(
-                      l => l.habitId === habit.id && l.date === dateStr && l.done
-                    );
-                    return (
-                      <button
-                        key={habit.id}
-                        onClick={() => handleToggleHabit(habit.id, detailDate)}
-                        className={cn(
-                          "w-full flex items-center justify-between p-3 rounded-lg transition-all",
-                          isDone 
-                            ? "bg-primary/10 border border-primary/30" 
-                            : "bg-secondary/50 border border-border/30 hover:bg-secondary"
-                        )}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div 
-                            className="w-3 h-3 rounded-full" 
-                            style={{ backgroundColor: habit.cor || '#14b8a6' }} 
-                          />
-                          <div className="flex flex-col items-start">
-                            <span className={cn(isDone && "line-through opacity-70")}>{habit.nome}</span>
-                            {habit.scheduledTime && (
-                              <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                <Clock className="h-3 w-3" />
-                                {habit.scheduledTime}
-                              </span>
-                            )}
+                  <h4 className="text-sm font-medium text-muted-foreground">
+                    {locale === 'pt-PT' ? 'Hábitos' : 'Habits'}
+                  </h4>
+                  <div className="space-y-2">
+                    {habitsForDay.map(habit => {
+                      const isDone = state.dailyLogs.some(
+                        l => l.habitId === habit.id && l.date === dateStr && l.done
+                      );
+                      return (
+                        <button
+                          key={habit.id}
+                          onClick={() => handleToggleHabit(habit.id, detailDate)}
+                          className={cn(
+                            "w-full flex items-center justify-between p-3 rounded-lg transition-all",
+                            isDone 
+                              ? "bg-primary/10 border border-primary/30" 
+                              : "bg-secondary/50 border border-border/30 hover:bg-secondary"
+                          )}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div 
+                              className="w-3 h-3 rounded-full" 
+                              style={{ backgroundColor: habit.cor || '#14b8a6' }} 
+                            />
+                            <div className="flex flex-col items-start">
+                              <span className={cn(isDone && "line-through opacity-70")}>{habit.nome}</span>
+                              {habit.scheduledTime && (
+                                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
+                                  {habit.scheduledTime}
+                                </span>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                        {isDone ? <Check className="h-4 w-4 text-primary" /> : <div className="w-4 h-4 rounded border border-muted-foreground" />}
-                      </button>
-                    );
-                  })}
+                          {isDone ? <Check className="h-4 w-4 text-primary" /> : <div className="w-4 h-4 rounded border border-muted-foreground" />}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* Tracker Reminders (Scheduled) */}
             {data.trackerReminders.length > 0 && (

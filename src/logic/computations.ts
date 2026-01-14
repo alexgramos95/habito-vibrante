@@ -233,6 +233,7 @@ export const calculateMonthlySummary = (
 };
 
 // Dynamic motivational messages - EN primary
+// Note: Removed "matching best streak" message as per user request
 export const getMotivationalMessage = (
   summary: MonthlySummary,
   hasHabits: boolean,
@@ -261,18 +262,18 @@ export const getMotivationalMessage = (
       : `🌟 Excellent! ${Math.round(summary.progressoMensal)}% complete this month.`;
   }
   
-  // Streak-based messages
-  if (summary.streakAtual === summary.melhorStreak && summary.streakAtual > 0) {
+  // Good streak progress (but NOT matching best - that message was removed)
+  if (summary.streakAtual >= 7) {
     return isPortuguese 
-      ? "🔥 Estás a igualar o teu melhor momento. Continua!"
-      : "🔥 Matching your best streak. Keep going!";
+      ? `🔥 ${summary.streakAtual} dias seguidos! Excelente consistência.`
+      : `🔥 ${summary.streakAtual} days in a row! Excellent consistency.`;
   }
   
   if (summary.streakAtual > 0 && summary.streakAtual < summary.melhorStreak) {
     const daysToRecord = summary.melhorStreak - summary.streakAtual;
     return isPortuguese 
-      ? `💪 Estás a ${daysToRecord} dia${daysToRecord > 1 ? 's' : ''} de igualar o teu recorde.`
-      : `💪 ${daysToRecord} day${daysToRecord > 1 ? 's' : ''} to match your record.`;
+      ? `💪 Estás a ${daysToRecord} dia${daysToRecord > 1 ? 's' : ''} do teu recorde.`
+      : `💪 ${daysToRecord} day${daysToRecord > 1 ? 's' : ''} from your record.`;
   }
   
   if (summary.progressoMensal >= 30 && summary.progressoMensal <= 70) {
@@ -619,23 +620,25 @@ export const getMotivationalFinanceMessage = (
 };
 
 // ============= TRACKER-BASED FINANCIAL COMPUTATIONS =============
+// Updated to use LOSSES paradigm for reduction trackers
+// Loss = events * valuePerUnit (money lost by consuming)
 
 export interface TrackerFinancialSummary {
   trackerId: string;
   trackerName: string;
   trackerIcon?: string;
-  monthlySavings: number;
-  accumulatedSavings: number;
+  monthlyLoss: number;       // Renamed from monthlySavings
+  accumulatedLoss: number;   // Renamed from accumulatedSavings
   percentageOfTotal: number;
   daysActive: number;
 }
 
 export interface FinancialOverview {
-  monthlySavings: number;
-  accumulatedSavings: number;
-  topContributor: TrackerFinancialSummary | null;
+  monthlyLoss: number;       // Renamed from monthlySavings
+  accumulatedLoss: number;   // Renamed from accumulatedSavings
+  topContributor: TrackerFinancialSummary | null;  // Tracker with biggest loss
   trackerBreakdown: TrackerFinancialSummary[];
-  monthlyData: { date: string; savings: number; tracker: string }[];
+  monthlyData: { date: string; loss: number; tracker: string }[];  // loss instead of savings
 }
 
 export const calculateTrackerFinancials = (
@@ -646,67 +649,63 @@ export const calculateTrackerFinancials = (
 ): FinancialOverview => {
   const monthStr = `${year}-${String(month + 1).padStart(2, "0")}`;
   const today = new Date();
-  const daysInMonth = today.getMonth() === month && today.getFullYear() === year
-    ? today.getDate()
-    : new Date(year, month + 1, 0).getDate();
   
-  const financialTrackers = trackers.filter(t => t.includeInFinances && t.active && t.valuePerUnit > 0);
+  // Only look at reduction trackers with financial impact
+  const financialTrackers = trackers.filter(t => t.active && t.type === 'reduce' && t.valuePerUnit > 0);
   
-  let totalMonthlySavings = 0;
-  let totalAccumulatedSavings = 0;
+  let totalMonthlyLoss = 0;
+  let totalAccumulatedLoss = 0;
   const trackerBreakdown: TrackerFinancialSummary[] = [];
-  const monthlyData: { date: string; savings: number; tracker: string }[] = [];
+  const monthlyData: { date: string; loss: number; tracker: string }[] = [];
   
   financialTrackers.forEach(tracker => {
-    // Monthly savings calculation
+    // Monthly loss calculation: count * valuePerUnit
     const monthEntries = entries.filter(e => 
       e.trackerId === tracker.id && e.date.startsWith(monthStr)
     );
     const monthCount = monthEntries.reduce((sum, e) => sum + e.quantity, 0);
-    const monthlyBaseline = tracker.baseline * daysInMonth;
-    const monthlySavings = tracker.type === 'reduce'
-      ? Math.max(0, (monthlyBaseline - monthCount) * tracker.valuePerUnit)
-      : 0;
+    const monthlyLoss = monthCount * tracker.valuePerUnit;
     
-    // Accumulated savings (all time)
+    // Accumulated loss (all time)
     const allEntries = entries.filter(e => e.trackerId === tracker.id);
+    const totalCount = allEntries.reduce((sum, e) => sum + e.quantity, 0);
+    const accumulatedLoss = totalCount * tracker.valuePerUnit;
+    
+    // Days active
     const firstEntryDate = allEntries.length > 0 
       ? parseISO(allEntries.sort((a, b) => a.date.localeCompare(b.date))[0].date)
       : today;
-    const totalDays = Math.max(1, differenceInDays(today, firstEntryDate) + 1);
-    const totalBaseline = tracker.baseline * totalDays;
-    const totalCount = allEntries.reduce((sum, e) => sum + e.quantity, 0);
-    const accumulatedSavings = tracker.type === 'reduce'
-      ? Math.max(0, (totalBaseline - totalCount) * tracker.valuePerUnit)
-      : 0;
+    const daysActive = Math.max(1, differenceInDays(today, firstEntryDate) + 1);
     
-    totalMonthlySavings += monthlySavings;
-    totalAccumulatedSavings += accumulatedSavings;
+    totalMonthlyLoss += monthlyLoss;
+    totalAccumulatedLoss += accumulatedLoss;
     
     trackerBreakdown.push({
       trackerId: tracker.id,
       trackerName: tracker.name,
       trackerIcon: tracker.icon,
-      monthlySavings,
-      accumulatedSavings,
+      monthlyLoss,
+      accumulatedLoss,
       percentageOfTotal: 0, // Will be calculated after totals
-      daysActive: totalDays,
+      daysActive,
     });
     
-    // Daily data for chart
+    // Daily data for chart - get days in month up to today
+    const daysInMonth = today.getMonth() === month && today.getFullYear() === year
+      ? today.getDate()
+      : new Date(year, month + 1, 0).getDate();
+      
     for (let day = 1; day <= daysInMonth; day++) {
       const dateStr = `${monthStr}-${String(day).padStart(2, "0")}`;
       if (parseISO(dateStr) > today) continue;
       
       const dayEntries = entries.filter(e => e.trackerId === tracker.id && e.date === dateStr);
       const dayCount = dayEntries.reduce((sum, e) => sum + e.quantity, 0);
-      const daySavings = tracker.type === 'reduce'
-        ? Math.max(0, (tracker.baseline - dayCount) * tracker.valuePerUnit)
-        : 0;
+      const dayLoss = dayCount * tracker.valuePerUnit;
       
       monthlyData.push({
         date: dateStr,
-        savings: daySavings,
+        loss: dayLoss,
         tracker: tracker.name,
       });
     }
@@ -714,17 +713,17 @@ export const calculateTrackerFinancials = (
   
   // Calculate percentages
   trackerBreakdown.forEach(t => {
-    t.percentageOfTotal = totalMonthlySavings > 0 
-      ? (t.monthlySavings / totalMonthlySavings) * 100 
+    t.percentageOfTotal = totalMonthlyLoss > 0 
+      ? (t.monthlyLoss / totalMonthlyLoss) * 100 
       : 0;
   });
   
-  // Sort by monthly savings descending
-  trackerBreakdown.sort((a, b) => b.monthlySavings - a.monthlySavings);
+  // Sort by monthly loss descending (biggest loss first)
+  trackerBreakdown.sort((a, b) => b.monthlyLoss - a.monthlyLoss);
   
   return {
-    monthlySavings: totalMonthlySavings,
-    accumulatedSavings: totalAccumulatedSavings,
+    monthlyLoss: totalMonthlyLoss,
+    accumulatedLoss: totalAccumulatedLoss,
     topContributor: trackerBreakdown[0] || null,
     trackerBreakdown,
     monthlyData,
@@ -735,31 +734,32 @@ export const getFinancialMotivationalMessage = (
   overview: FinancialOverview,
   locale: string
 ): string => {
-  if (overview.monthlySavings > 100) {
+  // Messages now reflect LOSSES, not savings
+  if (overview.monthlyLoss > 100) {
     return locale === 'pt-PT' 
-      ? `🎉 Incrível! Já poupaste mais de 100€ este mês!`
-      : `🎉 Incredible! You've saved over 100€ this month!`;
+      ? `⚠️ Atenção! Já perdeste mais de 100€ este mês.`
+      : `⚠️ Warning! You've lost over 100€ this month.`;
   }
   
-  if (overview.monthlySavings > 50) {
+  if (overview.monthlyLoss > 50) {
     return locale === 'pt-PT'
-      ? `💰 Excelente progresso! ${overview.monthlySavings.toFixed(0)}€ poupados este mês.`
-      : `💰 Excellent progress! ${overview.monthlySavings.toFixed(0)}€ saved this month.`;
+      ? `📉 ${overview.monthlyLoss.toFixed(0)}€ de perdas este mês. Tenta reduzir.`
+      : `📉 ${overview.monthlyLoss.toFixed(0)}€ lost this month. Try to reduce.`;
   }
   
   if (overview.topContributor) {
     return locale === 'pt-PT'
-      ? `📊 ${overview.topContributor.trackerName} é a tua principal fonte de poupança.`
-      : `📊 ${overview.topContributor.trackerName} is your main savings source.`;
+      ? `📊 ${overview.topContributor.trackerName} é a tua principal fonte de perdas.`
+      : `📊 ${overview.topContributor.trackerName} is your main source of losses.`;
   }
   
   if (overview.trackerBreakdown.length === 0) {
     return locale === 'pt-PT'
-      ? `💡 Cria trackers com impacto financeiro para ver poupanças aqui.`
-      : `💡 Create trackers with financial impact to see savings here.`;
+      ? `💡 Cria trackers de redução para ver as perdas aqui.`
+      : `💡 Create reduction trackers to see losses here.`;
   }
   
   return locale === 'pt-PT'
-    ? `💪 Cada pequena poupança conta para os teus objetivos!`
-    : `💪 Every small saving counts towards your goals!`;
+    ? `💪 Cada redução conta para os teus objetivos!`
+    : `💪 Every reduction counts towards your goals!`;
 };

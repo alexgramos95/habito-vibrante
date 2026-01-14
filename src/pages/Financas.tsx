@@ -123,19 +123,19 @@ const Financas = () => {
     }
   };
 
-  // Aggregate daily savings for chart
+  // Aggregate daily losses for chart (negative values for visual effect)
   const dailyChartData = Object.entries(
     financialOverview.monthlyData.reduce((acc, item) => {
       if (!acc[item.date]) acc[item.date] = 0;
-      acc[item.date] += item.savings;
+      acc[item.date] += item.loss;
       return acc;
     }, {} as Record<string, number>)
-  ).map(([date, savings]) => ({ date, savings }));
+  ).map(([date, loss]) => ({ date, loss: -loss })); // Negative for downward bars
 
-  // Calculate cumulative savings
+  // Calculate cumulative losses (negative)
   let cumulative = 0;
   const cumulativeData = dailyChartData.map(item => {
-    cumulative += item.savings;
+    cumulative += item.loss;
     return { ...item, cumulative };
   });
 
@@ -211,20 +211,20 @@ const Financas = () => {
               </Button>
             </div>
 
-            {/* KPI Cards */}
+            {/* KPI Cards - LOSSES paradigm */}
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <Card className="premium-card group hover:glow-subtle">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <div className="p-1.5 rounded-lg bg-success/10">
-                      <PiggyBank className="h-4 w-4 text-success" />
+                    <div className="p-1.5 rounded-lg bg-destructive/10">
+                      <TrendingUp className="h-4 w-4 text-destructive rotate-180" />
                     </div>
-                    {t.finances.monthlySavings}
+                    {locale === 'pt-PT' ? 'Perdas Mensais' : 'Monthly Losses'}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-3xl font-bold text-success">
-                    {formatCurrency(financialOverview.monthlySavings)}
+                  <p className="text-3xl font-bold text-destructive">
+                    -{formatCurrency(financialOverview.monthlyLoss)}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
                     {monthLabel}
@@ -235,15 +235,15 @@ const Financas = () => {
               <Card className="premium-card group hover:glow-subtle">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <div className="p-1.5 rounded-lg bg-primary/10">
-                      <TrendingUp className="h-4 w-4 text-primary" />
+                    <div className="p-1.5 rounded-lg bg-destructive/10">
+                      <TrendingUp className="h-4 w-4 text-destructive rotate-180" />
                     </div>
-                    {t.finances.accumulatedSavings}
+                    {locale === 'pt-PT' ? 'Perdas Acumuladas' : 'Accumulated Losses'}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-3xl font-bold text-primary">
-                    {formatCurrency(financialOverview.accumulatedSavings)}
+                  <p className="text-3xl font-bold text-destructive">
+                    -{formatCurrency(financialOverview.accumulatedLoss)}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
                     {t.finances.allTime}
@@ -257,7 +257,7 @@ const Financas = () => {
                     <div className="p-1.5 rounded-lg bg-warning/10">
                       <Award className="h-4 w-4 text-warning" />
                     </div>
-                    {t.finances.topSource}
+                    {locale === 'pt-PT' ? 'Maior Prejuízo' : 'Biggest Loss'}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -286,29 +286,29 @@ const Financas = () => {
                     {financialOverview.trackerBreakdown.length}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {t.finances.withFinancialImpact}
+                    {locale === 'pt-PT' ? 'com impacto financeiro (perdas)' : 'with financial impact (losses)'}
                   </p>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Charts Row */}
+            {/* Charts Row - LOSSES paradigm (negative values, downward trend) */}
             <div className="grid gap-6 lg:grid-cols-2">
-              {/* Cumulative Savings Chart */}
+              {/* Cumulative Losses Chart */}
               <Card className="premium-card">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-base">
-                    <TrendingUp className="h-5 w-5 text-success" />
-                    {t.finances.cumulativeSavings}
+                    <TrendingUp className="h-5 w-5 text-destructive rotate-180" />
+                    {locale === 'pt-PT' ? 'Perdas Acumuladas' : 'Accumulated Losses'}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={250}>
                     <AreaChart data={cumulativeData}>
                       <defs>
-                        <linearGradient id="savingsGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="hsl(var(--success))" stopOpacity={0.3} />
-                          <stop offset="95%" stopColor="hsl(var(--success))" stopOpacity={0} />
+                        <linearGradient id="lossGradient" x1="0" y1="1" x2="0" y2="0">
+                          <stop offset="5%" stopColor="hsl(var(--destructive))" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="hsl(var(--destructive))" stopOpacity={0} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -322,6 +322,7 @@ const Financas = () => {
                         stroke="hsl(var(--muted-foreground))"
                         fontSize={11}
                         tickFormatter={(val) => `${val}€`}
+                        domain={['dataMin', 0]}
                       />
                       <RechartsTooltip
                         contentStyle={{
@@ -330,13 +331,13 @@ const Financas = () => {
                           borderRadius: "8px",
                         }}
                         labelFormatter={(val) => format(parseISO(val as string), "d MMMM", { locale: dateLocale })}
-                        formatter={(value: number) => [formatCurrency(value), t.finances.accumulated]}
+                        formatter={(value: number) => [formatCurrency(Math.abs(value)), locale === 'pt-PT' ? 'Perdido' : 'Lost']}
                       />
                       <Area
                         type="monotone"
                         dataKey="cumulative"
-                        stroke="hsl(var(--success))"
-                        fill="url(#savingsGradient)"
+                        stroke="hsl(var(--destructive))"
+                        fill="url(#lossGradient)"
                         strokeWidth={2}
                       />
                     </AreaChart>
@@ -344,12 +345,12 @@ const Financas = () => {
                 </CardContent>
               </Card>
 
-              {/* Daily Savings Chart */}
+              {/* Daily Losses Chart */}
               <Card className="premium-card">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-base">
-                    <BarChart3 className="h-5 w-5 text-primary" />
-                    {t.finances.dailySavings}
+                    <BarChart3 className="h-5 w-5 text-destructive" />
+                    {locale === 'pt-PT' ? 'Perdas Diárias' : 'Daily Losses'}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -366,6 +367,7 @@ const Financas = () => {
                         stroke="hsl(var(--muted-foreground))"
                         fontSize={11}
                         tickFormatter={(val) => `${val}€`}
+                        domain={['dataMin', 0]}
                       />
                       <RechartsTooltip
                         contentStyle={{
@@ -374,13 +376,13 @@ const Financas = () => {
                           borderRadius: "8px",
                         }}
                         labelFormatter={(val) => format(parseISO(val as string), "d MMMM", { locale: dateLocale })}
-                        formatter={(value: number) => [formatCurrency(value), t.finances.savings]}
+                        formatter={(value: number) => [formatCurrency(Math.abs(value)), locale === 'pt-PT' ? 'Perdido' : 'Lost']}
                       />
-                      <Bar dataKey="savings" radius={[4, 4, 0, 0]}>
+                      <Bar dataKey="loss" radius={[4, 4, 0, 0]}>
                         {dailyChartData.map((entry, index) => (
                           <Cell 
                             key={`cell-${index}`}
-                            fill={entry.savings > 0 ? "hsl(var(--success))" : "hsl(var(--muted))"}
+                            fill={entry.loss < 0 ? "hsl(var(--destructive))" : "hsl(var(--muted))"}
                           />
                         ))}
                       </Bar>
@@ -421,11 +423,11 @@ const Financas = () => {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="font-bold text-success">
-                            {formatCurrency(tracker.monthlySavings)}
+                          <p className="font-bold text-destructive">
+                            -{formatCurrency(tracker.monthlyLoss)}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {t.finances.total}: {formatCurrency(tracker.accumulatedSavings)}
+                            {t.finances.total}: -{formatCurrency(tracker.accumulatedLoss)}
                           </p>
                         </div>
                       </div>

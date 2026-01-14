@@ -29,9 +29,10 @@ import { TrackerTimeline } from "@/components/Trackers/TrackerTimeline";
 import { TrackerInputButton, TrackerEntryItem } from "@/components/Trackers/TrackerInputButton";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
-  ResponsiveContainer
+  ResponsiveContainer, BarChart, Bar, Cell, Legend
 } from "recharts";
 import { cn } from "@/lib/utils";
+import { subDays } from "date-fns";
 
 // Tracker summary computation - for reduction trackers, we compute LOSSES not savings
 const calculateTrackerSummary = (
@@ -217,6 +218,30 @@ const Objetivos = () => {
     }
     return days;
   };
+
+  // Overall performance chart data (last 30 days, all trackers)
+  const overallChartData = useMemo(() => {
+    const data: { date: string; [key: string]: number | string }[] = [];
+    
+    for (let i = 29; i >= 0; i--) {
+      const date = subDays(today, i);
+      const dateStr = format(date, "yyyy-MM-dd");
+      const dayData: { date: string; [key: string]: number | string } = { date: dateStr };
+      
+      activeTrackers.forEach(tracker => {
+        const dayEntries = state.trackerEntries.filter(
+          e => e.trackerId === tracker.id && e.date === dateStr
+        );
+        dayData[tracker.name] = dayEntries.reduce((sum, e) => sum + e.quantity, 0);
+      });
+      
+      data.push(dayData);
+    }
+    
+    return data;
+  }, [activeTrackers, state.trackerEntries, today]);
+
+  const chartColors = ["hsl(var(--primary))", "hsl(var(--warning))", "hsl(var(--success))", "hsl(var(--accent))", "hsl(var(--destructive))"];
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
