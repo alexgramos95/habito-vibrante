@@ -14,6 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
+      feedback: {
+        Row: {
+          additional_notes: string | null
+          created_at: string
+          feedback_type: string
+          how_become_helped: string | null
+          id: string
+          submitted_at: string
+          user_id: string
+          what_prevents_pay: string | null
+          what_would_make_pay: string | null
+          willingness_to_pay: string | null
+        }
+        Insert: {
+          additional_notes?: string | null
+          created_at?: string
+          feedback_type?: string
+          how_become_helped?: string | null
+          id?: string
+          submitted_at?: string
+          user_id: string
+          what_prevents_pay?: string | null
+          what_would_make_pay?: string | null
+          willingness_to_pay?: string | null
+        }
+        Update: {
+          additional_notes?: string | null
+          created_at?: string
+          feedback_type?: string
+          how_become_helped?: string | null
+          id?: string
+          submitted_at?: string
+          user_id?: string
+          what_prevents_pay?: string | null
+          what_would_make_pay?: string | null
+          willingness_to_pay?: string | null
+        }
+        Relationships: []
+      }
+      pro_interest: {
+        Row: {
+          created_at: string
+          id: string
+          plan_interested: string
+          source: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          plan_interested: string
+          source?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          plan_interested?: string
+          source?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

@@ -74,14 +74,17 @@ serve(async (req) => {
         .eq('user_id', user.id)
         .single();
       
-      if (subData && subData.plan === 'trial') {
+      if (subData && (subData.plan === 'trial' || subData.trial_end_date)) {
         const trialEnd = subData.trial_end_date ? new Date(subData.trial_end_date) : null;
         const isTrialActive = trialEnd && trialEnd > new Date();
+        const isTrialExpired = trialEnd && trialEnd <= new Date();
         
         return new Response(JSON.stringify({
           subscribed: false,
           plan: isTrialActive ? 'trial' : 'free',
+          plan_status: isTrialActive ? 'trial_active' : (isTrialExpired ? 'trial_expired' : 'free_initial'),
           trial_end: subData.trial_end_date,
+          trial_start: subData.trial_start_date,
           product_id: null,
           subscription_end: null,
         }), {

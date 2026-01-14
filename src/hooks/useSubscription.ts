@@ -97,6 +97,11 @@ export const useSubscription = () => {
       return { isActive: false, daysRemaining: 0, isExpired: false };
     }
 
+    // Check if planStatus indicates expired trial
+    if (subscriptionStatus.planStatus === 'trial_expired') {
+      return { isActive: false, daysRemaining: 0, isExpired: true };
+    }
+
     if (subscriptionStatus.plan === 'trial' && subscriptionStatus.trialEnd) {
       const endDate = parseISO(subscriptionStatus.trialEnd);
       const today = new Date();
@@ -111,6 +116,14 @@ export const useSubscription = () => {
         daysRemaining: Math.max(0, daysRemaining + 1), 
         isExpired: false 
       };
+    }
+
+    // Also check trialEnd even if plan is 'free' (trial may have expired)
+    if (subscriptionStatus.trialEnd) {
+      const endDate = parseISO(subscriptionStatus.trialEnd);
+      if (endDate <= new Date()) {
+        return { isActive: false, daysRemaining: 0, isExpired: true };
+      }
     }
 
     return { isActive: false, daysRemaining: 0, isExpired: false };

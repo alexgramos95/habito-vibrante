@@ -184,15 +184,18 @@ const Index = () => {
     }
   }, [searchParams, setSearchParams]);
 
-  // Auth guard: require login AND email verification before accessing /app
+  // Auth guard: require login, email verification, and active trial/pro before accessing /app
   useEffect(() => {
     if (!isAuthenticated) {
       navigate("/auth?next=trial", { replace: true });
     } else if (!isEmailVerified) {
       // User is logged in but email not verified - redirect to verify screen
       navigate("/auth?verify=required", { replace: true });
+    } else if (!isPro && trialStatus.isExpired) {
+      // Trial has expired - redirect to decision screen
+      navigate("/decision", { replace: true });
     }
-  }, [isAuthenticated, isEmailVerified, navigate]);
+  }, [isAuthenticated, isEmailVerified, isPro, trialStatus.isExpired, navigate]);
 
   // Bounceback hook
   const { weeklyStats, yesterdayRecovery } = useBounceback(state);
