@@ -106,6 +106,7 @@ serve(async (req) => {
         },
       ],
       mode,
+      allow_promotion_codes: true,
       success_url: `${SITE_URL}/app?checkout=success`,
       cancel_url: `${SITE_URL}/decision?checkout=cancelled`,
       metadata: {
