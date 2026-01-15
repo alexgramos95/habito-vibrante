@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Crown, Check, ArrowLeft, MessageSquare, Loader2 } from "lucide-react";
+import { Crown, Check, ArrowLeft, MessageSquare, Loader2, RefreshCw, LogIn } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,29 +8,39 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { FeedbackFormModal } from "@/components/Feedback/FeedbackFormModal";
+import { useNavigate } from "react-router-dom";
 
 interface InterestPaywallProps {
   open: boolean;
   onClose: () => void;
 }
 
-// Real pricing for soft-launch
+// ACTUAL STRIPE PRICING (EUR) - UPDATED 2025
 const PLANS = [
   {
     id: "monthly" as const,
     name: "Pro Mensal",
-    price: 9,
+    price: 19.99,
     period: "/mês",
     popular: false,
   },
   {
     id: "yearly" as const,
     name: "Pro Anual",
-    price: 79,
+    price: 189.99,
     period: "/ano",
     popular: true,
-    discount: "27% off",
-    monthlyEquivalent: 6.58,
+    discount: "Poupa 20%",
+    monthlyEquivalent: 15.83,
+    savings: "Poupas 49,89€/ano",
+  },
+  {
+    id: "lifetime" as const,
+    name: "Pro Fidelidade",
+    price: 399.99,
+    period: " único",
+    popular: false,
+    note: "Pagamento único, acesso para sempre",
   },
 ];
 
@@ -44,49 +54,47 @@ const PRO_FEATURES = [
 ];
 
 export const InterestPaywall = ({ open, onClose }: InterestPaywallProps) => {
-  const { user, session } = useAuth();
+  const { user, session, isAuthenticated } = useAuth();
   const { toast } = useToast();
-  const [selectedPlan, setSelectedPlan] = useState<"monthly" | "yearly">("yearly");
+  const navigate = useNavigate();
+  const [selectedPlan, setSelectedPlan] = useState<"monthly" | "yearly" | "lifetime">("yearly");
   const [loading, setLoading] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  const [restoring, setRestoring] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
 
-  const handleInterest = async () => {
-    if (!user) {
-      toast({
-        title: "Erro",
-        description: "Precisas de estar autenticado.",
-        variant: "destructive",
-      });
+  const handleCheckout = async () => {
+    if (!isAuthenticated || !session) {
+      onClose();
+      navigate("/auth");
       return;
     }
 
     setLoading(true);
     try {
-      const { error } = await supabase.from("pro_interest").insert({
-        user_id: user.id,
-        plan_interested: selectedPlan,
-        source: "decision_screen",
+      // Call Stripe checkout edge function
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
+        body: { priceType: selectedPlan },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
       });
 
       if (error) throw error;
 
-      setSubmitted(true);
-      toast({
-        title: "Interesse registado! 🎉",
-        description: "Vamos avisar-te quando o Pro estiver disponível.",
-      });
-
-      // Auto-close after success
-      setTimeout(() => {
+      if (data?.url) {
+        // Open Stripe checkout in new tab
+        window.open(data.url, "_blank");
+        toast({
+          title: "Checkout aberto",
+          description: "Completa a compra no novo separador.",
+        });
         onClose();
-        setSubmitted(false);
-      }, 2000);
+      }
     } catch (err) {
-      console.error("Error recording interest:", err);
+      console.error("Checkout error:", err);
       toast({
-        title: "Erro",
-        description: "Não foi possível registar o interesse. Tenta novamente.",
+        title: "Erro no checkout",
+        description: "Tenta novamente ou contacta o suporte.",
         variant: "destructive",
       });
     } finally {
@@ -94,24 +102,49 @@ export const InterestPaywall = ({ open, onClose }: InterestPaywallProps) => {
     }
   };
 
-  if (submitted) {
-    return (
-      <Dialog open={open} onOpenChange={onClose}>
-        <DialogContent className="max-w-md">
-          <div className="py-8 text-center space-y-4">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-success/10 mx-auto">
-              <Check className="h-8 w-8 text-success" />
-            </div>
-            <h2 className="text-2xl font-bold">Obrigado!</h2>
-            <p className="text-muted-foreground">
-              Registámos o teu interesse no plano {selectedPlan === "yearly" ? "Anual" : "Mensal"}.
-              Vamos contactar-te em breve!
-            </p>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
+  const handleRestore = async () => {
+    if (!isAuthenticated || !session) {
+      onClose();
+      navigate("/auth");
+      return;
+    }
+
+    setRestoring(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("restore-purchases", {
+        body: { platform: "stripe" },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        toast({
+          title: "Compras restauradas! 🎉",
+          description: `A tua subscrição ${data.purchase_plan} foi restaurada.`,
+        });
+        onClose();
+        window.location.reload();
+      } else {
+        toast({
+          title: "Nenhuma compra encontrada",
+          description: data?.message || "Nenhuma subscrição ativa encontrada para esta conta.",
+          variant: "destructive",
+        });
+      }
+    } catch (err) {
+      console.error("Restore error:", err);
+      toast({
+        title: "Erro ao restaurar",
+        description: "Tenta novamente ou contacta o suporte.",
+        variant: "destructive",
+      });
+    } finally {
+      setRestoring(false);
+    }
+  };
 
   return (
     <>
@@ -163,10 +196,13 @@ export const InterestPaywall = ({ open, onClose }: InterestPaywallProps) => {
                           €{plan.monthlyEquivalent.toFixed(2)}/mês equivalente
                         </p>
                       )}
+                      {plan.note && (
+                        <p className="text-xs text-success">{plan.note}</p>
+                      )}
                     </div>
                     <div className="text-right">
                       <div className="flex items-baseline gap-1">
-                        <span className="text-2xl font-bold">€{plan.price}</span>
+                        <span className="text-2xl font-bold">€{plan.price.toFixed(2).replace(".", ",")}</span>
                         <span className="text-sm text-muted-foreground">{plan.period}</span>
                       </div>
                       {plan.discount && (
@@ -196,7 +232,7 @@ export const InterestPaywall = ({ open, onClose }: InterestPaywallProps) => {
             {/* CTA */}
             <div className="pt-4 space-y-3">
               <Button 
-                onClick={handleInterest} 
+                onClick={handleCheckout} 
                 className="w-full h-12 text-base font-semibold gap-2" 
                 disabled={loading}
               >
@@ -205,10 +241,35 @@ export const InterestPaywall = ({ open, onClose }: InterestPaywallProps) => {
                     <Loader2 className="h-5 w-5 animate-spin" />
                     A processar...
                   </>
+                ) : !isAuthenticated ? (
+                  <>
+                    <LogIn className="h-5 w-5" />
+                    Iniciar sessão para continuar
+                  </>
                 ) : (
                   <>
                     <Crown className="h-5 w-5" />
-                    Quero Pro
+                    Continuar com Pro
+                  </>
+                )}
+              </Button>
+
+              {/* Restore Purchases */}
+              <Button 
+                variant="outline" 
+                onClick={handleRestore} 
+                className="w-full gap-2" 
+                disabled={restoring}
+              >
+                {restoring ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                    A restaurar...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="h-4 w-4" />
+                    Restaurar Compras
                   </>
                 )}
               </Button>
@@ -216,7 +277,7 @@ export const InterestPaywall = ({ open, onClose }: InterestPaywallProps) => {
               {/* Secondary actions */}
               <div className="flex gap-2">
                 <Button 
-                  variant="outline" 
+                  variant="ghost" 
                   onClick={onClose} 
                   className="flex-1 gap-2"
                 >
@@ -224,7 +285,7 @@ export const InterestPaywall = ({ open, onClose }: InterestPaywallProps) => {
                   Voltar
                 </Button>
                 <Button 
-                  variant="outline" 
+                  variant="ghost" 
                   onClick={() => setShowFeedback(true)}
                   className="flex-1 gap-2"
                 >
@@ -236,7 +297,7 @@ export const InterestPaywall = ({ open, onClose }: InterestPaywallProps) => {
 
             {/* Trust disclaimer */}
             <p className="text-center text-xs text-muted-foreground pt-2">
-              Pagamento seguro. Cancela a qualquer momento.
+              Pagamento seguro via Stripe. Cancela a qualquer momento.
             </p>
           </div>
         </DialogContent>

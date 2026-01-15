@@ -237,39 +237,58 @@ export const icpMessaging = {
   },
 };
 
-// Pricing display with explicit types
+// Pricing display with explicit types - UPDATED TO CORRECT EUR PRICES
 export interface PricingPlan {
   price: number;
   currency: string;
   period: string;
   label: string;
+  labelPT: string;
   description: string;
+  descriptionPT: string;
   discount?: number;
   popular?: boolean;
+  savings?: string;
+  savingsPT?: string;
 }
 
 export const pricingDisplay: Record<string, PricingPlan> = {
   monthly: {
-    price: 9.99,
-    currency: "USD",
+    price: 19.99,
+    currency: "EUR",
     period: "month",
     label: "Monthly",
+    labelPT: "Mensal",
     description: "Full access, cancel anytime",
+    descriptionPT: "Acesso completo, cancela quando quiseres",
   },
   yearly: {
-    price: 79,
-    currency: "USD",
+    price: 189.99,
+    currency: "EUR",
     period: "year",
     label: "Yearly",
-    description: "Save 34%",
-    discount: 34,
+    labelPT: "Anual",
+    description: "Save 20% vs monthly",
+    descriptionPT: "Poupa 20% vs mensal",
+    discount: 20,
     popular: true,
+    savings: "Save €49.89/year",
+    savingsPT: "Poupas 49,89€/ano",
   },
   lifetime: {
-    price: 149,
-    currency: "USD",
+    price: 399.99,
+    currency: "EUR",
     period: "once",
     label: "Lifetime",
+    labelPT: "Fidelidade",
     description: "Pay once, own forever",
+    descriptionPT: "Pagamento único",
   },
+};
+
+// Stripe Price IDs - for reference
+export const STRIPE_PRICE_IDS = {
+  monthly: "price_1Sov5zPEplRqsp5If0ew4t8x",
+  yearly: "price_1SovF8PEplRqsp5IPMsfrtOm",
+  lifetime: "price_1SovG2PEplRqsp5I52kZ77Vl",
 };

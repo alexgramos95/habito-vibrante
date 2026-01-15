@@ -34,7 +34,6 @@ const Landing = () => {
   const { upgradeToPro } = useSubscription();
 
   const handleStartTrial = () => {
-    // Start with onboarding, then auth
     navigate("/onboarding");
   };
 
@@ -44,15 +43,15 @@ const Landing = () => {
     navigate("/app");
   };
 
-  // FAQ items
+  // FAQ items - Updated pricing
   const faqs = [
     {
       q: "What makes becoMe different from other habit trackers?",
       a: "becoMe focuses on identity transformation, not just streak counting. It includes financial tracking to show the real cost of habits, uses weekly cycles that match how life actually works, and takes a scientific approach without moralization.",
     },
     {
-      q: "How does the free trial work?",
-      a: "You get 2 days of full Pro access with the Monthly plan. No credit card required. After the trial, you can continue with limited free access (3 habits, limited calendar) or upgrade to Pro.",
+      q: "How does pricing work?",
+      a: "We offer three plans: Monthly at €19.99/month, Yearly at €189.99/year (save 20%), and Lifetime at €399.99 (one-time payment). All plans include full Pro access with unlimited habits, trackers, finances, and export.",
     },
     {
       q: "Can I export my data?",
@@ -60,7 +59,7 @@ const Landing = () => {
     },
     {
       q: "What's the financial tracking feature?",
-      a: "becoMe calculates savings from behavior changes. If you reduce coffee from 4 to 2 cups daily at $3.50 each, you'll see your monthly savings. Discipline pays off.",
+      a: "becoMe calculates savings from behavior changes. If you reduce coffee from 4 to 2 cups daily at €3.50 each, you'll see your monthly savings. Discipline pays off.",
     },
     {
       q: "Is there a money-back guarantee?",
@@ -70,7 +69,7 @@ const Landing = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Marketing Navigation - No app links */}
+      {/* Marketing Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/30">
         <div className="container flex items-center justify-between h-16">
           <div className="flex items-center gap-2">
@@ -84,7 +83,7 @@ const Landing = () => {
               Sign In
             </Link>
             <Button size="sm" onClick={handleStartTrial}>
-              Start Your 2-Day Trial
+              Start Free
             </Button>
           </div>
         </div>
@@ -95,7 +94,7 @@ const Landing = () => {
         <div className="container max-w-4xl mx-auto text-center">
           <Badge variant="outline" className="mb-6 px-4 py-1.5 text-sm">
             <Sparkles className="h-3.5 w-3.5 mr-1.5" />
-            2-day free trial • No credit card required
+            Free to start • Pro from €19.99/month
           </Badge>
 
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6">
@@ -109,7 +108,7 @@ const Landing = () => {
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" onClick={handleStartTrial} className="gap-2 text-lg px-8">
-              Start Your 2-Day Trial
+              Start Free
               <ArrowRight className="h-5 w-5" />
             </Button>
             <Button size="lg" variant="outline" onClick={() => setShowPaywall(true)}>
@@ -236,16 +235,19 @@ const Landing = () => {
                 )}
                 <CardContent className="p-6">
                   <h3 className="font-semibold mb-1">{plan.label}</h3>
-                  <div className="flex items-baseline gap-1 mb-4">
-                    <span className="text-4xl font-bold">${plan.price}</span>
-                    {plan.period !== "once" && <span className="text-muted-foreground">/{plan.period}</span>}
+                  <div className="flex items-baseline gap-1 mb-2">
+                    <span className="text-4xl font-bold">€{plan.price.toFixed(2).replace(".", ",")}</span>
+                    {plan.period !== "once" && <span className="text-muted-foreground">/{plan.period === "month" ? "mês" : "ano"}</span>}
                   </div>
-                  <p className="text-sm text-muted-foreground mb-6">{plan.description}</p>
+                  <p className="text-sm text-muted-foreground mb-4">{plan.description}</p>
+                  {plan.savings && (
+                    <p className="text-xs text-success mb-4">{plan.savings}</p>
+                  )}
                   <Button
                     className="w-full"
                     variant={plan.popular ? "default" : "outline"}
                     onClick={() => {
-                      setSelectedPricing(key as any);
+                      setSelectedPricing(key as "monthly" | "yearly" | "lifetime");
                       setShowPaywall(true);
                     }}
                   >
@@ -263,7 +265,7 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Testimonials Placeholder */}
+      {/* Testimonials */}
       <section className="py-20">
         <div className="container">
           <div className="text-center mb-12">
@@ -342,9 +344,9 @@ const Landing = () => {
       <section className="py-20">
         <div className="container max-w-2xl text-center">
           <h2 className="text-3xl font-bold mb-4">Ready to become?</h2>
-          <p className="text-muted-foreground mb-8">Start your 2-day free trial. No credit card required.</p>
+          <p className="text-muted-foreground mb-8">Start free. Upgrade to Pro from €19.99/month.</p>
           <Button size="lg" onClick={handleStartTrial} className="gap-2 text-lg px-8">
-            Start Your 2-Day Trial
+            Start Free
             <ArrowRight className="h-5 w-5" />
           </Button>
         </div>
@@ -382,7 +384,7 @@ const Landing = () => {
         onClose={() => setShowPaywall(false)}
         onUpgrade={handleUpgrade}
         trigger="calendar"
-        trialDaysLeft={2}
+        trialDaysLeft={0}
       />
     </div>
   );

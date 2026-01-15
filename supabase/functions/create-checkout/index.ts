@@ -8,18 +8,15 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Helper logging function for debugging
 const logStep = (step: string, details?: Record<string, unknown>) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : "";
   console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
 };
 
-// Input validation schema
 const CheckoutSchema = z.object({
   priceType: z.enum(["monthly", "yearly", "lifetime"]),
 });
 
-// Safe error mapping - maps internal errors to user-safe messages
 const getSafeErrorMessage = (rawMessage: string): string => {
   const errorMappings: Record<string, string> = {
     "STRIPE_SECRET_KEY is not set": "Payment service unavailable",
@@ -37,12 +34,15 @@ const getSafeErrorMessage = (rawMessage: string): string => {
   return "An error occurred. Please try again.";
 };
 
-// Price IDs - REPLACE with your actual Stripe price IDs
-const PRICE_IDS = {
-  monthly: "prod_TmU4geRW1u9g0S", // Replace with actual price ID
-  yearly: "prod_TmUDYi3kN4xKAk", // Replace with actual price ID
-  lifetime: "prod_TmUEwnKdigDaEP", // Replace with actual price ID (one-time)
+// ACTUAL STRIPE PRICE IDS - DO NOT CHANGE
+const PRICE_IDS: Record<string, string> = {
+  monthly: "price_1Sov5zPEplRqsp5If0ew4t8x",   // €19.99/month
+  yearly: "price_1SovF8PEplRqsp5IPMsfrtOm",    // €189.99/year
+  lifetime: "price_1SovG2PEplRqsp5I52kZ77Vl",  // €399.99 one-time
 };
+
+// Site URL for redirects
+const SITE_URL = Deno.env.get("SITE_URL") || "https://habito-vibrante.lovable.app";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -56,7 +56,6 @@ serve(async (req) => {
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
     logStep("Stripe key verified");
 
-    // Get and validate request body
     const rawBody = await req.json();
     const parseResult = CheckoutSchema.safeParse(rawBody);
     if (!parseResult.success) {
@@ -65,17 +64,15 @@ serve(async (req) => {
     const { priceType } = parseResult.data;
     logStep("Request body validated", { priceType });
 
-    // For now, use placeholder - in production replace with actual price IDs
-    let priceId = PRICE_IDS[priceType];
-    let mode: "subscription" | "payment" = priceType === "lifetime" ? "payment" : "subscription";
-    const isSubscription = priceType === "monthly";
+    const priceId = PRICE_IDS[priceType];
+    const mode: "subscription" | "payment" = priceType === "lifetime" ? "payment" : "subscription";
+    
+    logStep("Using price", { priceId, mode });
 
-    // If placeholder, we'll still proceed but log warning
-    if (priceId.includes("PLACEHOLDER")) {
-      logStep("WARNING: Using placeholder price ID - replace with actual Stripe price IDs");
-    }
-
-    const supabaseClient = createClient(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_ANON_KEY") ?? "");
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+    );
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("No authorization header provided");
@@ -98,8 +95,6 @@ serve(async (req) => {
       logStep("Found existing customer", { customerId });
     }
 
-    const origin = req.headers.get("origin") || "https://become.app";
-
     // Create checkout session
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
       customer: customerId,
@@ -111,19 +106,33 @@ serve(async (req) => {
         },
       ],
       mode,
-      success_url: `${origin}/?checkout=success`,
-      cancel_url: `${origin}/?checkout=cancelled`,
+      success_url: `${SITE_URL}/app?checkout=success`,
+      cancel_url: `${SITE_URL}/decision?checkout=cancelled`,
       metadata: {
         user_id: user.id,
         price_type: priceType,
       },
-      ...(isSubscription && {
-        subscription_data: {
-          // aqui defines o período de trial (em dias)
-          trial_period_days: 7, // ou 2, se quiseres alinhar com o que tens agora
-        },
-      }),
     };
+
+    // Add subscription metadata for webhooks
+    if (mode === "subscription") {
+      sessionParams.subscription_data = {
+        metadata: {
+          user_id: user.id,
+          price_type: priceType,
+        },
+      };
+    }
+
+    // Add payment intent metadata for lifetime purchases
+    if (mode === "payment") {
+      sessionParams.payment_intent_data = {
+        metadata: {
+          user_id: user.id,
+          price_type: priceType,
+        },
+      };
+    }
 
     const session = await stripe.checkout.sessions.create(sessionParams);
     logStep("Checkout session created", { sessionId: session.id, url: session.url });
