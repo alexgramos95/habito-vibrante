@@ -41,18 +41,27 @@ serve(async (req) => {
   );
 
   try {
-    const body = await req.text();
+    // Read raw body BEFORE any other parsing for signature verification
+    const payload = await req.text();
     let event: Stripe.Event;
 
     // Verify signature if webhook secret is configured
     if (webhookSecret) {
-      const signature = req.headers.get("stripe-signature");
-      if (!signature) {
+      const sig = req.headers.get("stripe-signature");
+      if (!sig) {
         logStep("ERROR: No stripe-signature header");
         return new Response(JSON.stringify({ error: "No signature" }), { status: 400 });
       }
+      
+      logStep("Verifying signature", { 
+        hasSignature: !!sig, 
+        payloadLength: payload.length,
+        secretPrefix: webhookSecret.startsWith("whsec_") ? "whsec_" : "unknown"
+      });
+      
       try {
-        event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+        // Use constructEventAsync for Deno/SubtleCrypto compatibility
+        event = await stripe.webhooks.constructEventAsync(payload, sig, webhookSecret);
         logStep("Signature verified", { eventType: event.type });
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
@@ -60,9 +69,9 @@ serve(async (req) => {
         return new Response(JSON.stringify({ error: "Invalid signature" }), { status: 400 });
       }
     } else {
-      // No webhook secret yet - parse event without verification (TEMPORARY)
+      // No webhook secret - parse event without verification (TEMPORARY)
       logStep("WARNING: No STRIPE_WEBHOOK_SECRET - skipping signature verification");
-      event = JSON.parse(body) as Stripe.Event;
+      event = JSON.parse(payload) as Stripe.Event;
     }
 
     logStep("Processing event", { type: event.type, id: event.id });
