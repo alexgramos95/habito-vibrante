@@ -103,9 +103,10 @@ serve(async (req) => {
           await handleSubscriptionDeleted(supabaseClient, stripe, subscription);
           break;
         }
+        case "invoice.paid":
         case "invoice.payment_succeeded": {
           const invoice = event.data.object as Stripe.Invoice;
-          logStep("Invoice payment succeeded", { invoiceId: invoice.id, customerId: invoice.customer });
+          await handleInvoicePaid(supabaseClient, stripe, invoice);
           break;
         }
         case "invoice.payment_failed": {
@@ -141,52 +142,102 @@ serve(async (req) => {
   }
 });
 
+/**
+ * Resolve userId from multiple sources (priority order):
+ * 1. client_reference_id (most reliable - set at checkout)
+ * 2. metadata.userId or metadata.user_id
+ * 3. Fallback to email lookup
+ */
 // deno-lint-ignore no-explicit-any
-async function handleCheckoutCompleted(supabase: any, stripe: Stripe, session: Stripe.Checkout.Session) {
-  logStep("Checkout completed", { sessionId: session.id, mode: session.mode, customerId: session.customer });
+async function resolveUserId(supabase: any, stripe: Stripe, options: {
+  clientReferenceId?: string | null;
+  metadata?: Record<string, string> | null;
+  customerId?: string | null;
+  customerEmail?: string | null;
+}): Promise<string | null> {
+  const { clientReferenceId, metadata, customerId, customerEmail } = options;
 
-  const customerId = session.customer as string;
-  const customerEmail = session.customer_email || session.customer_details?.email;
-
-  if (!customerEmail && !customerId) {
-    logStep("ERROR: No customer email or ID");
-    return;
+  // 1. Try client_reference_id first (set in create-checkout)
+  if (clientReferenceId) {
+    logStep("Found userId from client_reference_id", { userId: clientReferenceId });
+    return clientReferenceId;
   }
 
-  // Get user by email
-  let userId: string | null = null;
-  if (customerEmail) {
-    const { data: users } = await supabase.auth.admin.listUsers();
-    const user = users?.users?.find((u: { email: string }) => u.email === customerEmail);
-    if (user) {
-      userId = user.id;
-      logStep("Found user by email", { userId, email: customerEmail });
-    }
+  // 2. Try metadata
+  const metadataUserId = metadata?.userId || metadata?.user_id;
+  if (metadataUserId) {
+    logStep("Found userId from metadata", { userId: metadataUserId });
+    return metadataUserId;
   }
 
-  if (!userId) {
-    // Try to find by existing stripe_customer_id
+  // 3. Try to find by stripe_customer_id in our DB
+  if (customerId) {
     const { data: existingSub } = await supabase
       .from("subscriptions")
       .select("user_id")
       .eq("stripe_customer_id", customerId)
       .single();
     
-    if (existingSub) {
-      userId = existingSub.user_id;
-      logStep("Found user by stripe_customer_id", { userId, customerId });
+    if (existingSub?.user_id) {
+      logStep("Found userId from stripe_customer_id", { userId: existingSub.user_id, customerId });
+      return existingSub.user_id;
     }
   }
 
+  // 4. Try to find by email
+  let email = customerEmail;
+  if (!email && customerId) {
+    try {
+      const customer = await stripe.customers.retrieve(customerId);
+      if (!customer.deleted && customer.email) {
+        email = customer.email;
+      }
+    } catch {
+      logStep("Could not retrieve customer", { customerId });
+    }
+  }
+
+  if (email) {
+    const { data: users } = await supabase.auth.admin.listUsers();
+    const user = users?.users?.find((u: { email: string }) => u.email === email);
+    if (user) {
+      logStep("Found userId by email lookup", { userId: user.id, email });
+      return user.id;
+    }
+  }
+
+  logStep("Could not resolve userId", { clientReferenceId, customerId, customerEmail: email });
+  return null;
+}
+
+// deno-lint-ignore no-explicit-any
+async function handleCheckoutCompleted(supabase: any, stripe: Stripe, session: Stripe.Checkout.Session) {
+  const customerId = session.customer as string;
+  
+  logStep("Checkout completed", { 
+    sessionId: session.id, 
+    mode: session.mode, 
+    customerId,
+    clientReferenceId: session.client_reference_id,
+    hasMetadata: !!session.metadata
+  });
+
+  const userId = await resolveUserId(supabase, stripe, {
+    clientReferenceId: session.client_reference_id,
+    metadata: session.metadata as Record<string, string> | null,
+    customerId,
+    customerEmail: session.customer_email || session.customer_details?.email,
+  });
+
   if (!userId) {
-    logStep("ERROR: Could not find user for checkout", { customerEmail, customerId });
+    logStep("ERROR: Could not find user for checkout");
     return;
   }
 
   if (session.mode === "subscription" && session.subscription) {
     // Subscription checkout - fetch subscription details
     const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
-    await updateSubscriptionInDb(supabase, userId, customerId, subscription);
+    await upsertSubscription(supabase, userId, customerId, subscription);
   } else if (session.mode === "payment") {
     // Lifetime one-time payment
     logStep("Lifetime payment completed", { userId, customerId });
@@ -214,37 +265,70 @@ async function handleCheckoutCompleted(supabase: any, stripe: Stripe, session: S
 
 // deno-lint-ignore no-explicit-any
 async function handleSubscriptionUpdate(supabase: any, stripe: Stripe, subscription: Stripe.Subscription) {
-  logStep("Subscription update", { subscriptionId: subscription.id, status: subscription.status });
-
   const customerId = subscription.customer as string;
   
-  // Find user by stripe_customer_id
-  const { data: existingSub } = await supabase
-    .from("subscriptions")
-    .select("user_id")
-    .eq("stripe_customer_id", customerId)
-    .single();
+  logStep("Subscription update", { 
+    subscriptionId: subscription.id, 
+    status: subscription.status,
+    customerId,
+    hasMetadata: !!subscription.metadata
+  });
 
-  if (!existingSub) {
-    // Try to find by customer email
-    const customer = await stripe.customers.retrieve(customerId);
-    if (customer.deleted) {
-      logStep("ERROR: Customer was deleted", { customerId });
-      return;
-    }
-    
-    const { data: users } = await supabase.auth.admin.listUsers();
-    const user = users?.users?.find((u: { email: string }) => u.email === customer.email);
-    
-    if (!user) {
-      logStep("ERROR: Could not find user for subscription update", { customerId, email: customer.email });
-      return;
-    }
-    
-    await updateSubscriptionInDb(supabase, user.id, customerId, subscription);
-  } else {
-    await updateSubscriptionInDb(supabase, existingSub.user_id, customerId, subscription);
+  const userId = await resolveUserId(supabase, stripe, {
+    metadata: subscription.metadata as Record<string, string> | null,
+    customerId,
+  });
+
+  if (!userId) {
+    logStep("ERROR: Could not find user for subscription update");
+    return;
   }
+
+  await upsertSubscription(supabase, userId, customerId, subscription);
+}
+
+// deno-lint-ignore no-explicit-any
+async function handleInvoicePaid(supabase: any, stripe: Stripe, invoice: Stripe.Invoice) {
+  const customerId = invoice.customer as string;
+  const subscriptionId = invoice.subscription as string | null;
+  
+  logStep("Invoice paid", { 
+    invoiceId: invoice.id, 
+    customerId,
+    subscriptionId,
+    total: invoice.total,
+    amountPaid: invoice.amount_paid,
+    status: invoice.status
+  });
+
+  // Only process subscription invoices
+  if (!subscriptionId) {
+    logStep("Invoice not for subscription, skipping", { invoiceId: invoice.id });
+    return;
+  }
+
+  // Fetch the subscription to get its current status
+  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+  
+  logStep("Invoice subscription status", { 
+    subscriptionId,
+    subscriptionStatus: subscription.status,
+    invoiceTotal: invoice.total,
+    invoiceAmountPaid: invoice.amount_paid
+  });
+
+  const userId = await resolveUserId(supabase, stripe, {
+    metadata: subscription.metadata as Record<string, string> | null,
+    customerId,
+  });
+
+  if (!userId) {
+    logStep("ERROR: Could not find user for invoice");
+    return;
+  }
+
+  // Update subscription - this handles €0 promos correctly since we check subscription.status, not invoice amount
+  await upsertSubscription(supabase, userId, customerId, subscription);
 }
 
 // deno-lint-ignore no-explicit-any
@@ -253,14 +337,28 @@ async function handleSubscriptionDeleted(supabase: any, _stripe: Stripe, subscri
 
   const customerId = subscription.customer as string;
   
-  const { data: existingSub } = await supabase
+  // First try to find by stripe_subscription_id (more accurate)
+  let existingSub;
+  const { data: subById } = await supabase
     .from("subscriptions")
     .select("user_id, purchase_plan")
-    .eq("stripe_customer_id", customerId)
+    .eq("stripe_subscription_id", subscription.id)
     .single();
+  
+  if (subById) {
+    existingSub = subById;
+  } else {
+    // Fallback to customer_id
+    const { data: subByCustomer } = await supabase
+      .from("subscriptions")
+      .select("user_id, purchase_plan")
+      .eq("stripe_customer_id", customerId)
+      .single();
+    existingSub = subByCustomer;
+  }
 
   if (!existingSub) {
-    logStep("No subscription found to delete", { customerId });
+    logStep("No subscription found to delete", { customerId, subscriptionId: subscription.id });
     return;
   }
 
@@ -317,22 +415,41 @@ async function handlePaymentFailed(supabase: any, _stripe: Stripe, invoice: Stri
   }
 }
 
+/**
+ * Upsert subscription by user_id (primary) with stripe_subscription_id for idempotency
+ * Sets plan='pro' when subscription status is 'active' or 'trialing', regardless of payment amount
+ */
 // deno-lint-ignore no-explicit-any
-async function updateSubscriptionInDb(supabase: any, userId: string, customerId: string, subscription: Stripe.Subscription) {
+async function upsertSubscription(supabase: any, userId: string, customerId: string, subscription: Stripe.Subscription) {
   const priceId = subscription.items.data[0]?.price?.id;
   const purchasePlan = priceId ? PRICE_TO_PLAN[priceId] || "monthly" : "monthly";
   
   // Use safe timestamp conversion - null if missing/invalid
   const currentPeriodEnd = toIsoFromSeconds(subscription.current_period_end);
   const trialEnd = toIsoFromSeconds(subscription.trial_end);
-  const canceledAt = toIsoFromSeconds(subscription.canceled_at);
-  const endedAt = toIsoFromSeconds(subscription.ended_at);
   
+  // Determine plan based on subscription status, NOT payment amount
+  // This correctly handles 100% promo code subscriptions with €0 invoices
+  const isActivePlan = subscription.status === "active" || subscription.status === "trialing";
+  const plan = isActivePlan ? "pro" : "free";
+
+  logStep("Upserting subscription", { 
+    userId, 
+    customerId,
+    subscriptionId: subscription.id,
+    subscriptionStatus: subscription.status,
+    isActivePlan,
+    plan,
+    purchasePlan, 
+    currentPeriodEnd,
+    hasTrialEnd: !!trialEnd
+  });
+
   const updateData: Record<string, unknown> = {
     user_id: userId,
     stripe_customer_id: customerId,
     stripe_subscription_id: subscription.id,
-    plan: subscription.status === "active" || subscription.status === "trialing" ? "pro" : "free",
+    plan,
     purchase_plan: purchasePlan,
     status: subscription.status,
     current_period_end: currentPeriodEnd,
@@ -341,18 +458,8 @@ async function updateSubscriptionInDb(supabase: any, userId: string, customerId:
 
   // Only set optional fields if they have values
   if (trialEnd) updateData.trial_end_date = trialEnd;
-  if (canceledAt) updateData.canceled_at = canceledAt;
-  if (endedAt) updateData.ended_at = endedAt;
 
-  logStep("Updating subscription in DB", { 
-    userId, 
-    status: subscription.status, 
-    purchasePlan, 
-    currentPeriodEnd,
-    hasTrialEnd: !!trialEnd,
-    hasCanceledAt: !!canceledAt
-  });
-
+  // Upsert by user_id to avoid duplicates
   const { error } = await supabase
     .from("subscriptions")
     .upsert(updateData, { onConflict: "user_id" });
@@ -360,6 +467,6 @@ async function updateSubscriptionInDb(supabase: any, userId: string, customerId:
   if (error) {
     logStep("ERROR upserting subscription", { error: error.message });
   } else {
-    logStep("Subscription updated successfully", { userId, plan: updateData.plan });
+    logStep("Subscription upserted successfully", { userId, plan, status: subscription.status });
   }
 }
