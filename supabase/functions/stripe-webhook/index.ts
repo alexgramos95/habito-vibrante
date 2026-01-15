@@ -12,6 +12,14 @@ const logStep = (step: string, details?: Record<string, unknown>) => {
   console.log(`[STRIPE-WEBHOOK] ${step}${detailsStr}`);
 };
 
+// Safe epoch-seconds to ISO converter (returns null for invalid/missing values)
+const toIsoFromSeconds = (s?: number | null): string | null => {
+  if (typeof s === 'number' && Number.isFinite(s) && s > 0) {
+    return new Date(s * 1000).toISOString();
+  }
+  return null;
+};
+
 // Map price IDs to plan names
 const PRICE_TO_PLAN: Record<string, string> = {
   "price_1Sov5zPEplRqsp5If0ew4t8x": "monthly",
@@ -76,40 +84,47 @@ serve(async (req) => {
 
     logStep("Processing event", { type: event.type, id: event.id });
 
-    switch (event.type) {
-      case "checkout.session.completed": {
-        const session = event.data.object as Stripe.Checkout.Session;
-        await handleCheckoutCompleted(supabaseClient, stripe, session);
-        break;
+    // Wrap per-event processing in try/catch - always return 200 after signature passes
+    try {
+      switch (event.type) {
+        case "checkout.session.completed": {
+          const session = event.data.object as Stripe.Checkout.Session;
+          await handleCheckoutCompleted(supabaseClient, stripe, session);
+          break;
+        }
+        case "customer.subscription.created":
+        case "customer.subscription.updated": {
+          const subscription = event.data.object as Stripe.Subscription;
+          await handleSubscriptionUpdate(supabaseClient, stripe, subscription);
+          break;
+        }
+        case "customer.subscription.deleted": {
+          const subscription = event.data.object as Stripe.Subscription;
+          await handleSubscriptionDeleted(supabaseClient, stripe, subscription);
+          break;
+        }
+        case "invoice.payment_succeeded": {
+          const invoice = event.data.object as Stripe.Invoice;
+          logStep("Invoice payment succeeded", { invoiceId: invoice.id, customerId: invoice.customer });
+          break;
+        }
+        case "invoice.payment_failed": {
+          const invoice = event.data.object as Stripe.Invoice;
+          await handlePaymentFailed(supabaseClient, stripe, invoice);
+          break;
+        }
+        case "payment_intent.succeeded": {
+          const paymentIntent = event.data.object as Stripe.PaymentIntent;
+          logStep("Payment intent succeeded", { paymentIntentId: paymentIntent.id });
+          break;
+        }
+        default:
+          logStep("Unhandled event type", { type: event.type });
       }
-      case "customer.subscription.created":
-      case "customer.subscription.updated": {
-        const subscription = event.data.object as Stripe.Subscription;
-        await handleSubscriptionUpdate(supabaseClient, stripe, subscription);
-        break;
-      }
-      case "customer.subscription.deleted": {
-        const subscription = event.data.object as Stripe.Subscription;
-        await handleSubscriptionDeleted(supabaseClient, stripe, subscription);
-        break;
-      }
-      case "invoice.payment_succeeded": {
-        const invoice = event.data.object as Stripe.Invoice;
-        logStep("Invoice payment succeeded", { invoiceId: invoice.id, customerId: invoice.customer });
-        break;
-      }
-      case "invoice.payment_failed": {
-        const invoice = event.data.object as Stripe.Invoice;
-        await handlePaymentFailed(supabaseClient, stripe, invoice);
-        break;
-      }
-      case "payment_intent.succeeded": {
-        const paymentIntent = event.data.object as Stripe.PaymentIntent;
-        logStep("Payment intent succeeded", { paymentIntentId: paymentIntent.id });
-        break;
-      }
-      default:
-        logStep("Unhandled event type", { type: event.type });
+    } catch (processingError) {
+      // Log processing error but still return 200 (signature was valid)
+      const message = processingError instanceof Error ? processingError.message : String(processingError);
+      logStep("ERROR processing event (non-fatal)", { eventType: event.type, error: message });
     }
 
     return new Response(JSON.stringify({ received: true }), {
@@ -307,9 +322,13 @@ async function updateSubscriptionInDb(supabase: any, userId: string, customerId:
   const priceId = subscription.items.data[0]?.price?.id;
   const purchasePlan = priceId ? PRICE_TO_PLAN[priceId] || "monthly" : "monthly";
   
-  const currentPeriodEnd = new Date(subscription.current_period_end * 1000).toISOString();
+  // Use safe timestamp conversion - null if missing/invalid
+  const currentPeriodEnd = toIsoFromSeconds(subscription.current_period_end);
+  const trialEnd = toIsoFromSeconds(subscription.trial_end);
+  const canceledAt = toIsoFromSeconds(subscription.canceled_at);
+  const endedAt = toIsoFromSeconds(subscription.ended_at);
   
-  const updateData = {
+  const updateData: Record<string, unknown> = {
     user_id: userId,
     stripe_customer_id: customerId,
     stripe_subscription_id: subscription.id,
@@ -320,7 +339,19 @@ async function updateSubscriptionInDb(supabase: any, userId: string, customerId:
     updated_at: new Date().toISOString(),
   };
 
-  logStep("Updating subscription in DB", { userId, status: subscription.status, purchasePlan, currentPeriodEnd });
+  // Only set optional fields if they have values
+  if (trialEnd) updateData.trial_end_date = trialEnd;
+  if (canceledAt) updateData.canceled_at = canceledAt;
+  if (endedAt) updateData.ended_at = endedAt;
+
+  logStep("Updating subscription in DB", { 
+    userId, 
+    status: subscription.status, 
+    purchasePlan, 
+    currentPeriodEnd,
+    hasTrialEnd: !!trialEnd,
+    hasCanceledAt: !!canceledAt
+  });
 
   const { error } = await supabase
     .from("subscriptions")
