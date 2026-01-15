@@ -95,10 +95,11 @@ serve(async (req) => {
       logStep("Found existing customer", { customerId });
     }
 
-    // Create checkout session
+    // Create checkout session with client_reference_id for robust user mapping
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
+      client_reference_id: user.id, // PRIMARY user mapping
       line_items: [
         {
           price: priceId,
@@ -110,6 +111,7 @@ serve(async (req) => {
       success_url: `${SITE_URL}/app?checkout=success`,
       cancel_url: `${SITE_URL}/decision?checkout=cancelled`,
       metadata: {
+        userId: user.id, // Also in metadata for redundancy
         user_id: user.id,
         price_type: priceType,
       },
@@ -119,6 +121,7 @@ serve(async (req) => {
     if (mode === "subscription") {
       sessionParams.subscription_data = {
         metadata: {
+          userId: user.id,
           user_id: user.id,
           price_type: priceType,
         },
@@ -129,6 +132,7 @@ serve(async (req) => {
     if (mode === "payment") {
       sessionParams.payment_intent_data = {
         metadata: {
+          userId: user.id,
           user_id: user.id,
           price_type: priceType,
         },
@@ -136,7 +140,11 @@ serve(async (req) => {
     }
 
     const session = await stripe.checkout.sessions.create(sessionParams);
-    logStep("Checkout session created", { sessionId: session.id, url: session.url });
+    logStep("Checkout session created", { 
+      sessionId: session.id, 
+      clientReferenceId: session.client_reference_id,
+      url: session.url 
+    });
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
