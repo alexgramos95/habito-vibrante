@@ -18,40 +18,44 @@ interface PaywallModalProps {
   trialDaysLeft?: number;
 }
 
-// PRICING ALIGNED WITH STRIPE (EUR)
-// Monthly inclui trial de 2 dias
+// PRICING ALIGNED WITH STRIPE (EUR) - UPDATED 2025
 const PLANS = [
   {
     id: "monthly" as const,
-    price: 9.99,
-    period: "/month",
+    price: 19.99,
+    period: "/mês",
+    periodEN: "/month",
     popular: false,
-    trialDays: 2, // 2-day free trial
   },
   {
     id: "yearly" as const,
-    price: 89.99,
-    period: "/year",
+    price: 189.99,
+    period: "/ano",
+    periodEN: "/year",
     popular: true,
-    discount: "25%",
-    monthlyEquivalent: 7.5,
+    discount: "20%",
+    monthlyEquivalent: 15.83,
+    savings: "Poupas 49,89€/ano",
+    savingsEN: "Save €49.89/year",
   },
   {
     id: "lifetime" as const,
-    price: 149.99,
-    period: "once",
+    price: 399.99,
+    period: "único",
+    periodEN: "once",
     popular: false,
-    note: "forever",
+    note: "para sempre",
+    noteEN: "forever",
   },
 ];
 
 const PRO_FEATURES = [
-  { icon: Target, label: "Unlimited habits" },
-  { icon: Flame, label: "Unlimited trackers" },
-  { icon: Calendar, label: "Full calendar history" },
-  { icon: Zap, label: "Finances dashboard" },
-  { icon: Download, label: "Export (CSV/PDF)" },
-  { icon: Bell, label: "Cloud sync + restore" },
+  { icon: Target, label: "Hábitos ilimitados", labelEN: "Unlimited habits" },
+  { icon: Flame, label: "Trackers ilimitados", labelEN: "Unlimited trackers" },
+  { icon: Calendar, label: "Histórico completo", labelEN: "Full calendar history" },
+  { icon: Zap, label: "Dashboard de finanças", labelEN: "Finances dashboard" },
+  { icon: Download, label: "Exportar (CSV/PDF)", labelEN: "Export (CSV/PDF)" },
+  { icon: Bell, label: "Cloud sync + restore", labelEN: "Cloud sync + restore" },
 ];
 
 export const PaywallModal = ({ open, onClose, onUpgrade, trigger, trialDaysLeft = 0 }: PaywallModalProps) => {
@@ -62,6 +66,8 @@ export const PaywallModal = ({ open, onClose, onUpgrade, trigger, trialDaysLeft 
   const [selectedPlan, setSelectedPlan] = useState<"monthly" | "yearly" | "lifetime">("yearly");
   const [loading, setLoading] = useState(false);
   const [restoring, setRestoring] = useState(false);
+
+  const isPT = locale === "pt-PT";
 
   const handleUpgrade = async () => {
     // If not authenticated, redirect to auth page
@@ -87,19 +93,17 @@ export const PaywallModal = ({ open, onClose, onUpgrade, trigger, trialDaysLeft 
         // Open Stripe checkout in new tab
         window.open(data.url, "_blank");
         toast({
-          title: "Checkout opened",
-          description: "Complete your purchase in the new tab.",
+          title: isPT ? "Checkout aberto" : "Checkout opened",
+          description: isPT ? "Completa a compra no novo separador." : "Complete your purchase in the new tab.",
         });
       }
     } catch (err) {
       console.error("Checkout error:", err);
       toast({
-        title: "Checkout failed",
-        description: "Please try again or contact support.",
+        title: isPT ? "Erro no checkout" : "Checkout failed",
+        description: isPT ? "Tenta novamente ou contacta o suporte." : "Please try again or contact support.",
         variant: "destructive",
       });
-      // Fallback to local upgrade for now
-      onUpgrade(selectedPlan);
     } finally {
       setLoading(false);
       onClose();
@@ -126,23 +130,27 @@ export const PaywallModal = ({ open, onClose, onUpgrade, trigger, trialDaysLeft 
 
       if (data?.success) {
         toast({
-          title: "Purchases restored!",
-          description: `Your ${data.purchase_plan} subscription has been restored.`,
+          title: isPT ? "Compras restauradas!" : "Purchases restored!",
+          description: isPT 
+            ? `A tua subscrição ${data.purchase_plan} foi restaurada.`
+            : `Your ${data.purchase_plan} subscription has been restored.`,
         });
         onClose();
         window.location.reload();
       } else {
         toast({
-          title: "No purchases found",
-          description: data?.message || "No active subscription found for this account.",
+          title: isPT ? "Nenhuma compra encontrada" : "No purchases found",
+          description: data?.message || (isPT 
+            ? "Nenhuma subscrição ativa encontrada para esta conta."
+            : "No active subscription found for this account."),
           variant: "destructive",
         });
       }
     } catch (err) {
       console.error("Restore error:", err);
       toast({
-        title: "Restore failed",
-        description: "Please try again or contact support.",
+        title: isPT ? "Erro ao restaurar" : "Restore failed",
+        description: isPT ? "Tenta novamente ou contacta o suporte." : "Please try again or contact support.",
         variant: "destructive",
       });
     } finally {
@@ -150,38 +158,35 @@ export const PaywallModal = ({ open, onClose, onUpgrade, trigger, trialDaysLeft 
     }
   };
 
-  // Warrior + Coach messages based on trigger
   const getHeadline = () => {
     switch (trigger) {
       case "habits":
-        return "You've hit your limit.";
+        return isPT ? "Atingiste o limite." : "You've hit your limit.";
       case "calendar":
-        return "Your trial ended.";
+        return isPT ? "O teu trial terminou." : "Your trial ended.";
       case "finances":
-        return "Finances are Pro-only.";
+        return isPT ? "Finanças é Pro-only." : "Finances are Pro-only.";
       case "export":
-        return "Export is Pro-only.";
+        return isPT ? "Exportar é Pro-only." : "Export is Pro-only.";
       default:
-        return "Upgrade to Pro";
+        return isPT ? "Upgrade para Pro" : "Upgrade to Pro";
     }
   };
 
   const getSubheadline = () => {
     switch (trigger) {
       case "habits":
-        return "Serious about discipline? Remove the limits.";
+        return isPT ? "Leva a disciplina a sério? Remove os limites." : "Serious about discipline? Remove the limits.";
       case "calendar":
-        return "Don't break your streak. Keep building.";
+        return isPT ? "Não quebres o streak. Continua a construir." : "Don't break your streak. Keep building.";
       case "finances":
-        return "See the compound effect of your discipline.";
+        return isPT ? "Vê o efeito composto da tua disciplina." : "See the compound effect of your discipline.";
       case "export":
-        return "Own your data. Track your transformation.";
+        return isPT ? "Os teus dados. A tua transformação." : "Own your data. Track your transformation.";
       default:
-        return "Become who you're aiming to be.";
+        return isPT ? "Torna-te em quem queres ser." : "Become who you're aiming to be.";
     }
   };
-
-  const monthlyPlan = PLANS.find((p) => p.id === "monthly");
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -202,7 +207,7 @@ export const PaywallModal = ({ open, onClose, onUpgrade, trigger, trialDaysLeft 
           {trialDaysLeft > 0 && (
             <div className="mt-4 p-3 rounded-lg bg-warning/10 border border-warning/20">
               <p className="text-sm text-warning font-medium">
-                ⏳ {trialDaysLeft} {trialDaysLeft === 1 ? "day" : "days"} left in your trial
+                ⏳ {trialDaysLeft} {trialDaysLeft === 1 ? (isPT ? "dia restante" : "day left") : (isPT ? "dias restantes" : "days left")} {isPT ? "no teu trial" : "in your trial"}
               </p>
             </div>
           )}
@@ -220,29 +225,38 @@ export const PaywallModal = ({ open, onClose, onUpgrade, trigger, trialDaysLeft 
                   selectedPlan === plan.id ? "border-primary bg-primary/5" : "border-border/50 hover:border-border",
                 )}
               >
-                {plan.popular && <Badge className="absolute -top-2 right-4 bg-primary">Most Popular</Badge>}
+                {plan.popular && (
+                  <Badge className="absolute -top-2 right-4 bg-primary">
+                    {isPT ? "Mais Popular" : "Most Popular"}
+                  </Badge>
+                )}
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-semibold capitalize">{plan.id}</p>
+                    <p className="font-semibold capitalize">
+                      {plan.id === "monthly" ? (isPT ? "Mensal" : "Monthly") : 
+                       plan.id === "yearly" ? (isPT ? "Anual" : "Yearly") : 
+                       (isPT ? "Fidelidade" : "Lifetime")}
+                    </p>
                     {plan.monthlyEquivalent && (
                       <p className="text-xs text-muted-foreground">
-                        €{plan.monthlyEquivalent.toFixed(2)}/mo equivalent
+                        €{plan.monthlyEquivalent.toFixed(2)}/{isPT ? "mês equivalente" : "mo equivalent"}
                       </p>
                     )}
-                    {plan.trialDays && (
-                      <p className="text-xs text-warning font-medium">{plan.trialDays}-day free trial</p>
+                    {plan.note && (
+                      <p className="text-xs text-success">
+                        {isPT ? `Paga ${plan.note}` : `Pay ${plan.noteEN}`}
+                      </p>
                     )}
-                    {plan.note && <p className="text-xs text-success">Pay {plan.note}</p>}
                   </div>
                   <div className="text-right">
                     <div className="flex items-baseline gap-1">
-                      <span className="text-2xl font-bold">€{plan.price}</span>
-                      <span className="text-sm text-muted-foreground">{plan.period}</span>
+                      <span className="text-2xl font-bold">€{plan.price.toFixed(2).replace(".", ",")}</span>
+                      <span className="text-sm text-muted-foreground">{isPT ? plan.period : plan.periodEN}</span>
                     </div>
                     {plan.discount && (
                       <Badge variant="secondary" className="text-success">
-                        Save {plan.discount}
+                        {isPT ? `Poupa ${plan.discount}` : `Save ${plan.discount}`}
                       </Badge>
                     )}
                   </div>
@@ -253,12 +267,12 @@ export const PaywallModal = ({ open, onClose, onUpgrade, trigger, trialDaysLeft 
 
           {/* Features */}
           <div className="pt-4 border-t border-border/30">
-            <p className="text-sm font-medium mb-3">Everything in Pro:</p>
+            <p className="text-sm font-medium mb-3">{isPT ? "Tudo incluído no Pro:" : "Everything in Pro:"}</p>
             <div className="grid grid-cols-2 gap-2">
               {PRO_FEATURES.map((feature, i) => (
                 <div key={i} className="flex items-center gap-2 text-sm">
                   <Check className="h-4 w-4 text-success shrink-0" />
-                  <span className="text-muted-foreground">{feature.label}</span>
+                  <span className="text-muted-foreground">{isPT ? feature.label : feature.labelEN}</span>
                 </div>
               ))}
             </div>
@@ -270,17 +284,17 @@ export const PaywallModal = ({ open, onClose, onUpgrade, trigger, trialDaysLeft 
               {loading ? (
                 <>
                   <RefreshCw className="h-5 w-5 animate-spin" />
-                  Processing...
+                  {isPT ? "A processar..." : "Processing..."}
                 </>
               ) : !isAuthenticated ? (
                 <>
                   <LogIn className="h-5 w-5" />
-                  Sign In to Upgrade
+                  {isPT ? "Iniciar sessão para Upgrade" : "Sign In to Upgrade"}
                 </>
               ) : (
                 <>
                   <Crown className="h-5 w-5" />
-                  Upgrade to Pro
+                  {isPT ? "Upgrade para Pro" : "Upgrade to Pro"}
                 </>
               )}
             </Button>
@@ -290,38 +304,32 @@ export const PaywallModal = ({ open, onClose, onUpgrade, trigger, trialDaysLeft 
               {restoring ? (
                 <>
                   <RefreshCw className="h-4 w-4 animate-spin" />
-                  Restoring...
+                  {isPT ? "A restaurar..." : "Restoring..."}
                 </>
               ) : (
                 <>
                   <RefreshCw className="h-4 w-4" />
-                  Restore Purchases
+                  {isPT ? "Restaurar Compras" : "Restore Purchases"}
                 </>
               )}
             </Button>
 
             <Button variant="ghost" onClick={onClose} className="w-full text-muted-foreground">
-              Maybe later
+              {isPT ? "Talvez depois" : "Maybe later"}
             </Button>
           </div>
 
           {/* Trust + Disclosures */}
           <div className="text-center text-xs text-muted-foreground pt-2 space-y-1">
-            {monthlyPlan?.trialDays && (
-              <p>
-                Monthly plan includes a {monthlyPlan.trialDays}-day free trial. You won&apos;t be charged if you cancel
-                before the trial ends.
-              </p>
-            )}
-            <p>This is where discipline compounds.</p>
+            <p>{isPT ? "É aqui que a disciplina se multiplica." : "This is where discipline compounds."}</p>
             <p>
-              Subscriptions auto-renew. Cancel anytime.{" "}
+              {isPT ? "Subscrições renovam automaticamente. Cancela a qualquer momento." : "Subscriptions auto-renew. Cancel anytime."}{" "}
               <a href="/terms" className="underline">
-                Terms
+                {isPT ? "Termos" : "Terms"}
               </a>{" "}
               ·{" "}
               <a href="/privacy" className="underline">
-                Privacy
+                {isPT ? "Privacidade" : "Privacy"}
               </a>
             </p>
           </div>

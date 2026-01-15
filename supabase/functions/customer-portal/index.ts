@@ -70,10 +70,10 @@ serve(async (req) => {
     const customerId = customers.data[0].id;
     logStep("Found Stripe customer", { customerId });
 
-    const origin = req.headers.get("origin") || "https://become.app";
+    const siteUrl = Deno.env.get("SITE_URL") || req.headers.get("origin") || "https://habito-vibrante.lovable.app";
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: `${origin}/perfil`,
+      return_url: `${siteUrl}/perfil`,
     });
     logStep("Customer portal session created", { sessionId: portalSession.id, url: portalSession.url });
 
