@@ -309,7 +309,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
       
       if (existingSession?.user) {
-        // Initial check with slight delay
+        // Materialize onboarding data if user arrives with existing session
+        // This covers the email verification link flow (opens in new tab with session)
+        console.log('[AUTH] User has existing session, checking for onboarding data to materialize...');
+        materializeOnboardingData();
+        
+        // Initial subscription check with slight delay
         setTimeout(() => {
           refreshSubscription(true);
         }, 500);
