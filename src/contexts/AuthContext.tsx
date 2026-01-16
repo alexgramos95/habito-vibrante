@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef, ReactNode } from 'react';
 import { User, Session, Provider } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { loadState, saveState, addHabit, addTracker } from '@/data/storage';
+import type { Tracker } from '@/data/types';
 
 interface SubscriptionStatus {
   subscribed: boolean;
@@ -44,6 +46,112 @@ const defaultSubscriptionStatus: SubscriptionStatus = {
 
 // Minimum time between subscription checks (30 seconds)
 const SUBSCRIPTION_CHECK_COOLDOWN = 30000;
+
+// Onboarding data keys
+const ONBOARDING_DATA_KEY = 'become-onboarding-data';
+const MATERIALIZATION_KEY = 'become-onboarding-materialized';
+
+/**
+ * Materialize onboarding habits and trackers after successful authentication.
+ * This creates the actual objects in localStorage from onboarding selections.
+ */
+const materializeOnboardingData = (): void => {
+  try {
+    // Check if already materialized
+    const materialized = localStorage.getItem(MATERIALIZATION_KEY);
+    if (materialized === 'true') {
+      console.log('[ONBOARDING] Already materialized, skipping');
+      return;
+    }
+
+    const data = localStorage.getItem(ONBOARDING_DATA_KEY);
+    if (!data) {
+      console.log('[ONBOARDING] No onboarding data to materialize');
+      return;
+    }
+
+    const parsed = JSON.parse(data);
+    if (!parsed.habitsToCreate && !parsed.trackersToCreate) {
+      console.log('[ONBOARDING] No habits/trackers to create');
+      localStorage.setItem(MATERIALIZATION_KEY, 'true');
+      return;
+    }
+
+    let state = loadState();
+    let habitsCreated = 0;
+    let trackersCreated = 0;
+
+    // Create habits
+    if (parsed.habitsToCreate && Array.isArray(parsed.habitsToCreate)) {
+      console.log(`[ONBOARDING] Creating ${parsed.habitsToCreate.length} habits...`);
+      
+      for (const habit of parsed.habitsToCreate) {
+        // Check if habit with same name already exists
+        const exists = state.habits.some((h: { nome: string }) => 
+          h.nome.toLowerCase() === habit.nome.toLowerCase()
+        );
+        
+        if (!exists) {
+          state = addHabit(state, {
+            nome: habit.nome,
+            categoria: habit.categoria,
+            cor: habit.cor,
+            active: habit.active ?? true,
+            scheduledDays: habit.scheduledDays,
+            scheduledTime: habit.scheduledTime,
+          });
+          habitsCreated++;
+          console.log(`[ONBOARDING] Created habit: ${habit.nome}`);
+        }
+      }
+    }
+
+    // Create trackers
+    if (parsed.trackersToCreate && Array.isArray(parsed.trackersToCreate)) {
+      console.log(`[ONBOARDING] Creating ${parsed.trackersToCreate.length} trackers...`);
+      
+      for (const tracker of parsed.trackersToCreate) {
+        // Check if tracker with same name already exists
+        const exists = state.trackers.some((t: Tracker) => 
+          t.name.toLowerCase() === tracker.name.toLowerCase()
+        );
+        
+        if (!exists) {
+          state = addTracker(state, {
+            name: tracker.name,
+            type: tracker.type,
+            inputMode: tracker.inputMode,
+            unitSingular: tracker.unitSingular,
+            unitPlural: tracker.unitPlural,
+            valuePerUnit: tracker.valuePerUnit,
+            baseline: tracker.baseline,
+            dailyGoal: tracker.dailyGoal,
+            includeInFinances: tracker.includeInFinances,
+            active: tracker.active ?? true,
+            icon: tracker.icon,
+            frequency: tracker.frequency,
+          });
+          trackersCreated++;
+          console.log(`[ONBOARDING] Created tracker: ${tracker.name}`);
+        }
+      }
+    }
+
+    // Save updated state
+    if (habitsCreated > 0 || trackersCreated > 0) {
+      saveState(state);
+      console.log(`[ONBOARDING] Saved state with ${habitsCreated} habits and ${trackersCreated} trackers`);
+    }
+
+    // Mark as materialized to prevent duplicate creation
+    localStorage.setItem(MATERIALIZATION_KEY, 'true');
+    console.log('[ONBOARDING] Marked as materialized');
+  } catch (error) {
+    console.error('[ONBOARDING] Error materializing onboarding data:', error);
+    // Still mark as materialized to avoid infinite retry loops
+    localStorage.setItem(MATERIALIZATION_KEY, 'true');
+  }
+};
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -177,6 +285,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         // Check subscription on sign in events
         if (newSession?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+          // Materialize onboarding data immediately on first sign in
+          if (event === 'SIGNED_IN') {
+            materializeOnboardingData();
+          }
           setTimeout(() => {
             refreshSubscription(true);
           }, 100);
