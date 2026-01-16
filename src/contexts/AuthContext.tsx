@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef, ReactNode } from 'react';
 import { User, Session, Provider } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { addDays } from 'date-fns';
 
 interface SubscriptionStatus {
   subscribed: boolean;
@@ -11,6 +10,7 @@ interface SubscriptionStatus {
   subscriptionEnd: string | null;
   trialEnd: string | null;
   trialStart: string | null;
+  stripeStatus: string | null;
 }
 
 interface AuthContextType {
@@ -39,11 +39,11 @@ const defaultSubscriptionStatus: SubscriptionStatus = {
   subscriptionEnd: null,
   trialEnd: null,
   trialStart: null,
+  stripeStatus: null,
 };
 
 // Minimum time between subscription checks (30 seconds)
 const SUBSCRIPTION_CHECK_COOLDOWN = 30000;
-const TRIAL_DURATION_DAYS = 2;
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -66,63 +66,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Check if email is verified
   const isEmailVerified = Boolean(user?.email_confirmed_at);
 
-  // Start trial - creates/updates subscription in database
-  const startTrial = useCallback(async () => {
-    const currentSession = sessionRef.current;
-    if (!currentSession?.user) return;
-
-    const now = new Date();
-    const trialEndDate = addDays(now, TRIAL_DURATION_DAYS);
-
-    try {
-      // Check if subscription row exists
-      const { data: existingSub } = await supabase
-        .from('subscriptions')
-        .select('*')
-        .eq('user_id', currentSession.user.id)
-        .single();
-
-      if (existingSub) {
-        // Update existing row only if not already pro
-        if (existingSub.plan !== 'pro') {
-          await supabase
-            .from('subscriptions')
-            .update({
-              plan: 'trial',
-              trial_start_date: now.toISOString(),
-              trial_end_date: trialEndDate.toISOString(),
-              status: 'active',
-            })
-            .eq('user_id', currentSession.user.id);
-        }
-      } else {
-        // Create new subscription row with trial
-        await supabase
-          .from('subscriptions')
-          .insert({
-            user_id: currentSession.user.id,
-            plan: 'trial',
-            trial_start_date: now.toISOString(),
-            trial_end_date: trialEndDate.toISOString(),
-            status: 'active',
-          });
-      }
-
-      // Update local state
-      setSubscriptionStatus(prev => ({
-        ...prev,
-        plan: 'trial',
-        planStatus: 'trial_active',
-        trialStart: now.toISOString(),
-        trialEnd: trialEndDate.toISOString(),
-      }));
-
-      console.log('[AUTH] Trial started successfully');
-    } catch (err) {
-      console.error('[AUTH] Failed to start trial:', err);
-    }
-  }, []);
-
+  /**
+   * Refresh subscription status from backend.
+   * This is the SINGLE SOURCE OF TRUTH for plan status.
+   * The backend (check-subscription) handles all trial logic:
+   * - Creates trial on first check if none exists
+   * - Returns trial status if still active
+   * - Returns free if trial expired
+   * - Returns pro if Stripe subscription active
+   */
   const refreshSubscription = useCallback(async (force = false) => {
     const currentSession = sessionRef.current;
     if (!currentSession) return;
@@ -139,6 +91,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     lastCheckRef.current = now;
     
     try {
+      console.log('[AUTH] Checking subscription status...');
+      
       const { data, error } = await supabase.functions.invoke('check-subscription', {
         headers: {
           Authorization: `Bearer ${currentSession.access_token}`,
@@ -146,27 +100,55 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (error) {
-        console.error('Error checking subscription:', error);
+        console.error('[AUTH] Error checking subscription:', error);
         return;
       }
 
       if (data) {
+        console.log('[AUTH] Subscription status received:', {
+          plan: data.plan,
+          stripeStatus: data.stripeStatus,
+          trialEndsAt: data.trialEndsAt,
+        });
+
+        // Derive planStatus from backend response
+        let planStatus: SubscriptionStatus['planStatus'] = null;
+        if (data.plan === 'pro') {
+          planStatus = data.purchasePlan === 'lifetime' ? 'lifetime' : 'pro_active';
+        } else if (data.plan === 'trial') {
+          planStatus = 'trial_active';
+        } else if (data.trialExpired) {
+          planStatus = 'trial_expired';
+        } else {
+          planStatus = 'free_initial';
+        }
+
         setSubscriptionStatus({
-          subscribed: data.subscribed || false,
+          subscribed: data.subscribed || data.plan === 'pro',
           plan: data.plan || 'free',
-          planStatus: data.plan_status || (data.plan === 'trial' ? 'trial_active' : data.plan === 'pro' ? 'pro_active' : 'free_initial'),
-          purchasePlan: data.purchase_plan || null,
-          subscriptionEnd: data.subscription_end || null,
-          trialEnd: data.trial_end || null,
-          trialStart: data.trial_start || null,
+          planStatus,
+          purchasePlan: data.purchasePlan || null,
+          subscriptionEnd: data.subscriptionEnd || null,
+          trialEnd: data.trialEndsAt || null,
+          trialStart: data.trialStartedAt || null,
+          stripeStatus: data.stripeStatus || null,
         });
       }
     } catch (err) {
-      console.error('Failed to check subscription:', err);
+      console.error('[AUTH] Failed to check subscription:', err);
     } finally {
       isCheckingRef.current = false;
     }
   }, []);
+
+  /**
+   * Start trial - now just triggers a refresh since backend handles trial creation
+   * The check-subscription endpoint automatically creates a trial if none exists
+   */
+  const startTrial = useCallback(async () => {
+    console.log('[AUTH] startTrial called - triggering subscription refresh');
+    await refreshSubscription(true);
+  }, [refreshSubscription]);
 
   useEffect(() => {
     let isMounted = true;
@@ -176,14 +158,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       (event, newSession) => {
         if (!isMounted) return;
         
+        console.log('[AUTH] Auth state changed:', event);
+        
         setSession(newSession);
         setUser(newSession?.user ?? null);
         setLoading(false);
         
-        // Only check subscription on sign in events, not every state change
+        // Check subscription on sign in events
         if (newSession?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
           setTimeout(() => {
-            refreshSubscription(true); // Force check on sign in
+            refreshSubscription(true);
           }, 100);
         } else if (!newSession) {
           setSubscriptionStatus(defaultSubscriptionStatus);
@@ -194,6 +178,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session: existingSession } }) => {
       if (!isMounted) return;
+      
+      console.log('[AUTH] Existing session check:', !!existingSession);
       
       setSession(existingSession);
       setUser(existingSession?.user ?? null);
@@ -213,15 +199,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []); // Empty dependency array - only run once on mount
 
-  // Periodic subscription check every 2 minutes (reduced frequency)
+  // Periodic subscription check every 2 minutes
   useEffect(() => {
     if (!session) return;
     
     const interval = setInterval(() => {
       refreshSubscription();
-    }, 120000); // 2 minutes
+    }, 120000);
 
     return () => clearInterval(interval);
+  }, [session, refreshSubscription]);
+
+  // Handle visibility change (tab focus) - refresh on focus
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && session) {
+        console.log('[AUTH] Tab focused - refreshing subscription');
+        refreshSubscription(true);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [session, refreshSubscription]);
 
   const signUp = async (email: string, password: string, displayName?: string) => {

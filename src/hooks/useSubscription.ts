@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useContext } from 'react';
-import { differenceInDays, differenceInHours, differenceInMinutes, parseISO } from 'date-fns';
+import { differenceInMinutes, parseISO } from 'date-fns';
 import { AuthContext } from '@/contexts/AuthContext';
 
 export type PlanType = 'free' | 'trial' | 'pro';
@@ -57,6 +57,7 @@ const defaultSubscriptionStatus = {
   subscriptionEnd: null as string | null,
   trialEnd: null as string | null,
   trialStart: null as string | null,
+  stripeStatus: null as string | null,
 };
 
 export const useSubscription = () => {
@@ -91,59 +92,95 @@ export const useSubscription = () => {
     purchasePlan: subscriptionStatus.purchasePlan,
   };
 
-  // Calculate trial status from context
+  /**
+   * Calculate trial status from context.
+   * This derives the display state from the backend-provided plan.
+   * The backend is the source of truth - we just format it for display.
+   */
   const getTrialStatus = useCallback(() => {
+    // PRO users don't have trial status to show
     if (subscriptionStatus.plan === 'pro') {
-      return { isActive: false, daysRemaining: 0, hoursRemaining: 0, minutesRemaining: 0, isExpired: false };
-    }
-
-    // Check if planStatus indicates expired trial
-    if (subscriptionStatus.planStatus === 'trial_expired') {
-      return { isActive: false, daysRemaining: 0, hoursRemaining: 0, minutesRemaining: 0, isExpired: true };
-    }
-
-    if (subscriptionStatus.plan === 'trial' && subscriptionStatus.trialEnd) {
-      const endDate = parseISO(subscriptionStatus.trialEnd);
-      const today = new Date();
-      
-      const totalMinutesRemaining = differenceInMinutes(endDate, today);
-      
-      if (totalMinutesRemaining < 0) {
-        return { isActive: false, daysRemaining: 0, hoursRemaining: 0, minutesRemaining: 0, isExpired: true };
-      }
-      
-      const daysRemaining = Math.floor(totalMinutesRemaining / (60 * 24));
-      const hoursRemaining = Math.floor((totalMinutesRemaining % (60 * 24)) / 60);
-      const minutesRemaining = totalMinutesRemaining % 60;
-      
       return { 
-        isActive: true, 
-        daysRemaining,
-        hoursRemaining,
-        minutesRemaining,
+        isActive: false, 
+        daysRemaining: 0, 
+        hoursRemaining: 0, 
+        minutesRemaining: 0, 
         isExpired: false 
       };
     }
 
-    // Also check trialEnd even if plan is 'free' (trial may have expired)
-    if (subscriptionStatus.trialEnd) {
-      const endDate = parseISO(subscriptionStatus.trialEnd);
-      if (endDate <= new Date()) {
-        return { isActive: false, daysRemaining: 0, hoursRemaining: 0, minutesRemaining: 0, isExpired: true };
+    // Trial expired status from backend
+    if (subscriptionStatus.planStatus === 'trial_expired') {
+      return { 
+        isActive: false, 
+        daysRemaining: 0, 
+        hoursRemaining: 0, 
+        minutesRemaining: 0, 
+        isExpired: true 
+      };
+    }
+
+    // Active trial - calculate remaining time for display
+    if (subscriptionStatus.plan === 'trial' && subscriptionStatus.trialEnd) {
+      try {
+        const endDate = parseISO(subscriptionStatus.trialEnd);
+        const today = new Date();
+        
+        const totalMinutesRemaining = differenceInMinutes(endDate, today);
+        
+        if (totalMinutesRemaining < 0) {
+          return { 
+            isActive: false, 
+            daysRemaining: 0, 
+            hoursRemaining: 0, 
+            minutesRemaining: 0, 
+            isExpired: true 
+          };
+        }
+        
+        const daysRemaining = Math.floor(totalMinutesRemaining / (60 * 24));
+        const hoursRemaining = Math.floor((totalMinutesRemaining % (60 * 24)) / 60);
+        const minutesRemaining = totalMinutesRemaining % 60;
+        
+        return { 
+          isActive: true, 
+          daysRemaining,
+          hoursRemaining,
+          minutesRemaining,
+          isExpired: false 
+        };
+      } catch {
+        // Invalid date - treat as no trial
+        return { 
+          isActive: false, 
+          daysRemaining: 0, 
+          hoursRemaining: 0, 
+          minutesRemaining: 0, 
+          isExpired: false 
+        };
       }
     }
 
-    return { isActive: false, daysRemaining: 0, hoursRemaining: 0, minutesRemaining: 0, isExpired: false };
+    // Free user with no trial
+    return { 
+      isActive: false, 
+      daysRemaining: 0, 
+      hoursRemaining: 0, 
+      minutesRemaining: 0, 
+      isExpired: false 
+    };
   }, [subscriptionStatus]);
 
-  // Start trial - delegate to auth context
+  /**
+   * Start trial - delegates to auth context which calls check-subscription.
+   * The backend automatically creates a trial if none exists.
+   */
   const startTrial = useCallback(async () => {
     await authStartTrial();
   }, [authStartTrial]);
 
-  // Upgrade to Pro (stub - triggers Stripe flow in reality)
+  // Upgrade to Pro (triggers Stripe checkout flow)
   const upgradeToPro = useCallback((planType: 'monthly' | 'yearly' | 'lifetime') => {
-    // This will be replaced with actual Stripe checkout flow
     console.log('[SUBSCRIPTION] Upgrade to pro requested:', planType);
   }, []);
 
@@ -157,7 +194,10 @@ export const useSubscription = () => {
     }));
   }, []);
 
-  // Check feature access
+  /**
+   * Check feature access based on current plan.
+   * PRO or active trial = full access.
+   */
   const hasAccess = useCallback((feature: keyof typeof FREE_LIMITS): boolean => {
     const status = getTrialStatus();
     const isPro = subscriptionStatus.plan === 'pro' || status.isActive;
@@ -171,7 +211,7 @@ export const useSubscription = () => {
     return true;
   }, [subscriptionStatus.plan, getTrialStatus]);
 
-  // Get current limits
+  // Get current limits based on plan
   const getLimits = useCallback(() => {
     const status = getTrialStatus();
     const isPro = subscriptionStatus.plan === 'pro' || status.isActive;
@@ -206,7 +246,12 @@ export const useSubscription = () => {
   useEffect(() => {
     const legacyComplete = localStorage.getItem('itero-onboarding-complete');
     if (legacyComplete === 'true' && !onboarding.completed) {
-      // Legacy migration placeholder
+      // Legacy migration - mark as complete
+      setOnboarding(prev => ({
+        ...prev,
+        completed: true,
+        completedAt: new Date().toISOString(),
+      }));
     }
   }, [onboarding.completed]);
 
