@@ -26,6 +26,7 @@ import { useI18n } from "@/i18n/I18nContext";
 import { localeNames, currencyNames, type Locale, type Currency } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { useSubscription } from "@/hooks/useSubscription";
+import type { TrackerType, TrackerInputMode, TrackerFrequency } from "@/data/types";
 
 // Improvement areas
 const IMPROVEMENT_AREAS = [
@@ -40,22 +41,34 @@ const IMPROVEMENT_AREAS = [
 // Identity vectors (who you're becoming)
 const IDENTITY_VECTORS = ["Disciplined", "Focused", "Resilient", "Strong", "Calm", "Consistent", "Healthy", "Wealthy"];
 
-// Habit presets based on areas
+// Habit presets based on areas - with full config for creation
 const HABIT_PRESETS = [
-  { id: "meditation", name: "Meditation", category: "mindfulness", icon: "🧘" },
-  { id: "exercise", name: "Exercise", category: "fitness", icon: "🏃" },
-  { id: "reading", name: "Reading", category: "productivity", icon: "📚" },
-  { id: "water", name: "Drink Water", category: "health", icon: "💧" },
-  { id: "sleep8h", name: "Sleep 8h", category: "sleep", icon: "😴" },
-  { id: "noPhone", name: "No Phone Morning", category: "focus", icon: "📵" },
+  { id: "meditation", name: "Meditation", category: "mindfulness", icon: "🧘", color: "#8b5cf6" },
+  { id: "exercise", name: "Exercise", category: "fitness", icon: "🏃", color: "#22c55e" },
+  { id: "reading", name: "Reading", category: "productivity", icon: "📚", color: "#3b82f6" },
+  { id: "water", name: "Drink Water", category: "health", icon: "💧", color: "#06b6d4" },
+  { id: "sleep8h", name: "Sleep 8h", category: "sleep", icon: "😴", color: "#6366f1" },
+  { id: "noPhone", name: "No Phone Morning", category: "focus", icon: "📵", color: "#f59e0b" },
 ];
 
-// Tracker presets
-const TRACKER_PRESETS = [
-  { id: "coffee", name: "Coffee", icon: Coffee, type: "reduce" },
-  { id: "cigarettes", name: "Cigarettes", icon: Cigarette, type: "reduce" },
-  { id: "gym", name: "Gym Sessions", icon: Dumbbell, type: "increase" },
-  { id: "meditation", name: "Meditation", icon: Brain, type: "increase" },
+// Tracker presets - with full config for creation
+const TRACKER_PRESETS: {
+  id: string;
+  name: string;
+  icon: typeof Coffee;
+  type: TrackerType;
+  inputMode: TrackerInputMode;
+  unitSingular: string;
+  unitPlural: string;
+  baseline: number;
+  dailyGoal: number;
+  valuePerUnit: number;
+  frequency: TrackerFrequency;
+}[] = [
+  { id: "coffee", name: "Coffee", icon: Coffee, type: "event", inputMode: "incremental", unitSingular: "cup", unitPlural: "cups", baseline: 3, dailyGoal: 2, valuePerUnit: 3.00, frequency: "daily" },
+  { id: "cigarettes", name: "Cigarettes", icon: Cigarette, type: "reduce", inputMode: "incremental", unitSingular: "cigarette", unitPlural: "cigarettes", baseline: 10, dailyGoal: 0, valuePerUnit: 0.31, frequency: "daily" },
+  { id: "gym", name: "Gym Sessions", icon: Dumbbell, type: "increase", inputMode: "binary", unitSingular: "session", unitPlural: "sessions", baseline: 0, dailyGoal: 1, valuePerUnit: 0, frequency: "daily" },
+  { id: "meditation", name: "Meditation", icon: Brain, type: "increase", inputMode: "manualAmount", unitSingular: "minute", unitPlural: "minutes", baseline: 0, dailyGoal: 10, valuePerUnit: 0, frequency: "daily" },
 ];
 
 type Step = "welcome" | "areas" | "identity" | "presets" | "settings" | "ready";
@@ -90,13 +103,45 @@ const Onboarding = () => {
   };
 
   const handleComplete = () => {
-    // Save onboarding data to localStorage
+    // Build habits from selected presets
+    const selectedHabits = HABIT_PRESETS.filter(p => 
+      selectedPresets.includes(`habit-${p.id}`)
+    ).map(preset => ({
+      nome: preset.name,
+      categoria: preset.category,
+      cor: preset.color,
+      active: true,
+      scheduledDays: [], // every day
+    }));
+
+    // Build trackers from selected presets
+    const selectedTrackers = TRACKER_PRESETS.filter(p => 
+      selectedPresets.includes(`tracker-${p.id}`)
+    ).map(preset => ({
+      name: preset.name,
+      type: preset.type,
+      inputMode: preset.inputMode,
+      unitSingular: preset.unitSingular,
+      unitPlural: preset.unitPlural,
+      valuePerUnit: preset.valuePerUnit,
+      baseline: preset.baseline,
+      dailyGoal: preset.dailyGoal,
+      includeInFinances: preset.valuePerUnit > 0,
+      active: true,
+      icon: preset.id === "coffee" ? "☕" : preset.id === "cigarettes" ? "🚬" : preset.id === "gym" ? "🏋️" : "🧘",
+      frequency: preset.frequency,
+    }));
+
+    // Save onboarding data including habits and trackers to create after auth
     const payload = {
       improvementAreas: selectedAreas,
       identityVectors: [...selectedIdentity, customIdentity].filter(Boolean),
       selectedPresets,
       locale,
       currency,
+      // NEW: Habits and trackers to create after authentication
+      habitsToCreate: selectedHabits,
+      trackersToCreate: selectedTrackers,
     };
 
     try {
