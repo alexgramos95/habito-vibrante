@@ -49,18 +49,27 @@ const SUBSCRIPTION_CHECK_COOLDOWN = 30000;
 
 // Onboarding data keys
 const ONBOARDING_DATA_KEY = 'become-onboarding-data';
-const MATERIALIZATION_KEY = 'become-onboarding-materialized';
+
+/**
+ * Get per-user materialization key to prevent blocking other users in the same browser
+ */
+const getMaterializationKey = (userId: string): string => {
+  return `become-onboarding-materialized-${userId}`;
+};
 
 /**
  * Materialize onboarding habits and trackers after successful authentication.
  * This creates the actual objects in localStorage from onboarding selections.
+ * Uses per-user keys to support multiple users in the same browser.
  */
-const materializeOnboardingData = (): void => {
+const materializeOnboardingData = (userId: string): void => {
   try {
-    // Check if already materialized
-    const materialized = localStorage.getItem(MATERIALIZATION_KEY);
+    const materializationKey = getMaterializationKey(userId);
+    
+    // Check if already materialized FOR THIS USER
+    const materialized = localStorage.getItem(materializationKey);
     if (materialized === 'true') {
-      console.log('[ONBOARDING] Already materialized, skipping');
+      console.log('[ONBOARDING] Already materialized for user:', userId);
       return;
     }
 
@@ -73,7 +82,8 @@ const materializeOnboardingData = (): void => {
     const parsed = JSON.parse(data);
     if (!parsed.habitsToCreate && !parsed.trackersToCreate) {
       console.log('[ONBOARDING] No habits/trackers to create');
-      localStorage.setItem(MATERIALIZATION_KEY, 'true');
+      // Mark as materialized for this user even if no data
+      localStorage.setItem(materializationKey, 'true');
       return;
     }
 
@@ -83,7 +93,7 @@ const materializeOnboardingData = (): void => {
 
     // Create habits
     if (parsed.habitsToCreate && Array.isArray(parsed.habitsToCreate)) {
-      console.log(`[ONBOARDING] Creating ${parsed.habitsToCreate.length} habits...`);
+      console.log(`[ONBOARDING] Creating ${parsed.habitsToCreate.length} habits for user ${userId}...`);
       
       for (const habit of parsed.habitsToCreate) {
         // Check if habit with same name already exists
@@ -108,7 +118,7 @@ const materializeOnboardingData = (): void => {
 
     // Create trackers
     if (parsed.trackersToCreate && Array.isArray(parsed.trackersToCreate)) {
-      console.log(`[ONBOARDING] Creating ${parsed.trackersToCreate.length} trackers...`);
+      console.log(`[ONBOARDING] Creating ${parsed.trackersToCreate.length} trackers for user ${userId}...`);
       
       for (const tracker of parsed.trackersToCreate) {
         // Check if tracker with same name already exists
@@ -137,19 +147,23 @@ const materializeOnboardingData = (): void => {
       }
     }
 
-    // Save updated state
+    // Save updated state to localStorage
     if (habitsCreated > 0 || trackersCreated > 0) {
       saveState(state);
       console.log(`[ONBOARDING] Saved state with ${habitsCreated} habits and ${trackersCreated} trackers`);
     }
 
-    // Mark as materialized to prevent duplicate creation
-    localStorage.setItem(MATERIALIZATION_KEY, 'true');
-    console.log('[ONBOARDING] Marked as materialized');
+    // Mark as materialized FOR THIS USER to prevent duplicate creation
+    localStorage.setItem(materializationKey, 'true');
+    console.log('[ONBOARDING] Marked as materialized for user:', userId);
+    
+    // Clear the shared onboarding data after successful materialization
+    // This prevents the next user from picking up stale data
+    localStorage.removeItem(ONBOARDING_DATA_KEY);
+    console.log('[ONBOARDING] Cleared onboarding data after materialization');
   } catch (error) {
     console.error('[ONBOARDING] Error materializing onboarding data:', error);
-    // Still mark as materialized to avoid infinite retry loops
-    localStorage.setItem(MATERIALIZATION_KEY, 'true');
+    // Do NOT mark as materialized on error - allow retry
   }
 };
 
@@ -287,7 +301,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (newSession?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
           // Materialize onboarding data immediately on first sign in
           if (event === 'SIGNED_IN') {
-            materializeOnboardingData();
+            materializeOnboardingData(newSession.user.id);
           }
           setTimeout(() => {
             refreshSubscription(true);
@@ -312,7 +326,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // Materialize onboarding data if user arrives with existing session
         // This covers the email verification link flow (opens in new tab with session)
         console.log('[AUTH] User has existing session, checking for onboarding data to materialize...');
-        materializeOnboardingData();
+        materializeOnboardingData(existingSession.user.id);
         
         // Initial subscription check with slight delay
         setTimeout(() => {
