@@ -101,6 +101,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) {
         console.error('[AUTH] Error checking subscription:', error);
+        
+        // Handle invalid/expired token by signing out
+        const errorBody = await error.context?.json?.().catch(() => null);
+        const errorMessage = errorBody?.error || error.message || '';
+        
+        if (errorMessage.includes('Invalid credentials') || 
+            errorMessage.includes('Authentication required') ||
+            errorMessage.includes('JWT expired')) {
+          console.log('[AUTH] Token invalid/expired, signing out...');
+          await supabase.auth.signOut();
+        }
         return;
       }
 
