@@ -403,8 +403,40 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    console.log('[AUTH] Signing out...');
+    
+    // Clear all internal state FIRST
+    setUser(null);
+    setSession(null);
     setSubscriptionStatus(defaultSubscriptionStatus);
+    
+    // Reset refs to prevent any pending operations
+    sessionRef.current = null;
+    lastCheckRef.current = 0;
+    isCheckingRef.current = false;
+    
+    try {
+      // Sign out with global scope to ensure server-side session is cleared
+      const { error } = await supabase.auth.signOut({ scope: 'global' });
+      
+      if (error) {
+        console.error('[AUTH] Error during sign out:', error);
+      }
+      
+      console.log('[AUTH] Sign out completed successfully');
+    } catch (err) {
+      console.error('[AUTH] Exception during sign out:', err);
+    }
+    
+    // Verify session is cleared
+    const { data: { session: checkSession } } = await supabase.auth.getSession();
+    if (checkSession) {
+      console.warn('[AUTH] Session still exists after signOut, forcing clear...');
+      // Force another signOut attempt
+      await supabase.auth.signOut({ scope: 'global' });
+    } else {
+      console.log('[AUTH] Session verified as null after signOut');
+    }
   };
 
   const resetPassword = async (email: string) => {
