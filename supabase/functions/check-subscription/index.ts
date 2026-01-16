@@ -7,6 +7,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Trial duration in hours
+const TRIAL_DURATION_HOURS = 48;
+
 // Helper logging function for debugging
 const logStep = (step: string, details?: Record<string, unknown>) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
@@ -28,6 +31,18 @@ const getSafeErrorMessage = (rawMessage: string): string => {
     }
   }
   return "An error occurred. Please try again.";
+};
+
+// Safe ISO date converter
+const toIsoSafe = (date: Date | string | null | undefined): string | null => {
+  if (!date) return null;
+  try {
+    const d = typeof date === 'string' ? new Date(date) : date;
+    if (isNaN(d.getTime())) return null;
+    return d.toISOString();
+  } catch {
+    return null;
+  }
 };
 
 serve(async (req) => {
@@ -61,75 +76,72 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
 
-    // Check for customer in Stripe
+    // STEP 1: Check for active Stripe subscription first (PRO always takes priority)
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     
-    if (customers.data.length === 0) {
-      logStep("No customer found, returning unsubscribed state");
+    if (customers.data.length > 0) {
+      const customerId = customers.data[0].id;
+      logStep("Found Stripe customer", { customerId });
+
+      // Check for active subscriptions
+      const subscriptions = await stripe.subscriptions.list({
+        customer: customerId,
+        status: "active",
+        limit: 1,
+      });
       
-      // Check database for subscription status (for trial/local status)
-      const { data: subData } = await supabaseClient
-        .from('subscriptions')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-      
-      if (subData && (subData.plan === 'trial' || subData.trial_end_date)) {
-        const trialEnd = subData.trial_end_date ? new Date(subData.trial_end_date) : null;
-        const isTrialActive = trialEnd && trialEnd > new Date();
-        const isTrialExpired = trialEnd && trialEnd <= new Date();
+      // Also check for trialing subscriptions
+      const trialingSubscriptions = await stripe.subscriptions.list({
+        customer: customerId,
+        status: "trialing",
+        limit: 1,
+      });
+
+      const activeSubscription = subscriptions.data[0] || trialingSubscriptions.data[0];
+
+      if (activeSubscription) {
+        const subscriptionEnd = activeSubscription.current_period_end 
+          ? new Date(activeSubscription.current_period_end * 1000).toISOString() 
+          : null;
+        const productId = activeSubscription.items.data[0]?.price?.product as string;
+        const interval = activeSubscription.items.data[0]?.price?.recurring?.interval;
+        const purchasePlan = interval === 'year' ? 'yearly' : 'monthly';
         
+        logStep("Active Stripe subscription found - returning PRO", { 
+          subscriptionId: activeSubscription.id, 
+          status: activeSubscription.status,
+          productId, 
+          purchasePlan 
+        });
+
+        // Update DB to reflect PRO status
+        await supabaseClient
+          .from('subscriptions')
+          .upsert({
+            user_id: user.id,
+            plan: 'pro',
+            stripe_customer_id: customerId,
+            stripe_subscription_id: activeSubscription.id,
+            purchase_plan: purchasePlan,
+            current_period_end: subscriptionEnd,
+            status: activeSubscription.status,
+            updated_at: new Date().toISOString(),
+          }, { onConflict: 'user_id' });
+
         return new Response(JSON.stringify({
-          subscribed: false,
-          plan: isTrialActive ? 'trial' : 'free',
-          plan_status: isTrialActive ? 'trial_active' : (isTrialExpired ? 'trial_expired' : 'free_initial'),
-          trial_end: subData.trial_end_date,
-          trial_start: subData.trial_start_date,
-          product_id: null,
-          subscription_end: null,
+          plan: 'pro',
+          stripeStatus: activeSubscription.status,
+          subscriptionEnd,
+          productId,
+          purchasePlan,
+          trialEndsAt: null,
+          subscribed: true,
         }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 200,
         });
       }
-      
-      return new Response(JSON.stringify({
-        subscribed: false,
-        plan: 'free',
-        product_id: null,
-        subscription_end: null,
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      });
-    }
 
-    const customerId = customers.data[0].id;
-    logStep("Found Stripe customer", { customerId });
-
-    // Check for active subscriptions
-    const subscriptions = await stripe.subscriptions.list({
-      customer: customerId,
-      status: "active",
-      limit: 1,
-    });
-    
-    let hasActiveSub = subscriptions.data.length > 0;
-    let productId: string | null = null;
-    let subscriptionEnd: string | null = null;
-    let purchasePlan: string | null = null;
-
-    if (hasActiveSub) {
-      const subscription = subscriptions.data[0];
-      subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
-      productId = subscription.items.data[0]?.price?.product as string;
-      
-      // Determine plan type from interval
-      const interval = subscription.items.data[0]?.price?.recurring?.interval;
-      purchasePlan = interval === 'year' ? 'yearly' : 'monthly';
-      
-      logStep("Active subscription found", { subscriptionId: subscription.id, productId, purchasePlan });
-    } else {
       // Check for lifetime purchase (one-time payment)
       const payments = await stripe.paymentIntents.list({
         customer: customerId,
@@ -141,40 +153,213 @@ serve(async (req) => {
       );
       
       if (successfulLifetime) {
-        hasActiveSub = true;
-        purchasePlan = 'lifetime';
-        logStep("Lifetime purchase found", { paymentId: successfulLifetime.id });
-      } else {
-        logStep("No active subscription or lifetime purchase found");
+        logStep("Lifetime purchase found - returning PRO", { paymentId: successfulLifetime.id });
+
+        // Update DB to reflect lifetime PRO
+        await supabaseClient
+          .from('subscriptions')
+          .upsert({
+            user_id: user.id,
+            plan: 'pro',
+            stripe_customer_id: customerId,
+            purchase_plan: 'lifetime',
+            status: 'active',
+            updated_at: new Date().toISOString(),
+          }, { onConflict: 'user_id' });
+
+        return new Response(JSON.stringify({
+          plan: 'pro',
+          stripeStatus: 'lifetime',
+          subscriptionEnd: null,
+          productId: null,
+          purchasePlan: 'lifetime',
+          trialEndsAt: null,
+          subscribed: true,
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
       }
     }
 
-    // Update subscription in database
-    if (hasActiveSub) {
+    logStep("No active Stripe subscription found, checking trial status");
+
+    // STEP 2: No active Stripe subscription - check trial status in database
+    const { data: subData, error: subError } = await supabaseClient
+      .from('subscriptions')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
+
+    const now = new Date();
+
+    // CASE A: Subscription row exists
+    if (subData && !subError) {
+      // Check if PRO was set by webhook (e.g., €0 promo)
+      if (subData.plan === 'pro' && subData.status === 'active') {
+        logStep("PRO status found in DB", { userId: user.id, purchasePlan: subData.purchase_plan });
+        return new Response(JSON.stringify({
+          plan: 'pro',
+          stripeStatus: subData.status,
+          subscriptionEnd: subData.current_period_end,
+          productId: null,
+          purchasePlan: subData.purchase_plan,
+          trialEndsAt: null,
+          subscribed: true,
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
+
+      // Check if trial was ever started
+      if (subData.trial_start_date || subData.trial_end_date) {
+        const trialEnd = subData.trial_end_date ? new Date(subData.trial_end_date) : null;
+        
+        if (trialEnd && !isNaN(trialEnd.getTime())) {
+          if (now < trialEnd) {
+            // Trial still active
+            logStep("Trial still active", { 
+              userId: user.id, 
+              trialEndsAt: trialEnd.toISOString(),
+              minutesRemaining: Math.round((trialEnd.getTime() - now.getTime()) / 60000)
+            });
+
+            return new Response(JSON.stringify({
+              plan: 'trial',
+              stripeStatus: null,
+              subscriptionEnd: null,
+              productId: null,
+              purchasePlan: null,
+              trialEndsAt: toIsoSafe(trialEnd),
+              trialStartedAt: toIsoSafe(subData.trial_start_date),
+              subscribed: false,
+            }), {
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+              status: 200,
+            });
+          } else {
+            // Trial expired
+            logStep("Trial expired", { 
+              userId: user.id, 
+              trialEndedAt: trialEnd.toISOString() 
+            });
+
+            // Ensure plan is set to free in DB
+            if (subData.plan !== 'free') {
+              await supabaseClient
+                .from('subscriptions')
+                .update({ 
+                  plan: 'free', 
+                  status: 'trial_expired',
+                  updated_at: now.toISOString() 
+                })
+                .eq('user_id', user.id);
+            }
+
+            return new Response(JSON.stringify({
+              plan: 'free',
+              stripeStatus: null,
+              subscriptionEnd: null,
+              productId: null,
+              purchasePlan: null,
+              trialEndsAt: toIsoSafe(trialEnd),
+              trialStartedAt: toIsoSafe(subData.trial_start_date),
+              trialExpired: true,
+              subscribed: false,
+            }), {
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+              status: 200,
+            });
+          }
+        }
+      }
+
+      // User exists but never started trial - create trial now
+      logStep("User exists but no trial started, creating trial", { userId: user.id });
+      
+      const trialEnd = new Date(now.getTime() + TRIAL_DURATION_HOURS * 60 * 60 * 1000);
+      
       await supabaseClient
         .from('subscriptions')
         .update({
-          plan: 'pro',
-          stripe_customer_id: customerId,
-          purchase_date: new Date().toISOString(),
-          purchase_plan: purchasePlan,
-          current_period_end: subscriptionEnd,
-          status: 'active',
+          plan: 'trial',
+          trial_start_date: now.toISOString(),
+          trial_end_date: trialEnd.toISOString(),
+          status: 'trial_active',
+          updated_at: now.toISOString(),
         })
         .eq('user_id', user.id);
-      logStep("Database subscription updated to pro");
+
+      logStep("Trial created for existing user", { 
+        userId: user.id, 
+        trialEndsAt: trialEnd.toISOString() 
+      });
+
+      return new Response(JSON.stringify({
+        plan: 'trial',
+        stripeStatus: null,
+        subscriptionEnd: null,
+        productId: null,
+        purchasePlan: null,
+        trialEndsAt: trialEnd.toISOString(),
+        trialStartedAt: now.toISOString(),
+        subscribed: false,
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
     }
 
+    // CASE B: No subscription row exists - create new user with trial
+    logStep("No subscription row found, creating new trial", { userId: user.id });
+    
+    const trialEnd = new Date(now.getTime() + TRIAL_DURATION_HOURS * 60 * 60 * 1000);
+    
+    const { error: insertError } = await supabaseClient
+      .from('subscriptions')
+      .insert({
+        user_id: user.id,
+        plan: 'trial',
+        trial_start_date: now.toISOString(),
+        trial_end_date: trialEnd.toISOString(),
+        status: 'trial_active',
+      });
+
+    if (insertError) {
+      logStep("Error inserting subscription, may already exist", { error: insertError.message });
+      // Try update instead (row might have been created by trigger)
+      await supabaseClient
+        .from('subscriptions')
+        .update({
+          plan: 'trial',
+          trial_start_date: now.toISOString(),
+          trial_end_date: trialEnd.toISOString(),
+          status: 'trial_active',
+          updated_at: now.toISOString(),
+        })
+        .eq('user_id', user.id);
+    }
+
+    logStep("New trial created", { 
+      userId: user.id, 
+      trialEndsAt: trialEnd.toISOString() 
+    });
+
     return new Response(JSON.stringify({
-      subscribed: hasActiveSub,
-      plan: hasActiveSub ? 'pro' : 'free',
-      product_id: productId,
-      subscription_end: subscriptionEnd,
-      purchase_plan: purchasePlan,
+      plan: 'trial',
+      stripeStatus: null,
+      subscriptionEnd: null,
+      productId: null,
+      purchasePlan: null,
+      trialEndsAt: trialEnd.toISOString(),
+      trialStartedAt: now.toISOString(),
+      subscribed: false,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
+
   } catch (error) {
     const rawMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR in check-subscription", { message: rawMessage });

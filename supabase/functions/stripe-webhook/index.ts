@@ -418,6 +418,7 @@ async function handlePaymentFailed(supabase: any, _stripe: Stripe, invoice: Stri
 /**
  * Upsert subscription by user_id (primary) with stripe_subscription_id for idempotency
  * Sets plan='pro' when subscription status is 'active' or 'trialing', regardless of payment amount
+ * PRO status ALWAYS takes priority over trial status
  */
 // deno-lint-ignore no-explicit-any
 async function upsertSubscription(supabase: any, userId: string, customerId: string, subscription: Stripe.Subscription) {
@@ -432,6 +433,7 @@ async function upsertSubscription(supabase: any, userId: string, customerId: str
   // This correctly handles 100% promo code subscriptions with €0 invoices
   const isActivePlan = subscription.status === "active" || subscription.status === "trialing";
   const plan = isActivePlan ? "pro" : "free";
+  const status = isActivePlan ? "active" : subscription.status;
 
   logStep("Upserting subscription", { 
     userId, 
@@ -440,24 +442,28 @@ async function upsertSubscription(supabase: any, userId: string, customerId: str
     subscriptionStatus: subscription.status,
     isActivePlan,
     plan,
+    status,
     purchasePlan, 
     currentPeriodEnd,
     hasTrialEnd: !!trialEnd
   });
 
+  // Build update data - PRO always overwrites trial
   const updateData: Record<string, unknown> = {
     user_id: userId,
     stripe_customer_id: customerId,
     stripe_subscription_id: subscription.id,
     plan,
     purchase_plan: purchasePlan,
-    status: subscription.status,
+    status,
     current_period_end: currentPeriodEnd,
     updated_at: new Date().toISOString(),
   };
 
-  // Only set optional fields if they have values
-  if (trialEnd) updateData.trial_end_date = trialEnd;
+  // Don't overwrite trial dates if becoming PRO - keep them for history
+  if (trialEnd) {
+    updateData.trial_end_date = trialEnd;
+  }
 
   // Upsert by user_id to avoid duplicates
   const { error } = await supabase
@@ -467,6 +473,6 @@ async function upsertSubscription(supabase: any, userId: string, customerId: str
   if (error) {
     logStep("ERROR upserting subscription", { error: error.message });
   } else {
-    logStep("Subscription upserted successfully", { userId, plan, status: subscription.status });
+    logStep("Subscription upserted successfully", { userId, plan, status });
   }
 }
