@@ -114,7 +114,7 @@ serve(async (req) => {
           purchasePlan 
         });
 
-        // Update DB to reflect PRO status
+        // Update DB to reflect PRO status (do NOT touch trial fields)
         await supabaseClient
           .from('subscriptions')
           .upsert({
@@ -155,7 +155,7 @@ serve(async (req) => {
       if (successfulLifetime) {
         logStep("Lifetime purchase found - returning PRO", { paymentId: successfulLifetime.id });
 
-        // Update DB to reflect lifetime PRO
+        // Update DB to reflect lifetime PRO (do NOT touch trial fields)
         await supabaseClient
           .from('subscriptions')
           .upsert({
@@ -182,7 +182,7 @@ serve(async (req) => {
       }
     }
 
-    logStep("No active Stripe subscription found, checking trial status");
+    logStep("No active Stripe subscription found, checking trial status in DB");
 
     // STEP 2: No active Stripe subscription - check trial status in database
     const { data: subData, error: subError } = await supabaseClient
@@ -193,11 +193,22 @@ serve(async (req) => {
 
     const now = new Date();
 
+    // Log existing trial data for debugging
+    logStep("Existing subscription row check", { 
+      userId: user.id,
+      hasRow: !!subData,
+      existingTrialStartDate: subData?.trial_start_date ?? null,
+      existingTrialEndDate: subData?.trial_end_date ?? null,
+      existingPlan: subData?.plan ?? null,
+      existingStatus: subData?.status ?? null,
+      dbError: subError?.message ?? null
+    });
+
     // CASE A: Subscription row exists
     if (subData && !subError) {
       // Check if PRO was set by webhook (e.g., €0 promo)
-      if (subData.plan === 'pro' && subData.status === 'active') {
-        logStep("PRO status found in DB", { userId: user.id, purchasePlan: subData.purchase_plan });
+      if (subData.plan === 'pro' && (subData.status === 'active' || subData.status === 'trialing')) {
+        logStep("PRO status found in DB - returning PRO", { userId: user.id, purchasePlan: subData.purchase_plan });
         return new Response(JSON.stringify({
           plan: 'pro',
           stripeStatus: subData.status,
@@ -212,71 +223,90 @@ serve(async (req) => {
         });
       }
 
-      // Check if trial was ever started
-      if (subData.trial_start_date || subData.trial_end_date) {
-        const trialEnd = subData.trial_end_date ? new Date(subData.trial_end_date) : null;
-        
-        if (trialEnd && !isNaN(trialEnd.getTime())) {
-          if (now < trialEnd) {
-            // Trial still active
-            logStep("Trial still active", { 
-              userId: user.id, 
-              trialEndsAt: trialEnd.toISOString(),
-              minutesRemaining: Math.round((trialEnd.getTime() - now.getTime()) / 60000)
-            });
+      // ========== CRITICAL FIX ==========
+      // Check if trial dates exist - if they do, NEVER recreate them
+      const hasTrialDates = subData.trial_start_date || subData.trial_end_date;
+      
+      if (hasTrialDates) {
+        // Trial was already created before - only READ, never WRITE
+        const trialStartStr = subData.trial_start_date;
+        const trialEndStr = subData.trial_end_date;
+        const trialEnd = trialEndStr ? new Date(trialEndStr) : null;
+        const trialStart = trialStartStr ? new Date(trialStartStr) : null;
 
-            return new Response(JSON.stringify({
-              plan: 'trial',
-              stripeStatus: null,
-              subscriptionEnd: null,
-              productId: null,
-              purchasePlan: null,
-              trialEndsAt: toIsoSafe(trialEnd),
-              trialStartedAt: toIsoSafe(subData.trial_start_date),
-              subscribed: false,
-            }), {
-              headers: { ...corsHeaders, "Content-Type": "application/json" },
-              status: 200,
-            });
-          } else {
-            // Trial expired
-            logStep("Trial expired", { 
-              userId: user.id, 
-              trialEndedAt: trialEnd.toISOString() 
-            });
+        logStep("Trial dates exist - checking validity", {
+          userId: user.id,
+          trialStartDate: trialStartStr,
+          trialEndDate: trialEndStr,
+          trialEndValid: trialEnd ? !isNaN(trialEnd.getTime()) : false,
+          actionTaken: 'READ_ONLY'
+        });
 
-            // Ensure plan is set to free in DB
-            if (subData.plan !== 'free') {
-              await supabaseClient
-                .from('subscriptions')
-                .update({ 
-                  plan: 'free', 
-                  status: 'trial_expired',
-                  updated_at: now.toISOString() 
-                })
-                .eq('user_id', user.id);
-            }
+        // If trial_end_date is valid and in the future -> TRIAL
+        if (trialEnd && !isNaN(trialEnd.getTime()) && now < trialEnd) {
+          logStep("Trial still active - returning TRIAL", { 
+            userId: user.id, 
+            trialEndsAt: trialEnd.toISOString(),
+            minutesRemaining: Math.round((trialEnd.getTime() - now.getTime()) / 60000),
+            actionTaken: 'NONE'
+          });
 
-            return new Response(JSON.stringify({
-              plan: 'free',
-              stripeStatus: null,
-              subscriptionEnd: null,
-              productId: null,
-              purchasePlan: null,
-              trialEndsAt: toIsoSafe(trialEnd),
-              trialStartedAt: toIsoSafe(subData.trial_start_date),
-              trialExpired: true,
-              subscribed: false,
-            }), {
-              headers: { ...corsHeaders, "Content-Type": "application/json" },
-              status: 200,
-            });
-          }
+          return new Response(JSON.stringify({
+            plan: 'trial',
+            stripeStatus: null,
+            subscriptionEnd: null,
+            productId: null,
+            purchasePlan: null,
+            trialEndsAt: toIsoSafe(trialEnd),
+            trialStartedAt: toIsoSafe(trialStart),
+            subscribed: false,
+          }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 200,
+          });
         }
+
+        // Trial expired or invalid date -> FREE (do NOT recreate trial)
+        logStep("Trial expired or invalid - returning FREE", { 
+          userId: user.id, 
+          trialEndedAt: trialEndStr,
+          actionTaken: 'UPDATE_STATUS_ONLY'
+        });
+
+        // Only update plan/status, NEVER touch trial dates
+        if (subData.plan !== 'free' || subData.status !== 'trial_expired') {
+          await supabaseClient
+            .from('subscriptions')
+            .update({ 
+              plan: 'free', 
+              status: 'trial_expired',
+              updated_at: now.toISOString() 
+            })
+            .eq('user_id', user.id);
+        }
+
+        return new Response(JSON.stringify({
+          plan: 'free',
+          stripeStatus: null,
+          subscriptionEnd: null,
+          productId: null,
+          purchasePlan: null,
+          trialEndsAt: toIsoSafe(trialEnd),
+          trialStartedAt: toIsoSafe(trialStart),
+          trialExpired: true,
+          subscribed: false,
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
       }
 
-      // User exists but never started trial - create trial now
-      logStep("User exists but no trial started, creating trial", { userId: user.id });
+      // User row exists but trial was NEVER started (both dates are null)
+      // This is the ONLY case where we create trial for an existing row
+      logStep("User exists but NO trial dates - creating trial ONCE", { 
+        userId: user.id,
+        actionTaken: 'CREATE_TRIAL'
+      });
       
       const trialEnd = new Date(now.getTime() + TRIAL_DURATION_HOURS * 60 * 60 * 1000);
       
@@ -293,6 +323,7 @@ serve(async (req) => {
 
       logStep("Trial created for existing user", { 
         userId: user.id, 
+        trialStartedAt: now.toISOString(),
         trialEndsAt: trialEnd.toISOString() 
       });
 
@@ -311,8 +342,11 @@ serve(async (req) => {
       });
     }
 
-    // CASE B: No subscription row exists - create new user with trial
-    logStep("No subscription row found, creating new trial", { userId: user.id });
+    // CASE B: No subscription row exists at all - create new user with trial
+    logStep("No subscription row found - creating new row with trial", { 
+      userId: user.id,
+      actionTaken: 'INSERT_NEW_ROW_WITH_TRIAL'
+    });
     
     const trialEnd = new Date(now.getTime() + TRIAL_DURATION_HOURS * 60 * 60 * 1000);
     
@@ -327,22 +361,78 @@ serve(async (req) => {
       });
 
     if (insertError) {
-      logStep("Error inserting subscription, may already exist", { error: insertError.message });
-      // Try update instead (row might have been created by trigger)
-      await supabaseClient
+      logStep("Insert failed - row may exist (trigger), attempting conditional update", { 
+        error: insertError.message 
+      });
+      
+      // Row might have been created by trigger - check if it has trial dates
+      const { data: existingRow } = await supabaseClient
         .from('subscriptions')
-        .update({
-          plan: 'trial',
-          trial_start_date: now.toISOString(),
-          trial_end_date: trialEnd.toISOString(),
-          status: 'trial_active',
-          updated_at: now.toISOString(),
-        })
-        .eq('user_id', user.id);
+        .select('trial_start_date, trial_end_date')
+        .eq('user_id', user.id)
+        .single();
+
+      // ONLY set trial dates if they don't exist
+      if (!existingRow?.trial_start_date && !existingRow?.trial_end_date) {
+        await supabaseClient
+          .from('subscriptions')
+          .update({
+            plan: 'trial',
+            trial_start_date: now.toISOString(),
+            trial_end_date: trialEnd.toISOString(),
+            status: 'trial_active',
+            updated_at: now.toISOString(),
+          })
+          .eq('user_id', user.id);
+        
+        logStep("Updated existing row with trial dates", { userId: user.id });
+      } else {
+        logStep("Row already has trial dates - NOT overwriting", { 
+          userId: user.id,
+          existingTrialStart: existingRow?.trial_start_date,
+          existingTrialEnd: existingRow?.trial_end_date
+        });
+        
+        // Return the existing trial data
+        const existingEnd = existingRow?.trial_end_date ? new Date(existingRow.trial_end_date) : null;
+        const existingStart = existingRow?.trial_start_date ? new Date(existingRow.trial_start_date) : null;
+        
+        if (existingEnd && !isNaN(existingEnd.getTime()) && now < existingEnd) {
+          return new Response(JSON.stringify({
+            plan: 'trial',
+            stripeStatus: null,
+            subscriptionEnd: null,
+            productId: null,
+            purchasePlan: null,
+            trialEndsAt: toIsoSafe(existingEnd),
+            trialStartedAt: toIsoSafe(existingStart),
+            subscribed: false,
+          }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 200,
+          });
+        } else {
+          return new Response(JSON.stringify({
+            plan: 'free',
+            stripeStatus: null,
+            subscriptionEnd: null,
+            productId: null,
+            purchasePlan: null,
+            trialEndsAt: toIsoSafe(existingEnd),
+            trialStartedAt: toIsoSafe(existingStart),
+            trialExpired: true,
+            subscribed: false,
+          }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 200,
+          });
+        }
+      }
     }
 
-    logStep("New trial created", { 
+    logStep("New trial created successfully", { 
       userId: user.id, 
+      trialStartedAt: now.toISOString(),
       trialEndsAt: trialEnd.toISOString() 
     });
 
