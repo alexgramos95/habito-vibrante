@@ -77,24 +77,76 @@ serve(async (req) => {
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
 
     // ==========================================
-    // STEP 1: Check for active Stripe subscription (PRO always takes priority)
+    // STEP 0: Check DB FIRST for existing PRO status (set by webhook)
+    // This is the most reliable source since webhooks update it directly
     // ==========================================
+    const { data: existingSubData } = await supabaseClient
+      .from('subscriptions')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
+
+    if (existingSubData) {
+      logStep("DB row found for user", { 
+        userId: user.id, 
+        plan: existingSubData.plan, 
+        status: existingSubData.status,
+        stripe_customer_id: existingSubData.stripe_customer_id,
+        stripe_subscription_id: existingSubData.stripe_subscription_id
+      });
+
+      // If DB says PRO and has Stripe IDs, trust it (webhook is source of truth)
+      if (existingSubData.plan === 'pro' && 
+          (existingSubData.status === 'active' || existingSubData.status === 'trialing') &&
+          (existingSubData.stripe_customer_id || existingSubData.purchase_plan === 'lifetime')) {
+        logStep("PRO status found in DB - returning PRO immediately", { 
+          userId: user.id, 
+          purchasePlan: existingSubData.purchase_plan,
+          source: 'database'
+        });
+        return new Response(JSON.stringify({
+          plan: 'pro',
+          stripeStatus: existingSubData.status,
+          subscriptionEnd: existingSubData.current_period_end,
+          productId: null,
+          purchasePlan: existingSubData.purchase_plan,
+          trialEndsAt: null,
+          subscribed: true,
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
+    }
+
+    // ==========================================
+    // STEP 1: Check for active Stripe subscription by email
+    // ==========================================
+    let stripeCustomerId: string | null = null;
+    
+    // First, try to find customer by email
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     
     if (customers.data.length > 0) {
-      const customerId = customers.data[0].id;
-      logStep("Found Stripe customer", { customerId });
-
+      stripeCustomerId = customers.data[0].id;
+      logStep("Found Stripe customer by email", { customerId: stripeCustomerId, email: user.email });
+    } else if (existingSubData?.stripe_customer_id) {
+      // Fallback: use stripe_customer_id from DB if email lookup fails
+      stripeCustomerId = existingSubData.stripe_customer_id;
+      logStep("Using Stripe customer ID from DB", { customerId: stripeCustomerId });
+    }
+    
+    if (stripeCustomerId) {
       // Check for active subscriptions
       const subscriptions = await stripe.subscriptions.list({
-        customer: customerId,
+        customer: stripeCustomerId,
         status: "active",
         limit: 1,
       });
       
       // Also check for trialing subscriptions
       const trialingSubscriptions = await stripe.subscriptions.list({
-        customer: customerId,
+        customer: stripeCustomerId,
         status: "trialing",
         limit: 1,
       });
@@ -122,7 +174,7 @@ serve(async (req) => {
           .upsert({
             user_id: user.id,
             plan: 'pro',
-            stripe_customer_id: customerId,
+            stripe_customer_id: stripeCustomerId,
             stripe_subscription_id: activeSubscription.id,
             purchase_plan: purchasePlan,
             current_period_end: subscriptionEnd,
@@ -146,7 +198,7 @@ serve(async (req) => {
 
       // Check for lifetime purchase (one-time payment)
       const payments = await stripe.paymentIntents.list({
-        customer: customerId,
+        customer: stripeCustomerId,
         limit: 10,
       });
       
@@ -163,7 +215,7 @@ serve(async (req) => {
           .upsert({
             user_id: user.id,
             plan: 'pro',
-            stripe_customer_id: customerId,
+            stripe_customer_id: stripeCustomerId,
             purchase_plan: 'lifetime',
             status: 'active',
             updated_at: new Date().toISOString(),
@@ -188,52 +240,27 @@ serve(async (req) => {
 
     // ==========================================
     // STEP 2: No Stripe PRO - Check trial status in database
+    // Use existingSubData that was already fetched at the start
     // ==========================================
-    const { data: subData, error: subError } = await supabaseClient
-      .from('subscriptions')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
-
+    const subData = existingSubData;
     const now = new Date();
 
-    // Log existing data for debugging (BEFORE any write)
-    logStep("DB row fetched", { 
+    // Log existing data for debugging
+    logStep("Using previously fetched DB row", { 
       userId: user.id,
       hasRow: !!subData,
       trial_start_date: subData?.trial_start_date ?? 'NULL',
       trial_end_date: subData?.trial_end_date ?? 'NULL',
       plan: subData?.plan ?? 'NULL',
-      status: subData?.status ?? 'NULL',
-      dbError: subError?.message ?? null,
-      dbErrorCode: subError?.code ?? null
+      status: subData?.status ?? 'NULL'
     });
 
     // ==========================================
     // CASE A: Row exists in database
     // ==========================================
-    if (subData && !subError) {
-      // Check if PRO was set by webhook (e.g., €0 promo)
-      if (subData.plan === 'pro' && (subData.status === 'active' || subData.status === 'trialing')) {
-        logStep("PRO status found in DB - returning PRO", { 
-          userId: user.id, 
-          purchasePlan: subData.purchase_plan,
-          actionTaken: 'RETURN_PRO_FROM_DB'
-        });
-        return new Response(JSON.stringify({
-          plan: 'pro',
-          stripeStatus: subData.status,
-          subscriptionEnd: subData.current_period_end,
-          productId: null,
-          purchasePlan: subData.purchase_plan,
-          trialEndsAt: null,
-          subscribed: true,
-        }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200,
-        });
-      }
-
+    if (subData) {
+      // PRO check was already done at the top, so skip it here
+      
       // ========== CRITICAL CHECK ==========
       // If trial_start_date OR trial_end_date have ANY value, NEVER overwrite them
       const trialStartExists = subData.trial_start_date !== null && subData.trial_start_date !== undefined;
