@@ -2,3 +2,24 @@ project_id = "yllrqgwiztnbhpxdnsvi"
 
 [functions.stripe-webhook]
 verify_jwt = false
+
+[functions.send-feedback-slack]
+verify_jwt = false
+
+[functions.check-subscription]
+verify_jwt = false
+
+[functions.create-checkout]
+verify_jwt = false
+
+[functions.customer-portal]
+verify_jwt = false
+
+[functions.process-receipt]
+verify_jwt = false
+
+[functions.restore-purchases]
+verify_jwt = false
+
+[functions.sync-data]
+verify_jwt = false
