@@ -46,31 +46,20 @@ export const FeedbackFormModal = ({ open, onClose }: FeedbackFormModalProps) => 
 
     setLoading(true);
     try {
-      // If authenticated, save to database
-      if (user) {
-        const { error } = await supabase.from("feedback").insert({
-          user_id: user.id,
+      // Call edge function to save to DB + send to Slack
+      const { error } = await supabase.functions.invoke("send-feedback-slack", {
+        body: {
+          user_id: user?.id || null,
+          email: user?.email || null,
           feedback_type: "trial_expiry",
           willingness_to_pay: willingnessToPay,
           what_would_make_pay: whatWouldMakePay || null,
           what_prevents_pay: whatPreventsPay || null,
           how_become_helped: howBecomeHelped || null,
-        });
+        },
+      });
 
-        if (error) throw error;
-      } else {
-        // Fallback: save to localStorage
-        const feedbackData = {
-          willingnessToPay,
-          whatWouldMakePay,
-          whatPreventsPay,
-          howBecomeHelped,
-          submittedAt: new Date().toISOString(),
-        };
-        const existing = JSON.parse(localStorage.getItem("become-feedback") || "[]");
-        existing.push(feedbackData);
-        localStorage.setItem("become-feedback", JSON.stringify(existing));
-      }
+      if (error) throw error;
 
       setSubmitted(true);
       toast({
