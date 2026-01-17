@@ -22,6 +22,8 @@ const Definicoes = lazy(() => import("./pages/Definicoes"));
 const Landing = lazy(() => import("./pages/Landing"));
 const Auth = lazy(() => import("./pages/Auth"));
 const Decision = lazy(() => import("./pages/Decision"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Account = lazy(() => import("./pages/Account"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -69,6 +71,8 @@ const App = () => (
                 <Route path="/landing" element={<Landing />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/decision" element={<Decision />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/account" element={<Account />} />
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/privacy" element={<Privacy />} />
 
