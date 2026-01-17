@@ -1,22 +1,26 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Crown, Download, MessageSquare, Sparkles, ChevronRight } from "lucide-react";
+import { Crown, Download, MessageSquare, Sparkles, ChevronRight, Users, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import { InterestPaywall } from "@/components/Paywall/InterestPaywall";
 import { FeedbackFormModal } from "@/components/Feedback/FeedbackFormModal";
-import { ExportDialog } from "@/components/Export/ExportDialog";
+import { generatePDFExport } from "@/lib/pdfExport";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Decision = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, isEmailVerified, subscriptionStatus } = useAuth();
+  const { toast } = useToast();
+  const { isAuthenticated, isEmailVerified, user } = useAuth();
   const { trialStatus, isPro } = useSubscription();
   
   const [showPaywall, setShowPaywall] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
-  const [showExport, setShowExport] = useState(false);
+  const [exportingPDF, setExportingPDF] = useState(false);
+  const [choosingFree, setChoosingFree] = useState(false);
 
   // If user has Pro or active trial, redirect to app
   useEffect(() => {
@@ -35,6 +39,61 @@ const Decision = () => {
       navigate("/app", { replace: true });
     }
   }, [isAuthenticated, isEmailVerified, isPro, trialStatus.isActive, navigate]);
+
+  const handleChooseFree = async () => {
+    if (!user) return;
+    
+    setChoosingFree(true);
+    try {
+      // Update subscription to free with trial_expired status
+      const { error } = await supabase
+        .from("subscriptions")
+        .update({ 
+          plan: "free", 
+          status: "trial_expired",
+          updated_at: new Date().toISOString()
+        })
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Plano FREE ativado",
+        description: "Podes usar 3 hábitos e 3 trackers. Upgrade a qualquer momento!",
+      });
+
+      navigate("/app", { replace: true });
+    } catch (err) {
+      console.error("Error choosing free:", err);
+      toast({
+        title: "Erro",
+        description: "Não foi possível ativar o plano FREE. Tenta novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setChoosingFree(false);
+    }
+  };
+
+  const handleExportPDF = async () => {
+    setExportingPDF(true);
+    try {
+      await generatePDFExport(user?.email || undefined);
+      toast({
+        title: "PDF gerado",
+        description: "O teu progresso está pronto para download.",
+      });
+    } catch (err) {
+      console.error("Error exporting PDF:", err);
+      toast({
+        title: "Erro",
+        description: "Não foi possível gerar o PDF. Permite popups e tenta novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setExportingPDF(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
@@ -75,18 +134,47 @@ const Decision = () => {
             </CardContent>
           </Card>
 
-          {/* Export Data */}
+          {/* Continue with FREE */}
           <Card 
             className="cursor-pointer hover:bg-secondary/50 transition-colors"
-            onClick={() => setShowExport(true)}
+            onClick={handleChooseFree}
           >
             <CardContent className="p-5">
               <div className="flex items-center gap-4">
                 <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-secondary flex items-center justify-center">
-                  <Download className="h-6 w-6 text-muted-foreground" />
+                  {choosingFree ? (
+                    <Loader2 className="h-6 w-6 text-muted-foreground animate-spin" />
+                  ) : (
+                    <Users className="h-6 w-6 text-muted-foreground" />
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold">Exportar dados</h3>
+                  <h3 className="font-semibold">Continuar grátis</h3>
+                  <p className="text-sm text-muted-foreground">
+                    3 hábitos + 3 trackers
+                  </p>
+                </div>
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Export PDF */}
+          <Card 
+            className="cursor-pointer hover:bg-secondary/50 transition-colors"
+            onClick={handleExportPDF}
+          >
+            <CardContent className="p-5">
+              <div className="flex items-center gap-4">
+                <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-secondary flex items-center justify-center">
+                  {exportingPDF ? (
+                    <Loader2 className="h-6 w-6 text-muted-foreground animate-spin" />
+                  ) : (
+                    <Download className="h-6 w-6 text-muted-foreground" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold">Exportar PDF</h3>
                   <p className="text-sm text-muted-foreground">
                     Faz download do teu progresso
                   </p>
@@ -133,16 +221,6 @@ const Decision = () => {
       <FeedbackFormModal 
         open={showFeedback} 
         onClose={() => setShowFeedback(false)} 
-      />
-      
-      <ExportDialog
-        open={showExport}
-        onClose={() => setShowExport(false)}
-        isPro={isPro}
-        onShowPaywall={() => {
-          setShowExport(false);
-          setShowPaywall(true);
-        }}
       />
     </div>
   );

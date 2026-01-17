@@ -293,6 +293,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         console.log('[AUTH] Auth state changed:', event);
         
+        // Handle PASSWORD_RECOVERY - redirect to dedicated reset page
+        if (event === 'PASSWORD_RECOVERY') {
+          console.log('[AUTH] Password recovery detected - redirecting to reset page');
+          setSession(newSession);
+          setUser(newSession?.user ?? null);
+          setLoading(false);
+          // Redirect to dedicated reset password page
+          window.location.href = '/reset-password';
+          return;
+        }
+        
         setSession(newSession);
         setUser(newSession?.user ?? null);
         setLoading(false);
@@ -441,7 +452,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const resetPassword = async (email: string) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth?mode=reset-password`,
+      redirectTo: `${window.location.origin}/reset-password`,
     });
 
     return { error: error ? new Error(error.message) : null };
