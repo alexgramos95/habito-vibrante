@@ -96,6 +96,11 @@ export const useSubscription = () => {
    * Calculate trial status from context.
    * This derives the display state from the backend-provided plan.
    * The backend is the source of truth - we just format it for display.
+   * 
+   * IMPORTANT: isExpired should ONLY be true when:
+   * - plan === 'trial' AND trial has ended
+   * When plan === 'free' (user chose to continue free), isExpired should be false
+   * to prevent the /decision redirect loop.
    */
   const getTrialStatus = useCallback(() => {
     // PRO users don't have trial status to show
@@ -109,8 +114,20 @@ export const useSubscription = () => {
       };
     }
 
-    // Trial expired status from backend
-    if (subscriptionStatus.planStatus === 'trial_expired') {
+    // FREE users - they've already made their decision, not in trial limbo
+    // This prevents the /decision redirect loop after choosing FREE
+    if (subscriptionStatus.plan === 'free') {
+      return { 
+        isActive: false, 
+        daysRemaining: 0, 
+        hoursRemaining: 0, 
+        minutesRemaining: 0, 
+        isExpired: false  // NOT expired - they chose free, decision made
+      };
+    }
+
+    // Trial expired status from backend - only applies when plan is still 'trial'
+    if (subscriptionStatus.plan === 'trial' && subscriptionStatus.planStatus === 'trial_expired') {
       return { 
         isActive: false, 
         daysRemaining: 0, 
