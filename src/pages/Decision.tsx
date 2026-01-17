@@ -14,7 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 const Decision = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { isAuthenticated, isEmailVerified, user } = useAuth();
+  const { isAuthenticated, isEmailVerified, user, refreshSubscription } = useAuth();
   const { trialStatus, isPro } = useSubscription();
   
   const [showPaywall, setShowPaywall] = useState(false);
@@ -57,11 +57,15 @@ const Decision = () => {
 
       if (error) throw error;
 
+      // Refresh subscription state in AuthContext so it reflects the new plan
+      await refreshSubscription();
+
       toast({
         title: "Plano FREE ativado",
         description: "Podes usar 3 hábitos e 3 trackers. Upgrade a qualquer momento!",
       });
 
+      // Navigate to app after state is updated
       navigate("/app", { replace: true });
     } catch (err) {
       console.error("Error choosing free:", err);

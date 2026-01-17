@@ -7,9 +7,18 @@ const corsHeaders = {
 };
 
 interface FeedbackRequest {
-  message: string;
-  context?: string;
+  // Snake_case fields from FeedbackFormModal
+  user_id?: string;
   email?: string;
+  feedback_type?: string;
+  willingness_to_pay?: string;
+  what_would_make_pay?: string;
+  what_prevents_pay?: string;
+  how_become_helped?: string;
+  additional_notes?: string;
+  // Legacy camelCase fields for backwards compatibility
+  message?: string;
+  context?: string;
   userId?: string;
   willingnessToPay?: string;
   whatWouldMakePay?: string;
@@ -38,15 +47,27 @@ serve(async (req) => {
 
     // Parse request body
     const body: FeedbackRequest = await req.json();
+    
+    // Normalize fields: support both snake_case (new) and camelCase (legacy)
+    const feedbackType = body.feedback_type || body.context || "general";
+    const willingnessToPay = body.willingness_to_pay || body.willingnessToPay || null;
+    const whatWouldMakePay = body.what_would_make_pay || body.whatWouldMakePay || null;
+    const whatPreventsPay = body.what_prevents_pay || body.whatPreventsPay || null;
+    const howBecomeHelped = body.how_become_helped || body.howBecomeHelped || body.message || null;
+    const additionalNotes = body.additional_notes || null;
+    
     logStep("Request body parsed", { 
-      hasMessage: !!body.message, 
-      context: body.context,
+      feedbackType,
+      hasWillingnessToPay: !!willingnessToPay,
+      hasWhatWouldMakePay: !!whatWouldMakePay,
+      hasWhatPreventsPay: !!whatPreventsPay,
+      hasHowBecomeHelped: !!howBecomeHelped,
       hasEmail: !!body.email 
     });
 
     // Get user info from auth if available
     let userEmail = body.email;
-    let userId = body.userId;
+    let userId = body.user_id || body.userId;
 
     const authHeader = req.headers.get("Authorization");
     if (authHeader) {
@@ -61,34 +82,38 @@ serve(async (req) => {
       if (userData?.user) {
         userEmail = userData.user.email || userEmail;
         userId = userData.user.id || userId;
-        logStep("User authenticated", { email: userEmail, userId });
+        logStep("User authenticated", { email: userEmail, id: userId });
       }
     }
 
     // Build Slack message
     const timestamp = new Date().toISOString();
-    const contextEmoji = body.context === "trial_ended" ? "⏰" : "💬";
+    const contextEmoji = feedbackType === "trial_expiry" || feedbackType === "trial_ended" ? "⏰" : "💬";
     
     // Build simple text-based Slack message
     let slackText = `${contextEmoji} *New Feedback from becoMe*\n\n`;
     slackText += `*Email:* ${userEmail || "Anonymous"}\n`;
-    slackText += `*Context:* ${body.context || "general"}\n`;
+    slackText += `*Context:* ${feedbackType}\n`;
     slackText += `*Timestamp:* ${timestamp}\n`;
 
-    if (body.willingnessToPay) {
-      slackText += `*Willingness to Pay:* ${body.willingnessToPay}\n`;
+    if (willingnessToPay) {
+      slackText += `*Willingness to Pay:* ${willingnessToPay}\n`;
     }
 
-    if (body.howBecomeHelped || body.message) {
-      slackText += `\n*How Become Helped:*\n${body.howBecomeHelped || body.message || "_No message_"}\n`;
+    if (howBecomeHelped) {
+      slackText += `\n*How Become Helped:*\n${howBecomeHelped}\n`;
     }
 
-    if (body.whatWouldMakePay) {
-      slackText += `\n*What Would Make Pay:*\n${body.whatWouldMakePay}\n`;
+    if (whatWouldMakePay) {
+      slackText += `\n*What Would Make Pay:*\n${whatWouldMakePay}\n`;
     }
 
-    if (body.whatPreventsPay) {
-      slackText += `\n*What Prevents Paying:*\n${body.whatPreventsPay}\n`;
+    if (whatPreventsPay) {
+      slackText += `\n*What Prevents Paying:*\n${whatPreventsPay}\n`;
+    }
+
+    if (additionalNotes) {
+      slackText += `\n*Additional Notes:*\n${additionalNotes}\n`;
     }
 
     // Send to Slack
@@ -120,11 +145,12 @@ serve(async (req) => {
 
       const { error: dbError } = await supabaseAdmin.from("feedback").insert({
         user_id: userId,
-        feedback_type: body.context || "general",
-        willingness_to_pay: body.willingnessToPay || null,
-        what_would_make_pay: body.whatWouldMakePay || null,
-        what_prevents_pay: body.whatPreventsPay || null,
-        how_become_helped: body.howBecomeHelped || body.message || null,
+        feedback_type: feedbackType,
+        willingness_to_pay: willingnessToPay,
+        what_would_make_pay: whatWouldMakePay,
+        what_prevents_pay: whatPreventsPay,
+        how_become_helped: howBecomeHelped,
+        additional_notes: additionalNotes,
       });
 
       if (dbError) {
