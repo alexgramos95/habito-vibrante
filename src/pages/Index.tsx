@@ -1,275 +1,68 @@
 import { useState, useEffect, useCallback } from "react";
-import { format, isToday, isFuture, subDays } from "date-fns";
-import {
-  Flame,
-  Trophy,
-  TrendingUp,
-  Target,
-  PiggyBank,
-  ShoppingCart,
-  Activity,
-  Zap,
-  ChevronRight,
-  Sparkles,
-  CheckCircle2,
-  Settings2,
-} from "lucide-react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { format } from "date-fns";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useI18n } from "@/i18n/I18nContext";
-import { AppState, Habit, Tracker, TrackerEntry, DailyReflection, FutureSelfEntry } from "@/data/types";
+import { AppState, Habit } from "@/data/types";
 import {
   loadState,
   saveState,
   addHabit,
   updateHabit,
-  deleteHabit,
   toggleDailyLog,
-  addAchievement,
-  getWeekStartDate,
-  addReflection,
-  getReflectionForDate,
-  addFutureSelfEntry,
-  getLatestFutureSelf,
-  addTrackerEntry,
-  recoverHabitsForDate,
 } from "@/data/storage";
-import {
-  calculateMonthlySummary,
-  calculateWeeklySummaries,
-  getActiveHabits,
-  checkAchievements,
-  calculateSavingsSummary,
-  getShoppingItemsForWeek,
-} from "@/logic/computations";
-import { useBounceback } from "@/hooks/useBounceback";
-import { useLoginTrigger } from "@/hooks/useLoginTrigger";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigation } from "@/components/Layout/Navigation";
-import { PageHeader } from "@/components/Layout/PageHeader";
-import { KPICard } from "@/components/Dashboard/KPICard";
-import { WeeklyChart } from "@/components/Dashboard/WeeklyChart";
-import { MonthSelector } from "@/components/Dashboard/MonthSelector";
-import { HabitList } from "@/components/Habits/HabitList";
+import { TemporalTabs, TemporalView } from "@/components/Dashboard/TemporalTabs";
+import { DayView } from "@/components/Dashboard/DayView";
+import { WeekView } from "@/components/Dashboard/WeekView";
+import { MonthView } from "@/components/Dashboard/MonthView";
 import { HabitForm } from "@/components/Habits/HabitForm";
-// MotivationalBanner removed per user request
-import { ReflectionCard } from "@/components/Modules/ReflectionCard";
-import { FutureSelfCard } from "@/components/Modules/FutureSelfCard";
-import { TrackerQuickAdd } from "@/components/Modules/TrackerQuickAdd";
-import {
-  StreakDrilldown,
-  ConsistencyDrilldown,
-  TrackersDrilldown,
-  SavingsDrilldown,
-} from "@/components/Dashboard/DrilldownModals";
-import { ReflectionModal } from "@/components/Dashboard/ReflectionModal";
-import { FutureSelfModal } from "@/components/Dashboard/FutureSelfModal";
-import { WeeklyDrilldownModal } from "@/components/Dashboard/WeeklyDrilldownModal";
-import { WeeklyConsistencyCard } from "@/components/Dashboard/WeeklyConsistencyCard";
-// BouncebackPrompt removed per user request
-import { LoginTriggerModal } from "@/components/Auth/LoginTriggerModal";
-import { TrialOfferModal } from "@/components/Auth/TrialOfferModal";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { TrialBanner } from "@/components/Paywall/TrialBanner";
+import { PaywallModal } from "@/components/Paywall/PaywallModal";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/hooks/useSubscription";
-import { PaywallModal } from "@/components/Paywall/PaywallModal";
-import { TrialBanner } from "@/components/Paywall/TrialBanner";
-
-// Calculate tracker summary for dashboard - using LOSS paradigm for reduction trackers
-const calculateTrackerDashboardSummary = (
-  trackers: Tracker[],
-  entries: TrackerEntry[],
-  formatCurrency: (v: number) => string,
-) => {
-  const today = format(new Date(), "yyyy-MM-dd");
-  const activeTrackers = trackers.filter((t) => t.active);
-
-  let todayTotalLoss = 0;
-  let monthTotalLoss = 0;
-
-  const currentMonth = new Date().getMonth();
-  const currentYear = new Date().getFullYear();
-
-  activeTrackers.forEach((tracker) => {
-    if (tracker.valuePerUnit <= 0) return;
-
-    const todayEntries = entries.filter((e) => e.trackerId === tracker.id && e.date === today);
-    const todayCount = todayEntries.reduce((sum, e) => sum + e.quantity, 0);
-
-    // For reduction trackers: loss = count * valuePerUnit (each unit is money lost)
-    if (tracker.type === "reduce") {
-      todayTotalLoss += todayCount * tracker.valuePerUnit;
-    }
-
-    // Month loss
-    const monthEntries = entries.filter((e) => {
-      if (e.trackerId !== tracker.id) return false;
-      const date = new Date(e.date);
-      return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
-    });
-
-    const monthActual = monthEntries.reduce((sum, e) => sum + e.quantity, 0);
-
-    if (tracker.type === "reduce") {
-      monthTotalLoss += monthActual * tracker.valuePerUnit;
-    }
-  });
-
-  return {
-    activeCount: activeTrackers.length,
-    todayLoss: todayTotalLoss,
-    monthLoss: monthTotalLoss,
-    formattedTodayLoss: formatCurrency(todayTotalLoss),
-    formattedMonthLoss: formatCurrency(monthTotalLoss),
-  };
-};
 
 const Index = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
-  const { t, tr, formatCurrency, formatDate, locale } = useI18n();
+  const { t, locale } = useI18n();
   const { isAuthenticated, isEmailVerified } = useAuth();
+  
   const [state, setState] = useState<AppState>(() => loadState());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
-
+  
+  // Temporal view state - Day is default
+  const [temporalView, setTemporalView] = useState<TemporalView>('dia');
+  
   // UI State
   const [showHabitForm, setShowHabitForm] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
-  const [deletingHabitId, setDeletingHabitId] = useState<string | null>(null);
   const [showPaywall, setShowPaywall] = useState(false);
-  const [showTrialOffer, setShowTrialOffer] = useState(false);
 
   // Subscription
-  const { isPro, trialStatus, upgradeToPro, getLimits, needsOnboarding } = useSubscription();
+  const { isPro, trialStatus, upgradeToPro, getLimits } = useSubscription();
   const limits = getLimits();
-
-  // Login trigger
-  const { showLoginModal, checkLoginTrigger, closeLoginModal } = useLoginTrigger();
-
-  // Drilldown Modal States
-  const [showStreakDrilldown, setShowStreakDrilldown] = useState(false);
-  const [showConsistencyDrilldown, setShowConsistencyDrilldown] = useState(false);
-  const [showTrackersDrilldown, setShowTrackersDrilldown] = useState(false);
-  const [showSavingsDrilldown, setShowSavingsDrilldown] = useState(false);
-  const [showReflectionModal, setShowReflectionModal] = useState(false);
-  const [showFutureSelfModal, setShowFutureSelfModal] = useState(false);
-  const [showWeeklyDrilldown, setShowWeeklyDrilldown] = useState(false);
-  const [selectedWeek, setSelectedWeek] = useState<number>(1);
-  
-
-  const today = format(new Date(), "yyyy-MM-dd");
-
-  // Check for showTrial param (from Auth redirect after login)
-  useEffect(() => {
-    if (searchParams.get("showTrial") === "true") {
-      setShowTrialOffer(true);
-      // Clear the param from URL
-      searchParams.delete("showTrial");
-      setSearchParams(searchParams, { replace: true });
-    }
-  }, [searchParams, setSearchParams]);
 
   // Auth guard: require login, email verification, and active trial/pro before accessing /app
   useEffect(() => {
     if (!isAuthenticated) {
       navigate("/auth?next=trial", { replace: true });
     } else if (!isEmailVerified) {
-      // User is logged in but email not verified - redirect to verify screen
       navigate("/auth?verify=required", { replace: true });
     } else if (!isPro && trialStatus.isExpired) {
-      // Trial has expired - redirect to decision screen
       navigate("/decision", { replace: true });
     }
   }, [isAuthenticated, isEmailVerified, isPro, trialStatus.isExpired, navigate]);
-
-  // Bounceback hook - keep for weeklyStats used in WeeklyConsistencyCard
-  const { weeklyStats } = useBounceback(state);
 
   // Persist state changes
   useEffect(() => {
     saveState(state);
   }, [state]);
 
-  // Check achievements after state changes
-  useEffect(() => {
-    const newAchievements = checkAchievements(state);
-    if (newAchievements.length > 0) {
-      newAchievements.forEach((achievementId) => {
-        setState((prev) => addAchievement(prev, achievementId));
-        toast({
-          title: "🏆 " + t.profile.achievements,
-          description: tr("habits.habitCreated"),
-        });
-      });
-    }
-  }, [state.dailyLogs, t, tr]);
-
-  // Get today's reflection
-  const todayReflection = getReflectionForDate(state, today);
-  const latestFutureSelf = getLatestFutureSelf(state);
-
-  // Computed values
-  const monthlySummary = calculateMonthlySummary(state, currentYear, currentMonth);
-  const weeklySummaries = calculateWeeklySummaries(state, currentYear, currentMonth);
-  const savingsSummary = calculateSavingsSummary(state, currentYear, currentMonth);
-  const weekStartDate = getWeekStartDate(new Date());
-  const shoppingData = getShoppingItemsForWeek(state, weekStartDate);
-  const trackerSummary = calculateTrackerDashboardSummary(
-    state.trackers || [],
-    state.trackerEntries || [],
-    formatCurrency,
-  );
-
-  // Calculate consistency score (percentage of days with all habits done)
-  const consistencyScore =
-    monthlySummary.totalPossible > 0 ? Math.round((monthlySummary.totalDone / monthlySummary.totalPossible) * 100) : 0;
-
   // Handlers
-  const handlePreviousMonth = () => {
-    if (currentMonth === 0) {
-      setCurrentMonth(11);
-      setCurrentYear((y) => y - 1);
-    } else {
-      setCurrentMonth((m) => m - 1);
-    }
-  };
-
-  const handleNextMonth = () => {
-    if (currentMonth === 11) {
-      setCurrentMonth(0);
-      setCurrentYear((y) => y + 1);
-    } else {
-      setCurrentMonth((m) => m + 1);
-    }
-  };
-
-  const handleToday = () => {
-    const today = new Date();
-    setCurrentMonth(today.getMonth());
-    setCurrentYear(today.getFullYear());
-    setSelectedDate(today);
-  };
-
-  const handleDayClick = (date: Date) => {
-    if (!isFuture(date)) {
-      setSelectedDate(date);
-    }
-  };
-
   const handleToggleHabit = useCallback(
     (habitId: string) => {
       const dateStr = format(selectedDate, "yyyy-MM-dd");
@@ -279,11 +72,11 @@ const Index = () => {
       if (result.wasCompleted) {
         toast({
           title: t.habits.goodWork,
-          description: tr("habits.dayCompleted", { habitName: result.habitName }),
+          description: result.habitName,
         });
       }
     },
-    [selectedDate, state, toast, t, tr],
+    [selectedDate, state, toast, t],
   );
 
   const handleSaveHabit = (data: Omit<Habit, "id" | "createdAt">) => {
@@ -302,290 +95,52 @@ const Index = () => {
 
       setState((prev) => addHabit(prev, data));
       toast({ title: t.habits.habitCreated });
-
-      // After adding habit, check if we should trigger login modal
-      // This happens after state update, so we check with newCount
-      const newHabitCount = currentHabitCount + 1;
-      if (newHabitCount >= 2 && !isAuthenticated) {
-        // Slight delay to let the toast show first
-        setTimeout(() => {
-          checkLoginTrigger();
-        }, 500);
-      }
     }
     setShowHabitForm(false);
     setEditingHabit(null);
   };
 
-  const handleDeleteHabit = () => {
-    if (!deletingHabitId) return;
-
-    const activeCount = getActiveHabits(state).length;
-    const habitToDelete = state.habits.find((h) => h.id === deletingHabitId);
-
-    if (activeCount <= 1 && habitToDelete?.active) {
-      toast({
-        title: t.habits.atLeastOne,
-        variant: "destructive",
-      });
-      setDeletingHabitId(null);
-      return;
-    }
-
-    setState((prev) => deleteHabit(prev, deletingHabitId));
-    toast({ title: t.habits.habitDeleted });
-    setDeletingHabitId(null);
-  };
-
-  const handleSaveReflection = (text: string, mood: "positive" | "neutral" | "challenging") => {
-    setState((prev) =>
-      addReflection(prev, {
-        date: today,
-        text,
-        mood,
-      }),
-    );
-    toast({ title: t.reflection.saved });
-  };
-
-  const handleSaveFutureSelf = (narrative: string, themes: string[]) => {
-    setState((prev) =>
-      addFutureSelfEntry(prev, {
-        date: today,
-        narrative,
-        themes,
-      }),
-    );
-    toast({ title: t.futureSelf.saved });
-  };
-
-  const handleTrackerQuickAdd = (trackerId: string) => {
-    setState((prev) => addTrackerEntry(prev, trackerId, 1));
-    const tracker = state.trackers.find((t) => t.id === trackerId);
-    
-    // For reduce trackers with value, show loss message
-    if (tracker?.type === 'reduce' && tracker.valuePerUnit > 0) {
-      toast({
-        title: `Perdeste ${formatCurrency(tracker.valuePerUnit)}`,
-        description: `1 ${tracker.unitSingular} registado`,
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: `1 ${tracker?.unitSingular || t.trackers.entry}`,
-        description: tracker?.name,
-      });
-    }
-  };
-
-  // Bounceback handler removed per user request
-
-  const dateLabel = isToday(selectedDate)
-    ? t.dashboard.today
-    : formatDate(selectedDate, locale === "pt-PT" ? "d 'de' MMMM" : "MMMM d");
-
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-0">
+    <div className="min-h-screen bg-background pb-24 md:pb-0">
       <Navigation />
 
-      <main className="container py-6 md:py-8 space-y-6 md:space-y-8">
-        {/* Header with Habit Management CTA */}
-        <PageHeader
-          title={t.nav.habits}
-          subtitle={(t as any).pageSubtitles?.habits || t.app.tagline}
-          icon={CheckCircle2}
-          action={{
-            icon: Settings2,
-            label: locale === 'pt-PT' ? 'Gerir Hábitos' : 'Manage Habits',
-            onClick: () => navigate('/app/habitos'),
-          }}
-        >
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full glass text-sm">
-            <Zap className="h-4 w-4 text-primary" />
-            <span className="font-medium">
-              {t.kpis.level} {state.gamification?.nivel || 1}
-            </span>
+      <main className="container py-6 md:py-8 max-w-lg mx-auto">
+        {/* Trial banner */}
+        {trialStatus.isActive && (
+          <div className="mb-6 flex justify-center">
+            <TrialBanner
+              daysRemaining={trialStatus.daysRemaining}
+              onUpgrade={() => setShowPaywall(true)}
+            />
           </div>
-        </PageHeader>
+        )}
 
-        {/* KPI Cards - Premium Glass Style (Clickable) */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div onClick={() => setShowStreakDrilldown(true)} className="cursor-pointer">
-            <KPICard
-              title={t.kpis.currentStreak}
-              value={monthlySummary.streakAtual}
-              subtitle={t.kpis.days}
-              icon={<Flame className="h-5 w-5" />}
-              variant="primary"
-            />
-          </div>
-          <div onClick={() => setShowStreakDrilldown(true)} className="cursor-pointer">
-            <KPICard
-              title={t.kpis.bestStreak}
-              value={monthlySummary.melhorStreak}
-              subtitle={t.kpis.days}
-              icon={<Trophy className="h-5 w-5" />}
-              variant="warning"
-            />
-          </div>
-          <div onClick={() => setShowConsistencyDrilldown(true)} className="cursor-pointer">
-            <KPICard
-              title={t.dashboard.consistencyScore}
-              value={`${consistencyScore}%`}
-              subtitle={`${monthlySummary.totalDone} ${t.kpis.ofTotal} ${monthlySummary.totalPossible}`}
-              icon={<TrendingUp className="h-5 w-5" />}
-              variant="success"
-            />
-          </div>
-          <KPICard
-            title={t.kpis.activeHabits}
-            value={monthlySummary.habitosAtivos}
-            subtitle={`${t.kpis.ofTotal} ${monthlySummary.habitosTotal}`}
-            icon={<Target className="h-5 w-5" />}
-            variant="default"
+        {/* Temporal tabs */}
+        <div className="mb-8">
+          <TemporalTabs active={temporalView} onChange={setTemporalView} />
+        </div>
+
+        {/* Views */}
+        {temporalView === 'dia' && (
+          <DayView
+            state={state}
+            selectedDate={selectedDate}
+            onToggleHabit={handleToggleHabit}
+            onAddHabit={() => setShowHabitForm(true)}
           />
-        </div>
+        )}
 
-        {/* Bounceback Prompt and Motivational Banner removed per user request */}
+        {temporalView === 'semana' && (
+          <WeekView state={state} selectedDate={selectedDate} />
+        )}
 
-        {/* Main Content Grid */}
-        <div className="grid gap-6 lg:grid-cols-3">
-          {/* Left Column: Chart + Mini Cards */}
-          <div className="space-y-6 lg:col-span-2">
-            {/* Weekly Consistency Card */}
-            <WeeklyConsistencyCard stats={weeklyStats} />
-            {/* Weekly Chart - Premium Card */}
-            <Card className="premium-card border-border/30 overflow-hidden">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-lg font-semibold">{t.dashboard.weeklyEvolution}</CardTitle>
-                <MonthSelector
-                  year={currentYear}
-                  month={currentMonth}
-                  onPrevious={handlePreviousMonth}
-                  onNext={handleNextMonth}
-                  onToday={handleToday}
-                />
-              </CardHeader>
-              <CardContent>
-                <WeeklyChart
-                  data={weeklySummaries}
-                  onWeekClick={(weekNum) => {
-                    setSelectedWeek(weekNum);
-                    setShowWeeklyDrilldown(true);
-                  }}
-                />
-              </CardContent>
-            </Card>
-
-            {/* Tracker Quick Add */}
-            {(state.trackers?.length || 0) > 0 && (
-              <TrackerQuickAdd
-                trackers={state.trackers || []}
-                entries={state.trackerEntries || []}
-                onAddEntry={handleTrackerQuickAdd}
-              />
-            )}
-
-            {/* Mini Cards Row - Premium Design */}
-            <div className="grid gap-4 sm:grid-cols-2">
-              {/* Trackers Mini Card */}
-              <Card className="premium-card group hover:glow-subtle transition-all duration-300">
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                    <div className="p-1.5 rounded-lg bg-primary/10">
-                      <Activity className="h-4 w-4 text-primary" />
-                    </div>
-                    {t.trackers.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div>
-                    <p className="text-2xl font-bold text-primary">{trackerSummary.activeCount}</p>
-                    <p className="text-xs text-muted-foreground">{t.trackers.title.toLowerCase()}</p>
-                  </div>
-                  <Link to="/objetivos">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="w-full mt-1 group-hover:bg-primary/10 group-hover:text-primary"
-                    >
-                      {t.dashboard.viewDetails}
-                      <ChevronRight className="h-4 w-4 ml-1" />
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-
-              {/* Shopping List Mini Card */}
-              <Card className="premium-card group hover:glow-subtle transition-all duration-300">
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                    <div className="p-1.5 rounded-lg bg-warning/10">
-                      <ShoppingCart className="h-4 w-4 text-warning" />
-                    </div>
-                    {t.dashboard.shoppingList}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div>
-                    <p className="text-2xl font-bold text-warning">
-                      {shoppingData.doneCount}/{shoppingData.totalCount}
-                    </p>
-                    <p className="text-xs text-muted-foreground">{t.dashboard.itemsThisWeek}</p>
-                  </div>
-                  {shoppingData.totalCount > 0 && (
-                    <Progress value={(shoppingData.doneCount / shoppingData.totalCount) * 100} className="h-1.5" />
-                  )}
-                  <Link to="/compras">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="w-full mt-1 group-hover:bg-warning/10 group-hover:text-warning"
-                    >
-                      {t.dashboard.viewList}
-                      <ChevronRight className="h-4 w-4 ml-1" />
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Reflection and Future Self Cards - Clickable */}
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div onClick={() => setShowReflectionModal(true)} className="cursor-pointer">
-                <ReflectionCard reflection={todayReflection} onSave={handleSaveReflection} compact />
-              </div>
-              <div onClick={() => setShowFutureSelfModal(true)} className="cursor-pointer">
-                <FutureSelfCard entry={latestFutureSelf} onSave={handleSaveFutureSelf} compact />
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column: Today's Habits */}
-          <Card className="premium-card h-fit">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center justify-between">
-                <span className="text-sm font-medium text-muted-foreground">{dateLabel}</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <HabitList
-                state={state}
-                selectedDate={selectedDate}
-                onToggleHabit={handleToggleHabit}
-                onEditHabit={(habit) => {
-                  setEditingHabit(habit);
-                  setShowHabitForm(true);
-                }}
-                onDeleteHabit={(id) => setDeletingHabitId(id)}
-                onAddHabit={() => {
-                  setEditingHabit(null);
-                  setShowHabitForm(true);
-                }}
-              />
-            </CardContent>
-          </Card>
-        </div>
+        {temporalView === 'mes' && (
+          <MonthView
+            state={state}
+            currentMonth={currentMonth}
+            currentYear={currentYear}
+          />
+        )}
       </main>
 
       {/* Habit Form Modal */}
@@ -600,97 +155,12 @@ const Index = () => {
         />
       )}
 
-      {/* Delete Confirmation */}
-      <AlertDialog open={!!deletingHabitId} onOpenChange={() => setDeletingHabitId(null)}>
-        <AlertDialogContent className="glass-strong">
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t.habits.delete}</AlertDialogTitle>
-            <AlertDialogDescription>{t.habits.confirmDelete}</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t.habits.cancel}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteHabit}>{t.habits.delete}</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Drilldown Modals */}
-      <StreakDrilldown
-        open={showStreakDrilldown}
-        onOpenChange={setShowStreakDrilldown}
-        currentStreak={monthlySummary.streakAtual}
-        bestStreak={monthlySummary.melhorStreak}
-        dailyLogs={state.dailyLogs}
-        habits={state.habits}
-      />
-      <ConsistencyDrilldown
-        open={showConsistencyDrilldown}
-        onOpenChange={setShowConsistencyDrilldown}
-        consistencyScore={consistencyScore}
-        habits={state.habits}
-        dailyLogs={state.dailyLogs}
-        month={currentMonth}
-        year={currentYear}
-      />
-      <TrackersDrilldown
-        open={showTrackersDrilldown}
-        onOpenChange={setShowTrackersDrilldown}
-        trackers={state.trackers || []}
-        entries={state.trackerEntries || []}
-        formatCurrency={formatCurrency}
-      />
-      <SavingsDrilldown
-        open={showSavingsDrilldown}
-        onOpenChange={setShowSavingsDrilldown}
-        savingsSummary={savingsSummary}
-        savings={state.savings}
-        formatCurrency={formatCurrency}
-      />
-      <ReflectionModal
-        open={showReflectionModal}
-        onOpenChange={setShowReflectionModal}
-        reflections={state.reflections || []}
-        todayReflection={todayReflection}
-        onSave={handleSaveReflection}
-      />
-      <FutureSelfModal
-        open={showFutureSelfModal}
-        onOpenChange={setShowFutureSelfModal}
-        entries={state.futureSelf || []}
-        latestEntry={latestFutureSelf}
-        onSave={handleSaveFutureSelf}
-      />
-      <WeeklyDrilldownModal
-        open={showWeeklyDrilldown}
-        onOpenChange={setShowWeeklyDrilldown}
-        weekSummary={weeklySummaries.find((w) => w.weekNumber === selectedWeek) || weeklySummaries[0]}
-        weekNumber={selectedWeek}
-        year={currentYear}
-        month={currentMonth}
-        state={state}
-        locale={locale}
-      />
-
-      {/* Paywall Modal */}
+      {/* Paywall */}
       <PaywallModal
         open={showPaywall}
         onClose={() => setShowPaywall(false)}
         onUpgrade={upgradeToPro}
-        trigger="habits"
         trialDaysLeft={trialStatus.daysRemaining}
-      />
-
-      {/* Login Trigger Modal */}
-      <LoginTriggerModal open={showLoginModal} onClose={closeLoginModal} />
-
-      {/* Trial Offer Modal */}
-      <TrialOfferModal
-        open={showTrialOffer}
-        onClose={() => setShowTrialOffer(false)}
-        onStartTrial={() => {
-          toast({ title: locale === "pt-PT" ? "Trial iniciado!" : "Trial started!" });
-        }}
-        onViewPricing={() => setShowPaywall(true)}
       />
     </div>
   );
