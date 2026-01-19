@@ -1,6 +1,9 @@
-import { format, startOfMonth, endOfMonth, eachWeekOfInterval, startOfWeek, addDays } from "date-fns";
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, subMonths, addMonths } from "date-fns";
 import { pt, enUS } from "date-fns/locale";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n/I18nContext";
 import { AppState } from "@/data/types";
 import { isHabitDoneOnDate } from "@/data/storage";
@@ -16,37 +19,66 @@ interface MonthViewProps {
 /**
  * Month View - Narrative
  * Mês = narrativa
- * Texto observacional + tons suaves
- * Sem números, sem julgamento
+ * Sparkline + texto observacional
+ * Sem números crus, sem "performance", sem progresso
  */
 export const MonthView = ({ state, currentMonth, currentYear }: MonthViewProps) => {
   const { locale } = useI18n();
   const { isPro } = useSubscription();
+  const [monthOffset, setMonthOffset] = useState(0);
 
   const dateLocale = locale === 'pt-PT' ? pt : enUS;
-  const monthStart = startOfMonth(new Date(currentYear, currentMonth));
-  const monthEnd = endOfMonth(monthStart);
+  const baseMonth = new Date(currentYear, currentMonth);
+  const viewMonth = addMonths(baseMonth, monthOffset);
+  const monthStart = startOfMonth(viewMonth);
+  const monthEnd = endOfMonth(viewMonth);
 
   // Generate narrative insights
-  const insights = generateNarrativeInsights(state, currentYear, currentMonth, locale);
+  const insights = generateNarrativeInsights(state, viewMonth.getFullYear(), viewMonth.getMonth(), locale);
 
   const content = (
-    <div className="space-y-6">
-      {/* Month header */}
-      <div className="text-center">
-        <h2 className="text-lg font-medium">
+    <div className="space-y-8">
+      {/* Month navigation */}
+      <div className="flex items-center justify-between">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9 rounded-xl"
+          onClick={() => setMonthOffset(prev => prev - 1)}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        
+        <h2 className="text-lg font-medium capitalize">
           {format(monthStart, "MMMM yyyy", { locale: dateLocale })}
         </h2>
+        
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9 rounded-xl"
+          onClick={() => setMonthOffset(prev => prev + 1)}
+          disabled={monthOffset >= 0}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
       </div>
 
+      {/* Micro sparkline area chart */}
+      <MonthSparkline
+        state={state}
+        monthStart={monthStart}
+        monthEnd={monthEnd}
+      />
+
       {/* Narrative insights */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         {insights.map((insight, idx) => (
           <div
             key={idx}
-            className="p-4 rounded-2xl bg-card/30 border border-border/20"
+            className="p-5 rounded-2xl bg-card/30 border border-border/20"
           >
-            <p className="text-sm text-muted-foreground leading-relaxed">
+            <p className="text-sm text-muted-foreground leading-relaxed italic">
               {insight}
             </p>
           </div>
@@ -75,6 +107,70 @@ export const MonthView = ({ state, currentMonth, currentYear }: MonthViewProps) 
   return content;
 };
 
+// Micro sparkline visualization
+const MonthSparkline = ({
+  state,
+  monthStart,
+  monthEnd,
+}: {
+  state: AppState;
+  monthStart: Date;
+  monthEnd: Date;
+}) => {
+  const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
+  const activeHabits = state.habits.filter(h => h.active);
+  const today = new Date();
+
+  if (activeHabits.length === 0) return null;
+
+  // Calculate daily completion ratios
+  const dailyData = days.map(day => {
+    const dateStr = format(day, "yyyy-MM-dd");
+    const isFuture = day > today;
+    
+    if (isFuture) return { ratio: 0, isFuture: true };
+    
+    let completed = 0;
+    activeHabits.forEach(habit => {
+      if (isHabitDoneOnDate(state, habit.id, dateStr)) {
+        completed++;
+      }
+    });
+    
+    return {
+      ratio: activeHabits.length > 0 ? completed / activeHabits.length : 0,
+      isFuture: false
+    };
+  });
+
+  const maxHeight = 40;
+  const barWidth = 100 / days.length;
+
+  return (
+    <div className="p-4 rounded-2xl bg-card/20 border border-border/10">
+      <div className="flex items-end justify-between h-12 gap-0.5">
+        {dailyData.map((data, idx) => (
+          <div
+            key={idx}
+            className={cn(
+              "flex-1 rounded-t-sm transition-all",
+              data.isFuture 
+                ? "bg-border/20" 
+                : data.ratio === 0 
+                  ? "bg-muted-foreground/10"
+                  : "bg-primary/60"
+            )}
+            style={{
+              height: data.isFuture ? 4 : Math.max(4, data.ratio * maxHeight),
+              opacity: data.isFuture ? 0.3 : 0.4 + (data.ratio * 0.6)
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
 // Generate observational narrative insights
 const generateNarrativeInsights = (
   state: AppState,
@@ -93,7 +189,6 @@ const generateNarrativeInsights = (
     ];
   }
 
-  // Analyze patterns
   const monthStart = new Date(year, month, 1);
   const monthEnd = new Date(year, month + 1, 0);
   const today = new Date();
@@ -102,20 +197,21 @@ const generateNarrativeInsights = (
   let eveningCompletions = 0;
   let weekendCompletions = 0;
   let weekdayCompletions = 0;
-  let totalCompletions = 0;
-  let totalPossible = 0;
+  let daysWithActivity = 0;
+  let totalDays = 0;
 
   for (let d = new Date(monthStart); d <= monthEnd && d <= today; d.setDate(d.getDate() + 1)) {
     const dateStr = format(d, "yyyy-MM-dd");
     const dayOfWeek = d.getDay();
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    let dayHasActivity = false;
+
+    totalDays++;
 
     activeHabits.forEach(habit => {
-      totalPossible++;
       if (isHabitDoneOnDate(state, habit.id, dateStr)) {
-        totalCompletions++;
+        dayHasActivity = true;
         
-        // Infer time patterns from scheduled time
         if (habit.scheduledTime) {
           const hour = parseInt(habit.scheduledTime.split(':')[0], 10);
           if (hour < 12) morningCompletions++;
@@ -126,16 +222,18 @@ const generateNarrativeInsights = (
         else weekdayCompletions++;
       }
     });
+
+    if (dayHasActivity) daysWithActivity++;
   }
 
   // Generate narrative based on patterns
-  if (morningCompletions > eveningCompletions && morningCompletions > 5) {
+  if (morningCompletions > eveningCompletions && morningCompletions > 3) {
     insights.push(
       locale === 'pt-PT'
         ? 'Manhãs com mais intenção — os teus primeiros momentos do dia têm sido consistentes.'
         : 'Mornings with more intention — your first moments of the day have been consistent.'
     );
-  } else if (eveningCompletions > morningCompletions && eveningCompletions > 5) {
+  } else if (eveningCompletions > morningCompletions && eveningCompletions > 3) {
     insights.push(
       locale === 'pt-PT'
         ? 'Mais foco ao final da tarde — encontraste o teu ritmo nos momentos de descompressão.'
@@ -145,13 +243,13 @@ const generateNarrativeInsights = (
 
   if (weekendCompletions > 0 && weekdayCompletions > 0) {
     const weekendRatio = weekendCompletions / (weekendCompletions + weekdayCompletions);
-    if (weekendRatio < 0.2) {
+    if (weekendRatio < 0.15) {
       insights.push(
         locale === 'pt-PT'
           ? 'Fins de semana com desaceleração — permites-te pausar quando o ritmo muda.'
           : 'Weekends with slowdown — you allow yourself to pause when the pace changes.'
       );
-    } else if (weekendRatio > 0.35) {
+    } else if (weekendRatio > 0.30) {
       insights.push(
         locale === 'pt-PT'
           ? 'Consistência mesmo nos fins de semana — o ritmo mantém-se independente do dia.'
@@ -160,13 +258,22 @@ const generateNarrativeInsights = (
     }
   }
 
-  // General continuity insight
-  if (totalCompletions > 0 && totalPossible > 0) {
-    insights.push(
-      locale === 'pt-PT'
-        ? 'O mês revela um padrão — cada dia contribui para a tua transformação.'
-        : 'The month reveals a pattern — each day contributes to your transformation.'
-    );
+  // Continuity insight
+  if (daysWithActivity > 0 && totalDays > 0) {
+    const continuityRatio = daysWithActivity / totalDays;
+    if (continuityRatio > 0.7) {
+      insights.push(
+        locale === 'pt-PT'
+          ? 'Este mês revela continuidade — cada dia tem contribuído para a tua transformação.'
+          : 'This month reveals continuity — each day has contributed to your transformation.'
+      );
+    } else if (continuityRatio > 0.4) {
+      insights.push(
+        locale === 'pt-PT'
+          ? 'Um padrão está a emergir — a narrativa ganha forma com cada ação.'
+          : 'A pattern is emerging — the narrative takes shape with each action.'
+      );
+    }
   }
 
   return insights.length > 0 ? insights : [
@@ -188,69 +295,68 @@ const MonthGrid = ({
   monthEnd: Date;
   locale: string;
 }) => {
-  const dateLocale = locale === 'pt-PT' ? pt : enUS;
-  const weeks = eachWeekOfInterval(
-    { start: monthStart, end: monthEnd },
-    { weekStartsOn: 1 }
-  );
-  
+  const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
   const activeHabits = state.habits.filter(h => h.active);
   const today = new Date();
+  
+  // Get starting day offset (Monday = 0)
+  const startDayOfWeek = getDay(monthStart);
+  const offset = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1;
+
+  // Day labels
+  const dayLabels = locale === 'pt-PT' 
+    ? ['S', 'T', 'Q', 'Q', 'S', 'S', 'D']
+    : ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       {/* Day labels */}
-      <div className="grid grid-cols-7 gap-1 text-center">
-        {['S', 'T', 'Q', 'Q', 'S', 'S', 'D'].map((day, i) => (
-          <span key={i} className="text-xs text-muted-foreground/50">{day}</span>
+      <div className="grid grid-cols-7 gap-1.5 text-center">
+        {dayLabels.map((day, i) => (
+          <span key={i} className="text-[10px] text-muted-foreground/40 font-medium">{day}</span>
         ))}
       </div>
 
-      {/* Weeks */}
-      {weeks.map((weekStart) => (
-        <div key={weekStart.toISOString()} className="grid grid-cols-7 gap-1">
-          {Array.from({ length: 7 }, (_, i) => {
-            const day = addDays(weekStart, i);
-            const dateStr = format(day, "yyyy-MM-dd");
-            const isInMonth = day >= monthStart && day <= monthEnd;
-            const isFuture = day > today;
-            
-            if (!isInMonth) {
-              return <div key={i} className="h-6" />;
+      {/* Days grid */}
+      <div className="grid grid-cols-7 gap-1.5">
+        {/* Empty cells for offset */}
+        {Array.from({ length: offset }).map((_, i) => (
+          <div key={`empty-${i}`} className="aspect-square" />
+        ))}
+        
+        {/* Actual days */}
+        {days.map((day) => {
+          const dateStr = format(day, "yyyy-MM-dd");
+          const isFuture = day > today;
+          
+          // Calculate completion ratio
+          let completed = 0;
+          activeHabits.forEach(habit => {
+            if (isHabitDoneOnDate(state, habit.id, dateStr)) {
+              completed++;
             }
+          });
+          const ratio = activeHabits.length > 0 ? completed / activeHabits.length : 0;
 
-            // Calculate completion for this day
-            let completed = 0;
-            let total = 0;
-            activeHabits.forEach(habit => {
-              total++;
-              if (isHabitDoneOnDate(state, habit.id, dateStr)) {
-                completed++;
-              }
-            });
-
-            const completionRatio = total > 0 ? completed / total : 0;
-
-            return (
-              <div
-                key={i}
-                className={cn(
-                  "h-6 w-6 rounded-sm mx-auto transition-all",
-                  isFuture
-                    ? "bg-border/20"
-                    : completionRatio === 0
-                      ? "bg-muted-foreground/10"
-                      : completionRatio < 0.5
-                        ? "bg-primary/20"
-                        : completionRatio < 1
-                          ? "bg-primary/50"
-                          : "bg-primary/80"
-                )}
-              />
-            );
-          })}
-        </div>
-      ))}
+          return (
+            <div
+              key={dateStr}
+              className={cn(
+                "aspect-square rounded-md transition-all",
+                isFuture
+                  ? "bg-border/15"
+                  : ratio === 0
+                    ? "bg-muted-foreground/8"
+                    : ratio < 0.5
+                      ? "bg-primary/25"
+                      : ratio < 1
+                        ? "bg-primary/50"
+                        : "bg-primary/75"
+              )}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 };
