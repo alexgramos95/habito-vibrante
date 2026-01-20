@@ -118,7 +118,7 @@ export const DayView = ({
             {locale === 'pt-PT' ? 'Hábitos' : 'Habits'}
           </h2>
           <div className="flex items-center gap-1">
-            <Link to="/app/habitos">
+            <Link to="/app">
               <Button
                 size="sm"
                 variant="ghost"

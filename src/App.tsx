@@ -15,7 +15,7 @@ const Calendario = lazy(() => import("./pages/Calendario"));
 const Financas = lazy(() => import("./pages/Financas"));
 const Compras = lazy(() => import("./pages/Compras"));
 const Perfil = lazy(() => import("./pages/Perfil"));
-const Habitos = lazy(() => import("./pages/Habitos"));
+// Habitos removed - /app now handles habit management
 // const Onboarding = lazy(() => import("./pages/Onboarding")); // <- removido
 const Progresso = lazy(() => import("./pages/Progresso"));
 const Definicoes = lazy(() => import("./pages/Definicoes"));
@@ -57,7 +57,6 @@ const App = () => (
 
                 {/* App shell routes - consistent /app/* paths */}
                 <Route path="/app" element={<Index />} />
-                <Route path="/app/habitos" element={<Habitos />} />
                 <Route path="/app/trackers" element={<Objetivos />} />
                 <Route path="/app/calendar" element={<Calendario />} />
                 <Route path="/app/finances" element={<Financas />} />
