@@ -90,7 +90,6 @@ export const WeekView = ({ state, selectedDate }: WeekViewProps) => {
           size="icon"
           className="h-9 w-9 rounded-xl"
           onClick={() => setWeekOffset(prev => prev + 1)}
-          disabled={weekOffset >= 0}
         >
           <ChevronRight className="h-4 w-4" />
         </Button>

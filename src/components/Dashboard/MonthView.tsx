@@ -58,7 +58,6 @@ export const MonthView = ({ state, currentMonth, currentYear }: MonthViewProps) 
           size="icon"
           className="h-9 w-9 rounded-xl"
           onClick={() => setMonthOffset(prev => prev + 1)}
-          disabled={monthOffset >= 0}
         >
           <ChevronRight className="h-4 w-4" />
         </Button>
