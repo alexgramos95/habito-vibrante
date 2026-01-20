@@ -98,9 +98,7 @@ const Calendario = () => {
   };
 
   const handleNextDay = () => {
-    if (!isFuture(addDays(selectedDate, 1))) {
-      setSelectedDate(prev => addDays(prev, 1));
-    }
+    setSelectedDate(prev => addDays(prev, 1));
   };
 
   const calendarDays = useMemo(() => {
