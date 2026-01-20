@@ -56,13 +56,13 @@ export const HabitList = ({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <Link 
-          to="/app/habitos" 
+          to="/app" 
           className="text-lg font-semibold hover:text-primary transition-colors cursor-pointer"
         >
           {t.habits.title}
         </Link>
         <div className="flex items-center gap-1">
-          <Link to="/app/habitos">
+          <Link to="/app">
             <Button
               size="sm"
               variant="ghost"
