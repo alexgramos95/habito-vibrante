@@ -46,14 +46,19 @@ const getEditorialCopy = (date: Date, locale: string): string => {
   return eveningPhrases[dayOfWeek % eveningPhrases.length];
 };
 
-// Filter habits to only show those scheduled for the selected day, sorted by time
+// Filter active habits to only show those scheduled for the selected day, sorted by time
 const getHabitsForDay = (habits: Habit[], date: Date): Habit[] => {
   const dayOfWeek = getDay(date);
   
+  // First filter active habits, then filter by scheduled days
   const filtered = habits.filter(habit => {
+    if (!habit.active) return false;
+    
+    // If no scheduled days defined, show every day
     if (!habit.scheduledDays || habit.scheduledDays.length === 0) {
       return true;
     }
+    // Only show if this day is in the scheduled days
     return habit.scheduledDays.includes(dayOfWeek);
   });
   
