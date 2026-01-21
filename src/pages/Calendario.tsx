@@ -234,15 +234,13 @@ const Calendario = () => {
   };
 
   const openDayDetail = (date: Date) => {
-    if (!isFuture(date)) {
-      // Check if date is accessible (within free limits)
-      if (!isDateAccessible(date)) {
-        setShowPaywall(true);
-        return;
-      }
-      setDetailDate(date);
-      setShowDayDetail(true);
+    // Check if date is accessible (within free limits) - only for past dates
+    if (!isFuture(date) && !isDateAccessible(date)) {
+      setShowPaywall(true);
+      return;
     }
+    setDetailDate(date);
+    setShowDayDetail(true);
   };
 
   const currentStreak = calculateStreak();
@@ -264,12 +262,11 @@ const Calendario = () => {
     return (
       <button
         key={key}
-        disabled={isFutureDate}
         onClick={() => openDayDetail(date)}
         className={cn(
           "relative aspect-square flex flex-col items-center justify-center rounded-xl text-sm font-medium transition-all duration-200",
           "hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary/50",
-          isFutureDate && "cursor-not-allowed opacity-30",
+          isFutureDate && "opacity-50",
           isLocked && "opacity-50",
           !isFutureDate && !isComplete && !isPartial && !isLocked && "bg-secondary/50 text-muted-foreground hover:bg-secondary",
           !isLocked && isPartial && "bg-primary/20 text-primary",
@@ -357,40 +354,43 @@ const Calendario = () => {
                     {locale === 'pt-PT' ? 'Hábitos' : 'Habits'}
                   </h4>
                   <div className="space-y-2">
-                    {habitsForDay.map(habit => {
-                      const isDone = state.dailyLogs.some(
-                        l => l.habitId === habit.id && l.date === dateStr && l.done
-                      );
-                      return (
-                        <button
-                          key={habit.id}
-                          onClick={() => handleToggleHabit(habit.id, detailDate)}
-                          className={cn(
-                            "w-full flex items-center justify-between p-3 rounded-lg transition-all",
-                            isDone 
-                              ? "bg-primary/10 border border-primary/30" 
-                              : "bg-secondary/50 border border-border/30 hover:bg-secondary"
-                          )}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div 
-                              className="w-3 h-3 rounded-full" 
-                              style={{ backgroundColor: habit.cor || '#14b8a6' }} 
-                            />
-                            <div className="flex flex-col items-start">
-                              <span className={cn(isDone && "line-through opacity-70")}>{habit.nome}</span>
-                              {habit.scheduledTime && (
-                                <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                  <Clock className="h-3 w-3" />
-                                  {habit.scheduledTime}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          {isDone ? <Check className="h-4 w-4 text-primary" /> : <div className="w-4 h-4 rounded border border-muted-foreground" />}
-                        </button>
-                      );
-                    })}
+                                    {habitsForDay.map(habit => {
+                                      const isDone = state.dailyLogs.some(
+                                        l => l.habitId === habit.id && l.date === dateStr && l.done
+                                      );
+                                      const isFutureDetail = detailDate ? isFuture(detailDate) : false;
+                                      return (
+                                        <button
+                                          key={habit.id}
+                                          onClick={() => !isFutureDetail && handleToggleHabit(habit.id, detailDate!)}
+                                          disabled={isFutureDetail}
+                                          className={cn(
+                                            "w-full flex items-center justify-between p-3 rounded-lg transition-all",
+                                            isFutureDetail && "opacity-50 cursor-not-allowed",
+                                            isDone 
+                                              ? "bg-primary/10 border border-primary/30" 
+                                              : "bg-secondary/50 border border-border/30 hover:bg-secondary"
+                                          )}
+                                        >
+                                          <div className="flex items-center gap-3">
+                                            <div 
+                                              className="w-3 h-3 rounded-full" 
+                                              style={{ backgroundColor: habit.cor || '#14b8a6' }} 
+                                            />
+                                            <div className="flex flex-col items-start">
+                                              <span className={cn(isDone && "line-through opacity-70")}>{habit.nome}</span>
+                                              {habit.scheduledTime && (
+                                                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                                  <Clock className="h-3 w-3" />
+                                                  {habit.scheduledTime}
+                                                </span>
+                                              )}
+                                            </div>
+                                          </div>
+                                          {isDone ? <Check className="h-4 w-4 text-primary" /> : <div className="w-4 h-4 rounded border border-muted-foreground" />}
+                                        </button>
+                                      );
+                                    })}
                   </div>
                 </div>
               );
@@ -614,12 +614,10 @@ const Calendario = () => {
                     return (
                       <button
                         key={format(date, "yyyy-MM-dd")}
-                        disabled={isFutureDate}
                         onClick={() => openDayDetail(date)}
                         className={cn(
-                          "flex flex-col items-center p-4 rounded-xl transition-all",
-                          isFutureDate && "opacity-30 cursor-not-allowed",
-                          !isFutureDate && "hover:bg-secondary/50 cursor-pointer",
+                          "flex flex-col items-center p-4 rounded-xl transition-all hover:bg-secondary/50 cursor-pointer",
+                          isFutureDate && "opacity-50",
                           isTodayDate && "ring-2 ring-primary",
                           isComplete && "bg-primary/10"
                         )}
@@ -628,14 +626,15 @@ const Calendario = () => {
                         <span className={cn("text-2xl font-bold my-2", isComplete && "text-primary")}>
                           {format(date, "d")}
                         </span>
-                        {!isFutureDate && (
-                          <div className="flex items-center gap-1">
-                            {isComplete 
+                        <div className="flex items-center gap-1">
+                          {!isFutureDate ? (
+                            isComplete 
                               ? <Check className="h-4 w-4 text-success" />
                               : <span className="text-xs">{data.completedHabits}/{data.totalHabits}</span>
-                            }
-                          </div>
-                        )}
+                          ) : (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
+                        </div>
                       </button>
                     );
                   })}
