@@ -713,7 +713,14 @@ const Calendario = () => {
                                       className="w-3 h-3 rounded-full" 
                                       style={{ backgroundColor: habit.cor || '#14b8a6' }} 
                                     />
-                                    <span>{habit.nome}</span>
+                                    <span>
+                                      {habit.nome}
+                                      {habit.scheduledTime && (
+                                        <span className="text-muted-foreground ml-2 text-sm">
+                                          {habit.scheduledTime}
+                                        </span>
+                                      )}
+                                    </span>
                                   </div>
                                   {isDone 
                                     ? <Check className="h-5 w-5 text-primary" />
