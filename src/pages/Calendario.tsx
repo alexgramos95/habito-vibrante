@@ -598,7 +598,7 @@ const Calendario = () => {
                   <span className="font-medium">
                     {format(weekDays[0], "d MMM", { locale: dateLocale })} - {format(weekDays[6], "d MMM yyyy", { locale: dateLocale })}
                   </span>
-                  <Button variant="ghost" size="icon" onClick={handleNextWeek} disabled={isFuture(weekDays[6])}>
+                  <Button variant="ghost" size="icon" onClick={handleNextWeek}>
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
@@ -660,7 +660,7 @@ const Calendario = () => {
                       {formatDate(selectedDate, locale === 'pt-PT' ? "d 'de' MMMM yyyy" : "MMMM d, yyyy")}
                     </p>
                   </div>
-                  <Button variant="ghost" size="icon" onClick={handleNextDay} disabled={isFuture(addDays(selectedDate, 1))}>
+                  <Button variant="ghost" size="icon" onClick={handleNextDay}>
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
@@ -686,41 +686,46 @@ const Calendario = () => {
                         </p>
                       </div>
 
-                      {/* Habits */}
-                      {activeHabits.length > 0 && (
-                        <div className="space-y-2">
-                          <h4 className="font-medium">{locale === 'pt-PT' ? 'Hábitos' : 'Habits'}</h4>
-                          {activeHabits.map(habit => {
-                            const isDone = state.dailyLogs.some(
-                              l => l.habitId === habit.id && l.date === dateStr && l.done
-                            );
-                            return (
-                              <button
-                                key={habit.id}
-                                onClick={() => handleToggleHabit(habit.id, selectedDate)}
-                                className={cn(
-                                  "w-full flex items-center justify-between p-4 rounded-xl transition-all",
-                                  isDone 
-                                    ? "bg-primary/10 border border-primary/30" 
-                                    : "bg-secondary/50 hover:bg-secondary"
-                                )}
-                              >
-                                <div className="flex items-center gap-3">
-                                  <div 
-                                    className="w-3 h-3 rounded-full" 
-                                    style={{ backgroundColor: habit.cor || '#14b8a6' }} 
-                                  />
-                                  <span>{habit.nome}</span>
-                                </div>
-                                {isDone 
-                                  ? <Check className="h-5 w-5 text-primary" />
-                                  : <div className="w-5 h-5 rounded border-2 border-muted-foreground" />
-                                }
-                              </button>
-                            );
-                          })}
-                        </div>
-                      )}
+                      {/* Habits - Filtered by weekday schedule */}
+                      {(() => {
+                        const habitsForDay = getHabitsForDate(selectedDate);
+                        return habitsForDay.length > 0 && (
+                          <div className="space-y-2">
+                            <h4 className="font-medium">{locale === 'pt-PT' ? 'Hábitos' : 'Habits'}</h4>
+                            {habitsForDay.map(habit => {
+                              const isDone = state.dailyLogs.some(
+                                l => l.habitId === habit.id && l.date === dateStr && l.done
+                              );
+                              return (
+                                <button
+                                  key={habit.id}
+                                  onClick={() => handleToggleHabit(habit.id, selectedDate)}
+                                  disabled={isFuture(selectedDate)}
+                                  className={cn(
+                                    "w-full flex items-center justify-between p-4 rounded-xl transition-all",
+                                    isFuture(selectedDate) && "opacity-50 cursor-not-allowed",
+                                    isDone 
+                                      ? "bg-primary/10 border border-primary/30" 
+                                      : "bg-secondary/50 hover:bg-secondary"
+                                  )}
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <div 
+                                      className="w-3 h-3 rounded-full" 
+                                      style={{ backgroundColor: habit.cor || '#14b8a6' }} 
+                                    />
+                                    <span>{habit.nome}</span>
+                                  </div>
+                                  {isDone 
+                                    ? <Check className="h-5 w-5 text-primary" />
+                                    : <div className="w-5 h-5 rounded border-2 border-muted-foreground" />
+                                  }
+                                </button>
+                              );
+                            })}
+                          </div>
+                        );
+                      })()}
 
                       {/* Tracker Summary */}
                       {data.trackerCount > 0 && (
