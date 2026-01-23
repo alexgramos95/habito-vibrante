@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { loadState, saveState as saveToLocalStorage, generateId } from '@/data/storage';
-import type { AppState, Habit, Tracker, TrackerEntry, DailyReflection, FutureSelfEntry, InvestmentGoal, ShoppingItem, UserGamification, DailyLog } from '@/data/types';
+import { loadState, saveState as saveToLocalStorage } from '@/data/storage';
+import type { AppState } from '@/data/types';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface DataContextType {
@@ -62,9 +62,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
-  
-  // Check if subscription status is loaded (planStatus is populated by check-subscription)
-  const isSubscriptionLoaded = subscriptionStatus.planStatus !== null || !authLoading;
   
   const isPro = subscriptionStatus.plan === 'pro';
   const hasInitializedRef = useRef(false);
@@ -211,7 +208,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
    */
   useEffect(() => {
     const initializeData = async () => {
-      // Don't initialize until auth is ready and subscription status is loaded
+      // Don't initialize until auth is ready
       if (authLoading) {
         console.log('[DATA] Waiting for auth to load...');
         return;
@@ -226,25 +223,33 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         });
         setStateInternal(localState);
         setIsLoading(false);
-        hasInitializedRef.current = true;
+        hasInitializedRef.current = false; // Reset so we re-initialize on next login
         lastProStatusRef.current = null;
         return;
       }
 
-      // Wait for subscription status to be loaded
-      if (!isSubscriptionLoaded) {
-        console.log('[DATA] Waiting for subscription status...');
+      // Wait for subscription status to be fully loaded (planStatus must be set)
+      if (subscriptionStatus.planStatus === null) {
+        console.log('[DATA] Waiting for subscription status to be loaded...');
+        // Load local state temporarily while waiting
+        if (!hasInitializedRef.current) {
+          const localState = loadState();
+          setStateInternal(localState);
+          console.log('[DATA] Loaded local state temporarily while waiting for subscription');
+        }
         return;
       }
 
-      // Check if PRO status changed
-      const proStatusChanged = lastProStatusRef.current !== null && lastProStatusRef.current !== isPro;
+      // Now we have the real subscription status
+      const shouldReSync = !hasInitializedRef.current || 
+        (lastProStatusRef.current !== null && lastProStatusRef.current !== isPro);
       
-      // Skip if already initialized and PRO status didn't change
-      if (hasInitializedRef.current && !proStatusChanged) {
+      if (!shouldReSync) {
+        console.log('[DATA] Already initialized with correct PRO status, skipping');
         return;
       }
 
+      console.log('[DATA] Initializing/re-syncing data, isPro:', isPro, 'planStatus:', subscriptionStatus.planStatus);
       setIsLoading(true);
       
       // Always load local state first (fast)
@@ -253,8 +258,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         habits: localState.habits.length, 
         trackers: localState.trackers.length 
       });
-
-      console.log('[DATA] User authenticated, isPro:', isPro, 'planStatus:', subscriptionStatus.planStatus);
 
       if (isPro) {
         console.log('[DATA] PRO user - downloading cloud data as source of truth');
@@ -282,13 +285,14 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         }
       } else {
         // Non-PRO user: use local state, try to download cloud as merge source
-        console.log('[DATA] Non-PRO user - using local state');
+        console.log('[DATA] Non-PRO user - using local state, downloading cloud for merge');
         const cloudState = await downloadFromCloud();
         
         if (cloudState && (cloudState.habits.length > 0 || cloudState.trackers.length > 0)) {
           const mergedState = mergeStates(localState, cloudState);
           setStateInternal(mergedState);
           saveToLocalStorage(mergedState);
+          console.log('[DATA] Merged cloud data with local');
         } else {
           setStateInternal(localState);
         }
@@ -300,7 +304,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     };
 
     initializeData();
-  }, [session?.access_token, user?.id, isPro, isSubscriptionLoaded, authLoading, subscriptionStatus.planStatus]);
+  }, [session?.access_token, user?.id, isPro, subscriptionStatus.planStatus, authLoading]);
 
   /**
    * Custom setState that also syncs to cloud for PRO users
