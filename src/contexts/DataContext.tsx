@@ -1,0 +1,340 @@
+import { createContext, useContext, useEffect, useState, useCallback, useRef, ReactNode } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { loadState, saveState as saveToLocalStorage, generateId } from '@/data/storage';
+import type { AppState, Habit, Tracker, TrackerEntry, DailyReflection, FutureSelfEntry, InvestmentGoal, ShoppingItem, UserGamification, DailyLog } from '@/data/types';
+import { useAuth } from '@/contexts/AuthContext';
+
+interface DataContextType {
+  state: AppState;
+  setState: React.Dispatch<React.SetStateAction<AppState>>;
+  isLoading: boolean;
+  isSyncing: boolean;
+  lastSyncedAt: string | null;
+  syncNow: () => Promise<void>;
+  isPro: boolean;
+}
+
+const DataContext = createContext<DataContextType | undefined>(undefined);
+
+// Default state for new users
+const defaultState: AppState = {
+  habits: [],
+  dailyLogs: [],
+  trackers: [],
+  trackerEntries: [],
+  reflections: [],
+  futureSelf: [],
+  investmentGoals: [],
+  sleepEntries: [],
+  triggers: [],
+  gamification: {
+    pontos: 0,
+    nivel: 1,
+    conquistas: [],
+    consistencyScore: 0,
+    currentStreak: 0,
+    bestStreak: 0,
+  },
+  savings: [],
+  shoppingItems: [],
+  tobaccoConfig: { numCigarrosPorMaco: 20, precoPorMaco: 6.20, baselineDeclarado: 20 },
+  cigaretteLogs: [],
+  purchaseGoals: [],
+};
+
+// Debounce helper
+function debounce<T extends (...args: unknown[]) => Promise<void>>(fn: T, delay: number): T {
+  let timeoutId: ReturnType<typeof setTimeout>;
+  return ((...args: Parameters<T>) => {
+    clearTimeout(timeoutId);
+    return new Promise<void>((resolve) => {
+      timeoutId = setTimeout(async () => {
+        await fn(...args);
+        resolve();
+      }, delay);
+    });
+  }) as T;
+}
+
+export const DataProvider = ({ children }: { children: ReactNode }) => {
+  const { session, subscriptionStatus, user } = useAuth();
+  const [state, setStateInternal] = useState<AppState>(defaultState);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
+  
+  const isPro = subscriptionStatus.plan === 'pro';
+  const hasInitializedRef = useRef(false);
+  const pendingSyncRef = useRef(false);
+
+  /**
+   * Upload state to Supabase (PRO users only)
+   */
+  const uploadToCloud = useCallback(async (stateToUpload: AppState): Promise<boolean> => {
+    if (!session?.access_token || !isPro) return false;
+    
+    try {
+      console.log('[DATA] Uploading to cloud...');
+      const { error } = await supabase.functions.invoke('sync-data', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: {
+          action: 'upload',
+          data: {
+            habits: stateToUpload.habits,
+            trackerEntries: stateToUpload.trackerEntries,
+            trackers: stateToUpload.trackers,
+            reflections: stateToUpload.reflections,
+            futureSelfEntries: stateToUpload.futureSelf,
+            investmentGoals: stateToUpload.investmentGoals,
+            shoppingItems: stateToUpload.shoppingItems,
+            gamification: stateToUpload.gamification,
+          },
+        },
+      });
+
+      if (error) {
+        console.error('[DATA] Upload error:', error);
+        return false;
+      }
+
+      setLastSyncedAt(new Date().toISOString());
+      console.log('[DATA] Upload successful');
+      return true;
+    } catch (err) {
+      console.error('[DATA] Upload failed:', err);
+      return false;
+    }
+  }, [session?.access_token, isPro]);
+
+  /**
+   * Debounced upload for PRO users
+   */
+  const debouncedUpload = useCallback(
+    debounce(async (stateToUpload: AppState) => {
+      if (pendingSyncRef.current) return;
+      pendingSyncRef.current = true;
+      setIsSyncing(true);
+      await uploadToCloud(stateToUpload);
+      setIsSyncing(false);
+      pendingSyncRef.current = false;
+    }, 2000),
+    [uploadToCloud]
+  );
+
+  /**
+   * Download state from Supabase
+   */
+  const downloadFromCloud = useCallback(async (): Promise<AppState | null> => {
+    if (!session?.access_token) return null;
+    
+    try {
+      console.log('[DATA] Downloading from cloud...');
+      const { data, error } = await supabase.functions.invoke('sync-data', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: { action: 'download' },
+      });
+
+      if (error) {
+        console.error('[DATA] Download error:', error);
+        return null;
+      }
+
+      if (data?.data) {
+        const cloudData = data.data;
+        console.log('[DATA] Cloud data received:', { 
+          habits: cloudData.habits?.length || 0,
+          trackers: cloudData.trackers?.length || 0,
+          synced_at: cloudData.synced_at 
+        });
+
+        // Convert cloud data to AppState format
+        const cloudState: AppState = {
+          ...defaultState,
+          habits: cloudData.habits || [],
+          trackers: cloudData.trackers || [],
+          trackerEntries: cloudData.trackerEntries || [],
+          reflections: cloudData.reflections || [],
+          futureSelf: cloudData.futureSelfEntries || [],
+          investmentGoals: cloudData.investmentGoals || [],
+          shoppingItems: cloudData.shoppingItems || [],
+          gamification: cloudData.gamification || defaultState.gamification,
+        };
+
+        setLastSyncedAt(cloudData.synced_at);
+        return cloudState;
+      }
+      
+      return null;
+    } catch (err) {
+      console.error('[DATA] Download failed:', err);
+      return null;
+    }
+  }, [session?.access_token]);
+
+  /**
+   * Merge two states, preferring source2 for conflicts
+   */
+  const mergeStates = (local: AppState, cloud: AppState): AppState => {
+    const mergeArrays = <T extends { id: string }>(arr1: T[], arr2: T[]): T[] => {
+      const map = new Map<string, T>();
+      arr1.forEach(item => map.set(item.id, item));
+      arr2.forEach(item => map.set(item.id, item)); // Cloud wins
+      return Array.from(map.values());
+    };
+
+    return {
+      ...local,
+      habits: mergeArrays(local.habits, cloud.habits),
+      trackers: mergeArrays(local.trackers, cloud.trackers),
+      trackerEntries: mergeArrays(local.trackerEntries, cloud.trackerEntries),
+      reflections: mergeArrays(local.reflections, cloud.reflections),
+      futureSelf: mergeArrays(local.futureSelf, cloud.futureSelf),
+      investmentGoals: mergeArrays(local.investmentGoals, cloud.investmentGoals),
+      shoppingItems: mergeArrays(local.shoppingItems, cloud.shoppingItems),
+      dailyLogs: mergeArrays(local.dailyLogs, cloud.dailyLogs || []),
+      gamification: cloud.gamification?.pontos > local.gamification.pontos 
+        ? { ...local.gamification, ...cloud.gamification }
+        : local.gamification,
+    };
+  };
+
+  /**
+   * Initialize data on mount and auth changes
+   */
+  useEffect(() => {
+    const initializeData = async () => {
+      setIsLoading(true);
+      
+      // Always load local state first (fast)
+      const localState = loadState();
+      console.log('[DATA] Local state loaded:', { 
+        habits: localState.habits.length, 
+        trackers: localState.trackers.length 
+      });
+
+      if (!session?.access_token || !user) {
+        // Not authenticated - use local only
+        setStateInternal(localState);
+        setIsLoading(false);
+        hasInitializedRef.current = true;
+        return;
+      }
+
+      // User is authenticated - check for cloud data
+      if (isPro) {
+        console.log('[DATA] PRO user - downloading cloud data as source of truth');
+        const cloudState = await downloadFromCloud();
+        
+        if (cloudState && (cloudState.habits.length > 0 || cloudState.trackers.length > 0)) {
+          // Cloud has data - use it as source of truth, but merge with local
+          const mergedState = mergeStates(localState, cloudState);
+          setStateInternal(mergedState);
+          saveToLocalStorage(mergedState); // Cache locally
+          console.log('[DATA] Using merged state (cloud priority)');
+        } else if (localState.habits.length > 0 || localState.trackers.length > 0) {
+          // No cloud data but local has data - upload local to cloud
+          console.log('[DATA] No cloud data, uploading local data to cloud');
+          setStateInternal(localState);
+          await uploadToCloud(localState);
+        } else {
+          // No data anywhere
+          setStateInternal(localState);
+        }
+      } else {
+        // Non-PRO user: use local state, try to download cloud as merge source
+        console.log('[DATA] Non-PRO user - using local state');
+        const cloudState = await downloadFromCloud();
+        
+        if (cloudState && (cloudState.habits.length > 0 || cloudState.trackers.length > 0)) {
+          const mergedState = mergeStates(localState, cloudState);
+          setStateInternal(mergedState);
+          saveToLocalStorage(mergedState);
+        } else {
+          setStateInternal(localState);
+        }
+      }
+
+      setIsLoading(false);
+      hasInitializedRef.current = true;
+    };
+
+    initializeData();
+  }, [session?.access_token, user?.id, isPro]);
+
+  /**
+   * Custom setState that also syncs to cloud for PRO users
+   */
+  const setState = useCallback((updater: React.SetStateAction<AppState>) => {
+    setStateInternal(prevState => {
+      const newState = typeof updater === 'function' ? updater(prevState) : updater;
+      
+      // Always save to localStorage (cache)
+      saveToLocalStorage(newState);
+      
+      // If PRO, also sync to cloud (debounced)
+      if (isPro && session?.access_token) {
+        debouncedUpload(newState);
+      }
+      
+      return newState;
+    });
+  }, [isPro, session?.access_token, debouncedUpload]);
+
+  /**
+   * Manual sync trigger
+   */
+  const syncNow = useCallback(async () => {
+    if (!session?.access_token) return;
+    
+    setIsSyncing(true);
+    
+    if (isPro) {
+      // PRO: bidirectional sync
+      const cloudState = await downloadFromCloud();
+      if (cloudState) {
+        const mergedState = mergeStates(state, cloudState);
+        setStateInternal(mergedState);
+        saveToLocalStorage(mergedState);
+        await uploadToCloud(mergedState);
+      }
+    } else {
+      // Non-PRO: download only
+      const cloudState = await downloadFromCloud();
+      if (cloudState) {
+        const mergedState = mergeStates(state, cloudState);
+        setStateInternal(mergedState);
+        saveToLocalStorage(mergedState);
+      }
+    }
+    
+    setIsSyncing(false);
+  }, [session?.access_token, isPro, state, downloadFromCloud, uploadToCloud]);
+
+  return (
+    <DataContext.Provider
+      value={{
+        state,
+        setState,
+        isLoading,
+        isSyncing,
+        lastSyncedAt,
+        syncNow,
+        isPro,
+      }}
+    >
+      {children}
+    </DataContext.Provider>
+  );
+};
+
+export const useData = () => {
+  const context = useContext(DataContext);
+  if (context === undefined) {
+    throw new Error('useData must be used within a DataProvider');
+  }
+  return context;
+};

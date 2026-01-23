@@ -12,10 +12,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { AppState, ShoppingItem, SHOPPING_CATEGORIES } from "@/data/types";
+import { ShoppingItem, SHOPPING_CATEGORIES } from "@/data/types";
 import {
-  loadState,
-  saveState,
   addShoppingItem,
   updateShoppingItem,
   toggleShoppingItem,
@@ -24,6 +22,7 @@ import {
 import { getShoppingItemsForWeek } from "@/logic/computations";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { useData } from "@/contexts/DataContext";
 import { ReceiptScanner } from "@/components/Shopping/ReceiptScanner";
 import { ReceiptReviewModal, ReviewItem } from "@/components/Shopping/ReceiptReviewModal";
 
@@ -31,7 +30,7 @@ const Compras = () => {
   const { toast } = useToast();
   const { t, locale, formatCurrency } = useI18n();
   const dateLocale = locale === 'pt-PT' ? pt : enUSLocale;
-  const [state, setState] = useState<AppState>(() => loadState());
+  const { state, setState } = useData();
   const [selectedWeek, setSelectedWeek] = useState(() => 
     startOfWeek(new Date(), { weekStartsOn: 1, locale: dateLocale })
   );
@@ -47,10 +46,6 @@ const Compras = () => {
   // Receipt OCR state
   const [pendingReceiptItems, setPendingReceiptItems] = useState<ReviewItem[]>([]);
   const [showReceiptReview, setShowReceiptReview] = useState(false);
-
-  useEffect(() => {
-    saveState(state);
-  }, [state]);
 
   const weekStartDate = format(selectedWeek, "yyyy-MM-dd");
   const { items, doneCount, totalCount } = getShoppingItemsForWeek(state, weekStartDate);
