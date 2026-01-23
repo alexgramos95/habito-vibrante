@@ -3,8 +3,8 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday, isFuture,
 import { pt, enUS as enUSLocale } from "date-fns/locale";
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Flame, Check, X, Clock, PenLine, ShoppingCart, Lock, Bell } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { AppState, Habit, Tracker, DailyReflection, ShoppingItem } from "@/data/types";
-import { loadState, saveState, toggleDailyLog, getReflectionForDate } from "@/data/storage";
+import { Habit, Tracker, DailyReflection, ShoppingItem } from "@/data/types";
+import { toggleDailyLog, getReflectionForDate } from "@/data/storage";
 import { getCompletedHabitsOnDate, getActiveHabits } from "@/logic/computations";
 import { getHabitsSortedForDay } from "@/logic/habitSorting";
 import { Navigation } from "@/components/Layout/Navigation";
@@ -18,6 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useI18n } from "@/i18n/I18nContext";
 import { cn } from "@/lib/utils";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useData } from "@/contexts/DataContext";
 import { PaywallModal } from "@/components/Paywall/PaywallModal";
 import { TrialBanner } from "@/components/Paywall/TrialBanner";
 
@@ -26,7 +27,7 @@ type ViewMode = "daily" | "weekly" | "monthly";
 const Calendario = () => {
   const navigate = useNavigate();
   const { t, locale, formatDate } = useI18n();
-  const [state, setState] = useState<AppState>(() => loadState());
+  const { state, setState } = useData();
   const [viewMode, setViewMode] = useState<ViewMode>("monthly");
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
@@ -48,11 +49,9 @@ const Calendario = () => {
   };
 
   useEffect(() => {
-    saveState(state);
-  }, [state]);
-
-  useEffect(() => {
-    const handleStorageChange = () => setState(loadState());
+    const handleStorageChange = () => {
+      // Storage change will be handled by DataContext
+    };
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);

@@ -2,8 +2,8 @@ import { useState, useEffect, useMemo } from "react";
 import { Plus, Pencil, Trash2, GripVertical, CheckCircle2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useI18n } from "@/i18n/I18nContext";
-import { AppState, Habit } from "@/data/types";
-import { loadState, saveState, addHabit, updateHabit, deleteHabit } from "@/data/storage";
+import { Habit } from "@/data/types";
+import { addHabit, updateHabit, deleteHabit } from "@/data/storage";
 import { Navigation } from "@/components/Layout/Navigation";
 import { HabitForm } from "@/components/Habits/HabitForm";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useAuth } from "@/contexts/AuthContext";
+import { useData } from "@/contexts/DataContext";
 import { TrialBanner } from "@/components/Paywall/TrialBanner";
 import { PaywallModal } from "@/components/Paywall/PaywallModal";
 import { Link } from "react-router-dom";
@@ -33,7 +34,7 @@ const Index = () => {
   const navigate = useNavigate();
   const { isAuthenticated, isEmailVerified } = useAuth();
   const { isPro, trialStatus, upgradeToPro } = useSubscription();
-  const [state, setState] = useState<AppState>(() => loadState());
+  const { state, setState, isLoading } = useData();
   const [showHabitForm, setShowHabitForm] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
   const [deletingHabitId, setDeletingHabitId] = useState<string | null>(null);
@@ -50,10 +51,6 @@ const Index = () => {
       navigate("/decision", { replace: true });
     }
   }, [isAuthenticated, isEmailVerified, isPro, trialStatus.isExpired, navigate]);
-
-  useEffect(() => {
-    saveState(state);
-  }, [state]);
 
   // FREE limit: max 3 habits
   const FREE_HABIT_LIMIT = 3;

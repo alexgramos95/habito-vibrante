@@ -13,8 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/i18n/I18nContext";
-import { AppState, SavingsEntry } from "@/data/types";
-import { loadState, saveState, addSavingsEntry, deleteSavingsEntry, generateId } from "@/data/storage";
+import { SavingsEntry } from "@/data/types";
+import { addSavingsEntry, deleteSavingsEntry, generateId } from "@/data/storage";
 import { calculateTrackerFinancials, getFinancialMotivationalMessage } from "@/logic/computations";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
@@ -24,13 +24,14 @@ import { cn } from "@/lib/utils";
 import { ExternalDepositDialog } from "@/components/Finance/ExternalDepositDialog";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useData } from "@/contexts/DataContext";
 import { PaywallModal } from "@/components/Paywall/PaywallModal";
 import { ProBadge } from "@/components/Paywall/UpgradeButton";
 
 const Financas = () => {
   const { toast } = useToast();
   const { t, locale, formatCurrency } = useI18n();
-  const [state, setState] = useState<AppState>(() => loadState());
+  const { state, setState } = useData();
   const [showDepositDialog, setShowDepositDialog] = useState(false);
   const [editingDeposit, setEditingDeposit] = useState<SavingsEntry | null>(null);
   const [showPaywall, setShowPaywall] = useState(false);
@@ -57,11 +58,6 @@ const Financas = () => {
   );
 
   const motivationalMessage = getFinancialMotivationalMessage(financialOverview, locale);
-
-  // Persist state changes
-  useEffect(() => {
-    saveState(state);
-  }, [state]);
 
   // Get external deposits for current month
   const monthStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;

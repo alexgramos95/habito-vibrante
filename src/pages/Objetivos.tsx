@@ -18,11 +18,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/i18n/I18nContext";
-import { AppState, Tracker, TrackerEntry } from "@/data/types";
+import { Tracker, TrackerEntry } from "@/data/types";
 import {
-  loadState, saveState, addTracker, updateTracker, deleteTracker, archiveTracker,
+  addTracker, updateTracker, deleteTracker, archiveTracker,
   addTrackerEntry, deleteTrackerEntry, getTrackerEntriesForDate, updateTrackerEntry
 } from "@/data/storage";
+import { useData } from "@/contexts/DataContext";
 import { TrackerEditDialog } from "@/components/Trackers/TrackerEditDialog";
 import { TrackerDeleteDialog } from "@/components/Trackers/TrackerDeleteDialog";
 import { TrackerTimeline } from "@/components/Trackers/TrackerTimeline";
@@ -115,7 +116,7 @@ const calculateTrackerSummary = (
 const Objetivos = () => {
   const { toast } = useToast();
   const { t, locale, formatCurrency } = useI18n();
-  const [state, setState] = useState<AppState>(() => loadState());
+  const { state, setState } = useData();
   const today = new Date();
   const todayStr = format(today, "yyyy-MM-dd");
   
@@ -128,10 +129,6 @@ const Objetivos = () => {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deletingTracker, setDeletingTracker] = useState<Tracker | null>(null);
-
-  useEffect(() => {
-    saveState(state);
-  }, [state]);
 
   // Select first tracker if none selected
   useEffect(() => {

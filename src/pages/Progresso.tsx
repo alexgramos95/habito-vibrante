@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Star, Trophy, Medal, Zap, Target, PiggyBank, Plus, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { Navigation } from "@/components/Layout/Navigation";
@@ -9,14 +9,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { AppState, ACHIEVEMENTS, SAVINGS_CATEGORIES } from "@/data/types";
-import { loadState, saveState, addSavingsEntry, deleteSavingsEntry } from "@/data/storage";
+import { ACHIEVEMENTS, SAVINGS_CATEGORIES } from "@/data/types";
+import { addSavingsEntry, deleteSavingsEntry } from "@/data/storage";
 import { getLevelProgress, calculateSavingsSummary } from "@/logic/computations";
 import { useToast } from "@/hooks/use-toast";
+import { useData } from "@/contexts/DataContext";
 
 const Progresso = () => {
   const { toast } = useToast();
-  const [state, setState] = useState<AppState>(() => loadState());
+  const { state, setState } = useData();
   const [showSavingsForm, setShowSavingsForm] = useState(false);
   const [savingsForm, setSavingsForm] = useState({
     amount: "",
@@ -28,10 +29,6 @@ const Progresso = () => {
   const today = new Date();
   const currentYear = today.getFullYear();
   const currentMonth = today.getMonth();
-
-  useEffect(() => {
-    saveState(state);
-  }, [state]);
 
   const levelProgress = getLevelProgress(state.gamification.pontos);
   const savingsSummary = calculateSavingsSummary(state, currentYear, currentMonth);
