@@ -57,15 +57,19 @@ function debounce<T extends (...args: unknown[]) => Promise<void>>(fn: T, delay:
 }
 
 export const DataProvider = ({ children }: { children: ReactNode }) => {
-  const { session, subscriptionStatus, user } = useAuth();
+  const { session, subscriptionStatus, user, loading: authLoading } = useAuth();
   const [state, setStateInternal] = useState<AppState>(defaultState);
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
   
+  // Check if subscription status is loaded (planStatus is populated by check-subscription)
+  const isSubscriptionLoaded = subscriptionStatus.planStatus !== null || !authLoading;
+  
   const isPro = subscriptionStatus.plan === 'pro';
   const hasInitializedRef = useRef(false);
   const pendingSyncRef = useRef(false);
+  const lastProStatusRef = useRef<boolean | null>(null);
 
   /**
    * Upload state to Supabase (PRO users only)
@@ -207,6 +211,40 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
    */
   useEffect(() => {
     const initializeData = async () => {
+      // Don't initialize until auth is ready and subscription status is loaded
+      if (authLoading) {
+        console.log('[DATA] Waiting for auth to load...');
+        return;
+      }
+      
+      if (!session?.access_token || !user) {
+        // Not authenticated - use local only
+        const localState = loadState();
+        console.log('[DATA] Not authenticated - using local state:', { 
+          habits: localState.habits.length, 
+          trackers: localState.trackers.length 
+        });
+        setStateInternal(localState);
+        setIsLoading(false);
+        hasInitializedRef.current = true;
+        lastProStatusRef.current = null;
+        return;
+      }
+
+      // Wait for subscription status to be loaded
+      if (!isSubscriptionLoaded) {
+        console.log('[DATA] Waiting for subscription status...');
+        return;
+      }
+
+      // Check if PRO status changed
+      const proStatusChanged = lastProStatusRef.current !== null && lastProStatusRef.current !== isPro;
+      
+      // Skip if already initialized and PRO status didn't change
+      if (hasInitializedRef.current && !proStatusChanged) {
+        return;
+      }
+
       setIsLoading(true);
       
       // Always load local state first (fast)
@@ -216,15 +254,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         trackers: localState.trackers.length 
       });
 
-      if (!session?.access_token || !user) {
-        // Not authenticated - use local only
-        setStateInternal(localState);
-        setIsLoading(false);
-        hasInitializedRef.current = true;
-        return;
-      }
+      console.log('[DATA] User authenticated, isPro:', isPro, 'planStatus:', subscriptionStatus.planStatus);
 
-      // User is authenticated - check for cloud data
       if (isPro) {
         console.log('[DATA] PRO user - downloading cloud data as source of truth');
         const cloudState = await downloadFromCloud();
@@ -234,7 +265,12 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
           const mergedState = mergeStates(localState, cloudState);
           setStateInternal(mergedState);
           saveToLocalStorage(mergedState); // Cache locally
-          console.log('[DATA] Using merged state (cloud priority)');
+          console.log('[DATA] Using merged state (cloud priority):', {
+            habits: mergedState.habits.length,
+            trackers: mergedState.trackers.length
+          });
+          // Upload merged state back to ensure consistency
+          await uploadToCloud(mergedState);
         } else if (localState.habits.length > 0 || localState.trackers.length > 0) {
           // No cloud data but local has data - upload local to cloud
           console.log('[DATA] No cloud data, uploading local data to cloud');
@@ -260,10 +296,11 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
       setIsLoading(false);
       hasInitializedRef.current = true;
+      lastProStatusRef.current = isPro;
     };
 
     initializeData();
-  }, [session?.access_token, user?.id, isPro]);
+  }, [session?.access_token, user?.id, isPro, isSubscriptionLoaded, authLoading, subscriptionStatus.planStatus]);
 
   /**
    * Custom setState that also syncs to cloud for PRO users
