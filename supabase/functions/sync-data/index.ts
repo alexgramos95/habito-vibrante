@@ -74,19 +74,7 @@ serve(async (req) => {
     if (!user) throw new Error("User not authenticated");
     logStep("User authenticated", { userId: user.id });
 
-    // Check if user has pro subscription
-    const { data: subData } = await supabaseClient
-      .from('subscriptions')
-      .select('plan')
-      .eq('user_id', user.id)
-      .single();
-
-    if (!subData || subData.plan !== 'pro') {
-      throw new Error("Sync requires Pro subscription");
-    }
-    logStep("Pro subscription verified");
-
-    // Validate input
+    // Validate input first
     const rawBody = await req.json();
     const parseResult = SyncRequestSchema.safeParse(rawBody);
     if (!parseResult.success) {
@@ -94,6 +82,21 @@ serve(async (req) => {
     }
     const { action, data } = parseResult.data;
     logStep("Request validated", { action });
+
+    // Check if user has pro subscription (only required for upload)
+    const { data: subData } = await supabaseClient
+      .from('subscriptions')
+      .select('plan')
+      .eq('user_id', user.id)
+      .single();
+
+    const isPro = subData?.plan === 'pro';
+    
+    // Download is available for ALL users, upload requires Pro
+    if (action === 'upload' && !isPro) {
+      throw new Error("Sync requires Pro subscription");
+    }
+    logStep("Authorization verified", { action, isPro });
 
     if (action === 'upload') {
       if (!data) {
