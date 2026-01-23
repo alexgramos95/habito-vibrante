@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { AppState, Habit, Tracker, DailyReflection, ShoppingItem } from "@/data/types";
 import { loadState, saveState, toggleDailyLog, getReflectionForDate } from "@/data/storage";
 import { getCompletedHabitsOnDate, getActiveHabits } from "@/logic/computations";
+import { getHabitsSortedForDay } from "@/logic/habitSorting";
 import { Navigation } from "@/components/Layout/Navigation";
 import { PageHeader } from "@/components/Layout/PageHeader";
 import { MonthSelector } from "@/components/Dashboard/MonthSelector";
@@ -151,7 +152,8 @@ const Calendario = () => {
 
   // Get habits for a specific date (filtered by weekday schedule and sorted by time)
   const getHabitsForDate = (date: Date) => {
-    return activeHabits.filter(habit => isHabitScheduledForDay(habit, date));
+    const dayOfWeek = getDay(date);
+    return getHabitsSortedForDay(activeHabits, dayOfWeek);
   };
   
   const activeTrackers = (state.trackers || []).filter(t => t.active);

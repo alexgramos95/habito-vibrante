@@ -3,6 +3,7 @@ import { User, Session, Provider } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { loadState, saveState, addHabit, addTracker } from '@/data/storage';
 import type { Tracker } from '@/data/types';
+import { useDataSync } from '@/hooks/useDataSync';
 
 interface SubscriptionStatus {
   subscribed: boolean;
@@ -175,6 +176,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus>(defaultSubscriptionStatus);
   
+  // Data sync hook
+  const { downloadFromCloud } = useDataSync();
+  
   // Track last check time to prevent rate limiting
   const lastCheckRef = useRef<number>(0);
   const isCheckingRef = useRef<boolean>(false);
@@ -313,6 +317,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           // Materialize onboarding data immediately on first sign in
           if (event === 'SIGNED_IN') {
             materializeOnboardingData(newSession.user.id);
+            // Download cloud data to sync across devices
+            downloadFromCloud(newSession.access_token).then((success) => {
+              if (success) {
+                console.log('[AUTH] Cloud data synced on sign in');
+              }
+            });
           }
           setTimeout(() => {
             refreshSubscription(true);
@@ -338,6 +348,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // This covers the email verification link flow (opens in new tab with session)
         console.log('[AUTH] User has existing session, checking for onboarding data to materialize...');
         materializeOnboardingData(existingSession.user.id);
+        
+        // Download cloud data to sync across devices
+        downloadFromCloud(existingSession.access_token).then((success) => {
+          if (success) {
+            console.log('[AUTH] Cloud data synced on existing session');
+          }
+        });
         
         // Initial subscription check with slight delay
         setTimeout(() => {

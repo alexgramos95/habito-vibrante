@@ -6,6 +6,7 @@ import { AppState, Habit } from "@/data/types";
 import { HabitCard } from "./HabitCard";
 import { isHabitDoneOnDate } from "@/data/storage";
 import { format, getDay } from "date-fns";
+import { getHabitsSortedForDay } from "@/logic/habitSorting";
 
 interface HabitListProps {
   state: AppState;
@@ -19,23 +20,7 @@ interface HabitListProps {
 // Filter habits to only show those scheduled for the selected day, sorted by time
 const getHabitsForDay = (habits: Habit[], date: Date): Habit[] => {
   const dayOfWeek = getDay(date); // 0 = Sunday, 1 = Monday, etc.
-  
-  const filtered = habits.filter(habit => {
-    // If no scheduled days set, show every day
-    if (!habit.scheduledDays || habit.scheduledDays.length === 0) {
-      return true;
-    }
-    // Show only if this day is in the scheduled days
-    return habit.scheduledDays.includes(dayOfWeek);
-  });
-  
-  // Sort by scheduledTime (earliest first), habits without time go last
-  return filtered.sort((a, b) => {
-    if (!a.scheduledTime && !b.scheduledTime) return 0;
-    if (!a.scheduledTime) return 1;
-    if (!b.scheduledTime) return -1;
-    return a.scheduledTime.localeCompare(b.scheduledTime);
-  });
+  return getHabitsSortedForDay(habits, dayOfWeek);
 };
 
 export const HabitList = ({

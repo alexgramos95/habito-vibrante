@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Plus, Pencil, Trash2, GripVertical, CheckCircle2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useI18n } from "@/i18n/I18nContext";
@@ -8,6 +8,7 @@ import { Navigation } from "@/components/Layout/Navigation";
 import { HabitForm } from "@/components/Habits/HabitForm";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { sortHabitsByTime } from "@/logic/habitSorting";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -57,6 +58,9 @@ const Index = () => {
   // FREE limit: max 3 habits
   const FREE_HABIT_LIMIT = 3;
   const canAddHabit = isPro || state.habits.length < FREE_HABIT_LIMIT;
+  
+  // Sort habits chronologically by scheduledTime
+  const sortedHabits = useMemo(() => sortHabitsByTime(state.habits), [state.habits]);
 
   const handleSaveHabit = (data: Omit<Habit, "id" | "createdAt">) => {
     if (editingHabit) {
@@ -176,7 +180,7 @@ const Index = () => {
           </div>
         ) : (
           <div className="space-y-2">
-            {state.habits.map((habit, index) => (
+            {sortedHabits.map((habit, index) => (
               <div
                 key={habit.id}
                 draggable
