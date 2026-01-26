@@ -42,20 +42,6 @@ const defaultState: AppState = {
   purchaseGoals: [],
 };
 
-// Debounce helper
-function debounce<T extends (...args: unknown[]) => Promise<void>>(fn: T, delay: number): T {
-  let timeoutId: ReturnType<typeof setTimeout>;
-  return ((...args: Parameters<T>) => {
-    clearTimeout(timeoutId);
-    return new Promise<void>((resolve) => {
-      timeoutId = setTimeout(async () => {
-        await fn(...args);
-        resolve();
-      }, delay);
-    });
-  }) as T;
-}
-
 export const DataProvider = ({ children }: { children: ReactNode }) => {
   const { session, subscriptionStatus, user, loading: authLoading } = useAuth();
   const [state, setStateInternal] = useState<AppState>(defaultState);
@@ -65,18 +51,30 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   
   const isPro = subscriptionStatus.plan === 'pro';
   const hasInitializedRef = useRef(false);
-  const pendingSyncRef = useRef(false);
   const lastProStatusRef = useRef<boolean | null>(null);
+  
+  // Track current upload promise to prevent race conditions
+  const uploadPromiseRef = useRef<Promise<boolean> | null>(null);
 
   /**
-   * Upload state to Supabase (PRO users only)
+   * Upload state to Supabase (PRO users only) - IMMEDIATE, NO DEBOUNCE
    */
   const uploadToCloud = useCallback(async (stateToUpload: AppState): Promise<boolean> => {
-    if (!session?.access_token || !isPro) return false;
+    if (!session?.access_token || !isPro) {
+      console.log('[DATA] Upload skipped - not PRO or no session');
+      return false;
+    }
     
     try {
-      console.log('[DATA] Uploading to cloud...');
-      const { error } = await supabase.functions.invoke('sync-data', {
+      console.log('[DATA] 🚀 Uploading to cloud...', {
+        habits: stateToUpload.habits.length,
+        trackers: stateToUpload.trackers.length,
+        habitIds: stateToUpload.habits.map(h => h.id.slice(-8)),
+      });
+      
+      setIsSyncing(true);
+      
+      const { data, error } = await supabase.functions.invoke('sync-data', {
         headers: {
           Authorization: `Bearer ${session.access_token}`,
         },
@@ -96,33 +94,21 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (error) {
-        console.error('[DATA] Upload error:', error);
+        console.error('[DATA] ❌ Upload error:', error);
+        setIsSyncing(false);
         return false;
       }
 
       setLastSyncedAt(new Date().toISOString());
-      console.log('[DATA] Upload successful');
+      console.log('[DATA] ✅ Upload successful - habits count:', stateToUpload.habits.length);
+      setIsSyncing(false);
       return true;
     } catch (err) {
-      console.error('[DATA] Upload failed:', err);
+      console.error('[DATA] ❌ Upload failed:', err);
+      setIsSyncing(false);
       return false;
     }
   }, [session?.access_token, isPro]);
-
-  /**
-   * Debounced upload for PRO users
-   */
-  const debouncedUpload = useCallback(
-    debounce(async (stateToUpload: AppState) => {
-      if (pendingSyncRef.current) return;
-      pendingSyncRef.current = true;
-      setIsSyncing(true);
-      await uploadToCloud(stateToUpload);
-      setIsSyncing(false);
-      pendingSyncRef.current = false;
-    }, 2000),
-    [uploadToCloud]
-  );
 
   /**
    * Download state from Supabase
@@ -324,7 +310,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   }, [session?.access_token, user?.id, isPro, subscriptionStatus.planStatus, authLoading]);
 
   /**
-   * Custom setState that also syncs to cloud for PRO users
+   * Custom setState that also syncs to cloud for PRO users - IMMEDIATE UPLOAD
    */
   const setState = useCallback((updater: React.SetStateAction<AppState>) => {
     setStateInternal(prevState => {
@@ -333,14 +319,22 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       // Always save to localStorage (cache)
       saveToLocalStorage(newState);
       
-      // If PRO, also sync to cloud (debounced)
+      // Log state change for debugging
+      console.log('[DATA] State changed:', {
+        habits: newState.habits.length,
+        isPro,
+        hasSession: !!session?.access_token,
+      });
+      
+      // If PRO, sync to cloud IMMEDIATELY (no debounce to prevent data loss)
       if (isPro && session?.access_token) {
-        debouncedUpload(newState);
+        // Store promise to prevent race conditions
+        uploadPromiseRef.current = uploadToCloud(newState);
       }
       
       return newState;
     });
-  }, [isPro, session?.access_token, debouncedUpload]);
+  }, [isPro, session?.access_token, uploadToCloud]);
 
   /**
    * Manual sync trigger
