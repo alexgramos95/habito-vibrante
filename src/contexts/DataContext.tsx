@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, useCallback, useRef, Re
 import { supabase } from '@/integrations/supabase/client';
 import { loadState, saveState as saveToLocalStorage } from '@/data/storage';
 import type { AppState } from '@/data/types';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, materializeOnboardingData } from '@/contexts/AuthContext';
 
 interface DataContextType {
   state: AppState;
@@ -177,13 +177,14 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   }, [session?.access_token]);
 
   /**
-   * Merge two states, preferring source2 for conflicts
+   * For NON-PRO users only: Merge two states, preferring cloud for conflicts
+   * PRO users should NEVER use this - they use cloud as single source of truth
    */
-  const mergeStates = (local: AppState, cloud: AppState): AppState => {
+  const mergeStatesForNonPro = (local: AppState, cloud: AppState): AppState => {
     const mergeArrays = <T extends { id: string }>(arr1: T[], arr2: T[]): T[] => {
       const map = new Map<string, T>();
       arr1.forEach(item => map.set(item.id, item));
-      arr2.forEach(item => map.set(item.id, item)); // Cloud wins
+      arr2.forEach(item => map.set(item.id, item)); // Cloud wins on conflict
       return Array.from(map.values());
     };
 
@@ -260,41 +261,57 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (isPro) {
-        console.log('[DATA] PRO user - downloading cloud data as source of truth');
+        // PRO users: Supabase is the SINGLE SOURCE OF TRUTH
+        // NO merging with local - cloud data is definitive
+        console.log('[DATA] PRO user - Supabase is SINGLE SOURCE OF TRUTH');
         const cloudState = await downloadFromCloud();
         
-        if (cloudState && (cloudState.habits.length > 0 || cloudState.trackers.length > 0)) {
-          // Cloud has data - use it as source of truth, but merge with local
-          const mergedState = mergeStates(localState, cloudState);
-          setStateInternal(mergedState);
-          saveToLocalStorage(mergedState); // Cache locally
-          console.log('[DATA] Using merged state (cloud priority):', {
-            habits: mergedState.habits.length,
-            trackers: mergedState.trackers.length
+        const hasCloudData = cloudState && (cloudState.habits.length > 0 || cloudState.trackers.length > 0);
+        
+        // Materialize onboarding ONLY if PRO user has NO cloud data yet
+        // This handles first-time PRO setup after onboarding
+        materializeOnboardingData(user.id, { isPro: true, hasCloudData: Boolean(hasCloudData) });
+        
+        if (hasCloudData) {
+          // Cloud has data - use it EXCLUSIVELY (no merge!)
+          console.log('[DATA] PRO: Using cloud state exclusively:', {
+            habits: cloudState.habits.length,
+            trackers: cloudState.trackers.length
           });
-          // Upload merged state back to ensure consistency
-          await uploadToCloud(mergedState);
-        } else if (localState.habits.length > 0 || localState.trackers.length > 0) {
-          // No cloud data but local has data - upload local to cloud
-          console.log('[DATA] No cloud data, uploading local data to cloud');
-          setStateInternal(localState);
-          await uploadToCloud(localState);
+          setStateInternal(cloudState);
+          saveToLocalStorage(cloudState); // Cache locally for offline
         } else {
-          // No data anywhere
-          setStateInternal(localState);
+          // PRO with no cloud data - check localStorage (might have just materialized)
+          const freshLocalState = loadState();
+          if (freshLocalState.habits.length > 0 || freshLocalState.trackers.length > 0) {
+            // First time PRO with local data - migrate local to cloud
+            console.log('[DATA] PRO: First sync - uploading local data to cloud');
+            setStateInternal(freshLocalState);
+            await uploadToCloud(freshLocalState);
+          } else {
+            // No data anywhere - start fresh
+            console.log('[DATA] PRO: No data found, starting fresh');
+            setStateInternal(defaultState);
+          }
         }
       } else {
-        // Non-PRO user: use local state, try to download cloud as merge source
-        console.log('[DATA] Non-PRO user - using local state, downloading cloud for merge');
+        // Non-PRO user: localStorage is primary, can merge with cloud
+        console.log('[DATA] Non-PRO user - localStorage is primary');
+        
+        // Materialize onboarding for non-PRO users
+        materializeOnboardingData(user.id, null);
+        
+        // Re-load state after potential materialization
+        const freshLocalState = loadState();
         const cloudState = await downloadFromCloud();
         
         if (cloudState && (cloudState.habits.length > 0 || cloudState.trackers.length > 0)) {
-          const mergedState = mergeStates(localState, cloudState);
+          const mergedState = mergeStatesForNonPro(freshLocalState, cloudState);
           setStateInternal(mergedState);
           saveToLocalStorage(mergedState);
-          console.log('[DATA] Merged cloud data with local');
+          console.log('[DATA] Non-PRO: Merged cloud data with local');
         } else {
-          setStateInternal(localState);
+          setStateInternal(freshLocalState);
         }
       }
 
@@ -334,19 +351,14 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     setIsSyncing(true);
     
     if (isPro) {
-      // PRO: bidirectional sync
-      const cloudState = await downloadFromCloud();
-      if (cloudState) {
-        const mergedState = mergeStates(state, cloudState);
-        setStateInternal(mergedState);
-        saveToLocalStorage(mergedState);
-        await uploadToCloud(mergedState);
-      }
+      // PRO: Upload current state to cloud (cloud is source of truth)
+      console.log('[DATA] PRO syncNow: Uploading current state to cloud');
+      await uploadToCloud(state);
     } else {
-      // Non-PRO: download only
+      // Non-PRO: download and merge
       const cloudState = await downloadFromCloud();
       if (cloudState) {
-        const mergedState = mergeStates(state, cloudState);
+        const mergedState = mergeStatesForNonPro(state, cloudState);
         setStateInternal(mergedState);
         saveToLocalStorage(mergedState);
       }

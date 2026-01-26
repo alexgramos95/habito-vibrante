@@ -62,8 +62,11 @@ const getMaterializationKey = (userId: string): string => {
  * Materialize onboarding habits and trackers after successful authentication.
  * This creates the actual objects in localStorage from onboarding selections.
  * Uses per-user keys to support multiple users in the same browser.
+ * 
+ * IMPORTANT: This is now called from DataContext AFTER checking subscription and cloud data.
+ * For PRO users with existing cloud data, this should NOT materialize - cloud is source of truth.
  */
-const materializeOnboardingData = (userId: string): void => {
+export const materializeOnboardingData = (userId: string, skipIfProWithCloudData: { isPro: boolean; hasCloudData: boolean } | null = null): void => {
   try {
     const materializationKey = getMaterializationKey(userId);
     
@@ -71,6 +74,15 @@ const materializeOnboardingData = (userId: string): void => {
     const materialized = localStorage.getItem(materializationKey);
     if (materialized === 'true') {
       console.log('[ONBOARDING] Already materialized for user:', userId);
+      return;
+    }
+
+    // PRO users with cloud data should NOT materialize from onboarding
+    // Their data comes from Supabase as single source of truth
+    if (skipIfProWithCloudData?.isPro && skipIfProWithCloudData?.hasCloudData) {
+      console.log('[ONBOARDING] PRO user with cloud data - skipping materialization, marking as done');
+      localStorage.setItem(materializationKey, 'true');
+      localStorage.removeItem(ONBOARDING_DATA_KEY);
       return;
     }
 
@@ -314,9 +326,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         // Check subscription on sign in events
         if (newSession?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
-          // Materialize onboarding data immediately on first sign in
           if (event === 'SIGNED_IN') {
-            materializeOnboardingData(newSession.user.id);
+            // NOTE: Materialization is now handled by DataContext after checking PRO/cloud status
             // Download cloud data to sync across devices
             downloadFromCloud(newSession.access_token).then((success) => {
               if (success) {
@@ -344,10 +355,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
       
       if (existingSession?.user) {
-        // Materialize onboarding data if user arrives with existing session
-        // This covers the email verification link flow (opens in new tab with session)
-        console.log('[AUTH] User has existing session, checking for onboarding data to materialize...');
-        materializeOnboardingData(existingSession.user.id);
+        // NOTE: Materialization is now handled by DataContext after checking PRO/cloud status
+        console.log('[AUTH] User has existing session');
         
         // Download cloud data to sync across devices
         downloadFromCloud(existingSession.access_token).then((success) => {
