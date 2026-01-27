@@ -82,6 +82,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
           action: 'upload',
           data: {
             habits: stateToUpload.habits,
+            dailyLogs: stateToUpload.dailyLogs,
             trackerEntries: stateToUpload.trackerEntries,
             trackers: stateToUpload.trackers,
             reflections: stateToUpload.reflections,
@@ -142,6 +143,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         const cloudState: AppState = {
           ...defaultState,
           habits: cloudData.habits || [],
+          dailyLogs: cloudData.dailyLogs || [],
           trackers: cloudData.trackers || [],
           trackerEntries: cloudData.trackerEntries || [],
           reflections: cloudData.reflections || [],
