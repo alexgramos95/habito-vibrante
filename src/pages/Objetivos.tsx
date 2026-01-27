@@ -319,12 +319,12 @@ const Objetivos = () => {
                           </div>
                         </div>
                         
-                        {/* Actions - Edit/Delete */}
+                        {/* Actions - Edit/Delete - only visible and clickable on hover */}
                         <div className="flex items-center gap-1">
                           <Button 
                             variant="ghost" 
                             size="icon"
-                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto"
                             onClick={(e) => {
                               e.stopPropagation();
                               openEditDialog(tracker);
@@ -336,7 +336,7 @@ const Objetivos = () => {
                           <Button 
                             variant="ghost" 
                             size="icon"
-                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
+                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto text-destructive hover:text-destructive"
                             onClick={(e) => {
                               e.stopPropagation();
                               openDeleteDialog(tracker);
