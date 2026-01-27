@@ -170,6 +170,7 @@ export type Database = {
       user_data: {
         Row: {
           created_at: string
+          daily_logs: Json | null
           daily_reflections: Json | null
           future_self_entries: Json | null
           gamification: Json | null
@@ -185,6 +186,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          daily_logs?: Json | null
           daily_reflections?: Json | null
           future_self_entries?: Json | null
           gamification?: Json | null
@@ -200,6 +202,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          daily_logs?: Json | null
           daily_reflections?: Json | null
           future_self_entries?: Json | null
           gamification?: Json | null

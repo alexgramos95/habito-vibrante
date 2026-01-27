@@ -16,6 +16,7 @@ const logStep = (step: string, details?: Record<string, unknown>) => {
 // Input validation schemas
 const SyncDataSchema = z.object({
   habits: z.array(z.unknown()).optional(),
+  dailyLogs: z.array(z.unknown()).optional(),
   trackerEntries: z.array(z.unknown()).optional(),
   trackers: z.array(z.unknown()).optional(),
   reflections: z.array(z.unknown()).optional(),
@@ -109,6 +110,7 @@ serve(async (req) => {
         .upsert({
           user_id: user.id,
           habits: data.habits || [],
+          daily_logs: data.dailyLogs || [],
           tracker_logs: data.trackerEntries || [],
           trackers: data.trackers || [],
           daily_reflections: data.reflections || [],
@@ -153,6 +155,7 @@ serve(async (req) => {
         action: 'downloaded',
         data: {
           habits: cloudData.habits,
+          dailyLogs: cloudData.daily_logs,
           trackerEntries: cloudData.tracker_logs,
           trackers: cloudData.trackers,
           reflections: cloudData.daily_reflections,
