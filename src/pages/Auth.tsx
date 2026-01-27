@@ -398,6 +398,7 @@ const Auth = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="pl-10"
+                      autoComplete="email"
                       required
                     />
                   </div>
@@ -432,6 +433,7 @@ const Auth = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className="pl-10"
+                      autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
                       required
                     />
                   </div>
