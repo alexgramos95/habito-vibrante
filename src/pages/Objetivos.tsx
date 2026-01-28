@@ -283,22 +283,22 @@ const Objetivos = () => {
                     ? summary.todayCount <= goal 
                     : summary.todayCount >= goal;
                 
+                const isSelected = selectedTracker === tracker.id;
+                
                 return (
                   <Card 
                     key={tracker.id}
                     className={cn(
-                      "transition-all duration-200 border-border/30 group",
-                      selectedTracker === tracker.id 
+                      "transition-all duration-200 border-border/30 cursor-pointer",
+                      isSelected 
                         ? "glass border-primary/50 shadow-lg" 
                         : "hover:bg-secondary/50"
                     )}
+                    onClick={() => setSelectedTracker(tracker.id)}
                   >
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between gap-2">
-                        <div 
-                          className="flex items-center gap-3 flex-1 cursor-pointer"
-                          onClick={() => setSelectedTracker(tracker.id)}
-                        >
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
                           <div className={cn(
                             "h-10 w-10 rounded-xl flex items-center justify-center text-lg shrink-0",
                             tracker.type === 'reduce' 
@@ -319,32 +319,36 @@ const Objetivos = () => {
                           </div>
                         </div>
                         
-                        {/* Actions - Edit/Delete - only visible and clickable on hover */}
+                        {/* Actions - Edit/Delete - only rendered when tracker is selected */}
                         <div className="flex items-center gap-1">
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openEditDialog(tracker);
-                            }}
-                            title={locale === 'pt-PT' ? "Editar" : "Edit"}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto text-destructive hover:text-destructive"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openDeleteDialog(tracker);
-                            }}
-                            title={locale === 'pt-PT' ? "Eliminar" : "Delete"}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          {isSelected && (
+                            <>
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openEditDialog(tracker);
+                                }}
+                                title={locale === 'pt-PT' ? "Editar" : "Edit"}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                className="h-8 w-8 text-destructive hover:text-destructive"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openDeleteDialog(tracker);
+                                }}
+                                title={locale === 'pt-PT' ? "Eliminar" : "Delete"}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </>
+                          )}
                           <Badge variant={isOnTrack ? "default" : "destructive"} className="ml-1">
                             {isOnTrack ? t.objectives.onTrack : t.objectives.offTrack}
                           </Badge>
