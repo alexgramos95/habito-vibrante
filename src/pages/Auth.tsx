@@ -6,13 +6,18 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useI18n } from '@/i18n/I18nContext';
 import { z } from 'zod';
 
 const emailSchema = z.string().email('Please enter a valid email address');
 const passwordSchema = z.string().min(6, 'Password must be at least 6 characters');
+
+// Key to track if session should persist
+const SESSION_PERSIST_KEY = 'become-persist-session';
 
 type AuthMode = 'signin' | 'signup' | 'forgot-password' | 'reset-password' | 'verify-email';
 
@@ -24,11 +29,16 @@ const Auth = () => {
   const [displayName, setDisplayName] = useState('');
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
+  const [rememberMe, setRememberMe] = useState(() => {
+    // Default to checked if previously set, otherwise false
+    return localStorage.getItem(SESSION_PERSIST_KEY) === 'true';
+  });
   const [errors, setErrors] = useState<{ email?: string; password?: string; confirmPassword?: string }>({});
   
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
+  const { locale } = useI18n();
   const { 
     signIn, 
     signUp, 
@@ -39,7 +49,8 @@ const Auth = () => {
     isAuthenticated, 
     isEmailVerified,
     user,
-    startTrial
+    startTrial,
+    signOut
   } = useAuth();
   const { trialStatus } = useSubscription();
   
@@ -49,6 +60,30 @@ const Auth = () => {
   const modeParam = searchParams.get('mode');
   const verifyBanner = searchParams.get('verify');
 
+  // Handle session persistence based on "remember me" checkbox
+  useEffect(() => {
+    // Save the preference when it changes
+    localStorage.setItem(SESSION_PERSIST_KEY, String(rememberMe));
+  }, [rememberMe]);
+
+  // Clear session on browser close if "remember me" is not checked
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      const shouldPersist = localStorage.getItem(SESSION_PERSIST_KEY) === 'true';
+      if (!shouldPersist && isAuthenticated) {
+        // Clear session data so user has to login again
+        // We can't await signOut here, so we just clear localStorage tokens
+        // Supabase will detect invalid session on next load
+        const keys = Object.keys(localStorage).filter(k => 
+          k.startsWith('sb-') || k.includes('supabase')
+        );
+        keys.forEach(k => localStorage.removeItem(k));
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isAuthenticated]);
   // Handle mode from URL param
   useEffect(() => {
     if (modeParam === 'reset-password') {
@@ -461,6 +496,23 @@ const Auth = () => {
                   {errors.confirmPassword && (
                     <p className="text-sm text-destructive">{errors.confirmPassword}</p>
                   )}
+                </div>
+              )}
+
+              {/* Remember me checkbox - only for signin */}
+              {mode === 'signin' && (
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="rememberMe"
+                    checked={rememberMe}
+                    onCheckedChange={(checked) => setRememberMe(checked === true)}
+                  />
+                  <Label 
+                    htmlFor="rememberMe" 
+                    className="text-sm font-normal cursor-pointer select-none"
+                  >
+                    {locale === 'pt-PT' ? 'Manter sessão neste dispositivo' : 'Keep me signed in on this device'}
+                  </Label>
                 </div>
               )}
 
