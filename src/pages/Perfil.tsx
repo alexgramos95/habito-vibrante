@@ -202,28 +202,31 @@ const Perfil = () => {
 
         {/* Account Header */}
         <Card className="glass border-border/30">
-          <CardContent className="p-4">
+          <CardContent className="p-3 md:p-4">
             {isAuthenticated ? (
-              <div className="flex items-center justify-between gap-4">
-                <ProfileEditor locale={locale} />
-                <Button variant="outline" size="sm" onClick={() => navigate('/definicoes')} className="shrink-0">
+              <div className="flex items-center gap-2 md:gap-4 w-full">
+                <div className="flex-1 min-w-0">
+                  <ProfileEditor locale={locale} />
+                </div>
+                <Button variant="outline" size="sm" onClick={() => navigate('/definicoes')} className="shrink-0 text-xs md:text-sm px-2 md:px-3">
                   {locale === 'pt-PT' ? 'Definições' : 'Settings'}
                 </Button>
               </div>
             ) : (
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center font-semibold text-lg text-primary">
+              <div className="flex items-center gap-2 md:gap-4">
+                <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
+                  <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-primary/10 flex items-center justify-center font-semibold text-base md:text-lg text-primary shrink-0">
                     {displayName[0]?.toUpperCase() || 'G'}
                   </div>
-                  <div>
-                    <p className="font-semibold">{displayName}</p>
-                    <p className="text-sm text-muted-foreground">{displayEmail}</p>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-sm md:text-base truncate">{displayName}</p>
+                    <p className="text-xs md:text-sm text-muted-foreground truncate">{displayEmail}</p>
                   </div>
                 </div>
-                <Button size="sm" onClick={() => navigate('/auth')} className="gap-2">
-                  <LogIn className="h-4 w-4" />
-                  {locale === 'pt-PT' ? 'Entrar / Criar conta' : 'Sign in / Create account'}
+                <Button size="sm" onClick={() => navigate('/auth')} className="gap-1.5 shrink-0 text-xs md:text-sm px-2 md:px-3">
+                  <LogIn className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                  <span className="hidden sm:inline">{locale === 'pt-PT' ? 'Entrar / Criar conta' : 'Sign in / Create account'}</span>
+                  <span className="sm:hidden">{locale === 'pt-PT' ? 'Entrar' : 'Sign in'}</span>
                 </Button>
               </div>
             )}
