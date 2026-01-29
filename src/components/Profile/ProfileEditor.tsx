@@ -207,9 +207,9 @@ export const ProfileEditor = ({ locale }: ProfileEditorProps) => {
   if (!user) return null;
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-3 min-w-0 w-full">
       {/* Avatar with upload */}
-      <div className="relative">
+      <div className="shrink-0">
         <button
           onClick={handleAvatarClick}
           disabled={isUploadingAvatar}
@@ -218,9 +218,9 @@ export const ProfileEditor = ({ locale }: ProfileEditorProps) => {
             isUploadingAvatar && "cursor-wait"
           )}
         >
-          <Avatar className="h-16 w-16">
+          <Avatar className="h-12 w-12 md:h-14 md:w-14">
             <AvatarImage src={avatarUrl || undefined} alt={displayName} />
-            <AvatarFallback className="bg-primary/10 text-primary text-xl font-semibold">
+            <AvatarFallback className="bg-primary/10 text-primary text-lg font-semibold">
               {getInitials()}
             </AvatarFallback>
           </Avatar>
@@ -233,9 +233,9 @@ export const ProfileEditor = ({ locale }: ProfileEditorProps) => {
               : "bg-black/50 opacity-0 group-hover:opacity-100"
           )}>
             {isUploadingAvatar ? (
-              <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              <Loader2 className="h-4 w-4 animate-spin text-primary" />
             ) : (
-              <Camera className="h-5 w-5 text-white" />
+              <Camera className="h-4 w-4 text-white" />
             )}
           </div>
         </button>
@@ -250,15 +250,15 @@ export const ProfileEditor = ({ locale }: ProfileEditorProps) => {
       </div>
 
       {/* Name display/edit */}
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 overflow-hidden">
         {isEditingName ? (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <Input
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder={locale === "pt-PT" ? "O teu nome" : "Your name"}
-              className="h-9"
+              className="h-8 text-sm flex-1 min-w-0"
               autoFocus
               maxLength={50}
             />
@@ -267,12 +267,12 @@ export const ProfileEditor = ({ locale }: ProfileEditorProps) => {
               variant="ghost"
               onClick={handleSaveName}
               disabled={isSavingName || !displayName.trim()}
-              className="h-9 w-9 shrink-0"
+              className="h-8 w-8 shrink-0"
             >
               {isSavingName ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
               ) : (
-                <Check className="h-4 w-4 text-success" />
+                <Check className="h-3.5 w-3.5 text-success" />
               )}
             </Button>
             <Button
@@ -280,25 +280,25 @@ export const ProfileEditor = ({ locale }: ProfileEditorProps) => {
               variant="ghost"
               onClick={handleCancelEdit}
               disabled={isSavingName}
-              className="h-9 w-9 shrink-0"
+              className="h-8 w-8 shrink-0"
             >
-              <X className="h-4 w-4 text-destructive" />
+              <X className="h-3.5 w-3.5 text-destructive" />
             </Button>
           </div>
         ) : (
-          <div className="flex items-center gap-2">
-            <div className="min-w-0">
-              <p className="font-semibold truncate">{displayName || (locale === "pt-PT" ? "Sem nome" : "No name")}</p>
-              <p className="text-sm text-muted-foreground truncate">{user.email}</p>
+          <div className="flex items-center gap-1.5">
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold text-sm truncate">{displayName || (locale === "pt-PT" ? "Sem nome" : "No name")}</p>
+              <p className="text-xs text-muted-foreground truncate">{user.email}</p>
             </div>
             <Button
               size="icon"
               variant="ghost"
               onClick={() => setIsEditingName(true)}
-              className="h-8 w-8 shrink-0"
+              className="h-7 w-7 shrink-0"
               title={locale === "pt-PT" ? "Editar nome" : "Edit name"}
             >
-              <Pencil className="h-4 w-4" />
+              <Pencil className="h-3.5 w-3.5" />
             </Button>
           </div>
         )}
