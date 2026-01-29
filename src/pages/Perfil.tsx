@@ -30,6 +30,7 @@ import { PaywallModal } from "@/components/Paywall/PaywallModal";
 import { TrialBanner } from "@/components/Paywall/TrialBanner";
 import { ExportDialog } from "@/components/Export/ExportDialog";
 import { useAuth } from "@/contexts/AuthContext";
+import { ProfileEditor } from "@/components/Profile/ProfileEditor";
 
 const Perfil = () => {
   const { toast } = useToast();
@@ -202,27 +203,30 @@ const Perfil = () => {
         {/* Account Header */}
         <Card className="glass border-border/30">
           <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center font-semibold text-lg text-primary">
-                  {displayName[0]?.toUpperCase() || 'G'}
-                </div>
-                <div>
-                  <p className="font-semibold">{displayName}</p>
-                  <p className="text-sm text-muted-foreground">{displayEmail}</p>
-                </div>
-              </div>
-              {isAuthenticated ? (
-                <Button variant="outline" size="sm" onClick={() => navigate('/definicoes')}>
-                  {locale === 'pt-PT' ? 'Gerir conta' : 'Manage account'}
+            {isAuthenticated ? (
+              <div className="flex items-center justify-between gap-4">
+                <ProfileEditor locale={locale} />
+                <Button variant="outline" size="sm" onClick={() => navigate('/definicoes')} className="shrink-0">
+                  {locale === 'pt-PT' ? 'Definições' : 'Settings'}
                 </Button>
-              ) : (
+              </div>
+            ) : (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center font-semibold text-lg text-primary">
+                    {displayName[0]?.toUpperCase() || 'G'}
+                  </div>
+                  <div>
+                    <p className="font-semibold">{displayName}</p>
+                    <p className="text-sm text-muted-foreground">{displayEmail}</p>
+                  </div>
+                </div>
                 <Button size="sm" onClick={() => navigate('/auth')} className="gap-2">
                   <LogIn className="h-4 w-4" />
                   {locale === 'pt-PT' ? 'Entrar / Criar conta' : 'Sign in / Create account'}
                 </Button>
-              )}
-            </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
