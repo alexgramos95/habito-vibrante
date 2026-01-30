@@ -124,9 +124,9 @@ const Objetivos = () => {
   const [deletingTracker, setDeletingTracker] = useState<Tracker | null>(null);
   const [showDetailDrawer, setShowDetailDrawer] = useState(false);
   
-  // Multi-select state
-  const [multiSelectMode, setMultiSelectMode] = useState(false);
+  // Multi-select state (mode is derived from having selected items)
   const [multiSelectedIds, setMultiSelectedIds] = useState<string[]>([]);
+  const isMultiSelectMode = multiSelectedIds.length > 0;
 
   const activeTrackers = state.trackers.filter(t => t.active);
   const currentTracker = state.trackers.find(t => t.id === selectedTracker);
@@ -231,10 +231,18 @@ const Objetivos = () => {
 
   // Select tracker and show details
   const handleSelectTracker = (trackerId: string) => {
+    // Don't open details if we're in multi-select mode
+    if (isMultiSelectMode) return;
+    
     setSelectedTracker(trackerId);
     if (isMobile) {
       setShowDetailDrawer(true);
     }
+  };
+  
+  // Start multi-select mode by long-pressing a tracker
+  const handleStartMultiSelect = (trackerId: string) => {
+    setMultiSelectedIds([trackerId]);
   };
 
   // Quick check from card
@@ -344,13 +352,14 @@ const Objetivos = () => {
                         tracker={tracker}
                         todayCount={todayCount}
                         isSelected={isSelected}
-                        isMultiSelectMode={multiSelectedIds.length > 0}
+                        isMultiSelectMode={isMultiSelectMode}
                         isCheckedInMultiSelect={isCheckedInMultiSelect}
                         onSelect={() => handleSelectTracker(tracker.id)}
                         onToggleMultiSelect={() => handleToggleMultiSelect(tracker.id)}
                         onEdit={() => openEditDialog(tracker)}
                         onDelete={() => openDeleteDialog(tracker)}
                         onQuickCheck={() => handleCardQuickCheck(tracker)}
+                        onLongPress={() => handleStartMultiSelect(tracker.id)}
                       />
                     );
                   })}

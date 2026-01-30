@@ -1,4 +1,5 @@
-import { Check, TrendingDown, TrendingUp, Pencil, Trash2 } from "lucide-react";
+import { useState, useRef, useCallback } from "react";
+import { Check, TrendingDown, TrendingUp, Pencil, Trash2, GripVertical } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +19,10 @@ interface CompactTrackerCardProps {
   onEdit: () => void;
   onDelete: () => void;
   onQuickCheck: () => void;
+  onLongPress?: () => void;
 }
+
+const LONG_PRESS_DURATION = 400;
 
 export const CompactTrackerCard = ({
   tracker,
@@ -31,8 +35,12 @@ export const CompactTrackerCard = ({
   onEdit,
   onDelete,
   onQuickCheck,
+  onLongPress,
 }: CompactTrackerCardProps) => {
   const { t, locale } = useI18n();
+  const [isPressed, setIsPressed] = useState(false);
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+  const isLongPressTriggered = useRef(false);
   
   const goal = tracker.dailyGoal ?? tracker.baseline;
   const isOnTrack = tracker.type === "boolean" 
@@ -51,7 +59,38 @@ export const CompactTrackerCard = ({
     ? Math.max(0, 100 - (todayCount / goal) * 100)
     : Math.min(100, (todayCount / goal) * 100);
 
+  // Long press handlers for entering multi-select mode
+  const handleTouchStart = useCallback(() => {
+    setIsPressed(true);
+    isLongPressTriggered.current = false;
+    
+    longPressTimer.current = setTimeout(() => {
+      isLongPressTriggered.current = true;
+      setIsPressed(false);
+      if (onLongPress) {
+        onLongPress();
+      } else {
+        // If no onLongPress handler, trigger multi-select
+        onToggleMultiSelect();
+      }
+    }, LONG_PRESS_DURATION);
+  }, [onLongPress, onToggleMultiSelect]);
+
+  const handleTouchEnd = useCallback(() => {
+    setIsPressed(false);
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  }, []);
+
   const handleCardClick = (e: React.MouseEvent) => {
+    // If long press was triggered, don't process click
+    if (isLongPressTriggered.current) {
+      isLongPressTriggered.current = false;
+      return;
+    }
+
     if (isMultiSelectMode) {
       onToggleMultiSelect();
     } else {
@@ -64,95 +103,128 @@ export const CompactTrackerCard = ({
     onQuickCheck();
   };
 
+  const handleCheckboxClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
   return (
     <Card 
       className={cn(
-        "transition-all duration-200 border-border/30 cursor-pointer relative overflow-hidden",
+        "transition-all duration-200 cursor-pointer relative overflow-hidden group",
+        "border-border/40 hover:border-border/60",
+        isPressed && "scale-[0.98]",
         isSelected && !isMultiSelectMode
-          ? "glass border-primary/50 ring-1 ring-primary/30" 
-          : "hover:bg-secondary/50",
-        isCheckedInMultiSelect && "bg-primary/5 border-primary/30"
+          ? "bg-primary/5 border-primary/40 ring-1 ring-primary/20" 
+          : "bg-card/50 hover:bg-card/80",
+        isMultiSelectMode && isCheckedInMultiSelect && "bg-primary/10 border-primary/40",
+        isMultiSelectMode && !isCheckedInMultiSelect && "opacity-80"
       )}
       onClick={handleCardClick}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchEnd}
+      onMouseDown={handleTouchStart}
+      onMouseUp={handleTouchEnd}
+      onMouseLeave={handleTouchEnd}
     >
-      {/* Progress bar background */}
+      {/* Progress bar background - more subtle */}
       <div 
         className={cn(
-          "absolute inset-y-0 left-0 transition-all duration-500",
+          "absolute inset-y-0 left-0 transition-all duration-500 opacity-50",
           tracker.type === 'reduce' 
-            ? isOnTrack ? "bg-success/10" : "bg-destructive/10"
-            : isOnTrack ? "bg-success/10" : "bg-warning/10"
+            ? isOnTrack ? "bg-success/8" : "bg-destructive/8"
+            : isOnTrack ? "bg-success/8" : "bg-warning/8"
         )}
         style={{ width: `${progressPercent}%` }}
       />
       
       <CardContent className="p-3 relative">
         <div className="flex items-center gap-3">
-          {/* Multi-select checkbox */}
+          {/* Multi-select checkbox with better styling */}
           {isMultiSelectMode && (
-            <Checkbox 
-              checked={isCheckedInMultiSelect}
-              onCheckedChange={() => onToggleMultiSelect()}
-              onClick={(e) => e.stopPropagation()}
-              className="shrink-0"
-            />
+            <div 
+              className="shrink-0 flex items-center"
+              onClick={handleCheckboxClick}
+            >
+              <Checkbox 
+                checked={isCheckedInMultiSelect}
+                onCheckedChange={() => onToggleMultiSelect()}
+                className={cn(
+                  "h-5 w-5 border-2 transition-all",
+                  isCheckedInMultiSelect 
+                    ? "border-primary bg-primary data-[state=checked]:bg-primary" 
+                    : "border-muted-foreground/40"
+                )}
+              />
+            </div>
           )}
           
-          {/* Icon */}
+          {/* Icon with better container */}
           <div className={cn(
-            "h-9 w-9 rounded-lg flex items-center justify-center text-base shrink-0",
+            "h-10 w-10 rounded-xl flex items-center justify-center text-lg shrink-0 transition-colors",
+            "border border-border/30",
             tracker.type === 'reduce' 
-              ? "bg-warning/10" 
+              ? "bg-warning/10 text-warning" 
               : tracker.type === 'boolean'
-              ? "bg-success/10"
+              ? "bg-success/10 text-success"
               : tracker.type === 'event'
-              ? "bg-accent/10"
-              : "bg-primary/10"
+              ? "bg-accent/10 text-accent"
+              : "bg-primary/10 text-primary"
           )}>
-            {tracker.icon || (tracker.type === 'reduce' ? <TrendingDown className="h-4 w-4 text-warning" /> : <TrendingUp className="h-4 w-4 text-success" />)}
+            {tracker.icon || (tracker.type === 'reduce' ? <TrendingDown className="h-4 w-4" /> : <TrendingUp className="h-4 w-4" />)}
           </div>
           
           {/* Content */}
           <div className="flex-1 min-w-0">
-            <p className="font-medium text-sm truncate">{tracker.name}</p>
-            <p className="text-xs text-muted-foreground">
-              {todayCount} / {goal} {tracker.unitPlural}
-            </p>
+            <p className="font-medium text-sm truncate leading-tight">{tracker.name}</p>
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="text-xs text-muted-foreground">
+                {todayCount} / {goal} {tracker.unitPlural}
+              </span>
+              {isOnTrack && (
+                <Badge 
+                  variant="outline" 
+                  className="text-[9px] px-1 py-0 h-4 border-success/30 text-success bg-success/10"
+                >
+                  ✓
+                </Badge>
+              )}
+            </div>
           </div>
           
           {/* Actions */}
-          <div className="flex items-center gap-1 shrink-0">
-            {/* Quick check button - only show for completable types when not multi-select */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            {/* Quick check button - always visible for actionable types */}
             {!isMultiSelectMode && (tracker.inputMode === "binary" || tracker.inputMode === "fixedAmount" || tracker.inputMode === "incremental") && (
               <Button
                 variant={isCompleted ? "outline" : "default"}
                 size="icon"
                 className={cn(
-                  "h-8 w-8",
+                  "h-9 w-9 rounded-lg transition-all",
                   isCompleted 
-                    ? "bg-success/20 border-success/50 text-success hover:bg-success/30" 
+                    ? "bg-success/15 border-success/40 text-success hover:bg-success/25" 
                     : tracker.type === 'reduce'
-                      ? "bg-warning/90 hover:bg-warning text-warning-foreground"
-                      : "bg-success/90 hover:bg-success text-success-foreground"
+                      ? "bg-warning hover:bg-warning/90 text-warning-foreground"
+                      : "bg-success hover:bg-success/90 text-success-foreground"
                 )}
                 onClick={handleQuickCheckClick}
                 disabled={isCompleted && tracker.inputMode !== "incremental"}
               >
                 {tracker.inputMode === "incremental" ? (
-                  <span className="text-xs font-bold">+1</span>
+                  <span className="text-sm font-semibold">+1</span>
                 ) : (
                   <Check className="h-4 w-4" />
                 )}
               </Button>
             )}
             
-            {/* Edit/Delete buttons when selected */}
+            {/* Edit/Delete buttons when selected - with slide animation */}
             {isSelected && !isMultiSelectMode && (
-              <>
+              <div className="flex items-center gap-1 animate-in slide-in-from-right-2 duration-200">
                 <Button 
                   variant="ghost" 
                   size="icon"
-                  className="h-8 w-8"
+                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
                   onClick={(e) => {
                     e.stopPropagation();
                     onEdit();
@@ -163,7 +235,7 @@ export const CompactTrackerCard = ({
                 <Button 
                   variant="ghost" 
                   size="icon"
-                  className="h-8 w-8 text-destructive hover:text-destructive"
+                  className="h-8 w-8 text-destructive/70 hover:text-destructive hover:bg-destructive/10"
                   onClick={(e) => {
                     e.stopPropagation();
                     onDelete();
@@ -171,19 +243,8 @@ export const CompactTrackerCard = ({
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
-              </>
+              </div>
             )}
-            
-            {/* Status badge */}
-            <Badge 
-              variant={isOnTrack ? "default" : "destructive"} 
-              className={cn(
-                "text-[10px] px-1.5 py-0 h-5",
-                isOnTrack && "bg-success/20 text-success border-success/30"
-              )}
-            >
-              {isOnTrack ? "✓" : "!"}
-            </Badge>
           </div>
         </div>
       </CardContent>
