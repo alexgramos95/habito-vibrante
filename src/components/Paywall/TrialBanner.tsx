@@ -17,7 +17,7 @@ export const TrialBanner = ({
 }: TrialBannerProps) => {
   if (daysRemaining <= 0) return null;
 
-  const isUrgent = daysRemaining <= 2;
+  const isUrgent = daysRemaining <= 3;
 
   if (variant === 'card') {
     return (

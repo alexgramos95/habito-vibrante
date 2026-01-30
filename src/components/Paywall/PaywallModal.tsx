@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Crown, Check, Flame, Target, Calendar, Download, Bell, Zap, RefreshCw, LogIn } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Crown, Check, RefreshCw, LogIn, Sparkles } from "lucide-react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/i18n/I18nContext";
@@ -18,48 +18,54 @@ interface PaywallModalProps {
   trialDaysLeft?: number;
 }
 
-// PRICING ALIGNED WITH STRIPE (EUR) - UPDATED 2025
+// NEW PRICING - JANUARY 2026
 const PLANS = [
   {
     id: "monthly" as const,
-    price: 19.99,
+    price: 7.99,
     period: "/mês",
     periodEN: "/month",
     popular: false,
   },
   {
     id: "yearly" as const,
-    price: 189.99,
+    price: 59.99,
     period: "/ano",
     periodEN: "/year",
     popular: true,
-    discount: "20%",
-    monthlyEquivalent: 15.83,
-    savings: "Poupas 49,89€/ano",
-    savingsEN: "Save €49.89/year",
+    badge: "Melhor valor",
+    badgeEN: "Best value",
+    monthlyEquivalent: 5.00,
   },
   {
     id: "lifetime" as const,
-    price: 399.99,
-    period: "único",
-    periodEN: "once",
+    price: 149,
+    period: "",
+    periodEN: "",
     popular: false,
-    note: "para sempre",
-    noteEN: "forever",
+    badge: "Founder Access",
+    badgeEN: "Founder Access",
+    note: "Acesso vitalício",
+    noteEN: "Lifetime access",
   },
 ];
 
-const PRO_FEATURES = [
-  { icon: Target, label: "Hábitos ilimitados", labelEN: "Unlimited habits" },
-  { icon: Flame, label: "Trackers ilimitados", labelEN: "Unlimited trackers" },
-  { icon: Calendar, label: "Histórico completo", labelEN: "Full calendar history" },
-  { icon: Zap, label: "Dashboard de finanças", labelEN: "Finances dashboard" },
-  { icon: Download, label: "Exportar (CSV/PDF)", labelEN: "Export (CSV/PDF)" },
-  { icon: Bell, label: "Cloud sync + restore", labelEN: "Cloud sync + restore" },
+const PRO_FEATURES_PT = [
+  "Acesso completo a hábitos e trackers",
+  "Visão semanal e mensal",
+  "Narrativa comportamental",
+  "Sincronização entre dispositivos",
+];
+
+const PRO_FEATURES_EN = [
+  "Full access to habits and trackers",
+  "Weekly and monthly views",
+  "Behavioral narrative",
+  "Cross-device sync",
 ];
 
 export const PaywallModal = ({ open, onClose, onUpgrade, trigger, trialDaysLeft = 0 }: PaywallModalProps) => {
-  const { t, locale } = useI18n();
+  const { locale } = useI18n();
   const { isAuthenticated, session } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -68,9 +74,9 @@ export const PaywallModal = ({ open, onClose, onUpgrade, trigger, trialDaysLeft 
   const [restoring, setRestoring] = useState(false);
 
   const isPT = locale === "pt-PT";
+  const features = isPT ? PRO_FEATURES_PT : PRO_FEATURES_EN;
 
   const handleUpgrade = async () => {
-    // If not authenticated, redirect to auth page
     if (!isAuthenticated) {
       onClose();
       navigate("/auth");
@@ -79,7 +85,6 @@ export const PaywallModal = ({ open, onClose, onUpgrade, trigger, trialDaysLeft 
 
     setLoading(true);
     try {
-      // Call Stripe checkout edge function
       const { data, error } = await supabase.functions.invoke("create-checkout", {
         body: { priceType: selectedPlan },
         headers: {
@@ -90,7 +95,6 @@ export const PaywallModal = ({ open, onClose, onUpgrade, trigger, trialDaysLeft 
       if (error) throw error;
 
       if (data?.url) {
-        // Open Stripe checkout in new tab
         window.open(data.url, "_blank");
         toast({
           title: isPT ? "Checkout aberto" : "Checkout opened",
@@ -158,181 +162,160 @@ export const PaywallModal = ({ open, onClose, onUpgrade, trigger, trialDaysLeft 
     }
   };
 
-  const getHeadline = () => {
-    switch (trigger) {
-      case "habits":
-        return isPT ? "Atingiste o limite." : "You've hit your limit.";
-      case "calendar":
-        return isPT ? "O teu trial terminou." : "Your trial ended.";
-      case "finances":
-        return isPT ? "Finanças é Pro-only." : "Finances are Pro-only.";
-      case "export":
-        return isPT ? "Exportar é Pro-only." : "Export is Pro-only.";
-      default:
-        return isPT ? "Upgrade para Pro" : "Upgrade to Pro";
-    }
-  };
-
-  const getSubheadline = () => {
-    switch (trigger) {
-      case "habits":
-        return isPT ? "Leva a disciplina a sério? Remove os limites." : "Serious about discipline? Remove the limits.";
-      case "calendar":
-        return isPT ? "Não quebres o streak. Continua a construir." : "Don't break your streak. Keep building.";
-      case "finances":
-        return isPT ? "Vê o efeito composto da tua disciplina." : "See the compound effect of your discipline.";
-      case "export":
-        return isPT ? "Os teus dados. A tua transformação." : "Own your data. Track your transformation.";
-      default:
-        return isPT ? "Torna-te em quem queres ser." : "Become who you're aiming to be.";
-    }
-  };
-
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto p-0 gap-0">
-        {/* Header */}
-        <div className="p-6 pb-4 border-b border-border/30 bg-gradient-to-b from-primary/5 to-transparent">
-          <DialogHeader>
-            <div className="flex items-center gap-2 mb-2">
-              <Crown className="h-6 w-6 text-warning" />
-              <Badge variant="outline" className="text-warning border-warning/50">
-                PRO
-              </Badge>
+      <DialogContent className="max-w-md p-0 gap-0 bg-background border-border/50 overflow-hidden">
+        {/* Premium dark header with turquoise accent */}
+        <div className="relative p-6 pb-5 bg-gradient-to-b from-primary/10 via-primary/5 to-transparent">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/20 via-transparent to-transparent opacity-50" />
+          
+          <div className="relative text-center space-y-3">
+            <div className="inline-flex items-center justify-center h-14 w-14 rounded-2xl bg-gradient-to-br from-primary to-primary/70 shadow-lg shadow-primary/20 mb-2">
+              <Sparkles className="h-7 w-7 text-primary-foreground" />
             </div>
-            <DialogTitle className="text-2xl font-bold">{getHeadline()}</DialogTitle>
-            <DialogDescription className="text-base text-muted-foreground">{getSubheadline()}</DialogDescription>
-          </DialogHeader>
-
-          {trialDaysLeft > 0 && (
-            <div className="mt-4 p-3 rounded-lg bg-warning/10 border border-warning/20">
-              <p className="text-sm text-warning font-medium">
-                ⏳ {trialDaysLeft} {trialDaysLeft === 1 ? (isPT ? "dia restante" : "day left") : (isPT ? "dias restantes" : "days left")} {isPT ? "no teu trial" : "in your trial"}
-              </p>
-            </div>
-          )}
+            
+            <h2 className="text-xl font-bold tracking-tight">
+              {isPT ? "Desbloqueia a becoMe completa" : "Unlock the full becoMe"}
+            </h2>
+            
+            <p className="text-sm text-muted-foreground">
+              {isPT ? "Ritmo. Consistência. Identidade." : "Rhythm. Consistency. Identity."}
+            </p>
+          </div>
         </div>
 
-        {/* Plans */}
-        <div className="p-6 space-y-4">
-          <div className="grid gap-3">
+        <div className="p-5 space-y-5">
+          {/* Features list - minimal */}
+          <div className="space-y-2">
+            {features.map((feature, i) => (
+              <div key={i} className="flex items-center gap-2.5 text-sm">
+                <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                  <Check className="h-3 w-3 text-primary" />
+                </div>
+                <span className="text-muted-foreground">{feature}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Pricing cards - horizontal scroll on mobile */}
+          <div className="grid grid-cols-3 gap-2">
             {PLANS.map((plan) => (
               <button
                 key={plan.id}
                 onClick={() => setSelectedPlan(plan.id)}
                 className={cn(
-                  "relative w-full p-4 rounded-xl border-2 text-left transition-all",
-                  selectedPlan === plan.id ? "border-primary bg-primary/5" : "border-border/50 hover:border-border",
+                  "relative flex flex-col items-center p-3 rounded-xl border-2 transition-all text-center",
+                  selectedPlan === plan.id 
+                    ? "border-primary bg-primary/5 shadow-sm shadow-primary/10" 
+                    : "border-border/40 hover:border-border/80 bg-card/50",
                 )}
               >
-                {plan.popular && (
-                  <Badge className="absolute -top-2 right-4 bg-primary">
-                    {isPT ? "Mais Popular" : "Most Popular"}
+                {plan.badge && (
+                  <Badge 
+                    className={cn(
+                      "absolute -top-2 text-[10px] px-1.5 py-0",
+                      plan.popular 
+                        ? "bg-primary text-primary-foreground" 
+                        : "bg-warning/90 text-warning-foreground"
+                    )}
+                  >
+                    {isPT ? plan.badge : plan.badgeEN}
                   </Badge>
                 )}
 
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-semibold capitalize">
-                      {plan.id === "monthly" ? (isPT ? "Mensal" : "Monthly") : 
-                       plan.id === "yearly" ? (isPT ? "Anual" : "Yearly") : 
-                       (isPT ? "Fidelidade" : "Lifetime")}
-                    </p>
-                    {plan.monthlyEquivalent && (
-                      <p className="text-xs text-muted-foreground">
-                        €{plan.monthlyEquivalent.toFixed(2)}/{isPT ? "mês equivalente" : "mo equivalent"}
-                      </p>
-                    )}
-                    {plan.note && (
-                      <p className="text-xs text-success">
-                        {isPT ? `Paga ${plan.note}` : `Pay ${plan.noteEN}`}
-                      </p>
-                    )}
-                  </div>
-                  <div className="text-right">
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-2xl font-bold">€{plan.price.toFixed(2).replace(".", ",")}</span>
-                      <span className="text-sm text-muted-foreground">{isPT ? plan.period : plan.periodEN}</span>
-                    </div>
-                    {plan.discount && (
-                      <Badge variant="secondary" className="text-success">
-                        {isPT ? `Poupa ${plan.discount}` : `Save ${plan.discount}`}
-                      </Badge>
-                    )}
-                  </div>
+                <span className="text-xs text-muted-foreground mt-1 mb-1">
+                  {plan.id === "monthly" ? (isPT ? "Mensal" : "Monthly") : 
+                   plan.id === "yearly" ? (isPT ? "Anual" : "Yearly") : 
+                   "Lifetime"}
+                </span>
+                
+                <div className="flex items-baseline">
+                  <span className="text-lg font-bold">€{plan.price % 1 === 0 ? plan.price : plan.price.toFixed(2).replace(".", ",")}</span>
+                  {plan.period && (
+                    <span className="text-[10px] text-muted-foreground ml-0.5">
+                      {isPT ? plan.period : plan.periodEN}
+                    </span>
+                  )}
                 </div>
+
+                {plan.monthlyEquivalent && (
+                  <span className="text-[10px] text-muted-foreground">
+                    €{plan.monthlyEquivalent.toFixed(2)}/{isPT ? "mês" : "mo"}
+                  </span>
+                )}
+                
+                {plan.note && (
+                  <span className="text-[10px] text-success mt-0.5">
+                    {isPT ? plan.note : plan.noteEN}
+                  </span>
+                )}
               </button>
             ))}
           </div>
 
-          {/* Features */}
-          <div className="pt-4 border-t border-border/30">
-            <p className="text-sm font-medium mb-3">{isPT ? "Tudo incluído no Pro:" : "Everything in Pro:"}</p>
-            <div className="grid grid-cols-2 gap-2">
-              {PRO_FEATURES.map((feature, i) => (
-                <div key={i} className="flex items-center gap-2 text-sm">
-                  <Check className="h-4 w-4 text-success shrink-0" />
-                  <span className="text-muted-foreground">{isPT ? feature.label : feature.labelEN}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+          {/* CTA Button */}
+          <Button 
+            onClick={handleUpgrade} 
+            className="w-full h-12 text-base font-semibold gap-2 bg-primary hover:bg-primary/90" 
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                <RefreshCw className="h-5 w-5 animate-spin" />
+                {isPT ? "A processar..." : "Processing..."}
+              </>
+            ) : !isAuthenticated ? (
+              <>
+                <LogIn className="h-5 w-5" />
+                {isPT ? "Iniciar sessão" : "Sign in"}
+              </>
+            ) : (
+              <>
+                <Crown className="h-5 w-5" />
+                {isPT ? "Explorar becoMe PRO" : "Explore becoMe PRO"}
+              </>
+            )}
+          </Button>
 
-          {/* CTA */}
-          <div className="pt-4 space-y-3">
-            <Button onClick={handleUpgrade} className="w-full h-12 text-base font-semibold gap-2" disabled={loading}>
-              {loading ? (
-                <>
-                  <RefreshCw className="h-5 w-5 animate-spin" />
-                  {isPT ? "A processar..." : "Processing..."}
-                </>
-              ) : !isAuthenticated ? (
-                <>
-                  <LogIn className="h-5 w-5" />
-                  {isPT ? "Iniciar sessão para Upgrade" : "Sign In to Upgrade"}
-                </>
-              ) : (
-                <>
-                  <Crown className="h-5 w-5" />
-                  {isPT ? "Upgrade para Pro" : "Upgrade to Pro"}
-                </>
-              )}
-            </Button>
-
-            {/* Restore Purchases */}
-            <Button variant="outline" onClick={handleRestore} className="w-full gap-2" disabled={restoring}>
+          {/* Secondary actions */}
+          <div className="flex gap-2">
+            <Button 
+              variant="ghost" 
+              onClick={handleRestore} 
+              className="flex-1 text-xs text-muted-foreground h-9" 
+              disabled={restoring}
+            >
               {restoring ? (
-                <>
-                  <RefreshCw className="h-4 w-4 animate-spin" />
-                  {isPT ? "A restaurar..." : "Restoring..."}
-                </>
+                <RefreshCw className="h-3.5 w-3.5 animate-spin mr-1" />
               ) : (
-                <>
-                  <RefreshCw className="h-4 w-4" />
-                  {isPT ? "Restaurar Compras" : "Restore Purchases"}
-                </>
+                <RefreshCw className="h-3.5 w-3.5 mr-1" />
               )}
+              {isPT ? "Restaurar" : "Restore"}
             </Button>
-
-            <Button variant="ghost" onClick={onClose} className="w-full text-muted-foreground">
+            <Button 
+              variant="ghost" 
+              onClick={onClose} 
+              className="flex-1 text-xs text-muted-foreground h-9"
+            >
               {isPT ? "Talvez depois" : "Maybe later"}
             </Button>
           </div>
 
-          {/* Trust + Disclosures */}
-          <div className="text-center text-xs text-muted-foreground pt-2 space-y-1">
-            <p>{isPT ? "É aqui que a disciplina se multiplica." : "This is where discipline compounds."}</p>
-            <p>
-              {isPT ? "Subscrições renovam automaticamente. Cancela a qualquer momento." : "Subscriptions auto-renew. Cancel anytime."}{" "}
-              <a href="/terms" className="underline">
-                {isPT ? "Termos" : "Terms"}
-              </a>{" "}
-              ·{" "}
-              <a href="/privacy" className="underline">
-                {isPT ? "Privacidade" : "Privacy"}
-              </a>
-            </p>
-          </div>
+          {/* Legal footer */}
+          <p className="text-[10px] text-center text-muted-foreground/70 leading-relaxed">
+            {isPT 
+              ? "Subscrições renovam automaticamente. Cancela a qualquer momento." 
+              : "Subscriptions auto-renew. Cancel anytime."
+            }
+            {" "}
+            <a href="/terms" className="underline hover:text-muted-foreground">
+              {isPT ? "Termos" : "Terms"}
+            </a>
+            {" · "}
+            <a href="/privacy" className="underline hover:text-muted-foreground">
+              {isPT ? "Privacidade" : "Privacy"}
+            </a>
+          </p>
         </div>
       </DialogContent>
     </Dialog>

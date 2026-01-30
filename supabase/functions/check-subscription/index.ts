@@ -7,8 +7,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Trial duration in hours
-const TRIAL_DURATION_HOURS = 48;
+// Trial duration: 7 days (168 hours)
+const TRIAL_DURATION_HOURS = 168;
 
 // Helper logging function for debugging
 const logStep = (step: string, details?: Record<string, unknown>) => {

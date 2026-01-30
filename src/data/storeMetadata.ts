@@ -56,11 +56,11 @@ PRICING:
 
 • Free: 3 habits, limited calendar history
 • Pro: Unlimited everything
-• 2-day free trial with Monthly plan (no credit card required)
+• 7-day free trial (no credit card required)
 
 No ads. No data selling. Just a tool that works.
 
-Start your 2-day free trial. Become who you're aiming to be.`,
+Start your 7-day free trial. Become who you're aiming to be.`,
 
   // Feature bullets
   features: [
@@ -237,7 +237,7 @@ export const icpMessaging = {
   },
 };
 
-// Pricing display with explicit types - UPDATED TO CORRECT EUR PRICES
+// Pricing display with explicit types - UPDATED JANUARY 2026
 export interface PricingPlan {
   price: number;
   currency: string;
@@ -250,11 +250,13 @@ export interface PricingPlan {
   popular?: boolean;
   savings?: string;
   savingsPT?: string;
+  badge?: string;
+  badgePT?: string;
 }
 
 export const pricingDisplay: Record<string, PricingPlan> = {
   monthly: {
-    price: 19.99,
+    price: 7.99,
     currency: "EUR",
     period: "month",
     label: "Monthly",
@@ -263,26 +265,30 @@ export const pricingDisplay: Record<string, PricingPlan> = {
     descriptionPT: "Acesso completo, cancela quando quiseres",
   },
   yearly: {
-    price: 189.99,
+    price: 59.99,
     currency: "EUR",
     period: "year",
     label: "Yearly",
     labelPT: "Anual",
-    description: "Save 20% vs monthly",
-    descriptionPT: "Poupa 20% vs mensal",
-    discount: 20,
+    description: "Best value",
+    descriptionPT: "Melhor valor",
+    discount: 37,
     popular: true,
-    savings: "Save €49.89/year",
-    savingsPT: "Poupas 49,89€/ano",
+    savings: "Save €35.89/year",
+    savingsPT: "Poupas 35,89€/ano",
+    badge: "Best value",
+    badgePT: "Melhor valor",
   },
   lifetime: {
-    price: 399.99,
+    price: 149,
     currency: "EUR",
     period: "once",
-    label: "Lifetime",
-    labelPT: "Fidelidade",
-    description: "Pay once, own forever",
-    descriptionPT: "Pagamento único",
+    label: "Lifetime Founder",
+    labelPT: "Lifetime Founder",
+    description: "Limited time offer",
+    descriptionPT: "Disponível por tempo limitado",
+    badge: "Founder Access",
+    badgePT: "Founder Access",
   },
 };
 
