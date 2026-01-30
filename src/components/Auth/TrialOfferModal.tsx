@@ -56,7 +56,7 @@ export const TrialOfferModal = ({ open, onClose, onStartTrial, onViewPricing }: 
           </div>
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold">
-              {locale === 'pt-PT' ? 'Começa o teu trial de 2 dias' : 'Start your 2-day free trial'}
+              {locale === 'pt-PT' ? 'Começa o teu trial de 7 dias' : 'Start your 7-day free trial'}
             </DialogTitle>
             <DialogDescription className="text-base text-muted-foreground">
               {locale === 'pt-PT' 
@@ -95,8 +95,8 @@ export const TrialOfferModal = ({ open, onClose, onStartTrial, onViewPricing }: 
 
           <p className="text-xs text-center text-muted-foreground pt-2">
             {locale === 'pt-PT' 
-              ? 'Podes continuar grátis com 3 hábitos. Upgrade quando quiseres.'
-              : 'You can continue free with 3 habits. Upgrade anytime.'}
+              ? '7 dias de acesso PRO completo. Sem compromisso.'
+              : '7 days of full PRO access. No commitment.'}
           </p>
         </div>
       </DialogContent>
