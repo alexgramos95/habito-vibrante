@@ -9,72 +9,41 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import { 
+  PLANS, 
+  PRO_FEATURES, 
+  APP_NAME, 
+  APP_TAGLINE, 
+  formatPriceCompact,
+  type PlanType 
+} from "@/config/billing";
 
 interface PaywallModalProps {
   open: boolean;
   onClose: () => void;
-  onUpgrade: (plan: "monthly" | "yearly" | "lifetime") => void;
+  onUpgrade?: (plan: PlanType) => void;
   trigger?: string;
   trialDaysLeft?: number;
 }
 
-// NEW PRICING - JANUARY 2026
-const PLANS = [
-  {
-    id: "monthly" as const,
-    price: 7.99,
-    period: "/mês",
-    periodEN: "/month",
-    popular: false,
-  },
-  {
-    id: "yearly" as const,
-    price: 59.99,
-    period: "/ano",
-    periodEN: "/year",
-    popular: true,
-    badge: "Melhor valor",
-    badgeEN: "Best value",
-    monthlyEquivalent: 5.00,
-  },
-  {
-    id: "lifetime" as const,
-    price: 149,
-    period: "",
-    periodEN: "",
-    popular: false,
-    badge: "Founder Access",
-    badgeEN: "Founder Access",
-    note: "Acesso vitalício",
-    noteEN: "Lifetime access",
-  },
-];
-
-const PRO_FEATURES_PT = [
-  "Acesso completo a hábitos e trackers",
-  "Visão semanal e mensal",
-  "Narrativa comportamental",
-  "Sincronização entre dispositivos",
-];
-
-const PRO_FEATURES_EN = [
-  "Full access to habits and trackers",
-  "Weekly and monthly views",
-  "Behavioral narrative",
-  "Cross-device sync",
-];
-
-export const PaywallModal = ({ open, onClose, onUpgrade, trigger, trialDaysLeft = 0 }: PaywallModalProps) => {
+export const PaywallModal = ({ 
+  open, 
+  onClose, 
+  onUpgrade, 
+  trigger, 
+  trialDaysLeft = 0 
+}: PaywallModalProps) => {
   const { locale } = useI18n();
   const { isAuthenticated, session } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [selectedPlan, setSelectedPlan] = useState<"monthly" | "yearly" | "lifetime">("yearly");
+  const [selectedPlan, setSelectedPlan] = useState<PlanType>("yearly");
   const [loading, setLoading] = useState(false);
   const [restoring, setRestoring] = useState(false);
 
   const isPT = locale === "pt-PT";
-  const features = isPT ? PRO_FEATURES_PT : PRO_FEATURES_EN;
+  const lang = isPT ? "pt" : "en";
+  const features = PRO_FEATURES[lang];
 
   const handleUpgrade = async () => {
     if (!isAuthenticated) {
@@ -98,14 +67,19 @@ export const PaywallModal = ({ open, onClose, onUpgrade, trigger, trialDaysLeft 
         window.open(data.url, "_blank");
         toast({
           title: isPT ? "Checkout aberto" : "Checkout opened",
-          description: isPT ? "Completa a compra no novo separador." : "Complete your purchase in the new tab.",
+          description: isPT 
+            ? "Completa a compra no novo separador." 
+            : "Complete your purchase in the new tab.",
         });
+        onUpgrade?.(selectedPlan);
       }
     } catch (err) {
       console.error("Checkout error:", err);
       toast({
         title: isPT ? "Erro no checkout" : "Checkout failed",
-        description: isPT ? "Tenta novamente ou contacta o suporte." : "Please try again or contact support.",
+        description: isPT 
+          ? "Tenta novamente ou contacta o suporte." 
+          : "Please try again or contact support.",
         variant: "destructive",
       });
     } finally {
@@ -154,7 +128,9 @@ export const PaywallModal = ({ open, onClose, onUpgrade, trigger, trialDaysLeft 
       console.error("Restore error:", err);
       toast({
         title: isPT ? "Erro ao restaurar" : "Restore failed",
-        description: isPT ? "Tenta novamente ou contacta o suporte." : "Please try again or contact support.",
+        description: isPT 
+          ? "Tenta novamente ou contacta o suporte." 
+          : "Please try again or contact support.",
         variant: "destructive",
       });
     } finally {
@@ -165,7 +141,7 @@ export const PaywallModal = ({ open, onClose, onUpgrade, trigger, trialDaysLeft 
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-md p-0 gap-0 bg-background border-border/50 overflow-hidden">
-        {/* Premium dark header with turquoise accent */}
+        {/* Premium header */}
         <div className="relative p-6 pb-5 bg-gradient-to-b from-primary/10 via-primary/5 to-transparent">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/20 via-transparent to-transparent opacity-50" />
           
@@ -175,17 +151,17 @@ export const PaywallModal = ({ open, onClose, onUpgrade, trigger, trialDaysLeft 
             </div>
             
             <h2 className="text-xl font-bold tracking-tight">
-              {isPT ? "Desbloqueia a becoMe completa" : "Unlock the full becoMe"}
+              {isPT ? `Desbloqueia a ${APP_NAME} completa` : `Unlock the full ${APP_NAME}`}
             </h2>
             
             <p className="text-sm text-muted-foreground">
-              {isPT ? "Ritmo. Consistência. Identidade." : "Rhythm. Consistency. Identity."}
+              {APP_TAGLINE[lang]}
             </p>
           </div>
         </div>
 
         <div className="p-5 space-y-5">
-          {/* Features list - minimal */}
+          {/* Features list */}
           <div className="space-y-2">
             {features.map((feature, i) => (
               <div key={i} className="flex items-center gap-2.5 text-sm">
@@ -197,7 +173,7 @@ export const PaywallModal = ({ open, onClose, onUpgrade, trigger, trialDaysLeft 
             ))}
           </div>
 
-          {/* Pricing cards - horizontal scroll on mobile */}
+          {/* Pricing cards */}
           <div className="grid grid-cols-3 gap-2">
             {PLANS.map((plan) => (
               <button
@@ -219,21 +195,21 @@ export const PaywallModal = ({ open, onClose, onUpgrade, trigger, trialDaysLeft 
                         : "bg-warning/90 text-warning-foreground"
                     )}
                   >
-                    {isPT ? plan.badge : plan.badgeEN}
+                    {plan.badge[lang]}
                   </Badge>
                 )}
 
                 <span className="text-xs text-muted-foreground mt-1 mb-1">
-                  {plan.id === "monthly" ? (isPT ? "Mensal" : "Monthly") : 
-                   plan.id === "yearly" ? (isPT ? "Anual" : "Yearly") : 
-                   "Lifetime"}
+                  {plan.label[lang]}
                 </span>
                 
                 <div className="flex items-baseline">
-                  <span className="text-lg font-bold">€{plan.price % 1 === 0 ? plan.price : plan.price.toFixed(2).replace(".", ",")}</span>
-                  {plan.period && (
+                  <span className="text-lg font-bold">
+                    {formatPriceCompact(plan.price)}
+                  </span>
+                  {plan.periodLabel[lang] && (
                     <span className="text-[10px] text-muted-foreground ml-0.5">
-                      {isPT ? plan.period : plan.periodEN}
+                      {plan.periodLabel[lang]}
                     </span>
                   )}
                 </div>
@@ -244,9 +220,9 @@ export const PaywallModal = ({ open, onClose, onUpgrade, trigger, trialDaysLeft 
                   </span>
                 )}
                 
-                {plan.note && (
+                {plan.period === "once" && (
                   <span className="text-[10px] text-success mt-0.5">
-                    {isPT ? plan.note : plan.noteEN}
+                    {isPT ? "Acesso vitalício" : "Lifetime access"}
                   </span>
                 )}
               </button>
@@ -272,7 +248,7 @@ export const PaywallModal = ({ open, onClose, onUpgrade, trigger, trialDaysLeft 
             ) : (
               <>
                 <Crown className="h-5 w-5" />
-                {isPT ? "Explorar becoMe PRO" : "Explore becoMe PRO"}
+                {isPT ? `Explorar ${APP_NAME} PRO` : `Explore ${APP_NAME} PRO`}
               </>
             )}
           </Button>

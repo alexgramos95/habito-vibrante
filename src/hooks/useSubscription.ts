@@ -1,6 +1,13 @@
 import { useState, useEffect, useCallback, useContext } from 'react';
-import { differenceInMinutes, parseISO } from 'date-fns';
 import { AuthContext } from '@/contexts/AuthContext';
+import { FREE_LIMITS as BILLING_FREE_LIMITS, TRIAL_CONFIG } from '@/config/billing';
+import { 
+  computeTierStatus, 
+  canCreateHabit, 
+  canCreateTracker,
+  type TierStatus,
+  type SubscriptionStatus as EntitlementSubscriptionStatus
+} from '@/lib/entitlements';
 
 export type PlanType = 'free' | 'trial' | 'pro';
 
@@ -22,12 +29,11 @@ export interface OnboardingState {
 
 const ONBOARDING_KEY = 'become-onboarding-state';
 
-// Feature limits - JANUARY 2026 (UPDATED)
-// FREE: Only 3 habits, 0 trackers, 3 pages (Hábitos, Calendário, Perfil)
+// Feature limits - extended for backward compatibility
 export const FREE_LIMITS = {
-  maxHabits: 3,
-  maxTrackers: 0, // No trackers for FREE
-  calendarDaysBack: Infinity, // Calendar allowed
+  maxHabits: BILLING_FREE_LIMITS.maxHabits,
+  maxTrackers: BILLING_FREE_LIMITS.maxTrackers,
+  calendarDaysBack: Infinity, // Calendar allowed for FREE
   financesAccess: false,
   exportAccess: false,
   fullReminders: false,
@@ -141,10 +147,10 @@ export const useSubscription = () => {
     // Active trial - calculate remaining time for display
     if (subscriptionStatus.plan === 'trial' && subscriptionStatus.trialEnd) {
       try {
-        const endDate = parseISO(subscriptionStatus.trialEnd);
+        const endDate = new Date(subscriptionStatus.trialEnd);
         const today = new Date();
         
-        const totalMinutesRemaining = differenceInMinutes(endDate, today);
+        const totalMinutesRemaining = Math.floor((endDate.getTime() - today.getTime()) / 60000);
         
         if (totalMinutesRemaining < 0) {
           return { 

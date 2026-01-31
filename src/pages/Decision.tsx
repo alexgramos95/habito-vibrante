@@ -5,11 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
-import { InterestPaywall } from "@/components/Paywall/InterestPaywall";
+import { PaywallModal } from "@/components/Paywall/PaywallModal";
 import { FeedbackFormModal } from "@/components/Feedback/FeedbackFormModal";
 import { generatePDFExport } from "@/lib/pdfExport";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { APP_NAME, FREE_LIMITS } from "@/config/billing";
 
 const Decision = () => {
   const navigate = useNavigate();
@@ -62,7 +63,7 @@ const Decision = () => {
 
       toast({
         title: "Plano FREE ativado",
-        description: "Podes usar 3 hábitos e 3 trackers. Upgrade a qualquer momento!",
+        description: `Podes usar ${FREE_LIMITS.maxHabits} hábitos. Atualiza a qualquer momento!`,
       });
 
       // Navigate to app after state is updated
@@ -111,7 +112,7 @@ const Decision = () => {
             O teu trial terminou
           </h1>
           <p className="text-muted-foreground text-lg">
-            Obrigado por experimentares o Become. O que gostavas de fazer agora?
+            Obrigado por experimentares a {APP_NAME}. O que gostavas de fazer agora?
           </p>
         </div>
 
@@ -128,9 +129,9 @@ const Decision = () => {
                   <Crown className="h-6 w-6 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-lg">Continuar com Pro</h3>
+                  <h3 className="font-semibold text-lg">Continuar com PRO</h3>
                   <p className="text-sm text-muted-foreground">
-                    Hábitos ilimitados, finanças e mais
+                    Hábitos ilimitados, trackers e mais
                   </p>
                 </div>
                 <ChevronRight className="h-5 w-5 text-muted-foreground" />
@@ -155,7 +156,7 @@ const Decision = () => {
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold">Continuar grátis</h3>
                   <p className="text-sm text-muted-foreground">
-                    3 hábitos + 3 trackers
+                    {FREE_LIMITS.maxHabits} hábitos, {FREE_LIMITS.maxTrackers} trackers
                   </p>
                 </div>
                 <ChevronRight className="h-5 w-5 text-muted-foreground" />
@@ -201,7 +202,7 @@ const Decision = () => {
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold">Dar feedback</h3>
                   <p className="text-sm text-muted-foreground">
-                    Ajuda-nos a melhorar o Become
+                    Ajuda-nos a melhorar a {APP_NAME}
                   </p>
                 </div>
                 <ChevronRight className="h-5 w-5 text-muted-foreground" />
@@ -212,12 +213,12 @@ const Decision = () => {
 
         {/* Footer */}
         <p className="text-center text-sm text-muted-foreground">
-          Obrigado por fazeres parte do Become.
+          Obrigado por fazeres parte da {APP_NAME}.
         </p>
       </div>
 
       {/* Modals */}
-      <InterestPaywall 
+      <PaywallModal 
         open={showPaywall} 
         onClose={() => setShowPaywall(false)} 
       />
