@@ -351,6 +351,132 @@
   }
 }
 
+/* ========================================
+   MOBILE-FIRST SCALE SYSTEM
+   Consistent hierarchy across all pages
+   ======================================== */
+
+/* Page layout containers - normalized spacing */
+.page-container {
+  @apply min-h-screen bg-background pb-24 md:pb-8;
+}
+
+.page-content {
+  @apply container py-4 md:py-6 space-y-4 md:space-y-6;
+}
+
+/* Page headers - consistent scale */
+.page-header {
+  @apply flex items-center justify-between gap-4;
+}
+
+.page-title {
+  @apply text-lg md:text-xl font-semibold tracking-tight;
+}
+
+.page-subtitle {
+  @apply text-xs md:text-sm text-muted-foreground/70 mt-0.5;
+}
+
+/* Summary cards - compact on mobile, never dominant */
+.summary-card {
+  @apply rounded-xl border border-border/30 bg-card/50 p-3 md:p-4;
+}
+
+.summary-card-header {
+  @apply flex items-center gap-2 mb-1.5;
+}
+
+.summary-card-icon {
+  @apply h-4 w-4 text-muted-foreground;
+}
+
+.summary-card-label {
+  @apply text-xs font-medium text-muted-foreground;
+}
+
+.summary-card-value {
+  @apply text-xl md:text-2xl font-bold;
+}
+
+.summary-card-subtext {
+  @apply text-[10px] md:text-xs text-muted-foreground mt-0.5;
+}
+
+/* Metric grid - responsive density */
+.metrics-grid {
+  @apply grid gap-2 md:gap-3;
+}
+
+.metrics-grid-2 {
+  @apply metrics-grid grid-cols-2;
+}
+
+.metrics-grid-3 {
+  @apply metrics-grid grid-cols-3;
+}
+
+.metrics-grid-4 {
+  @apply metrics-grid grid-cols-2 sm:grid-cols-4;
+}
+
+/* Compact metric card - for secondary metrics */
+.metric-compact {
+  @apply rounded-lg border border-border/20 bg-secondary/30 p-2.5 text-center;
+}
+
+.metric-compact-value {
+  @apply text-base md:text-lg font-bold;
+}
+
+.metric-compact-label {
+  @apply text-[9px] md:text-[10px] text-muted-foreground leading-tight;
+}
+
+/* Item cards - consistent height and spacing */
+.item-card {
+  @apply flex items-center gap-3 rounded-xl border border-border/30 bg-card p-3 transition-all;
+}
+
+.item-card-interactive {
+  @apply item-card cursor-pointer hover:bg-card/80 hover:shadow-sm active:scale-[0.99];
+}
+
+/* Calendar cells - normalized size */
+.calendar-cell {
+  @apply aspect-square flex flex-col items-center justify-center rounded-lg text-sm transition-all;
+}
+
+.calendar-cell-day {
+  @apply text-sm md:text-base font-medium;
+}
+
+.calendar-cell-meta {
+  @apply text-[9px] md:text-[10px] text-muted-foreground;
+}
+
+/* Week navigation - compact */
+.week-nav {
+  @apply flex items-center justify-between gap-2 px-2 py-2;
+}
+
+.week-nav-label {
+  @apply text-sm font-medium text-center;
+}
+
+/* Content sections - breathing room */
+.content-section {
+  @apply space-y-3 md:space-y-4;
+}
+
+.content-section-header {
+  @apply flex items-center justify-between;
+}
+
+.content-section-title {
+  @apply text-sm font-semibold;
+}
+
 /* Container utility with premium spacing */
 .container-narrow {
   @apply max-w-2xl mx-auto px-4;

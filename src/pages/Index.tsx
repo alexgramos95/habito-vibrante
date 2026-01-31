@@ -6,6 +6,7 @@ import { Habit } from "@/data/types";
 import { addHabit, updateHabit, deleteHabit } from "@/data/storage";
 import { Navigation } from "@/components/Layout/Navigation";
 import { HabitForm } from "@/components/Habits/HabitForm";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { sortHabitsByTime } from "@/logic/habitSorting";
@@ -116,10 +117,10 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24 md:pb-0">
+    <div className="page-container">
       <Navigation />
 
-      <main className="container max-w-xl mx-auto py-6 md:py-8 px-4 space-y-6 md:space-y-8">
+      <main className="page-content max-w-xl mx-auto">
         {/* Trial banner */}
         {trialStatus.isActive && (
           <div className="flex justify-center">
@@ -130,11 +131,11 @@ const Index = () => {
           </div>
         )}
 
-        {/* Header - More elegant */}
-        <div className="flex items-center justify-between">
+        {/* Header - Compact */}
+        <div className="page-header">
           <div>
-            <h1 className="text-xl font-semibold tracking-tight">{t.habits.management}</h1>
-            <p className="text-sm text-muted-foreground/70 mt-0.5">
+            <h1 className="page-title">{t.habits.management}</h1>
+            <p className="page-subtitle">
               {state.habits.length} {state.habits.length === 1 ? 'hábito' : 'hábitos'}
               {!isPro && ` · ${FREE_HABIT_LIMIT - state.habits.length} disponíveis`}
             </p>
@@ -153,7 +154,7 @@ const Index = () => {
               setShowHabitForm(true);
             }}
             size="sm"
-            className="gap-2 rounded-xl h-10 px-4"
+            className="gap-1.5 rounded-xl h-9 px-3"
           >
             <Plus className="h-4 w-4" />
             <span className="hidden sm:inline">Adicionar</span>
@@ -161,20 +162,22 @@ const Index = () => {
         </div>
 
         {state.habits.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/50 py-16 text-center">
-            <CheckCircle2 className="h-10 w-10 text-muted-foreground/25 mb-4" />
-            <p className="text-muted-foreground text-sm">{t.habits.noHabits}</p>
-            <Button
-              onClick={() => {
-                setEditingHabit(null);
-                setShowHabitForm(true);
-              }}
-              variant="link"
-              className="mt-2 text-primary text-sm"
-            >
-              {t.habits.add}
-            </Button>
-          </div>
+          <Card className="border-border/30 border-dashed bg-card/30">
+            <CardContent className="empty-state">
+              <CheckCircle2 className="empty-state-icon" />
+              <p className="empty-state-title">{t.habits.noHabits}</p>
+              <Button
+                onClick={() => {
+                  setEditingHabit(null);
+                  setShowHabitForm(true);
+                }}
+                variant="link"
+                className="mt-2 text-sm"
+              >
+                {t.habits.add}
+              </Button>
+            </CardContent>
+          </Card>
         ) : (
           <div className="space-y-2.5">
             {sortedHabits.map((habit, index) => (

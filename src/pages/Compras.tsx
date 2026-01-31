@@ -190,14 +190,14 @@ const Compras = () => {
     : format(selectedWeek, "'Week of' MMMM d", { locale: dateLocale });
 
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-0">
+    <div className="page-container">
       <Navigation />
 
-      <main className="container py-8 space-y-6">
+      <main className="page-content">
         {/* Header */}
         <PageHeader
           title={t.shopping.title}
-          subtitle={(t as any).pageSubtitles?.shopping || (locale === 'pt-PT' ? 'Gastos semanais e visão de compras' : 'Weekly spending and purchasing overview')}
+          subtitle={(t as any).pageSubtitles?.shopping || (locale === 'pt-PT' ? 'Gastos semanais' : 'Weekly spending')}
           icon={ShoppingCart}
           action={{
             icon: Plus,
@@ -208,142 +208,128 @@ const Compras = () => {
           <ReceiptScanner onItemsExtracted={handleReceiptItemsExtracted} />
         </PageHeader>
 
-        {/* Week Selector */}
-        <Card className="glass border-border/30">
-          <CardContent className="py-4">
-            <div className="flex items-center justify-between">
-              <Button variant="ghost" size="icon" onClick={handlePreviousWeek}>
-                <ChevronLeft className="h-5 w-5" />
+        {/* Week Selector - Compact */}
+        <Card className="border-border/30 bg-card/50">
+          <CardContent className="py-2.5 px-3">
+            <div className="week-nav">
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handlePreviousWeek}>
+                <ChevronLeft className="h-4 w-4" />
               </Button>
               <div className="text-center">
-                <p className="font-medium">{weekLabel}</p>
+                <p className="text-sm font-medium">{weekLabel}</p>
                 <Button
                   variant="link"
                   size="sm"
-                  className="text-primary"
+                  className="text-xs text-primary h-auto p-0"
                   onClick={handleThisWeek}
                 >
                   {locale === 'pt-PT' ? "Esta semana" : "This week"}
                 </Button>
               </div>
-              <Button variant="ghost" size="icon" onClick={handleNextWeek}>
-                <ChevronRight className="h-5 w-5" />
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleNextWeek}>
+                <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
           </CardContent>
         </Card>
 
-        {/* Financial Summary */}
-        <div className="grid gap-4 sm:grid-cols-3">
+        {/* Financial Summary - Compact metrics grid */}
+        <div className="metrics-grid-3">
           {/* Items Progress */}
-          <Card className="glass border-border/30">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                <ShoppingCart className="h-4 w-4 text-primary" />
-                {locale === 'pt-PT' ? "Itens" : "Items"}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-primary">
-                {doneCount}/{totalCount}
+          <div className="summary-card">
+            <div className="summary-card-header">
+              <ShoppingCart className="summary-card-icon text-primary" />
+              <span className="summary-card-label">{locale === 'pt-PT' ? "Itens" : "Items"}</span>
+            </div>
+            <div className="summary-card-value text-primary">
+              {doneCount}/{totalCount}
+            </div>
+            {totalCount > 0 && (
+              <div className="mt-1.5 h-1 rounded-full bg-secondary overflow-hidden">
+                <div
+                  className="h-full bg-primary transition-all duration-300"
+                  style={{ width: `${(doneCount / totalCount) * 100}%` }}
+                />
               </div>
-              {totalCount > 0 && (
-                <div className="mt-2 h-1.5 rounded-full bg-secondary overflow-hidden">
-                  <div
-                    className="h-full bg-primary transition-all duration-300"
-                    style={{ width: `${(doneCount / totalCount) * 100}%` }}
-                  />
-                </div>
-              )}
-            </CardContent>
-          </Card>
+            )}
+          </div>
 
           {/* Weekly Total */}
-          <Card className="glass border-border/30">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                <Receipt className="h-4 w-4 text-warning" />
-                {t.shopping.weekTotal}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-warning">
-                {formatCurrency(weeklyTotal)}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {locale === 'pt-PT' ? "Comprado" : "Bought"}: {formatCurrency(weeklyDoneTotal)}
-              </p>
-            </CardContent>
-          </Card>
+          <div className="summary-card">
+            <div className="summary-card-header">
+              <Receipt className="summary-card-icon text-warning" />
+              <span className="summary-card-label">{t.shopping.weekTotal}</span>
+            </div>
+            <div className="summary-card-value text-warning">
+              {formatCurrency(weeklyTotal)}
+            </div>
+            <p className="summary-card-subtext">
+              {locale === 'pt-PT' ? "Comprado" : "Bought"}: {formatCurrency(weeklyDoneTotal)}
+            </p>
+          </div>
 
           {/* Monthly Total */}
-          <Card className="glass border-border/30">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                <TrendingUp className="h-4 w-4 text-success" />
-                {t.shopping.monthlySpending}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-success">
-                {formatCurrency(monthlyTotal)}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {format(monthStart, "MMMM yyyy", { locale: dateLocale })}
-              </p>
-            </CardContent>
-          </Card>
+          <div className="summary-card">
+            <div className="summary-card-header">
+              <TrendingUp className="summary-card-icon text-success" />
+              <span className="summary-card-label">{t.shopping.monthlySpending}</span>
+            </div>
+            <div className="summary-card-value text-success">
+              {formatCurrency(monthlyTotal)}
+            </div>
+            <p className="summary-card-subtext">
+              {format(monthStart, "MMM yyyy", { locale: dateLocale })}
+            </p>
+          </div>
         </div>
 
         {/* Items List */}
         {totalCount === 0 ? (
-          <Card className="glass border-border/30 border-dashed">
-            <CardContent className="py-12 text-center">
-              <ShoppingCart className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">
-                {t.shopping.noItems}
-              </p>
-              <Button variant="link" onClick={openAddForm} className="mt-2">
+          <Card className="border-border/30 border-dashed bg-card/30">
+            <CardContent className="empty-state">
+              <ShoppingCart className="empty-state-icon" />
+              <p className="empty-state-title">{t.shopping.noItems}</p>
+              <Button variant="link" onClick={openAddForm} className="mt-2 text-sm">
                 {t.shopping.addFirst}
               </Button>
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {Object.entries(itemsByCategory).map(([category, categoryItems]) => (
-              <Card key={category} className="glass border-border/30">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm text-muted-foreground font-medium flex items-center justify-between">
+              <Card key={category} className="border-border/30 bg-card/50">
+                <CardHeader className="pb-1.5 pt-3 px-3">
+                  <CardTitle className="text-xs text-muted-foreground font-medium flex items-center justify-between">
                     <span>{category}</span>
-                    <span className="text-xs">
+                    <span className="text-[10px]">
                       {formatCurrency(categoryItems.reduce((sum, i) => sum + (i.price || 0), 0))}
                     </span>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-2">
+                <CardContent className="space-y-1.5 px-3 pb-3">
                   {categoryItems.map((item) => (
                     <div
                       key={item.id}
                       className={cn(
-                        "flex items-center gap-3 rounded-xl p-3 group transition-all",
+                        "item-card group",
                         item.done
-                          ? "bg-success/10 border border-success/30"
-                          : "bg-secondary/50 hover:bg-secondary"
+                          ? "bg-success/8 border-success/20"
+                          : "bg-secondary/30 hover:bg-secondary/50"
                       )}
                     >
                       <Checkbox
                         checked={item.done}
                         onCheckedChange={() => handleToggle(item.id)}
-                        className="h-5 w-5"
+                        className="h-4 w-4"
                       />
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <p className={cn("font-medium", item.done && "line-through text-muted-foreground")}>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className={cn("text-sm font-medium truncate", item.done && "line-through text-muted-foreground")}>
                             {item.nome}
                           </p>
                           {item.price > 0 && (
                             <span className={cn(
-                              "text-sm font-medium",
+                              "text-xs font-medium shrink-0",
                               item.done ? "text-muted-foreground" : "text-warning"
                             )}>
                               {formatCurrency(item.price)}
@@ -351,25 +337,25 @@ const Compras = () => {
                           )}
                         </div>
                         {item.quantidade && (
-                          <p className="text-sm text-muted-foreground">{item.quantidade}</p>
+                          <p className="text-xs text-muted-foreground truncate">{item.quantidade}</p>
                         )}
                       </div>
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8"
+                          className="h-7 w-7"
                           onClick={() => openEditForm(item)}
                         >
-                          <Pencil className="h-4 w-4" />
+                          <Pencil className="h-3 w-3" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-destructive"
+                          className="h-7 w-7 text-destructive"
                           onClick={() => handleDelete(item.id)}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-3 w-3" />
                         </Button>
                       </div>
                     </div>

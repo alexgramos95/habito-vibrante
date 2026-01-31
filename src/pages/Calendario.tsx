@@ -265,32 +265,32 @@ const Calendario = () => {
         key={key}
         onClick={() => openDayDetail(date)}
         className={cn(
-          "relative aspect-square flex flex-col items-center justify-center rounded-xl text-sm font-medium transition-all duration-200",
-          "hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary/50",
-          isFutureDate && "opacity-50",
-          isLocked && "opacity-50",
-          !isFutureDate && !isComplete && !isPartial && !isLocked && "bg-secondary/50 text-muted-foreground hover:bg-secondary",
-          !isLocked && isPartial && "bg-primary/20 text-primary",
-          !isLocked && isComplete && "bg-primary text-primary-foreground shadow-lg",
-          isTodayDate && "ring-2 ring-primary ring-offset-2 ring-offset-background"
+          "calendar-cell relative font-medium transition-all duration-200",
+          "hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-primary/40",
+          isFutureDate && "opacity-40",
+          isLocked && "opacity-40",
+          !isFutureDate && !isComplete && !isPartial && !isLocked && "bg-secondary/40 text-muted-foreground hover:bg-secondary/60",
+          !isLocked && isPartial && "bg-primary/15 text-primary",
+          !isLocked && isComplete && "bg-primary text-primary-foreground shadow-sm",
+          isTodayDate && "ring-2 ring-primary ring-offset-1 ring-offset-background"
         )}
       >
         {isLocked ? (
-          <Lock className="h-4 w-4 text-muted-foreground" />
+          <Lock className="h-3 w-3 text-muted-foreground" />
         ) : (
           <>
-            <span className="text-lg">{format(date, "d")}</span>
+            <span className="calendar-cell-day">{format(date, "d")}</span>
             {!isFutureDate && data.totalHabits > 0 && (
-              <span className="text-xs opacity-80">{data.completedHabits}/{data.totalHabits}</span>
+              <span className="calendar-cell-meta opacity-70">{data.completedHabits}/{data.totalHabits}</span>
             )}
           </>
         )}
         {/* Indicators */}
-        {!isLocked && (
-          <div className="absolute bottom-1 flex gap-0.5">
-            {hasReflection && <div className="w-1.5 h-1.5 rounded-full bg-accent" />}
-            {hasTrackerActivity && <div className="w-1.5 h-1.5 rounded-full bg-warning" />}
-            {data.trackerReminders.length > 0 && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
+        {!isLocked && (hasReflection || hasTrackerActivity || data.trackerReminders.length > 0) && (
+          <div className="absolute bottom-0.5 flex gap-0.5">
+            {hasReflection && <div className="w-1 h-1 rounded-full bg-accent" />}
+            {hasTrackerActivity && <div className="w-1 h-1 rounded-full bg-warning" />}
+            {data.trackerReminders.length > 0 && <div className="w-1 h-1 rounded-full bg-primary" />}
           </div>
         )}
       </button>
@@ -532,9 +532,9 @@ const Calendario = () => {
           </TabsList>
 
           {/* Monthly View */}
-          <TabsContent value="monthly" className="mt-6">
-            <Card className="border-border bg-card shadow-sm">
-              <CardHeader className="pb-4">
+          <TabsContent value="monthly" className="mt-4">
+            <Card className="border-border/30 bg-card/50 shadow-sm">
+              <CardHeader className="pb-2 px-3 md:px-6">
                 <MonthSelector
                   year={currentYear}
                   month={currentMonth}
@@ -543,45 +543,37 @@ const Calendario = () => {
                   onToday={handleToday}
                 />
               </CardHeader>
-              <CardContent>
-                {/* Weekday headers */}
-                <div className="mb-2 grid grid-cols-7 gap-2">
+              <CardContent className="px-2 md:px-6 pb-4">
+                {/* Weekday headers - compact */}
+                <div className="mb-1 grid grid-cols-7 gap-1">
                   {weekdays.map((day) => (
                     <div
                       key={day}
-                      className="py-2 text-center text-sm font-medium uppercase tracking-wide text-muted-foreground"
+                      className="py-1.5 text-center text-[10px] md:text-xs font-medium uppercase tracking-wider text-muted-foreground/70"
                     >
                       {day}
                     </div>
                   ))}
                 </div>
 
-                {/* Calendar grid */}
-                <div className="grid grid-cols-7 gap-2">
+                {/* Calendar grid - tighter spacing on mobile */}
+                <div className="grid grid-cols-7 gap-1 md:gap-1.5">
                   {calendarDays.map(({ date, key }) => renderDayCell(date, key))}
                 </div>
 
-                {/* Legend */}
-                <div className="mt-6 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded bg-primary" />
+                {/* Legend - compact inline */}
+                <div className="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[10px] md:text-xs text-muted-foreground/70">
+                  <div className="flex items-center gap-1">
+                    <div className="w-2.5 h-2.5 rounded bg-primary" />
                     <span>{locale === 'pt-PT' ? 'Completo' : 'Complete'}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded bg-primary/20" />
+                  <div className="flex items-center gap-1">
+                    <div className="w-2.5 h-2.5 rounded bg-primary/20" />
                     <span>{locale === 'pt-PT' ? 'Parcial' : 'Partial'}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-accent" />
+                  <div className="flex items-center gap-1">
+                    <div className="w-1 h-1 rounded-full bg-accent" />
                     <span>{locale === 'pt-PT' ? 'Reflexão' : 'Reflection'}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-warning" />
-                    <span>{locale === 'pt-PT' ? 'Tracker' : 'Tracker'}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                    <span>{locale === 'pt-PT' ? 'Lembrete' : 'Reminder'}</span>
                   </div>
                 </div>
               </CardContent>
@@ -589,23 +581,23 @@ const Calendario = () => {
           </TabsContent>
 
           {/* Weekly View */}
-          <TabsContent value="weekly" className="mt-6">
-            <Card className="border-border bg-card shadow-sm">
-              <CardHeader className="pb-4">
-                <div className="flex items-center justify-between">
-                  <Button variant="ghost" size="icon" onClick={handlePreviousWeek}>
+          <TabsContent value="weekly" className="mt-4">
+            <Card className="border-border/30 bg-card/50 shadow-sm">
+              <CardHeader className="pb-2 px-3 md:px-6">
+                <div className="week-nav">
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handlePreviousWeek}>
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
-                  <span className="font-medium">
-                    {format(weekDays[0], "d MMM", { locale: dateLocale })} - {format(weekDays[6], "d MMM yyyy", { locale: dateLocale })}
+                  <span className="week-nav-label">
+                    {format(weekDays[0], "d MMM", { locale: dateLocale })} - {format(weekDays[6], "d MMM", { locale: dateLocale })}
                   </span>
-                  <Button variant="ghost" size="icon" onClick={handleNextWeek}>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleNextWeek}>
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-7 gap-2">
+              <CardContent className="px-2 md:px-6 pb-4">
+                <div className="grid grid-cols-7 gap-1">
                   {weekDays.map((date) => {
                     const data = getDayData(date);
                     const isTodayDate = isToday(date);
@@ -617,23 +609,23 @@ const Calendario = () => {
                         key={format(date, "yyyy-MM-dd")}
                         onClick={() => openDayDetail(date)}
                         className={cn(
-                          "flex flex-col items-center p-4 rounded-xl transition-all hover:bg-secondary/50 cursor-pointer",
-                          isFutureDate && "opacity-50",
-                          isTodayDate && "ring-2 ring-primary",
+                          "flex flex-col items-center py-2.5 px-1 rounded-lg transition-all hover:bg-secondary/50 cursor-pointer",
+                          isFutureDate && "opacity-40",
+                          isTodayDate && "ring-2 ring-primary ring-offset-1 ring-offset-background",
                           isComplete && "bg-primary/10"
                         )}
                       >
-                        <span className="text-xs text-muted-foreground">{weekdays[weekDays.indexOf(date)]}</span>
-                        <span className={cn("text-2xl font-bold my-2", isComplete && "text-primary")}>
+                        <span className="text-[10px] text-muted-foreground/70">{weekdays[weekDays.indexOf(date)]}</span>
+                        <span className={cn("text-lg md:text-xl font-bold my-1", isComplete && "text-primary")}>
                           {format(date, "d")}
                         </span>
                         <div className="flex items-center gap-1">
                           {!isFutureDate ? (
                             isComplete 
-                              ? <Check className="h-4 w-4 text-success" />
-                              : <span className="text-xs">{data.completedHabits}/{data.totalHabits}</span>
+                              ? <Check className="h-3 w-3 text-success" />
+                              : <span className="text-[10px] text-muted-foreground">{data.completedHabits}/{data.totalHabits}</span>
                           ) : (
-                            <span className="text-xs text-muted-foreground">—</span>
+                            <span className="text-[10px] text-muted-foreground">—</span>
                           )}
                         </div>
                       </button>
@@ -645,27 +637,27 @@ const Calendario = () => {
           </TabsContent>
 
           {/* Daily View */}
-          <TabsContent value="daily" className="mt-6">
-            <Card className="border-border bg-card shadow-sm">
-              <CardHeader className="pb-4">
-                <div className="flex items-center justify-between">
-                  <Button variant="ghost" size="icon" onClick={handlePreviousDay}>
+          <TabsContent value="daily" className="mt-4">
+            <Card className="border-border/30 bg-card/50 shadow-sm">
+              <CardHeader className="pb-2 px-3 md:px-6">
+                <div className="week-nav">
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handlePreviousDay}>
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
                   <div className="text-center">
-                    <span className="font-medium text-lg">
+                    <span className="font-medium text-sm md:text-base">
                       {formatDate(selectedDate, locale === 'pt-PT' ? "EEEE" : "EEEE")}
                     </span>
-                    <p className="text-sm text-muted-foreground">
-                      {formatDate(selectedDate, locale === 'pt-PT' ? "d 'de' MMMM yyyy" : "MMMM d, yyyy")}
+                    <p className="text-xs text-muted-foreground">
+                      {formatDate(selectedDate, locale === 'pt-PT' ? "d 'de' MMMM" : "MMMM d")}
                     </p>
                   </div>
-                  <Button variant="ghost" size="icon" onClick={handleNextDay}>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleNextDay}>
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-4 px-3 md:px-6 pb-4">
                 {(() => {
                   const data = getDayData(selectedDate);
                   const dateStr = format(selectedDate, "yyyy-MM-dd");
@@ -673,15 +665,15 @@ const Calendario = () => {
 
                   return (
                     <>
-                      {/* Status */}
+                      {/* Status - more compact */}
                       <div className={cn(
-                        "p-6 rounded-xl text-center",
-                        isComplete ? "bg-success/10" : "bg-secondary/50"
+                        "p-4 rounded-xl text-center",
+                        isComplete ? "bg-success/10 border border-success/20" : "bg-secondary/40"
                       )}>
-                        <div className="text-4xl font-bold mb-2">
+                        <div className="text-2xl md:text-3xl font-bold mb-0.5">
                           {data.completedHabits}/{data.totalHabits}
                         </div>
-                        <p className="text-muted-foreground">
+                        <p className="text-xs text-muted-foreground">
                           {locale === 'pt-PT' ? 'hábitos concluídos' : 'habits completed'}
                         </p>
                       </div>

@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 
 interface PageHeaderProps {
   title: string;
-  subtitle: string;
+  subtitle?: string;
   icon?: LucideIcon;
   action?: {
     label?: string;
@@ -14,6 +14,8 @@ interface PageHeaderProps {
   };
   children?: React.ReactNode;
   className?: string;
+  /** Use compact mode for consistent mobile density */
+  compact?: boolean;
 }
 
 export const PageHeader = ({
@@ -23,32 +25,44 @@ export const PageHeader = ({
   action,
   children,
   className,
+  compact = true,
 }: PageHeaderProps) => {
   return (
-    <header className={cn("flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between", className)}>
-      <div className="flex items-center gap-3">
+    <header className={cn(
+      "page-header",
+      className
+    )}>
+      <div className="flex items-center gap-2.5 min-w-0">
         {Icon && (
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-            <Icon className="h-5 w-5 text-primary" />
+          <div className={cn(
+            "flex shrink-0 items-center justify-center rounded-xl bg-primary/10",
+            compact ? "h-9 w-9" : "h-10 w-10"
+          )}>
+            <Icon className={cn("text-primary", compact ? "h-4 w-4" : "h-5 w-5")} />
           </div>
         )}
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
-          <p className="text-sm text-muted-foreground">{subtitle}</p>
+        <div className="min-w-0">
+          <h1 className="page-title truncate">{title}</h1>
+          {subtitle && (
+            <p className="page-subtitle truncate">{subtitle}</p>
+          )}
         </div>
       </div>
       
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 shrink-0">
         {children}
         {action && (
           <Button
             onClick={action.onClick}
             variant={action.variant || "default"}
-            size={action.label ? "default" : "icon"}
-            className={action.label ? "gap-2" : "h-9 w-9"}
+            size="sm"
+            className={cn(
+              "rounded-xl",
+              action.label ? "gap-1.5 h-9 px-3" : "h-9 w-9"
+            )}
           >
             {action.icon && <action.icon className="h-4 w-4" />}
-            {action.label}
+            {action.label && <span className="hidden sm:inline">{action.label}</span>}
           </Button>
         )}
       </div>

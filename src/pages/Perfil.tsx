@@ -176,26 +176,26 @@ const Perfil = () => {
   const ChronoIcon = currentChronotype.icon;
 
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-0">
+    <div className="page-container">
       <Navigation />
 
-      <main className="container py-6 space-y-5 max-w-3xl lg:max-w-4xl xl:max-w-5xl">
+      <main className="page-content max-w-3xl lg:max-w-4xl xl:max-w-5xl mx-auto">
         {/* Header */}
         <PageHeader
           title={t.profile.title}
           subtitle={(t as any).pageSubtitles?.profile || t.app.tagline}
           icon={User}
         >
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {trialStatus.isActive && (
               <TrialBanner 
                 daysRemaining={trialStatus.daysRemaining}
                 onUpgrade={() => setShowPaywall(true)}
               />
             )}
-            <div className="text-right">
-              <p className="text-2xl font-bold text-primary">{t.kpis.level} {levelProgress.current}</p>
-              <p className="text-xs text-muted-foreground">{levelProgress.pointsToNext} {t.profile.toNextLevel}</p>
+            <div className="text-right hidden sm:block">
+              <p className="text-lg font-bold text-primary">{t.kpis.level} {levelProgress.current}</p>
+              <p className="text-[10px] text-muted-foreground">{levelProgress.pointsToNext} {t.profile.toNextLevel}</p>
             </div>
           </div>
         </PageHeader>
@@ -297,43 +297,37 @@ const Perfil = () => {
         </Card>
 
         {/* Level Progress */}
-        <Card className="border-border bg-card shadow-sm">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium">{t.profile.levelProgress}</span>
-              <span className="text-sm text-muted-foreground">{state.gamification.pontos} {t.profile.totalPoints.toLowerCase()}</span>
+        <Card className="border-border/30 bg-card/50">
+          <CardContent className="p-3">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-xs font-medium">{t.profile.levelProgress}</span>
+              <span className="text-[10px] text-muted-foreground">{state.gamification.pontos} {t.profile.totalPoints.toLowerCase()}</span>
             </div>
-            <Progress value={levelProgress.progress} className="h-2" />
-            <div className="flex justify-between mt-1 text-xs text-muted-foreground">
+            <Progress value={levelProgress.progress} className="h-1.5" />
+            <div className="flex justify-between mt-1 text-[10px] text-muted-foreground">
               <span>{t.kpis.level} {levelProgress.current}</span>
               <span>{t.kpis.level} {levelProgress.current + 1}</span>
             </div>
           </CardContent>
         </Card>
 
-        {/* Stats Overview */}
-        <div className="grid gap-4 grid-cols-3">
-          <Card className="border-border bg-card shadow-sm">
-            <CardContent className="p-4 text-center">
-              <Star className="h-5 w-5 text-warning mx-auto mb-2" />
-              <p className="text-xl font-bold">{state.gamification.pontos}</p>
-              <p className="text-xs text-muted-foreground">{t.profile.totalPoints}</p>
-            </CardContent>
-          </Card>
-          <Card className="border-border bg-card shadow-sm">
-            <CardContent className="p-4 text-center">
-              <TrendingUp className="h-5 w-5 text-primary mx-auto mb-2" />
-              <p className="text-xl font-bold">{state.gamification.currentStreak || 0}</p>
-              <p className="text-xs text-muted-foreground">{t.kpis.currentStreak}</p>
-            </CardContent>
-          </Card>
-          <Card className="border-border bg-card shadow-sm">
-            <CardContent className="p-4 text-center">
-              <Target className="h-5 w-5 text-success mx-auto mb-2" />
-              <p className="text-xl font-bold">{state.habits.length + (state.trackers?.length || 0)}</p>
-              <p className="text-xs text-muted-foreground">{t.profile.totalHabits}</p>
-            </CardContent>
-          </Card>
+        {/* Stats Overview - Compact */}
+        <div className="metrics-grid-3">
+          <div className="metric-compact border-warning/20 bg-warning/5">
+            <Star className="h-4 w-4 text-warning mx-auto mb-1" />
+            <p className="metric-compact-value">{state.gamification.pontos}</p>
+            <p className="metric-compact-label">{t.profile.totalPoints}</p>
+          </div>
+          <div className="metric-compact border-primary/20 bg-primary/5">
+            <TrendingUp className="h-4 w-4 text-primary mx-auto mb-1" />
+            <p className="metric-compact-value">{state.gamification.currentStreak || 0}</p>
+            <p className="metric-compact-label">{t.kpis.currentStreak}</p>
+          </div>
+          <div className="metric-compact border-success/20 bg-success/5">
+            <Target className="h-4 w-4 text-success mx-auto mb-1" />
+            <p className="metric-compact-value">{state.habits.length + (state.trackers?.length || 0)}</p>
+            <p className="metric-compact-label">{t.profile.totalHabits}</p>
+          </div>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">

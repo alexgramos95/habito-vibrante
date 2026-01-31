@@ -80,78 +80,65 @@ const Progresso = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-0">
+    <div className="page-container">
       <Navigation />
 
-      <main className="container py-8 space-y-8">
-        <h1 className="text-2xl font-bold">Progresso & Recompensas</h1>
+      <main className="page-content">
+        <h1 className="page-title">Progresso & Recompensas</h1>
 
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-3 grid-cols-2">
           {/* Pontos */}
-          <Card className="border-border/50 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Star className="h-5 w-5 text-warning" />
-                Pontos
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-5xl font-bold text-gradient">{state.gamification.pontos}</p>
-              <p className="text-sm text-muted-foreground mt-1">pontos acumulados</p>
-              <p className="text-xs text-muted-foreground mt-2">+10 pontos por cada hábito concluído</p>
-            </CardContent>
-          </Card>
+          <div className="summary-card">
+            <div className="summary-card-header">
+              <Star className="summary-card-icon text-warning" />
+              <span className="summary-card-label">Pontos</span>
+            </div>
+            <div className="summary-card-value text-warning">{state.gamification.pontos}</div>
+            <p className="summary-card-subtext">acumulados</p>
+          </div>
 
           {/* Nível Atual */}
-          <Card className="border-border/50 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Trophy className="h-5 w-5 text-primary" />
-                Nível Atual
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-5xl font-bold text-primary">Nível {levelProgress.current}</p>
-              <div className="mt-4 space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Próximo nível</span>
-                  <span className="font-medium">{state.gamification.pontos % 500}/500</span>
-                </div>
-                <Progress value={levelProgress.progress} className="h-3" />
-                <p className="text-xs text-muted-foreground">
-                  Faltam {500 - (state.gamification.pontos % 500)} pontos para o Nível {levelProgress.nextLevel}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="summary-card">
+            <div className="summary-card-header">
+              <Trophy className="summary-card-icon text-primary" />
+              <span className="summary-card-label">Nível</span>
+            </div>
+            <div className="summary-card-value text-primary">{levelProgress.current}</div>
+            <div className="mt-1.5">
+              <Progress value={levelProgress.progress} className="h-1" />
+              <p className="text-[9px] text-muted-foreground mt-0.5">
+                {500 - (state.gamification.pontos % 500)} pts para Nível {levelProgress.nextLevel}
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Conquistas Desbloqueadas */}
-        <Card className="border-border/50 shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Medal className="h-5 w-5 text-success" />
-              Conquistas Desbloqueadas ({unlockedAchievements.length})
+        <Card className="border-border/30 bg-card/50">
+          <CardHeader className="pb-2 px-3 pt-3">
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <Medal className="h-4 w-4 text-success" />
+              Conquistas ({unlockedAchievements.length})
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-3 pb-3">
             {unlockedAchievements.length === 0 ? (
-              <p className="text-muted-foreground text-center py-4">
-                Ainda não desbloqueaste nenhuma conquista. Continua!
+              <p className="text-xs text-muted-foreground text-center py-4">
+                Nenhuma conquista desbloqueada
               </p>
             ) : (
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-2 sm:grid-cols-2">
                 {unlockedAchievements.map((conquista) => (
                   <div
                     key={conquista.id}
-                    className="flex items-center gap-4 rounded-2xl border border-primary/30 bg-primary/10 p-4 animate-fade-in"
+                    className="flex items-center gap-3 rounded-xl border border-primary/20 bg-primary/5 p-2.5"
                   >
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-2xl">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-lg shrink-0">
                       {conquista.icon}
                     </div>
-                    <div>
-                      <p className="font-medium text-primary">{conquista.nome}</p>
-                      <p className="text-sm text-muted-foreground">{conquista.descricao}</p>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-primary truncate">{conquista.nome}</p>
+                      <p className="text-[10px] text-muted-foreground truncate">{conquista.descricao}</p>
                     </div>
                   </div>
                 ))}
@@ -160,104 +147,88 @@ const Progresso = () => {
           </CardContent>
         </Card>
 
-        {/* Próximas Conquistas */}
-        <Card className="border-border/50 shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Target className="h-5 w-5 text-muted-foreground" />
+        {/* Próximas Conquistas - Collapsed on mobile */}
+        <Card className="border-border/30 bg-card/50">
+          <CardHeader className="pb-2 px-3 pt-3">
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <Target className="h-4 w-4 text-muted-foreground" />
               Próximas Conquistas
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {lockedAchievements.map((conquista) => (
+          <CardContent className="px-3 pb-3">
+            <div className="grid gap-2 sm:grid-cols-2">
+              {lockedAchievements.slice(0, 4).map((conquista) => (
                 <div
                   key={conquista.id}
-                  className="flex items-center gap-4 rounded-2xl border border-border/30 bg-secondary/30 p-4 opacity-60"
+                  className="flex items-center gap-3 rounded-xl border border-border/20 bg-secondary/20 p-2.5 opacity-60"
                 >
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted text-2xl grayscale">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted text-lg grayscale shrink-0">
                     {conquista.icon}
                   </div>
-                  <div>
-                    <p className="font-medium">{conquista.nome}</p>
-                    <p className="text-sm text-muted-foreground">{conquista.descricao}</p>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium truncate">{conquista.nome}</p>
+                    <p className="text-[10px] text-muted-foreground truncate">{conquista.descricao}</p>
                   </div>
                 </div>
               ))}
             </div>
+            {lockedAchievements.length > 4 && (
+              <p className="text-[10px] text-center text-muted-foreground mt-2">
+                +{lockedAchievements.length - 4} mais conquistas por desbloquear
+              </p>
+            )}
           </CardContent>
         </Card>
 
         {/* Mealheiro / Poupanças */}
-        <Card className="border-border/50 shadow-lg">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <PiggyBank className="h-5 w-5 text-success" />
+        <Card className="border-border/30 bg-card/50">
+          <CardHeader className="pb-2 px-3 pt-3 flex flex-row items-center justify-between">
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <PiggyBank className="h-4 w-4 text-success" />
               Mealheiro
             </CardTitle>
-            <Button onClick={() => setShowSavingsForm(true)} size="sm">
-              <Plus className="h-4 w-4 mr-1" />
-              Adicionar poupança
+            <Button onClick={() => setShowSavingsForm(true)} size="sm" variant="ghost" className="h-8 px-2">
+              <Plus className="h-4 w-4" />
             </Button>
           </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Savings Summary */}
-            <div className="grid gap-4 sm:grid-cols-3">
-              <div className="rounded-xl bg-success/10 border border-success/30 p-4 text-center">
-                <p className="text-3xl font-bold text-success">{savingsSummary.totalPoupadoMesAtual.toFixed(2)} €</p>
-                <p className="text-sm text-muted-foreground">este mês</p>
+          <CardContent className="space-y-3 px-3 pb-3">
+            {/* Savings Summary - Compact */}
+            <div className="metrics-grid-3">
+              <div className="metric-compact border-success/20 bg-success/5">
+                <p className="metric-compact-value text-success">{savingsSummary.totalPoupadoMesAtual.toFixed(0)} €</p>
+                <p className="metric-compact-label">este mês</p>
               </div>
-              <div className="rounded-xl bg-primary/10 border border-primary/30 p-4 text-center">
-                <p className="text-3xl font-bold text-primary">{savingsSummary.totalPoupadoAllTime.toFixed(2)} €</p>
-                <p className="text-sm text-muted-foreground">total acumulado</p>
+              <div className="metric-compact border-primary/20 bg-primary/5">
+                <p className="metric-compact-value text-primary">{savingsSummary.totalPoupadoAllTime.toFixed(0)} €</p>
+                <p className="metric-compact-label">total</p>
               </div>
-              <div className="rounded-xl bg-secondary p-4 text-center">
-                <p className="text-3xl font-bold">{savingsSummary.numeroEntradasMesAtual}</p>
-                <p className="text-sm text-muted-foreground">entradas este mês</p>
+              <div className="metric-compact">
+                <p className="metric-compact-value">{savingsSummary.numeroEntradasMesAtual}</p>
+                <p className="metric-compact-label">entradas</p>
               </div>
             </div>
 
-            {savingsSummary.totalPoupadoAllTime > 0 && (
-              <p className="text-center text-muted-foreground italic">
-                🎉 Já poupaste {savingsSummary.totalPoupadoAllTime.toFixed(2)} € ao cuidar dos teus hábitos!
-              </p>
-            )}
-
-            {/* Recent Entries */}
+            {/* Recent Entries - Compact */}
             {recentSavings.length > 0 && (
-              <div className="space-y-2">
-                <h4 className="font-medium text-sm text-muted-foreground">Últimas entradas</h4>
-                <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {recentSavings.map((entry) => (
-                    <div
-                      key={entry.id}
-                      className="flex items-center justify-between rounded-xl bg-secondary/50 p-3 group"
+              <div className="space-y-1.5 max-h-40 overflow-y-auto">
+                {recentSavings.slice(0, 5).map((entry) => (
+                  <div
+                    key={entry.id}
+                    className="item-card py-2 group"
+                  >
+                    <span className="text-success font-medium text-sm">+{entry.amount.toFixed(0)} €</span>
+                    <span className="text-xs text-muted-foreground truncate flex-1">{entry.descricao}</span>
+                    <span className="text-[10px] text-muted-foreground">{format(new Date(entry.date), "dd/MM")}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => handleDeleteSavings(entry.id)}
                     >
-                      <div className="flex items-center gap-3">
-                        <span className="text-success font-semibold">+{entry.amount.toFixed(2)} €</span>
-                        <span className="text-sm">{entry.descricao}</span>
-                        {entry.categoria && (
-                          <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
-                            {entry.categoria}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground">
-                          {format(new Date(entry.date), "dd/MM")}
-                        </span>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => handleDeleteSavings(entry.id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                      <Trash2 className="h-3 w-3 text-destructive" />
+                    </Button>
+                  </div>
+                ))}
               </div>
             )}
           </CardContent>
