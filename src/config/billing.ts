@@ -95,16 +95,32 @@ export const isValidPriceId = (priceId: string): boolean => {
 // ============================================
 export const PRO_FEATURES = {
   en: [
-    "Unlimited habits and trackers",
-    "Weekly and monthly views",
-    "Behavioral narrative",
-    "Cross-device sync",
+    "Build the person you want to become",
+    "Track what matters without limits",
+    "See your patterns, not just numbers",
+    "Your journey, synced everywhere",
   ],
   pt: [
-    "Hábitos e trackers ilimitados",
-    "Visões semanal e mensal",
-    "Narrativa comportamental",
-    "Sincronização entre dispositivos",
+    "Constrói a pessoa que queres ser",
+    "Acompanha o que importa, sem limites",
+    "Vê os teus padrões, não apenas números",
+    "O teu percurso, sincronizado em todo o lado",
+  ],
+} as const;
+
+// Trust signals for paywall
+export const TRUST_SIGNALS = {
+  en: [
+    "Cancel anytime",
+    "No ads, ever",
+    "Your data stays private",
+    "Secure payment via Stripe",
+  ],
+  pt: [
+    "Cancelas quando quiseres",
+    "Sem anúncios",
+    "Os teus dados são privados",
+    "Pagamento seguro via Stripe",
   ],
 } as const;
 
@@ -133,6 +149,16 @@ export const APP_NAME = "becoMe";
 export const APP_TAGLINE = {
   en: "Rhythm. Consistency. Identity.",
   pt: "Ritmo. Consistência. Identidade.",
+} as const;
+
+export const PAYWALL_HEADLINE = {
+  en: "Become who you're meant to be",
+  pt: "Torna-te na pessoa que queres ser",
+} as const;
+
+export const PAYWALL_CTA = {
+  en: "Unlock the full becoMe",
+  pt: "Desbloquear a becoMe completa",
 } as const;
 
 // ============================================
