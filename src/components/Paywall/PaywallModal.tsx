@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Crown, Check, RefreshCw, LogIn, Sparkles } from "lucide-react";
+import { Crown, Check, RefreshCw, LogIn, Shield, Sparkles } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,9 +11,11 @@ import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { 
   PLANS, 
-  PRO_FEATURES, 
-  APP_NAME, 
-  APP_TAGLINE, 
+  PRO_FEATURES,
+  TRUST_SIGNALS,
+  APP_NAME,
+  PAYWALL_HEADLINE,
+  PAYWALL_CTA,
   formatPriceCompact,
   type PlanType 
 } from "@/config/billing";
@@ -44,6 +46,7 @@ export const PaywallModal = ({
   const isPT = locale === "pt-PT";
   const lang = isPT ? "pt" : "en";
   const features = PRO_FEATURES[lang];
+  const trustSignals = TRUST_SIGNALS[lang];
 
   const handleUpgrade = async () => {
     if (!isAuthenticated) {
@@ -138,99 +141,139 @@ export const PaywallModal = ({
     }
   };
 
+  // Find the yearly plan for the "most chosen" highlight
+  const yearlyPlan = PLANS.find(p => p.id === "yearly");
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md p-0 gap-0 bg-card border-border shadow-lg overflow-hidden">
-        {/* Premium header */}
-        <div className="relative p-6 pb-5 bg-gradient-to-b from-primary/8 via-primary/4 to-transparent">
+      <DialogContent className="max-w-md p-0 gap-0 bg-card border-border/50 shadow-xl overflow-hidden">
+        {/* Premium header with identity focus */}
+        <div className="relative p-6 pb-5 bg-gradient-to-b from-primary/6 via-primary/3 to-transparent">
           <div className="relative text-center space-y-3">
-            <div className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-primary shadow-sm mb-2">
-              <Sparkles className="h-6 w-6 text-primary-foreground" />
+            <div className="inline-flex items-center justify-center h-14 w-14 rounded-2xl bg-gradient-to-br from-primary to-primary/80 shadow-md mb-2">
+              <Sparkles className="h-7 w-7 text-primary-foreground" />
             </div>
             
             <h2 className="text-xl font-bold tracking-tight text-foreground">
-              {isPT ? `Desbloqueia a ${APP_NAME} completa` : `Unlock the full ${APP_NAME}`}
+              {PAYWALL_HEADLINE[lang]}
             </h2>
             
-            <p className="text-sm text-muted-foreground">
-              {APP_TAGLINE[lang]}
+            <p className="text-sm text-muted-foreground max-w-[280px] mx-auto leading-relaxed">
+              {isPT 
+                ? "A becoMe completa é o teu espaço para construir consistência e identidade, ao teu ritmo."
+                : "The full becoMe is your space to build consistency and identity, at your own pace."
+              }
             </p>
           </div>
         </div>
 
         <div className="p-5 space-y-5">
-          {/* Features list */}
-          <div className="space-y-2">
+          {/* Identity-focused features */}
+          <div className="space-y-2.5">
             {features.map((feature, i) => (
-              <div key={i} className="flex items-center gap-2.5 text-sm">
+              <div key={i} className="flex items-center gap-3 text-sm">
                 <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                   <Check className="h-3 w-3 text-primary" />
                 </div>
-                <span className="text-muted-foreground">{feature}</span>
+                <span className="text-foreground/80">{feature}</span>
               </div>
             ))}
           </div>
 
-          {/* Pricing cards */}
-          <div className="grid grid-cols-3 gap-2">
-            {PLANS.map((plan) => (
-              <button
-                key={plan.id}
-                onClick={() => setSelectedPlan(plan.id)}
-                className={cn(
-                  "relative flex flex-col items-center p-3 rounded-xl border transition-all text-center",
-                  selectedPlan === plan.id 
-                    ? "border-primary bg-primary/5 shadow-sm" 
-                    : "border-border hover:border-primary/40 bg-card",
-                )}
-              >
-                {plan.badge && (
-                  <Badge 
-                    className={cn(
-                      "absolute -top-2 text-[10px] px-1.5 py-0",
-                      plan.popular 
-                        ? "bg-primary text-primary-foreground" 
-                        : "bg-warning text-warning-foreground"
-                    )}
-                  >
-                    {plan.badge[lang]}
-                  </Badge>
-                )}
-
-                <span className="text-xs text-muted-foreground mt-1 mb-1">
-                  {plan.label[lang]}
-                </span>
-                
-                <div className="flex items-baseline">
-                  <span className="text-lg font-bold text-foreground">
-                    {formatPriceCompact(plan.price)}
-                  </span>
-                  {plan.periodLabel[lang] && (
-                    <span className="text-[10px] text-muted-foreground ml-0.5">
-                      {plan.periodLabel[lang]}
-                    </span>
+          {/* Pricing cards - Annual as protagonist */}
+          <div className="space-y-2">
+            {PLANS.map((plan) => {
+              const isYearly = plan.id === "yearly";
+              const isSelected = selectedPlan === plan.id;
+              
+              return (
+                <button
+                  key={plan.id}
+                  onClick={() => setSelectedPlan(plan.id)}
+                  className={cn(
+                    "relative w-full flex items-center justify-between p-4 rounded-xl border transition-all",
+                    isYearly && "order-first",
+                    isSelected 
+                      ? "border-primary bg-primary/5 shadow-sm" 
+                      : "border-border/60 hover:border-primary/30 bg-card/50",
+                    isYearly && !isSelected && "border-primary/20 bg-primary/[0.02]"
                   )}
-                </div>
+                >
+                  {/* Badge for yearly plan */}
+                  {isYearly && (
+                    <Badge 
+                      className="absolute -top-2.5 left-4 text-[10px] px-2 py-0.5 bg-primary text-primary-foreground shadow-sm"
+                    >
+                      {isPT ? "Mais escolhido" : "Most chosen"}
+                    </Badge>
+                  )}
+                  
+                  {/* Lifetime badge */}
+                  {plan.period === "once" && (
+                    <Badge 
+                      className="absolute -top-2.5 left-4 text-[10px] px-2 py-0.5 bg-warning/90 text-warning-foreground"
+                    >
+                      {plan.badge?.[lang]}
+                    </Badge>
+                  )}
 
-                {plan.monthlyEquivalent && (
-                  <span className="text-[10px] text-muted-foreground">
-                    €{plan.monthlyEquivalent.toFixed(2)}/{isPT ? "mês" : "mo"}
-                  </span>
-                )}
-                
-                {plan.period === "once" && (
-                  <span className="text-[10px] text-success mt-0.5">
-                    {isPT ? "Acesso vitalício" : "Lifetime access"}
-                  </span>
-                )}
-              </button>
+                  <div className="flex items-center gap-3">
+                    {/* Selection indicator */}
+                    <div className={cn(
+                      "h-5 w-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors",
+                      isSelected 
+                        ? "border-primary bg-primary" 
+                        : "border-border/60"
+                    )}>
+                      {isSelected && <Check className="h-3 w-3 text-primary-foreground" />}
+                    </div>
+                    
+                    <div className="text-left">
+                      <span className="font-medium text-foreground">
+                        {plan.label[lang]}
+                      </span>
+                      {plan.monthlyEquivalent && (
+                        <span className="text-xs text-muted-foreground ml-2">
+                          (€{plan.monthlyEquivalent.toFixed(2)}/{isPT ? "mês" : "mo"})
+                        </span>
+                      )}
+                      {plan.period === "once" && (
+                        <span className="text-xs text-success ml-2">
+                          {isPT ? "Para sempre" : "Forever"}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="text-right">
+                    <span className="text-lg font-bold text-foreground">
+                      {formatPriceCompact(plan.price)}
+                    </span>
+                    {plan.periodLabel[lang] && (
+                      <span className="text-xs text-muted-foreground">
+                        {plan.periodLabel[lang]}
+                      </span>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Trust signals - subtle and confidence-building */}
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-[11px] text-muted-foreground/70">
+            {trustSignals.map((signal, i) => (
+              <span key={i} className="flex items-center gap-1">
+                <Shield className="h-3 w-3" />
+                {signal}
+              </span>
             ))}
           </div>
 
-          {/* CTA Button */}
+          {/* Primary CTA - Identity focused */}
           <Button 
             onClick={handleUpgrade} 
-            className="w-full h-12 text-base font-semibold gap-2 bg-primary hover:bg-primary/90" 
+            className="w-full h-12 text-base font-semibold gap-2 bg-primary hover:bg-primary/90 shadow-sm" 
             disabled={loading}
           >
             {loading ? (
@@ -241,52 +284,47 @@ export const PaywallModal = ({
             ) : !isAuthenticated ? (
               <>
                 <LogIn className="h-5 w-5" />
-                {isPT ? "Iniciar sessão" : "Sign in"}
+                {isPT ? "Iniciar sessão para continuar" : "Sign in to continue"}
               </>
             ) : (
               <>
                 <Crown className="h-5 w-5" />
-                {isPT ? `Explorar ${APP_NAME} PRO` : `Explore ${APP_NAME} PRO`}
+                {PAYWALL_CTA[lang]}
               </>
             )}
           </Button>
 
-          {/* Secondary actions */}
-          <div className="flex gap-2">
-            <Button 
-              variant="ghost" 
+          {/* Secondary actions - reduced friction */}
+          <div className="flex items-center justify-center gap-4 pt-1">
+            <button 
               onClick={handleRestore} 
-              className="flex-1 text-xs text-muted-foreground h-9" 
+              className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors flex items-center gap-1" 
               disabled={restoring}
             >
-              {restoring ? (
-                <RefreshCw className="h-3.5 w-3.5 animate-spin mr-1" />
-              ) : (
-                <RefreshCw className="h-3.5 w-3.5 mr-1" />
-              )}
-              {isPT ? "Restaurar" : "Restore"}
-            </Button>
-            <Button 
-              variant="ghost" 
+              {restoring && <RefreshCw className="h-3 w-3 animate-spin" />}
+              {isPT ? "Restaurar compra" : "Restore purchase"}
+            </button>
+            <span className="text-muted-foreground/30">·</span>
+            <button 
               onClick={onClose} 
-              className="flex-1 text-xs text-muted-foreground h-9"
+              className="text-xs text-muted-foreground/50 hover:text-muted-foreground/70 transition-colors"
             >
-              {isPT ? "Talvez depois" : "Maybe later"}
-            </Button>
+              {isPT ? "Agora não" : "Not now"}
+            </button>
           </div>
 
-          {/* Legal footer */}
-          <p className="text-[10px] text-center text-muted-foreground/70 leading-relaxed">
+          {/* Legal footer - present but discrete */}
+          <p className="text-[10px] text-center text-muted-foreground/50 leading-relaxed">
             {isPT 
-              ? "Subscrições renovam automaticamente. Cancela a qualquer momento." 
-              : "Subscriptions auto-renew. Cancel anytime."
+              ? "Subscrições renovam automaticamente." 
+              : "Subscriptions auto-renew."
             }
             {" "}
-            <a href="/terms" className="underline hover:text-muted-foreground">
+            <a href="/terms" className="underline hover:text-muted-foreground/70">
               {isPT ? "Termos" : "Terms"}
             </a>
             {" · "}
-            <a href="/privacy" className="underline hover:text-muted-foreground">
+            <a href="/privacy" className="underline hover:text-muted-foreground/70">
               {isPT ? "Privacidade" : "Privacy"}
             </a>
           </p>
