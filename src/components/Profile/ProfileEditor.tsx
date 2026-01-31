@@ -155,20 +155,34 @@ export const ProfileEditor = ({ locale }: ProfileEditorProps) => {
   const handleSaveName = async () => {
     if (!user || !displayName.trim()) return;
 
+    const trimmedName = displayName.trim();
+    
+    // Validate display name length (matches database constraint)
+    if (trimmedName.length > 100) {
+      toast({
+        title: locale === "pt-PT" ? "Nome muito longo" : "Name too long",
+        description: locale === "pt-PT" 
+          ? "O nome deve ter no máximo 100 caracteres." 
+          : "Name must be 100 characters or less.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSavingName(true);
 
     try {
       const { error } = await supabase
         .from("profiles")
         .update({ 
-          display_name: displayName.trim(),
+          display_name: trimmedName,
           updated_at: new Date().toISOString() 
         })
         .eq("user_id", user.id);
 
       if (error) throw error;
 
-      setOriginalName(displayName.trim());
+      setOriginalName(trimmedName);
       setIsEditingName(false);
 
       toast({
