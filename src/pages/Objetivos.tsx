@@ -11,7 +11,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/i18n/I18nContext";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -285,10 +284,10 @@ const Objetivos = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-0">
+    <div className="page-container">
       <Navigation />
 
-      <main className="container py-4 md:py-6 space-y-4">
+      <main className="page-content">
         {/* Header */}
         <PageHeader
           title={t.nav.trackers}
@@ -303,13 +302,13 @@ const Objetivos = () => {
 
         {/* Empty State */}
         {activeTrackers.length === 0 ? (
-          <Card className="glass border-border/30">
-            <CardContent className="py-12 text-center">
-              <Target className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
-              <p className="text-muted-foreground mb-1">{t.trackers.noTrackers}</p>
-              <p className="text-sm text-muted-foreground mb-4">{t.trackers.noTrackersDescription}</p>
-              <Button onClick={() => setShowNewTrackerDialog(true)} size="sm">
-                <Plus className="h-4 w-4 mr-2" />
+          <Card className="border-border/30 bg-card/50">
+            <CardContent className="empty-state">
+              <Target className="empty-state-icon" />
+              <p className="empty-state-title">{t.trackers.noTrackers}</p>
+              <p className="empty-state-description">{t.trackers.noTrackersDescription}</p>
+              <Button onClick={() => setShowNewTrackerDialog(true)} size="sm" className="mt-4">
+                <Plus className="h-4 w-4 mr-1.5" />
                 {t.trackers.createFirst}
               </Button>
             </CardContent>
@@ -319,7 +318,7 @@ const Objetivos = () => {
             "grid gap-4",
             !isMobile && "lg:grid-cols-5"
           )}>
-            {/* Tracker List - Compact with multi-select */}
+            {/* Tracker List - All trackers visible, no artificial limits */}
             <div className={cn(
               "space-y-0",
               !isMobile && "lg:col-span-2"
@@ -335,36 +334,40 @@ const Objetivos = () => {
                 getTrackerTodayCount={getTrackerTodayCount}
               />
               
-              {/* Tracker List */}
-              <ScrollArea className={cn(
-                "pr-2",
-                isMobile ? "max-h-[50vh]" : "max-h-[65vh]"
-              )}>
-                <div className="space-y-2 py-3">
-                  {activeTrackers.map(tracker => {
-                    const todayCount = getTrackerTodayCount(tracker.id);
-                    const isSelected = selectedTracker === tracker.id;
-                    const isCheckedInMultiSelect = multiSelectedIds.includes(tracker.id);
-                    
-                    return (
-                      <CompactTrackerCard
-                        key={tracker.id}
-                        tracker={tracker}
-                        todayCount={todayCount}
-                        isSelected={isSelected}
-                        isMultiSelectMode={isMultiSelectMode}
-                        isCheckedInMultiSelect={isCheckedInMultiSelect}
-                        onSelect={() => handleSelectTracker(tracker.id)}
-                        onToggleMultiSelect={() => handleToggleMultiSelect(tracker.id)}
-                        onEdit={() => openEditDialog(tracker)}
-                        onDelete={() => openDeleteDialog(tracker)}
-                        onQuickCheck={() => handleCardQuickCheck(tracker)}
-                        onLongPress={() => handleStartMultiSelect(tracker.id)}
-                      />
-                    );
-                  })}
-                </div>
-              </ScrollArea>
+              {/* Tracker List - Show ALL trackers, no hidden items */}
+              <div className="space-y-2 py-3">
+                {activeTrackers.map(tracker => {
+                  const todayCount = getTrackerTodayCount(tracker.id);
+                  const isSelected = selectedTracker === tracker.id;
+                  const isCheckedInMultiSelect = multiSelectedIds.includes(tracker.id);
+                  
+                  return (
+                    <CompactTrackerCard
+                      key={tracker.id}
+                      tracker={tracker}
+                      todayCount={todayCount}
+                      isSelected={isSelected}
+                      isMultiSelectMode={isMultiSelectMode}
+                      isCheckedInMultiSelect={isCheckedInMultiSelect}
+                      onSelect={() => handleSelectTracker(tracker.id)}
+                      onToggleMultiSelect={() => handleToggleMultiSelect(tracker.id)}
+                      onEdit={() => openEditDialog(tracker)}
+                      onDelete={() => openDeleteDialog(tracker)}
+                      onQuickCheck={() => handleCardQuickCheck(tracker)}
+                      onLongPress={() => handleStartMultiSelect(tracker.id)}
+                    />
+                  );
+                })}
+                
+                {/* Tracker count indicator for transparency */}
+                {activeTrackers.length > 0 && (
+                  <p className="text-center text-[10px] text-muted-foreground/60 pt-2">
+                    {activeTrackers.length} {activeTrackers.length === 1 
+                      ? (locale === 'pt-PT' ? 'tracker' : 'tracker') 
+                      : (locale === 'pt-PT' ? 'trackers' : 'trackers')}
+                  </p>
+                )}
+              </div>
             </div>
 
             {/* Selected Tracker Details - Desktop only, full inline */}

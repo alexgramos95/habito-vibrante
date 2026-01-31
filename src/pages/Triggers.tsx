@@ -252,56 +252,54 @@ const Triggers = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-0">
+    <div className="page-container">
       <Navigation />
 
-      <main className="container py-6 space-y-6">
+      <main className="page-content">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="page-header">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gradient">
-              {t.triggers.title}
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
+            <h1 className="page-title">{t.triggers.title}</h1>
+            <p className="page-subtitle">
               {locale === 'pt-PT' 
-                ? 'Alarmes e lembretes para manter a consistência' 
-                : 'Alarms and reminders to maintain consistency'}
+                ? 'Alarmes e lembretes' 
+                : 'Alarms and reminders'}
             </p>
           </div>
-          <Button onClick={() => { resetForm(); setShowNewTriggerDialog(true); }} className="gap-2">
+          <Button onClick={() => { resetForm(); setShowNewTriggerDialog(true); }} size="sm" className="gap-1.5 h-9 px-3 rounded-xl">
             <Plus className="h-4 w-4" />
-            {locale === 'pt-PT' ? 'Novo Trigger' : 'New Trigger'}
+            <span className="hidden sm:inline">{locale === 'pt-PT' ? 'Novo' : 'New'}</span>
           </Button>
         </div>
 
         {/* Empty State */}
         {triggers.length === 0 ? (
-          <Card className="glass border-border/30">
-            <CardContent className="py-16 text-center">
-              <Bell className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground mb-2">{t.triggers.noTriggers}</p>
-              <p className="text-sm text-muted-foreground mb-6">{t.triggers.noTriggersDescription}</p>
-              <Button onClick={() => { resetForm(); setShowNewTriggerDialog(true); }}>
-                <Plus className="h-4 w-4 mr-2" />
+          <Card className="border-border/30 bg-card/50">
+            <CardContent className="empty-state">
+              <Bell className="empty-state-icon" />
+              <p className="empty-state-title">{t.triggers.noTriggers}</p>
+              <p className="empty-state-description">{t.triggers.noTriggersDescription}</p>
+              <Button onClick={() => { resetForm(); setShowNewTriggerDialog(true); }} size="sm" className="mt-4">
+                <Plus className="h-4 w-4 mr-1.5" />
                 {locale === 'pt-PT' ? 'Criar Primeiro Trigger' : 'Create First Trigger'}
               </Button>
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2">
             {/* Alarms */}
-            <Card className="glass border-border/30">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-primary" />
+            <Card className="border-border/30 bg-card/50">
+              <CardHeader className="pb-2 px-3 pt-3">
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <Clock className="h-4 w-4 text-primary" />
                   {t.triggers.alarms}
-                  <Badge variant="secondary" className="ml-auto">{alarms.length}</Badge>
+                  <Badge variant="secondary" className="ml-auto text-[10px] h-5">{alarms.length}</Badge>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-2 px-3 pb-3">
                 {alarms.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-8">
-                    {locale === 'pt-PT' ? 'Sem alarmes definidos' : 'No alarms set'}
+                  <p className="text-xs text-muted-foreground text-center py-6">
+                    {locale === 'pt-PT' ? 'Sem alarmes' : 'No alarms'}
                   </p>
                 ) : (
                   alarms.map(renderTriggerCard)
@@ -310,18 +308,18 @@ const Triggers = () => {
             </Card>
 
             {/* Events */}
-            <Card className="glass border-border/30">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Zap className="h-5 w-5 text-warning" />
+            <Card className="border-border/30 bg-card/50">
+              <CardHeader className="pb-2 px-3 pt-3">
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <Zap className="h-4 w-4 text-warning" />
                   {t.triggers.events}
-                  <Badge variant="secondary" className="ml-auto">{events.length}</Badge>
+                  <Badge variant="secondary" className="ml-auto text-[10px] h-5">{events.length}</Badge>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-2 px-3 pb-3">
                 {events.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-8">
-                    {locale === 'pt-PT' ? 'Sem eventos definidos' : 'No events set'}
+                  <p className="text-xs text-muted-foreground text-center py-6">
+                    {locale === 'pt-PT' ? 'Sem eventos' : 'No events'}
                   </p>
                 ) : (
                   events.map(renderTriggerCard)
