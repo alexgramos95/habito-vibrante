@@ -22,7 +22,7 @@ interface CompactTrackerCardProps {
   onLongPress?: () => void;
 }
 
-const LONG_PRESS_DURATION = 400;
+const LONG_PRESS_DURATION = 600;
 
 export const CompactTrackerCard = ({
   tracker,
