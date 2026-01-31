@@ -30,7 +30,7 @@ import { PaywallModal } from "@/components/Paywall/PaywallModal";
 import { Link } from "react-router-dom";
 
 const Index = () => {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const { toast } = useToast();
   const navigate = useNavigate();
   const { isAuthenticated, isEmailVerified } = useAuth();
@@ -67,8 +67,8 @@ const Index = () => {
     } else {
       if (!canAddHabit) {
         toast({
-          title: "Limite atingido",
-          description: "Actualiza para PRO para adicionar mais hábitos.",
+          title: "Limit reached",
+          description: "Upgrade to PRO to add more habits.",
           variant: "destructive",
         });
         return;
@@ -134,18 +134,18 @@ const Index = () => {
         {/* Header - Compact */}
         <div className="page-header">
           <div>
-            <h1 className="page-title">{locale === 'pt-PT' ? 'Os teus hábitos' : 'Your habits'}</h1>
+            <h1 className="page-title">Your habits</h1>
             <p className="page-subtitle">
-              {state.habits.length} {state.habits.length === 1 ? (locale === 'pt-PT' ? 'hábito' : 'habit') : (locale === 'pt-PT' ? 'hábitos' : 'habits')}
-              {!isPro && ` · ${FREE_HABIT_LIMIT - state.habits.length} ${locale === 'pt-PT' ? 'disponíveis' : 'available'}`}
+              {state.habits.length} {state.habits.length === 1 ? 'habit' : 'habits'}
+              {!isPro && ` · ${FREE_HABIT_LIMIT - state.habits.length} available`}
             </p>
           </div>
           <Button
             onClick={() => {
               if (!canAddHabit) {
                 toast({
-                  title: "Limite FREE atingido",
-                  description: "Actualiza para PRO para adicionar mais hábitos.",
+                  title: "FREE limit reached",
+                  description: "Upgrade to PRO to add more habits.",
                   variant: "destructive",
                 });
                 return;
@@ -157,7 +157,7 @@ const Index = () => {
             className="gap-1.5 rounded-xl h-9 px-3"
           >
             <Plus className="h-4 w-4" />
-            <span className="hidden sm:inline">Adicionar</span>
+            <span className="hidden sm:inline">Add</span>
           </Button>
         </div>
 
@@ -166,10 +166,10 @@ const Index = () => {
             <CardContent className="empty-state">
               <CheckCircle2 className="empty-state-icon" />
               <p className="empty-state-title">
-                {locale === 'pt-PT' ? 'Começa com um hábito simples.' : 'Start with a simple habit.'}
+                Start with a simple habit.
               </p>
               <p className="text-sm text-muted-foreground">
-                {locale === 'pt-PT' ? 'A consistência constrói-se passo a passo.' : 'Consistency builds step by step.'}
+                Consistency builds step by step.
               </p>
               <Button
                 onClick={() => {
@@ -179,7 +179,7 @@ const Index = () => {
                 variant="link"
                 className="mt-2 text-sm"
               >
-                {locale === 'pt-PT' ? 'Adicionar hábito' : 'Add habit'}
+                Add habit
               </Button>
             </CardContent>
           </Card>
@@ -257,13 +257,11 @@ const Index = () => {
         {!isPro && state.habits.length >= FREE_HABIT_LIMIT && (
           <div className="text-center py-4">
             <p className="text-sm text-muted-foreground mb-2 whitespace-pre-line">
-              {locale === 'pt-PT' 
-                ? `Na versão gratuita podes criar até ${FREE_HABIT_LIMIT} hábitos.\nA versão PRO remove este limite.`
-                : `On the free version you can create up to ${FREE_HABIT_LIMIT} habits.\nThe PRO version removes this limit.`}
+              On the free version you can create up to {FREE_HABIT_LIMIT} habits.{"\n"}The PRO version removes this limit.
             </p>
             <Link to="/decision">
               <Button variant="outline" size="sm">
-                {locale === 'pt-PT' ? 'Desbloquear PRO' : 'Unlock PRO'}
+                Unlock PRO
               </Button>
             </Link>
           </div>
