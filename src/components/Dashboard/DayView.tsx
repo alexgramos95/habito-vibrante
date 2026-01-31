@@ -109,25 +109,25 @@ export const DayView = ({
   const editorialCopy = getEditorialCopy(selectedDate, locale);
 
   return (
-    <div className="space-y-8">
-      {/* Editorial Header */}
-      <header className="text-center space-y-2 py-2">
-        <h1 className="text-xl font-medium text-foreground">{formattedDate}</h1>
-        <p className="text-sm text-muted-foreground italic">{editorialCopy}</p>
+    <div className="space-y-10">
+      {/* Editorial Header - More breathing room */}
+      <header className="text-center space-y-3 py-4">
+        <h1 className="text-2xl font-semibold text-foreground tracking-tight">{formattedDate}</h1>
+        <p className="text-sm text-muted-foreground/80 italic font-light">{editorialCopy}</p>
       </header>
 
-      {/* Habits section */}
-      <section className="space-y-4">
+      {/* Habits section - Better visual hierarchy */}
+      <section className="space-y-5">
         <div className="flex items-center justify-between px-1">
-          <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+          <h2 className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-widest">
             {locale === 'pt-PT' ? 'Hábitos' : 'Habits'}
           </h2>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0.5">
             <Link to="/app">
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-9 w-9 p-0 text-muted-foreground hover:text-foreground rounded-xl"
+                className="h-10 w-10 p-0 text-muted-foreground/60 hover:text-foreground rounded-xl transition-colors"
               >
                 <Settings2 className="h-4 w-4" />
               </Button>
@@ -137,7 +137,7 @@ export const DayView = ({
                 onClick={onAddHabit}
                 size="sm"
                 variant="ghost"
-                className="h-9 w-9 p-0 rounded-xl hover:bg-primary/10 text-primary"
+                className="h-10 w-10 p-0 rounded-xl hover:bg-primary/10 text-primary transition-colors"
               >
                 <Plus className="h-4 w-4" />
               </Button>
@@ -146,15 +146,15 @@ export const DayView = ({
         </div>
 
         {habitsForDay.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border/40 bg-card/20 py-16 text-center">
-            <p className="text-muted-foreground text-sm mb-3">
+          <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-border/30 bg-card/20 py-20 text-center">
+            <p className="text-muted-foreground/70 text-sm mb-4">
               {locale === 'pt-PT' ? 'Sem hábitos para hoje' : 'No habits for today'}
             </p>
             <Button
               onClick={onAddHabit}
               variant="ghost"
               size="sm"
-              className="text-primary hover:text-primary/80 gap-1.5"
+              className="text-primary hover:text-primary/80 gap-2"
             >
               <Plus className="h-4 w-4" />
               {t.habits.add}
@@ -176,8 +176,8 @@ export const DayView = ({
 
       {/* Micro Weekly Rhythm Preview - Premium */}
       {activeHabits.length > 0 && (
-        <section className="space-y-4">
-          <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide px-1">
+        <section className="space-y-5">
+          <h2 className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-widest px-1">
             {locale === 'pt-PT' ? 'Ritmo da semana' : 'Week rhythm'}
           </h2>
           
@@ -193,16 +193,16 @@ export const DayView = ({
 
       {/* Trackers section - Gated for FREE */}
       {activeTrackers.length > 0 && (
-        <section className="space-y-4">
+        <section className="space-y-5">
           <div className="flex items-center justify-between px-1">
-            <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+            <h2 className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-widest">
               Trackers
             </h2>
             <Link to="/app/trackers">
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-9 w-9 p-0 text-muted-foreground hover:text-foreground rounded-xl"
+                className="h-10 w-10 p-0 text-muted-foreground/60 hover:text-foreground rounded-xl transition-colors"
               >
                 <Settings2 className="h-4 w-4" />
               </Button>
@@ -240,7 +240,7 @@ export const DayView = ({
   );
 };
 
-// Micro weekly rhythm preview - dots sparkline
+// Micro weekly rhythm preview - dots sparkline - refined
 const WeekRhythmPreview = ({
   state,
   selectedDate,
@@ -257,17 +257,17 @@ const WeekRhythmPreview = ({
   const today = new Date();
 
   return (
-    <div className="p-4 rounded-2xl bg-card/30 border border-border/20">
-      {/* Days header */}
-      <div className="flex justify-between mb-4">
+    <div className="p-5 rounded-3xl bg-card/30 border border-border/15 backdrop-blur-sm">
+      {/* Days header - more refined */}
+      <div className="flex justify-between mb-5">
         {weekDays.map((day) => (
           <div key={day.toISOString()} className="flex flex-col items-center">
-            <span className="text-[10px] text-muted-foreground/60 uppercase">
+            <span className="text-[10px] text-muted-foreground/50 uppercase font-medium tracking-wider">
               {format(day, "EEE", { locale: dateLocale }).slice(0, 1)}
             </span>
             <span className={cn(
-              "text-xs font-medium mt-0.5 w-6 h-6 flex items-center justify-center rounded-full",
-              isToday(day) && "bg-primary/10 text-primary"
+              "text-xs font-medium mt-1 w-7 h-7 flex items-center justify-center rounded-full transition-colors",
+              isToday(day) && "bg-primary/15 text-primary"
             )}>
               {format(day, "d")}
             </span>
@@ -275,10 +275,10 @@ const WeekRhythmPreview = ({
         ))}
       </div>
 
-      {/* Compact dots grid */}
-      <div className="space-y-2">
+      {/* Compact dots grid - more elegant spacing */}
+      <div className="space-y-3">
         {activeHabits.slice(0, 4).map((habit) => (
-          <div key={habit.id} className="flex items-center gap-3">
+          <div key={habit.id} className="flex items-center gap-4">
             <div
               className="w-1.5 h-1.5 rounded-full shrink-0"
               style={{ backgroundColor: habit.cor || "hsl(var(--primary))" }}
@@ -293,14 +293,14 @@ const WeekRhythmPreview = ({
                   <div
                     key={day.toISOString()}
                     className={cn(
-                      "w-2 h-2 rounded-full transition-colors",
+                      "w-2.5 h-2.5 rounded-full transition-all duration-300",
                       isFuture
-                        ? "bg-border/20"
+                        ? "bg-border/15"
                         : isDone
-                          ? "bg-primary/80"
-                          : "bg-muted-foreground/15"
+                          ? "bg-primary/80 scale-110"
+                          : "bg-muted-foreground/10"
                     )}
-                    style={isDone && habit.cor ? { backgroundColor: habit.cor, opacity: 0.8 } : undefined}
+                    style={isDone && habit.cor ? { backgroundColor: habit.cor, opacity: 0.85 } : undefined}
                   />
                 );
               })}
@@ -310,7 +310,7 @@ const WeekRhythmPreview = ({
       </div>
 
       {activeHabits.length > 4 && (
-        <p className="text-[10px] text-muted-foreground/50 text-center mt-3">
+        <p className="text-[10px] text-muted-foreground/40 text-center mt-4 font-medium">
           +{activeHabits.length - 4} {locale === 'pt-PT' ? 'mais' : 'more'}
         </p>
       )}
@@ -318,7 +318,7 @@ const WeekRhythmPreview = ({
   );
 };
 
-// Mini tracker card for day view
+// Mini tracker card for day view - refined
 const TrackerMiniCard = ({
   tracker,
   entries,
@@ -335,12 +335,12 @@ const TrackerMiniCard = ({
   return (
     <button
       onClick={onClick}
-      className="flex items-center gap-4 p-4 rounded-2xl bg-card/30 border border-border/20 hover:bg-card/50 transition-all touch-target text-left w-full active:scale-[0.98]"
+      className="flex items-center gap-4 p-5 rounded-3xl bg-card/30 border border-border/15 hover:bg-card/50 hover:border-border/25 transition-all duration-300 touch-target text-left w-full active:scale-[0.98]"
     >
       <div className="text-2xl">{tracker.icon || '📊'}</div>
       <div className="flex-1 min-w-0">
-        <p className="font-medium truncate">{tracker.name}</p>
-        <p className="text-sm text-muted-foreground">
+        <p className="font-medium text-[15px] truncate">{tracker.name}</p>
+        <p className="text-sm text-muted-foreground/70">
           {todayCount > 0 
             ? `${todayCount} ${todayCount === 1 ? tracker.unitSingular : tracker.unitPlural}`
             : '—'

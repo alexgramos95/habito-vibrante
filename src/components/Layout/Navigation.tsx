@@ -30,22 +30,25 @@ export const Navigation = () => {
 
   return (
     <>
-      {/* Desktop Navigation */}
-      <nav className="sticky top-0 z-50 border-b border-border/30 bg-background/90 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
-        <div className="container flex h-14 items-center justify-between">
-          {/* Logo */}
+      {/* Desktop Navigation - Premium minimal */}
+      <nav className="sticky top-0 z-50 border-b border-border/20 bg-background/80 backdrop-blur-2xl">
+        <div className="container flex h-16 items-center justify-between">
+          {/* Logo - Refined */}
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent text-primary-foreground font-bold text-sm">
-              B
+            <div className="relative">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary via-accent to-primary text-primary-foreground font-bold text-sm shadow-lg shadow-primary/20">
+                B
+              </div>
+              <div className="absolute -inset-0.5 rounded-xl bg-gradient-to-br from-primary to-accent opacity-30 blur-sm -z-10" />
             </div>
             <div className="flex flex-col">
               <span className="text-base font-semibold tracking-tight">{t.app.name}</span>
-              <span className="text-[10px] text-muted-foreground tracking-wide hidden sm:block">{t.app.tagline}</span>
+              <span className="text-[10px] text-muted-foreground/70 tracking-wide hidden sm:block">{t.app.tagline}</span>
             </div>
           </div>
           
-          {/* Desktop Navigation Links */}
-          <div className="hidden md:flex items-center gap-1">
+          {/* Desktop Navigation Links - More refined */}
+          <div className="hidden md:flex items-center gap-1.5">
             {mainNavItems.map((item) => (
               <NavLink
                 key={item.to}
@@ -53,10 +56,10 @@ export const Navigation = () => {
                 end={item.to === "/app"}
                 className={({ isActive }) =>
                   cn(
-                    "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
+                    "flex items-center gap-2.5 rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-300",
                     isActive
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                      ? "bg-primary/10 text-primary shadow-sm shadow-primary/10"
+                      : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
                   )
                 }
               >
@@ -65,7 +68,7 @@ export const Navigation = () => {
               </NavLink>
             ))}
             
-            <div className="h-4 w-px bg-border/50 mx-2" />
+            <div className="h-5 w-px bg-border/40 mx-3" />
             
             {secondaryNavItems.map((item) => (
               <NavLink
@@ -73,10 +76,10 @@ export const Navigation = () => {
                 to={item.to}
                 className={({ isActive }) =>
                   cn(
-                    "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
+                    "flex items-center gap-2.5 rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-300",
                     isActive
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                      ? "bg-primary/10 text-primary shadow-sm shadow-primary/10"
+                      : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
                   )
                 }
               >
@@ -88,9 +91,9 @@ export const Navigation = () => {
         </div>
       </nav>
       
-      {/* Mobile Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/30 bg-background/95 backdrop-blur-xl md:hidden safe-bottom">
-        <div className="flex items-center justify-around py-2 px-1">
+      {/* Mobile Bottom Navigation - Premium with better touch targets */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/20 bg-background/95 backdrop-blur-2xl md:hidden">
+        <div className="flex items-center justify-around py-1.5 px-2 safe-bottom">
           {allMobileItems.map((item) => (
             <NavLink
               key={item.to}
@@ -98,15 +101,25 @@ export const Navigation = () => {
               end={item.to === "/app"}
               className={({ isActive }) =>
                 cn(
-                  "flex flex-col items-center gap-1 rounded-xl px-3 py-2 text-xs font-medium transition-all duration-200 touch-target",
+                  "relative flex flex-col items-center gap-1 rounded-2xl px-4 py-2.5 text-[11px] font-medium transition-all duration-300 touch-target",
                   isActive
                     ? "text-primary"
-                    : "text-muted-foreground"
+                    : "text-muted-foreground/70 active:text-foreground"
                 )
               }
             >
-              <item.icon className="h-5 w-5" />
-              <span className="truncate max-w-[56px]">{item.label}</span>
+              {({ isActive }) => (
+                <>
+                  {isActive && (
+                    <div className="absolute inset-x-2 -top-1.5 h-0.5 rounded-full bg-primary" />
+                  )}
+                  <item.icon className={cn(
+                    "h-5 w-5 transition-transform duration-200",
+                    isActive && "scale-110"
+                  )} />
+                  <span className="truncate max-w-[56px]">{item.label}</span>
+                </>
+              )}
             </NavLink>
           ))}
         </div>
