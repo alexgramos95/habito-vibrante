@@ -126,7 +126,17 @@ export const usePWAUpdate = () => {
 
   const applyUpdate = () => {
     if (waitingWorker) {
+      // Send skip waiting message to the waiting service worker
       waitingWorker.postMessage({ type: "SKIP_WAITING" });
+      
+      // Force reload after a short delay to ensure the new SW takes over
+      // This is a fallback in case controllerchange doesn't fire properly
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    } else {
+      // No waiting worker, just reload to get the latest version
+      window.location.reload();
     }
   };
 
