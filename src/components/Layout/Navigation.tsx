@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { 
-  LayoutDashboard, Target, Calendar, Wallet, 
+  LayoutDashboard, Target, Calendar, 
   ShoppingCart, User
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -13,7 +13,6 @@ export const Navigation = () => {
     { to: "/app", label: t.nav.habits, icon: LayoutDashboard },
     { to: "/app/calendar", label: t.nav.calendar, icon: Calendar },
     { to: "/app/trackers", label: t.nav.trackers, icon: Target },
-    { to: "/app/finances", label: t.nav.finances, icon: Wallet },
     { to: "/app/shopping", label: t.nav.shopping, icon: ShoppingCart },
   ];
 
@@ -25,7 +24,7 @@ export const Navigation = () => {
     { to: "/app", label: t.nav.habits, icon: LayoutDashboard },
     { to: "/app/calendar", label: t.nav.calendar, icon: Calendar },
     { to: "/app/trackers", label: t.nav.trackers, icon: Target },
-    { to: "/app/finances", label: t.nav.finances, icon: Wallet },
+    { to: "/app/shopping", label: t.nav.shopping, icon: ShoppingCart },
     { to: "/app/profile", label: t.nav.profile, icon: User },
   ];
 
