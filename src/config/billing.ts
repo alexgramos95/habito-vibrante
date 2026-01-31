@@ -91,37 +91,27 @@ export const isValidPriceId = (priceId: string): boolean => {
 };
 
 // ============================================
-// PRO FEATURES (for display)
+// PRO FEATURES (for display) - Identity focused
 // ============================================
 export const PRO_FEATURES = {
   en: [
-    "Build the person you want to become",
-    "Track what matters without limits",
-    "See your patterns, not just numbers",
-    "Your journey, synced everywhere",
+    "Habits and trackers without limits",
+    "Clear patterns over time",
+    "Weekly and monthly views",
+    "Everything synced, no distractions",
   ],
   pt: [
-    "Constrói a pessoa que queres ser",
-    "Acompanha o que importa, sem limites",
-    "Vê os teus padrões, não apenas números",
-    "O teu percurso, sincronizado em todo o lado",
+    "Hábitos e trackers sem limites",
+    "Padrões claros ao longo do tempo",
+    "Visão semanal e mensal",
+    "Tudo sincronizado, sem distrações",
   ],
 } as const;
 
-// Trust signals for paywall
+// Trust signals for paywall - Discrete, calm
 export const TRUST_SIGNALS = {
-  en: [
-    "Cancel anytime",
-    "No ads, ever",
-    "Your data stays private",
-    "Secure payment via Stripe",
-  ],
-  pt: [
-    "Cancelas quando quiseres",
-    "Sem anúncios",
-    "Os teus dados são privados",
-    "Pagamento seguro via Stripe",
-  ],
+  en: "Cancel anytime · No ads · Private data · Secure payment",
+  pt: "Cancelas quando quiseres · Sem anúncios · Dados privados · Pagamento seguro",
 } as const;
 
 // ============================================
@@ -147,13 +137,20 @@ export const TRIAL_CONFIG = {
 // ============================================
 export const APP_NAME = "becoMe";
 export const APP_TAGLINE = {
-  en: "Rhythm. Consistency. Identity.",
-  pt: "Ritmo. Consistência. Identidade.",
+  en: "One day at a time.",
+  pt: "Um dia de cada vez.",
 } as const;
 
+// Paywall headline - Identity focused
 export const PAYWALL_HEADLINE = {
-  en: "Become who you're meant to be",
-  pt: "Torna-te na pessoa que queres ser",
+  en: "Unlock your consistent self",
+  pt: "Desbloqueia a tua versão consistente",
+} as const;
+
+// Paywall subheadline - Transformation focused
+export const PAYWALL_SUBHEADLINE = {
+  en: "becoMe PRO helps you transform intention into identity.",
+  pt: "A becoMe PRO ajuda-te a transformar intenção em identidade.",
 } as const;
 
 export const PAYWALL_CTA = {
