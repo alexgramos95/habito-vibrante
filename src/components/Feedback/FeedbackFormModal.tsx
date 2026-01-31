@@ -8,11 +8,15 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useFeedbackContext } from "@/hooks/useFeedbackContext";
+import { FEEDBACK_COPY } from "@/config/copy";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/i18n/I18nContext";
 
 interface FeedbackFormModalProps {
   open: boolean;
   onClose: () => void;
+  feedbackType?: string;
 }
 
 const WTP_OPTIONS = [
@@ -22,9 +26,12 @@ const WTP_OPTIONS = [
   { value: ">15", label: "Mais de 15€/mês" },
 ];
 
-export const FeedbackFormModal = ({ open, onClose }: FeedbackFormModalProps) => {
-  const { user } = useAuth();
+export const FeedbackFormModal = ({ open, onClose, feedbackType = "general" }: FeedbackFormModalProps) => {
+  const { session } = useAuth();
   const { toast } = useToast();
+  const { locale } = useI18n();
+  const feedbackContext = useFeedbackContext();
+  const lang = locale === "pt-PT" ? "pt" : "en";
   
   const [willingnessToPay, setWillingnessToPay] = useState("");
   const [whatWouldMakePay, setWhatWouldMakePay] = useState("");
@@ -37,8 +44,10 @@ export const FeedbackFormModal = ({ open, onClose }: FeedbackFormModalProps) => 
   const handleSubmit = async () => {
     if (!willingnessToPay) {
       toast({
-        title: "Por favor responde",
-        description: "Indica quanto estarias disposto a pagar.",
+        title: lang === "pt" ? "Por favor responde" : "Please answer",
+        description: lang === "pt" 
+          ? "Indica quanto estarias disposto a pagar." 
+          : "Let us know what you'd be willing to pay.",
         variant: "destructive",
       });
       return;
@@ -46,25 +55,29 @@ export const FeedbackFormModal = ({ open, onClose }: FeedbackFormModalProps) => 
 
     setLoading(true);
     try {
-      // Call edge function to save to DB + send to Slack
+      // Call edge function with rich context
       const { error } = await supabase.functions.invoke("send-feedback-slack", {
         body: {
-          user_id: user?.id || null,
-          email: user?.email || null,
-          feedback_type: "trial_expiry",
+          user_id: feedbackContext.userId,
+          email: feedbackContext.email,
+          feedback_type: feedbackType,
           willingness_to_pay: willingnessToPay,
           what_would_make_pay: whatWouldMakePay || null,
           what_prevents_pay: whatPreventsPay || null,
           how_become_helped: howBecomeHelped || null,
+          context: feedbackContext,
         },
+        headers: session?.access_token 
+          ? { Authorization: `Bearer ${session.access_token}` }
+          : undefined,
       });
 
       if (error) throw error;
 
       setSubmitted(true);
       toast({
-        title: "Obrigado pelo feedback! 🙏",
-        description: "A tua opinião é muito valiosa para nós.",
+        title: FEEDBACK_COPY.sent[lang],
+        description: FEEDBACK_COPY.sentDescription[lang],
       });
 
       // Auto-close after success
@@ -80,8 +93,8 @@ export const FeedbackFormModal = ({ open, onClose }: FeedbackFormModalProps) => 
     } catch (err) {
       console.error("Error submitting feedback:", err);
       toast({
-        title: "Erro",
-        description: "Não foi possível enviar o feedback. Tenta novamente.",
+        title: FEEDBACK_COPY.error[lang],
+        description: FEEDBACK_COPY.errorDescription[lang],
         variant: "destructive",
       });
     } finally {
@@ -97,9 +110,11 @@ export const FeedbackFormModal = ({ open, onClose }: FeedbackFormModalProps) => 
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-success/10 mx-auto">
               <Check className="h-8 w-8 text-success" />
             </div>
-            <h2 className="text-2xl font-bold">Obrigado!</h2>
+            <h2 className="text-2xl font-bold">
+              {lang === "pt" ? "Obrigado!" : "Thank you!"}
+            </h2>
             <p className="text-muted-foreground">
-              O teu feedback ajuda-nos a melhorar o Become.
+              {FEEDBACK_COPY.sentDescription[lang]}
             </p>
           </div>
         </DialogContent>
@@ -115,10 +130,12 @@ export const FeedbackFormModal = ({ open, onClose }: FeedbackFormModalProps) => 
             <MessageSquare className="h-5 w-5 text-primary" />
           </div>
           <DialogTitle className="text-xl font-bold">
-            Ajuda-nos a melhorar
+            {lang === "pt" ? "Ajuda-nos a melhorar" : "Help us improve"}
           </DialogTitle>
           <DialogDescription>
-            Responde a algumas perguntas rápidas sobre a tua experiência.
+            {lang === "pt" 
+              ? "Responde a algumas perguntas rápidas sobre a tua experiência."
+              : "Answer a few quick questions about your experience."}
           </DialogDescription>
         </DialogHeader>
 
@@ -126,7 +143,9 @@ export const FeedbackFormModal = ({ open, onClose }: FeedbackFormModalProps) => 
           {/* WTP Question - Required */}
           <div className="space-y-3">
             <Label className="text-base font-medium">
-              Quanto estarias disposto a pagar? *
+              {lang === "pt" 
+                ? "Quanto estarias disposto a pagar? *" 
+                : "What would you be willing to pay? *"}
             </Label>
             <RadioGroup 
               value={willingnessToPay} 
@@ -154,11 +173,13 @@ export const FeedbackFormModal = ({ open, onClose }: FeedbackFormModalProps) => 
           {/* What would make you pay */}
           <div className="space-y-2">
             <Label htmlFor="whatMakePay" className="text-base font-medium">
-              O que te faria pagar?
+              {lang === "pt" ? "O que te faria pagar?" : "What would make you pay?"}
             </Label>
             <Textarea
               id="whatMakePay"
-              placeholder="Ex: Mais funcionalidades de gamificação, integração com outras apps..."
+              placeholder={lang === "pt" 
+                ? "Ex: Mais funcionalidades de gamificação, integração com outras apps..."
+                : "E.g., More gamification, integration with other apps..."}
               value={whatWouldMakePay}
               onChange={(e) => setWhatWouldMakePay(e.target.value)}
               className="min-h-[80px] resize-none"
@@ -168,25 +189,29 @@ export const FeedbackFormModal = ({ open, onClose }: FeedbackFormModalProps) => 
           {/* What prevents paying */}
           <div className="space-y-2">
             <Label htmlFor="whatPrevents" className="text-base font-medium">
-              O que te impede agora?
+              {lang === "pt" ? "O que te impede agora?" : "What's stopping you now?"}
             </Label>
             <Textarea
               id="whatPrevents"
-              placeholder="Ex: Preço muito alto, ainda não vi valor suficiente..."
+              placeholder={lang === "pt" 
+                ? "Ex: Preço muito alto, ainda não vi valor suficiente..."
+                : "E.g., Price too high, haven't seen enough value yet..."}
               value={whatPreventsPay}
               onChange={(e) => setWhatPreventsPay(e.target.value)}
               className="min-h-[80px] resize-none"
             />
           </div>
 
-          {/* How Become helped */}
+          {/* How becoMe helped */}
           <div className="space-y-2">
             <Label htmlFor="howHelped" className="text-base font-medium">
-              O Become ajudou em quê?
+              {lang === "pt" ? "A becoMe ajudou em quê?" : "How has becoMe helped?"}
             </Label>
             <Textarea
               id="howHelped"
-              placeholder="Ex: Ajudou-me a ser mais consistente com exercício..."
+              placeholder={lang === "pt" 
+                ? "Ex: Ajudou-me a ser mais consistente com exercício..."
+                : "E.g., Helped me be more consistent with exercise..."}
               value={howBecomeHelped}
               onChange={(e) => setHowBecomeHelped(e.target.value)}
               className="min-h-[80px] resize-none"
@@ -201,7 +226,7 @@ export const FeedbackFormModal = ({ open, onClose }: FeedbackFormModalProps) => 
               className="flex-1"
               disabled={loading}
             >
-              Cancelar
+              {lang === "pt" ? "Cancelar" : "Cancel"}
             </Button>
             <Button 
               onClick={handleSubmit} 
@@ -211,10 +236,10 @@ export const FeedbackFormModal = ({ open, onClose }: FeedbackFormModalProps) => 
               {loading ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  A enviar...
+                  {lang === "pt" ? "A enviar..." : "Sending..."}
                 </>
               ) : (
-                "Enviar feedback"
+                lang === "pt" ? "Enviar feedback" : "Send feedback"
               )}
             </Button>
           </div>
