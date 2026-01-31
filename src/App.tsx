@@ -13,7 +13,6 @@ import { DataProvider } from "@/contexts/DataContext";
 const Index = lazy(() => import("./pages/Index"));
 const Objetivos = lazy(() => import("./pages/Objetivos"));
 const Calendario = lazy(() => import("./pages/Calendario"));
-const Financas = lazy(() => import("./pages/Financas"));
 const Compras = lazy(() => import("./pages/Compras"));
 const Perfil = lazy(() => import("./pages/Perfil"));
 // Habitos removed - /app now handles habit management
@@ -61,7 +60,6 @@ const App = () => (
                   <Route path="/app" element={<Index />} />
                   <Route path="/app/trackers" element={<Objetivos />} />
                   <Route path="/app/calendar" element={<Calendario />} />
-                  <Route path="/app/finances" element={<Financas />} />
                   <Route path="/app/shopping" element={<Compras />} />
                   <Route path="/app/profile" element={<Perfil />} />
                   <Route path="/app/progress" element={<Progresso />} />
@@ -85,8 +83,6 @@ const App = () => (
                   <Route path="/trackers" element={<Objetivos />} />
                   <Route path="/calendario" element={<Calendario />} />
                   <Route path="/calendar" element={<Calendario />} />
-                  <Route path="/financas" element={<Financas />} />
-                  <Route path="/finances" element={<Financas />} />
                   <Route path="/compras" element={<Compras />} />
                   <Route path="/shopping" element={<Compras />} />
                   <Route path="/perfil" element={<Perfil />} />
