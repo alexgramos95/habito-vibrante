@@ -140,17 +140,15 @@ export const PaywallModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md p-0 gap-0 bg-background border-border/50 overflow-hidden">
+      <DialogContent className="max-w-md p-0 gap-0 bg-card border-border shadow-lg overflow-hidden">
         {/* Premium header */}
-        <div className="relative p-6 pb-5 bg-gradient-to-b from-primary/10 via-primary/5 to-transparent">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/20 via-transparent to-transparent opacity-50" />
-          
+        <div className="relative p-6 pb-5 bg-gradient-to-b from-primary/8 via-primary/4 to-transparent">
           <div className="relative text-center space-y-3">
-            <div className="inline-flex items-center justify-center h-14 w-14 rounded-2xl bg-gradient-to-br from-primary to-primary/70 shadow-lg shadow-primary/20 mb-2">
-              <Sparkles className="h-7 w-7 text-primary-foreground" />
+            <div className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-primary shadow-sm mb-2">
+              <Sparkles className="h-6 w-6 text-primary-foreground" />
             </div>
             
-            <h2 className="text-xl font-bold tracking-tight">
+            <h2 className="text-xl font-bold tracking-tight text-foreground">
               {isPT ? `Desbloqueia a ${APP_NAME} completa` : `Unlock the full ${APP_NAME}`}
             </h2>
             
@@ -180,10 +178,10 @@ export const PaywallModal = ({
                 key={plan.id}
                 onClick={() => setSelectedPlan(plan.id)}
                 className={cn(
-                  "relative flex flex-col items-center p-3 rounded-xl border-2 transition-all text-center",
+                  "relative flex flex-col items-center p-3 rounded-xl border transition-all text-center",
                   selectedPlan === plan.id 
-                    ? "border-primary bg-primary/5 shadow-sm shadow-primary/10" 
-                    : "border-border/40 hover:border-border/80 bg-card/50",
+                    ? "border-primary bg-primary/5 shadow-sm" 
+                    : "border-border hover:border-primary/40 bg-card",
                 )}
               >
                 {plan.badge && (
@@ -192,7 +190,7 @@ export const PaywallModal = ({
                       "absolute -top-2 text-[10px] px-1.5 py-0",
                       plan.popular 
                         ? "bg-primary text-primary-foreground" 
-                        : "bg-warning/90 text-warning-foreground"
+                        : "bg-warning text-warning-foreground"
                     )}
                   >
                     {plan.badge[lang]}
@@ -204,7 +202,7 @@ export const PaywallModal = ({
                 </span>
                 
                 <div className="flex items-baseline">
-                  <span className="text-lg font-bold">
+                  <span className="text-lg font-bold text-foreground">
                     {formatPriceCompact(plan.price)}
                   </span>
                   {plan.periodLabel[lang] && (

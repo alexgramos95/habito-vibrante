@@ -117,19 +117,19 @@ const Decision = () => {
         </div>
 
         {/* Action Cards */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           {/* Continue with Pro - Primary */}
           <Card 
-            className="border-2 border-primary bg-primary/5 cursor-pointer hover:bg-primary/10 transition-colors"
+            className="border-2 border-primary bg-primary/5 cursor-pointer hover:bg-primary/8 transition-colors shadow-sm"
             onClick={() => setShowPaywall(true)}
           >
-            <CardContent className="p-5">
+            <CardContent className="p-4">
               <div className="flex items-center gap-4">
-                <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
-                  <Crown className="h-6 w-6 text-primary" />
+                <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-primary flex items-center justify-center">
+                  <Crown className="h-5 w-5 text-primary-foreground" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-lg">Continuar com PRO</h3>
+                  <h3 className="font-semibold">Continuar com PRO</h3>
                   <p className="text-sm text-muted-foreground">
                     Hábitos ilimitados, trackers e mais
                   </p>
@@ -141,16 +141,16 @@ const Decision = () => {
 
           {/* Continue with FREE */}
           <Card 
-            className="cursor-pointer hover:bg-secondary/50 transition-colors"
+            className="cursor-pointer hover:bg-secondary/60 transition-colors border-border shadow-sm"
             onClick={handleChooseFree}
           >
-            <CardContent className="p-5">
+            <CardContent className="p-4">
               <div className="flex items-center gap-4">
-                <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-secondary flex items-center justify-center">
+                <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-secondary flex items-center justify-center">
                   {choosingFree ? (
-                    <Loader2 className="h-6 w-6 text-muted-foreground animate-spin" />
+                    <Loader2 className="h-5 w-5 text-muted-foreground animate-spin" />
                   ) : (
-                    <Users className="h-6 w-6 text-muted-foreground" />
+                    <Users className="h-5 w-5 text-muted-foreground" />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -166,16 +166,16 @@ const Decision = () => {
 
           {/* Export PDF */}
           <Card 
-            className="cursor-pointer hover:bg-secondary/50 transition-colors"
+            className="cursor-pointer hover:bg-secondary/60 transition-colors border-border shadow-sm"
             onClick={handleExportPDF}
           >
-            <CardContent className="p-5">
+            <CardContent className="p-4">
               <div className="flex items-center gap-4">
-                <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-secondary flex items-center justify-center">
+                <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-secondary flex items-center justify-center">
                   {exportingPDF ? (
-                    <Loader2 className="h-6 w-6 text-muted-foreground animate-spin" />
+                    <Loader2 className="h-5 w-5 text-muted-foreground animate-spin" />
                   ) : (
-                    <Download className="h-6 w-6 text-muted-foreground" />
+                    <Download className="h-5 w-5 text-muted-foreground" />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -191,13 +191,13 @@ const Decision = () => {
 
           {/* Give Feedback */}
           <Card 
-            className="cursor-pointer hover:bg-secondary/50 transition-colors"
+            className="cursor-pointer hover:bg-secondary/60 transition-colors border-border shadow-sm"
             onClick={() => setShowFeedback(true)}
           >
-            <CardContent className="p-5">
+            <CardContent className="p-4">
               <div className="flex items-center gap-4">
-                <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-secondary flex items-center justify-center">
-                  <MessageSquare className="h-6 w-6 text-muted-foreground" />
+                <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-secondary flex items-center justify-center">
+                  <MessageSquare className="h-5 w-5 text-muted-foreground" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold">Dar feedback</h3>

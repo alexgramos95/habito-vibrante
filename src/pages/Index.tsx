@@ -119,7 +119,7 @@ const Index = () => {
     <div className="min-h-screen bg-background pb-24 md:pb-0">
       <Navigation />
 
-      <main className="container max-w-lg mx-auto py-8 px-4 space-y-8">
+      <main className="container max-w-xl mx-auto py-6 md:py-8 px-4 space-y-6 md:space-y-8">
         {/* Trial banner */}
         {trialStatus.isActive && (
           <div className="flex justify-center">
@@ -161,22 +161,22 @@ const Index = () => {
         </div>
 
         {state.habits.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-border/30 bg-card/20 py-20 text-center">
-            <CheckCircle2 className="h-12 w-12 text-muted-foreground/20 mb-5" />
-            <p className="text-muted-foreground/70">{t.habits.noHabits}</p>
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/50 py-16 text-center">
+            <CheckCircle2 className="h-10 w-10 text-muted-foreground/25 mb-4" />
+            <p className="text-muted-foreground text-sm">{t.habits.noHabits}</p>
             <Button
               onClick={() => {
                 setEditingHabit(null);
                 setShowHabitForm(true);
               }}
               variant="link"
-              className="mt-3 text-primary"
+              className="mt-2 text-primary text-sm"
             >
               {t.habits.add}
             </Button>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {sortedHabits.map((habit, index) => (
               <div
                 key={habit.id}
@@ -185,27 +185,27 @@ const Index = () => {
                 onDragOver={(e) => handleDragOver(e, habit.id)}
                 onDragEnd={handleDragEnd}
                 className={cn(
-                  "group flex items-center gap-3.5 rounded-2xl border border-border/30 bg-card/40 p-4 transition-all duration-200 cursor-grab active:cursor-grabbing hover:bg-card/60 hover:border-border/50",
-                  draggedId === habit.id && "opacity-50 scale-[0.98]",
-                  !habit.active && "opacity-40"
+                  "group flex items-center gap-3 rounded-xl border border-border bg-card p-3.5 transition-all duration-200 cursor-grab active:cursor-grabbing hover:bg-card/80 hover:shadow-sm",
+                  draggedId === habit.id && "opacity-50 scale-[0.99]",
+                  !habit.active && "opacity-50"
                 )}
               >
                 {/* Drag handle */}
                 <div className="flex flex-col gap-0.5 touch-none">
-                  <GripVertical className="h-4 w-4 text-muted-foreground/30" />
+                  <GripVertical className="h-4 w-4 text-muted-foreground/40" />
                 </div>
 
                 {/* Color indicator */}
                 <div
-                  className="h-3.5 w-3.5 rounded-full shrink-0 shadow-sm"
+                  className="h-3 w-3 rounded-full shrink-0"
                   style={{ backgroundColor: habit.cor || "hsl(var(--primary))" }}
                 />
 
                 {/* Habit info */}
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-[15px] truncate">{habit.nome}</p>
+                  <p className="font-medium text-sm truncate">{habit.nome}</p>
                   {(habit.categoria || habit.scheduledTime) && (
-                    <p className="text-xs text-muted-foreground/60 truncate mt-0.5">
+                    <p className="text-xs text-muted-foreground truncate mt-0.5">
                       {[habit.categoria, habit.scheduledTime].filter(Boolean).join(' · ')}
                     </p>
                   )}

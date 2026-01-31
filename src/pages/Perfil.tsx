@@ -179,7 +179,7 @@ const Perfil = () => {
     <div className="min-h-screen bg-background pb-20 md:pb-0">
       <Navigation />
 
-      <main className="container py-6 space-y-6">
+      <main className="container py-6 space-y-5 max-w-3xl lg:max-w-4xl xl:max-w-5xl">
         {/* Header */}
         <PageHeader
           title={t.profile.title}
@@ -201,7 +201,7 @@ const Perfil = () => {
         </PageHeader>
 
         {/* Account Header */}
-        <Card className="glass border-border/30">
+        <Card className="border-border bg-card shadow-sm">
           <CardContent className="p-3 md:p-4">
             {isAuthenticated ? (
               <div className="flex items-center gap-2 md:gap-4 w-full">
@@ -235,8 +235,8 @@ const Perfil = () => {
 
         {/* Subscription Section */}
         <Card className={cn(
-          "glass border-border/30",
-          isPro && subscription.plan === 'pro' && "border-warning/30 bg-warning/5"
+          "border-border bg-card shadow-sm",
+          isPro && subscription.plan === 'pro' && "border-warning/40 bg-warning/5"
         )}>
           <CardContent className="p-4 space-y-4">
             <div className="flex items-center justify-between">
@@ -297,7 +297,7 @@ const Perfil = () => {
         </Card>
 
         {/* Level Progress */}
-        <Card className="glass border-border/30">
+        <Card className="border-border bg-card shadow-sm">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium">{t.profile.levelProgress}</span>
@@ -313,24 +313,24 @@ const Perfil = () => {
 
         {/* Stats Overview */}
         <div className="grid gap-4 grid-cols-3">
-          <Card className="glass border-border/30">
+          <Card className="border-border bg-card shadow-sm">
             <CardContent className="p-4 text-center">
-              <Star className="h-6 w-6 text-warning mx-auto mb-2" />
-              <p className="text-2xl font-bold">{state.gamification.pontos}</p>
+              <Star className="h-5 w-5 text-warning mx-auto mb-2" />
+              <p className="text-xl font-bold">{state.gamification.pontos}</p>
               <p className="text-xs text-muted-foreground">{t.profile.totalPoints}</p>
             </CardContent>
           </Card>
-          <Card className="glass border-border/30">
+          <Card className="border-border bg-card shadow-sm">
             <CardContent className="p-4 text-center">
-              <TrendingUp className="h-6 w-6 text-primary mx-auto mb-2" />
-              <p className="text-2xl font-bold">{state.gamification.currentStreak || 0}</p>
+              <TrendingUp className="h-5 w-5 text-primary mx-auto mb-2" />
+              <p className="text-xl font-bold">{state.gamification.currentStreak || 0}</p>
               <p className="text-xs text-muted-foreground">{t.kpis.currentStreak}</p>
             </CardContent>
           </Card>
-          <Card className="glass border-border/30">
+          <Card className="border-border bg-card shadow-sm">
             <CardContent className="p-4 text-center">
-              <Target className="h-6 w-6 text-success mx-auto mb-2" />
-              <p className="text-2xl font-bold">{state.habits.length + (state.trackers?.length || 0)}</p>
+              <Target className="h-5 w-5 text-success mx-auto mb-2" />
+              <p className="text-xl font-bold">{state.habits.length + (state.trackers?.length || 0)}</p>
               <p className="text-xs text-muted-foreground">{t.profile.totalHabits}</p>
             </CardContent>
           </Card>
@@ -338,7 +338,7 @@ const Perfil = () => {
 
         <div className="grid gap-6 md:grid-cols-2">
           {/* Settings */}
-          <Card className="glass border-border/30">
+          <Card className="border-border bg-card shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Globe className="h-5 w-5" />
@@ -407,7 +407,7 @@ const Perfil = () => {
           </Card>
 
           {/* Achievements */}
-          <Card className="glass border-border/30">
+          <Card className="border-border bg-card shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Trophy className="h-5 w-5 text-warning" />
@@ -462,7 +462,7 @@ const Perfil = () => {
 
         {/* Completed Goals */}
         {completedGoals.length > 0 && (
-          <Card className="glass border-border/30">
+          <Card className="border-border bg-card shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Target className="h-5 w-5 text-success" />
@@ -496,7 +496,7 @@ const Perfil = () => {
         {/* Screenshot/Demo Mode Card - Only shown when VITE_ENABLE_SCREENSHOT_MODE is enabled */}
         {import.meta.env.VITE_ENABLE_SCREENSHOT_MODE === 'true' && (
           <>
-            <Card className="glass border-border/30">
+            <Card className="border-border bg-card shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-sm font-medium">
                   <Camera className="h-5 w-5 text-primary" />
