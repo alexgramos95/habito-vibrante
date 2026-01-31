@@ -1,9 +1,11 @@
 import { Crown, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/i18n/I18nContext";
 
 interface TrialBannerProps {
   daysRemaining: number;
+  hoursRemaining?: number;
   onUpgrade: () => void;
   variant?: 'inline' | 'card';
   className?: string;
@@ -11,13 +13,28 @@ interface TrialBannerProps {
 
 export const TrialBanner = ({ 
   daysRemaining, 
+  hoursRemaining = 0,
   onUpgrade,
   variant = 'inline',
   className,
 }: TrialBannerProps) => {
-  if (daysRemaining <= 0) return null;
+  const { locale } = useI18n();
+  const isPT = locale === "pt-PT";
 
-  const isUrgent = daysRemaining <= 3;
+  if (daysRemaining <= 0 && hoursRemaining <= 0) return null;
+
+  const isUrgent = daysRemaining <= 2;
+
+  // Format remaining time
+  const timeText = daysRemaining > 0
+    ? `${daysRemaining}${isPT ? "d" : "d"}`
+    : `${hoursRemaining}h`;
+
+  const fullTimeText = daysRemaining > 0
+    ? (isPT 
+        ? `${daysRemaining} dia${daysRemaining === 1 ? "" : "s"} restante${daysRemaining === 1 ? "" : "s"}`
+        : `${daysRemaining} day${daysRemaining === 1 ? "" : "s"} left`)
+    : (isPT ? `${hoursRemaining}h restantes` : `${hoursRemaining}h left`);
 
   if (variant === 'card') {
     return (
@@ -40,11 +57,12 @@ export const TrialBanner = ({
               )} />
             </div>
             <div>
-              <p className="font-medium">
-                {daysRemaining} {daysRemaining === 1 ? 'day' : 'days'} left
-              </p>
+              <p className="font-medium">{fullTimeText}</p>
               <p className="text-sm text-muted-foreground">
-                {isUrgent ? "Don't lose your progress" : "Trial ends soon"}
+                {isUrgent 
+                  ? (isPT ? "Não percas o teu progresso" : "Don't lose your progress")
+                  : (isPT ? "Trial termina em breve" : "Trial ends soon")
+                }
               </p>
             </div>
           </div>
@@ -56,7 +74,7 @@ export const TrialBanner = ({
               isUrgent && "bg-warning text-warning-foreground hover:bg-warning/90"
             )}
           >
-            Upgrade
+            {isPT ? "Atualizar" : "Upgrade"}
             <ArrowRight className="h-4 w-4" />
           </Button>
         </div>
@@ -76,7 +94,7 @@ export const TrialBanner = ({
       )}
     >
       <Crown className="h-4 w-4" />
-      <span>{daysRemaining}d left</span>
+      <span>{timeText} {isPT ? "restantes" : "left"}</span>
     </button>
   );
 };

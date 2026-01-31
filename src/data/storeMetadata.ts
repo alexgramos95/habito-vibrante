@@ -237,7 +237,8 @@ export const icpMessaging = {
   },
 };
 
-// Pricing display with explicit types - UPDATED JANUARY 2026
+// Pricing display with explicit types - Now uses centralized billing config
+// DEPRECATED: Use src/config/billing.ts instead for new code
 export interface PricingPlan {
   price: number;
   currency: string;
@@ -254,6 +255,11 @@ export interface PricingPlan {
   badgePT?: string;
 }
 
+// Re-export from centralized billing config
+export { STRIPE_PRICE_IDS } from '@/config/billing';
+
+// Legacy pricing display - kept for backward compatibility
+// New code should import from @/config/billing
 export const pricingDisplay: Record<string, PricingPlan> = {
   monthly: {
     price: 7.99,
@@ -290,11 +296,4 @@ export const pricingDisplay: Record<string, PricingPlan> = {
     badge: "Founder Access",
     badgePT: "Founder Access",
   },
-};
-
-// Stripe Price IDs - JANUARY 2026 (UPDATED)
-export const STRIPE_PRICE_IDS = {
-  monthly: "price_1SvNnvPEplRqsp5IM3Q8fFXr",  // €7.99/month
-  yearly: "price_1SvNpwPEplRqsp5IyW3A5VZv",   // €59.99/year
-  lifetime: "price_1SvNtBPEplRqsp5IhDXGblEB", // €149 one-time
 };
