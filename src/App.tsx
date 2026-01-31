@@ -9,6 +9,7 @@ import { I18nProvider } from "@/i18n/I18nContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { DataProvider } from "@/contexts/DataContext";
 import { GatedPage } from "@/components/Premium/GatedPage";
+import { PWAUpdateToast, usePWAUpdate } from "@/components/PWA/PWAUpdateToast";
 
 // Lazy load pages (except Onboarding, que importamos diretamente)
 const Index = lazy(() => import("./pages/Index"));
@@ -68,6 +69,74 @@ const GatedSettings = () => (
   </GatedPage>
 );
 
+// PWA Update wrapper - must be inside BrowserRouter for hooks that use router
+const PWAUpdateWrapper = ({ children }: { children: React.ReactNode }) => {
+  const { showUpdateToast, applyUpdate, dismissUpdate } = usePWAUpdate();
+  
+  return (
+    <>
+      {children}
+      {showUpdateToast && (
+        <PWAUpdateToast onUpdate={applyUpdate} onDismiss={dismissUpdate} />
+      )}
+    </>
+  );
+};
+
+// Inner app content that requires router context
+const AppRoutes = () => (
+  <PWAUpdateWrapper>
+    <Suspense fallback={<PageLoader />}>
+      <Routes>
+        {/* Landing page is the root */}
+        <Route path="/" element={<Landing />} />
+
+        {/* App shell routes - consistent /app/* paths */}
+        {/* FREE pages: Hábitos, Calendário, Perfil */}
+        <Route path="/app" element={<Index />} />
+        <Route path="/app/calendar" element={<Calendario />} />
+        <Route path="/app/profile" element={<Perfil />} />
+        
+        {/* PRO-only pages: Trackers, Shopping, Progress, Settings */}
+        <Route path="/app/trackers" element={<GatedTrackers />} />
+        <Route path="/app/shopping" element={<GatedShopping />} />
+        <Route path="/app/progress" element={<GatedProgress />} />
+        <Route path="/app/settings" element={<GatedSettings />} />
+
+        {/* Standalone pages */}
+        <Route path="/onboarding" element={<Onboarding />} />
+        <Route path="/landing" element={<Landing />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/decision" element={<Decision />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/account" element={<Account />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy" element={<Privacy />} />
+
+        {/* Legacy routes for backwards compatibility */}
+        <Route path="/habitos" element={<Index />} />
+        <Route path="/habits" element={<Index />} />
+        <Route path="/triggers" element={<Index />} />
+        <Route path="/objetivos" element={<GatedTrackers />} />
+        <Route path="/trackers" element={<GatedTrackers />} />
+        <Route path="/calendario" element={<Calendario />} />
+        <Route path="/calendar" element={<Calendario />} />
+        <Route path="/compras" element={<GatedShopping />} />
+        <Route path="/shopping" element={<GatedShopping />} />
+        <Route path="/perfil" element={<Perfil />} />
+        <Route path="/profile" element={<Perfil />} />
+        <Route path="/progresso" element={<GatedProgress />} />
+        <Route path="/progress" element={<GatedProgress />} />
+        <Route path="/definicoes" element={<GatedSettings />} />
+        <Route path="/settings" element={<GatedSettings />} />
+
+        {/* Catch-all */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Suspense>
+  </PWAUpdateWrapper>
+);
+
 // Main application component with providers
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -78,54 +147,7 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
-              <Suspense fallback={<PageLoader />}>
-                <Routes>
-                  {/* Landing page is the root */}
-                  <Route path="/" element={<Landing />} />
-
-                  {/* App shell routes - consistent /app/* paths */}
-                  {/* FREE pages: Hábitos, Calendário, Perfil */}
-                  <Route path="/app" element={<Index />} />
-                  <Route path="/app/calendar" element={<Calendario />} />
-                  <Route path="/app/profile" element={<Perfil />} />
-                  
-                  {/* PRO-only pages: Trackers, Shopping, Progress, Settings */}
-                  <Route path="/app/trackers" element={<GatedTrackers />} />
-                  <Route path="/app/shopping" element={<GatedShopping />} />
-                  <Route path="/app/progress" element={<GatedProgress />} />
-                  <Route path="/app/settings" element={<GatedSettings />} />
-
-                  {/* Standalone pages */}
-                  <Route path="/onboarding" element={<Onboarding />} />
-                  <Route path="/landing" element={<Landing />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/decision" element={<Decision />} />
-                  <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="/account" element={<Account />} />
-                  <Route path="/terms" element={<Terms />} />
-                  <Route path="/privacy" element={<Privacy />} />
-
-                  {/* Legacy routes for backwards compatibility */}
-                  <Route path="/habitos" element={<Index />} />
-                  <Route path="/habits" element={<Index />} />
-                  <Route path="/triggers" element={<Index />} />
-                  <Route path="/objetivos" element={<GatedTrackers />} />
-                  <Route path="/trackers" element={<GatedTrackers />} />
-                  <Route path="/calendario" element={<Calendario />} />
-                  <Route path="/calendar" element={<Calendario />} />
-                  <Route path="/compras" element={<GatedShopping />} />
-                  <Route path="/shopping" element={<GatedShopping />} />
-                  <Route path="/perfil" element={<Perfil />} />
-                  <Route path="/profile" element={<Perfil />} />
-                  <Route path="/progresso" element={<GatedProgress />} />
-                  <Route path="/progress" element={<GatedProgress />} />
-                  <Route path="/definicoes" element={<GatedSettings />} />
-                  <Route path="/settings" element={<GatedSettings />} />
-
-                  {/* Catch-all */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </Suspense>
+              <AppRoutes />
             </BrowserRouter>
           </TooltipProvider>
         </DataProvider>

@@ -6,6 +6,22 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+interface FeedbackContext {
+  userId?: string;
+  email?: string;
+  tier?: string;
+  trialDaysRemaining?: number;
+  route?: string;
+  habitCount?: number;
+  trackerCount?: number;
+  device?: string;
+  browser?: string;
+  platform?: string;
+  screenSize?: string;
+  appVersion?: string;
+  locale?: string;
+}
+
 interface FeedbackRequest {
   // Snake_case fields from FeedbackFormModal
   user_id?: string;
@@ -16,9 +32,10 @@ interface FeedbackRequest {
   what_prevents_pay?: string;
   how_become_helped?: string;
   additional_notes?: string;
+  // Rich context
+  context?: FeedbackContext;
   // Legacy camelCase fields for backwards compatibility
   message?: string;
-  context?: string;
   userId?: string;
   willingnessToPay?: string;
   whatWouldMakePay?: string;
@@ -49,19 +66,18 @@ serve(async (req) => {
     const body: FeedbackRequest = await req.json();
     
     // Normalize fields: support both snake_case (new) and camelCase (legacy)
-    const feedbackType = body.feedback_type || body.context || "general";
+    const feedbackType = body.feedback_type || "general";
     const willingnessToPay = body.willingness_to_pay || body.willingnessToPay || null;
     const whatWouldMakePay = body.what_would_make_pay || body.whatWouldMakePay || null;
     const whatPreventsPay = body.what_prevents_pay || body.whatPreventsPay || null;
     const howBecomeHelped = body.how_become_helped || body.howBecomeHelped || body.message || null;
     const additionalNotes = body.additional_notes || null;
+    const richContext = body.context || null;
     
     logStep("Request body parsed", { 
       feedbackType,
       hasWillingnessToPay: !!willingnessToPay,
-      hasWhatWouldMakePay: !!whatWouldMakePay,
-      hasWhatPreventsPay: !!whatPreventsPay,
-      hasHowBecomeHelped: !!howBecomeHelped,
+      hasRichContext: !!richContext,
       hasEmail: !!body.email 
     });
 
@@ -86,34 +102,61 @@ serve(async (req) => {
       }
     }
 
-    // Build Slack message
+    // Determine tag based on feedback type
+    const typeTagMap: Record<string, string> = {
+      bug: "[BUG]",
+      idea: "[IDEIA]",
+      friction: "[FRICÇÃO]",
+      trial_expiry: "[TRIAL]",
+      trial_ended: "[TRIAL]",
+      gating: "[GATING]",
+      paywall: "[PAYWALL]",
+      general: "[FEEDBACK]",
+    };
+    const tag = typeTagMap[feedbackType] || "[FEEDBACK]";
+
+    // Build Slack message with rich context
     const timestamp = new Date().toISOString();
-    const contextEmoji = feedbackType === "trial_expiry" || feedbackType === "trial_ended" ? "⏰" : "💬";
     
-    // Build simple text-based Slack message
-    let slackText = `${contextEmoji} *New Feedback from becoMe*\n\n`;
+    let slackText = `${tag} *becoMe Feedback*\n\n`;
     slackText += `*Email:* ${userEmail || "Anonymous"}\n`;
-    slackText += `*Context:* ${feedbackType}\n`;
     slackText += `*Timestamp:* ${timestamp}\n`;
+
+    // Add rich context if available
+    if (richContext) {
+      slackText += `\n--- *Context* ---\n`;
+      slackText += `*Tier:* ${(richContext.tier || "unknown").toUpperCase()}`;
+      if (richContext.trialDaysRemaining && richContext.trialDaysRemaining > 0) {
+        slackText += ` (${richContext.trialDaysRemaining}d left)`;
+      }
+      slackText += `\n`;
+      slackText += `*Route:* ${richContext.route || "unknown"}\n`;
+      slackText += `*Habits/Trackers:* ${richContext.habitCount || 0}/${richContext.trackerCount || 0}\n`;
+      slackText += `*Device:* ${richContext.device || "?"} • ${richContext.browser || "?"} • ${richContext.platform || "?"} • ${richContext.screenSize || "?"}\n`;
+      slackText += `*Version:* v${richContext.appVersion || "?"}\n`;
+    }
+
+    // Add feedback content
+    slackText += `\n--- *Feedback* ---\n`;
 
     if (willingnessToPay) {
       slackText += `*Willingness to Pay:* ${willingnessToPay}\n`;
     }
 
     if (howBecomeHelped) {
-      slackText += `\n*How Become Helped:*\n${howBecomeHelped}\n`;
+      slackText += `*Como becoMe ajudou:*\n${howBecomeHelped}\n`;
     }
 
     if (whatWouldMakePay) {
-      slackText += `\n*What Would Make Pay:*\n${whatWouldMakePay}\n`;
+      slackText += `*O que faria pagar:*\n${whatWouldMakePay}\n`;
     }
 
     if (whatPreventsPay) {
-      slackText += `\n*What Prevents Paying:*\n${whatPreventsPay}\n`;
+      slackText += `*O que impede de pagar:*\n${whatPreventsPay}\n`;
     }
 
     if (additionalNotes) {
-      slackText += `\n*Additional Notes:*\n${additionalNotes}\n`;
+      slackText += `*Notas adicionais:*\n${additionalNotes}\n`;
     }
 
     // Send to Slack
