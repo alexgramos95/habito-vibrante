@@ -59,18 +59,20 @@
     --warning: 32 95% 52%;
     --warning-foreground: 0 0% 4%;
 
-    /* Premium gradients - more subtle */
-    --gradient-primary: linear-gradient(135deg, hsl(180 100% 50%) 0%, hsl(190 90% 45%) 100%);
-    --gradient-surface: linear-gradient(180deg, hsl(0 0% 8%) 0%, hsl(0 0% 5%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 9%) 0%, hsl(0 0% 6%) 100%);
-    --gradient-success: linear-gradient(135deg, hsl(160 84% 39%) 0%, hsl(180 100% 50%) 100%);
-    --gradient-glow: radial-gradient(ellipse at center, hsl(180 100% 50% / 0.1) 0%, transparent 70%);
+    /* Premium gradients - refined for depth */
+    --gradient-primary: linear-gradient(135deg, hsl(180 100% 50%) 0%, hsl(190 85% 48%) 100%);
+    --gradient-surface: linear-gradient(180deg, hsl(0 0% 8%) 0%, hsl(0 0% 4%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 9%) 0%, hsl(0 0% 5%) 100%);
+    --gradient-success: linear-gradient(135deg, hsl(160 84% 39%) 0%, hsl(175 90% 42%) 100%);
+    --gradient-glow: radial-gradient(ellipse at center, hsl(180 100% 50% / 0.08) 0%, transparent 70%);
+    --gradient-subtle: linear-gradient(180deg, transparent 0%, hsl(180 100% 50% / 0.02) 100%);
     
-    /* Premium shadows - sharper */
-    --shadow-glow: 0 0 30px hsl(180 100% 50% / 0.1);
-    --shadow-card: 0 2px 16px hsl(0 0% 0% / 0.6);
-    --shadow-elevated: 0 4px 24px hsl(0 0% 0% / 0.8);
-    --shadow-inset: inset 0 1px 0 hsl(0 0% 18% / 0.4);
+    /* Premium shadows - softer for elegance */
+    --shadow-glow: 0 0 40px hsl(180 100% 50% / 0.08);
+    --shadow-card: 0 2px 20px hsl(0 0% 0% / 0.5);
+    --shadow-elevated: 0 8px 32px hsl(0 0% 0% / 0.6);
+    --shadow-inset: inset 0 1px 0 hsl(0 0% 20% / 0.3);
+    --shadow-button: 0 2px 8px hsl(180 100% 50% / 0.15);
 
     /* Sidebar tokens */
     --sidebar-background: 0 0% 5%;
@@ -185,10 +187,11 @@
     box-shadow: var(--shadow-elevated);
   }
 
-  /* Premium card styling */
+  /* Premium card styling - more refined */
   .premium-card {
-    @apply glass rounded-2xl;
+    @apply glass rounded-3xl;
     box-shadow: var(--shadow-card);
+    background: var(--gradient-subtle);
   }
 
   /* Animations */

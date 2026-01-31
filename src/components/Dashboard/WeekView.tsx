@@ -64,23 +64,23 @@ export const WeekView = ({ state, selectedDate }: WeekViewProps) => {
   };
 
   const content = (
-    <div className="space-y-8">
-      {/* Week navigation */}
+    <div className="space-y-10">
+      {/* Week navigation - more elegant */}
       <div className="flex items-center justify-between">
         <Button
           variant="ghost"
           size="icon"
-          className="h-9 w-9 rounded-xl"
+          className="h-10 w-10 rounded-xl hover:bg-secondary/80 transition-colors"
           onClick={() => setWeekOffset(prev => prev - 1)}
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
         
         <div className="text-center">
-          <p className="text-sm font-medium">
+          <p className="text-sm font-semibold tracking-tight">
             {format(weekStart, "d MMM", { locale: dateLocale })} — {format(weekEnd, "d MMM", { locale: dateLocale })}
           </p>
-          <p className="text-xs text-muted-foreground mt-1 italic">
+          <p className="text-xs text-muted-foreground/70 mt-1.5 italic font-light">
             {getEditorialCopy()}
           </p>
         </div>
@@ -88,23 +88,23 @@ export const WeekView = ({ state, selectedDate }: WeekViewProps) => {
         <Button
           variant="ghost"
           size="icon"
-          className="h-9 w-9 rounded-xl"
+          className="h-10 w-10 rounded-xl hover:bg-secondary/80 transition-colors"
           onClick={() => setWeekOffset(prev => prev + 1)}
         >
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
 
-      {/* Days header row */}
-      <div className="flex justify-between px-2">
+      {/* Days header row - refined */}
+      <div className="flex justify-between px-3">
         {weekDays.map((day) => (
-          <div key={day.toISOString()} className="flex flex-col items-center gap-2">
-            <span className="text-[10px] text-muted-foreground/60 uppercase font-medium">
+          <div key={day.toISOString()} className="flex flex-col items-center gap-2.5">
+            <span className="text-[10px] text-muted-foreground/50 uppercase font-semibold tracking-wider">
               {format(day, "EEE", { locale: dateLocale }).slice(0, 3)}
             </span>
             <span className={cn(
-              "text-sm font-medium w-8 h-8 flex items-center justify-center rounded-full transition-colors",
-              isSameDay(day, new Date()) && "bg-primary text-primary-foreground"
+              "text-sm font-medium w-9 h-9 flex items-center justify-center rounded-full transition-all duration-300",
+              isSameDay(day, new Date()) && "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
             )}>
               {format(day, "d")}
             </span>
@@ -112,7 +112,7 @@ export const WeekView = ({ state, selectedDate }: WeekViewProps) => {
         ))}
       </div>
 
-      {/* Habits rhythm */}
+      {/* Habits rhythm - better spacing */}
       <div className="space-y-3">
         {activeHabits.map((habit) => (
           <HabitWeekRhythm
@@ -125,7 +125,7 @@ export const WeekView = ({ state, selectedDate }: WeekViewProps) => {
       </div>
 
       {activeHabits.length === 0 && (
-        <div className="text-center py-12 text-muted-foreground text-sm">
+        <div className="text-center py-16 text-muted-foreground/60 text-sm">
           <p>{locale === 'pt-PT' ? 'Adiciona hábitos para ver o ritmo' : 'Add habits to see rhythm'}</p>
         </div>
       )}
@@ -157,18 +157,18 @@ const HabitWeekRhythm = ({
   const today = new Date();
   
   return (
-    <div className="flex items-center gap-4 p-4 rounded-2xl bg-card/30 border border-border/20">
+    <div className="flex items-center gap-4 p-5 rounded-3xl bg-card/30 border border-border/15 backdrop-blur-sm transition-all duration-200 hover:bg-card/40">
       {/* Habit info */}
-      <div className="flex-1 min-w-0 flex items-center gap-3">
+      <div className="flex-1 min-w-0 flex items-center gap-3.5">
         <div
-          className="w-2 h-8 rounded-full shrink-0"
+          className="w-1.5 h-10 rounded-full shrink-0"
           style={{ backgroundColor: habit.cor || "hsl(var(--primary))" }}
         />
-        <span className="font-medium text-sm truncate">{habit.nome}</span>
+        <span className="font-medium text-[15px] truncate">{habit.nome}</span>
       </div>
 
-      {/* Dots */}
-      <div className="flex gap-2.5">
+      {/* Dots - more refined */}
+      <div className="flex gap-3">
         {weekDays.map((day) => {
           const dateStr = format(day, "yyyy-MM-dd");
           const isDone = isHabitDoneOnDate(state, habit.id, dateStr);
@@ -179,17 +179,18 @@ const HabitWeekRhythm = ({
             <div
               key={day.toISOString()}
               className={cn(
-                "w-3.5 h-3.5 rounded-full transition-all",
+                "w-4 h-4 rounded-full transition-all duration-300",
                 isFuture
-                  ? "bg-border/30"
+                  ? "bg-border/20"
                   : isDone
-                    ? "scale-110"
-                    : "bg-muted-foreground/15",
-                isToday && !isDone && "ring-1 ring-primary/30"
+                    ? "scale-110 shadow-sm"
+                    : "bg-muted-foreground/10",
+                isToday && !isDone && "ring-2 ring-primary/30 ring-offset-1 ring-offset-background"
               )}
               style={isDone ? { 
                 backgroundColor: habit.cor || "hsl(var(--primary))",
-                opacity: 0.9
+                opacity: 0.9,
+                boxShadow: `0 2px 8px ${habit.cor || "hsl(var(--primary))"}40`
               } : undefined}
             />
           );
