@@ -214,18 +214,14 @@ const Onboarding = () => {
               <div>
                 <h1 className="text-3xl font-bold text-foreground mb-2">{t.app.name}</h1>
                 <p className="text-base text-muted-foreground whitespace-pre-line">
-                  {locale === 'pt-PT' 
-                    ? "A consistência não nasce da força.\nNasce da repetição certa."
-                    : "Consistency doesn't come from force.\nIt comes from the right repetition."}
+                  Consistency doesn't come from force.{"\n"}It comes from the right repetition.
                 </p>
               </div>
               <p className="text-muted-foreground max-w-sm mx-auto text-sm">
-                {locale === 'pt-PT'
-                  ? "Pequenas ações, feitas com intenção, mudam tudo."
-                  : "Small actions, done with intention, change everything."}
+                Small actions, done with intention, change everything.
               </p>
               <Button onClick={handleNext} size="lg" className="w-full gap-2">
-                {locale === 'pt-PT' ? "Começar" : "Start"}
+                Start
                 <ArrowRight className="h-5 w-5" />
               </Button>
             </div>
@@ -482,9 +478,9 @@ const Onboarding = () => {
               </div>
 
               <div>
-                <h2 className="text-3xl font-bold mb-3">You’re ready to start.</h2>
+                <h2 className="text-3xl font-bold mb-3">becoMe doesn't demand perfection.</h2>
                 <p className="text-lg text-muted-foreground">
-                  Build your streak. Your profile and preferences are set.
+                  It helps you stay present.
                 </p>
               </div>
 
@@ -507,7 +503,7 @@ const Onboarding = () => {
               <div className="space-y-3">
                 <Button onClick={handleComplete} size="lg" className="w-full gap-2">
                   <Flame className="h-5 w-5" />
-                  Start Building
+                  Create my first habit
                 </Button>
                 <p className="text-xs text-muted-foreground">
                   You can always change your preferences later in Settings.

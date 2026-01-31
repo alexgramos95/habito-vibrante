@@ -94,29 +94,29 @@ const Landing = () => {
         <div className="container max-w-4xl mx-auto text-center">
           <Badge variant="outline" className="mb-6 px-4 py-1.5 text-sm bg-secondary/50">
             <Sparkles className="h-3.5 w-3.5 mr-1.5" />
-            7 dias grátis · PRO desde €7,99/mês
+            7 days free · PRO from €7.99/mo
           </Badge>
 
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6 text-foreground">
-            Torna-te consistente,<br />um dia de cada vez.
+            Become consistent,<br />one day at a time.
           </h1>
 
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            A becoMe ajuda-te a criar hábitos com intenção, clareza e continuidade.
+            becoMe helps you build habits with intention, clarity, and continuity.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button size="lg" onClick={handleStartTrial} className="gap-2 px-8">
-              Começar agora
+              Start now
               <ArrowRight className="h-5 w-5" />
             </Button>
             <Button size="lg" variant="outline" onClick={() => setShowPaywall(true)}>
-              Saber mais
+              Learn more
             </Button>
           </div>
 
           <p className="text-sm text-muted-foreground mt-6">
-            Junta-te a quem constrói hábitos duradouros através da identidade, não da força de vontade.
+            Join those who build lasting habits through identity, not willpower.
           </p>
         </div>
       </section>
@@ -235,8 +235,8 @@ const Landing = () => {
                 <CardContent className="p-5">
                   <h3 className="font-semibold mb-1">{plan.label}</h3>
                   <div className="flex items-baseline gap-1 mb-2">
-                    <span className="text-3xl font-bold">€{plan.price.toFixed(2).replace(".", ",")}</span>
-                    {plan.period !== "once" && <span className="text-muted-foreground text-sm">/{plan.period === "month" ? "mês" : "ano"}</span>}
+                    <span className="text-3xl font-bold">€{plan.price.toFixed(2)}</span>
+                    {plan.period !== "once" && <span className="text-muted-foreground text-sm">/{plan.period === "month" ? "mo" : "yr"}</span>}
                   </div>
                   <p className="text-sm text-muted-foreground mb-3">{plan.description}</p>
                   {plan.savings && (
@@ -342,10 +342,10 @@ const Landing = () => {
       {/* Final CTA */}
       <section className="py-16">
         <div className="container max-w-2xl text-center">
-          <h2 className="text-2xl font-bold mb-3">Pronto para começar?</h2>
-          <p className="text-muted-foreground mb-6">7 dias grátis. Atualiza para PRO desde €7,99/mês.</p>
+          <h2 className="text-2xl font-bold mb-3">Ready to start?</h2>
+          <p className="text-muted-foreground mb-6">7 days free. Upgrade to PRO from €7.99/mo.</p>
           <Button size="lg" onClick={handleStartTrial} className="gap-2 px-8">
-            Começar agora
+            Start now
             <ArrowRight className="h-5 w-5" />
           </Button>
         </div>
