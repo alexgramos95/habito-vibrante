@@ -70,13 +70,13 @@ const Landing = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Marketing Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/30">
-        <div className="container flex items-center justify-between h-16">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/60 shadow-sm">
+        <div className="container flex items-center justify-between h-14">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-primary/20 flex items-center justify-center">
-              <Flame className="h-5 w-5 text-primary" />
+            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
+              <Flame className="h-4 w-4 text-primary-foreground" />
             </div>
-            <span className="font-bold text-lg">becoMe</span>
+            <span className="font-semibold">becoMe</span>
           </div>
           <div className="flex items-center gap-4">
             <Link to="/auth" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
@@ -90,24 +90,24 @@ const Landing = () => {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4">
+      <section className="pt-28 pb-16 px-4">
         <div className="container max-w-4xl mx-auto text-center">
-          <Badge variant="outline" className="mb-6 px-4 py-1.5 text-sm">
+          <Badge variant="outline" className="mb-6 px-4 py-1.5 text-sm bg-secondary/50">
             <Sparkles className="h-3.5 w-3.5 mr-1.5" />
             7 days free trial • Pro from €7.99/month
           </Badge>
 
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6">
-            Identity <span className="text-gradient">&gt;</span> Intensity
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6 text-foreground">
+            Identity <span className="text-primary">&gt;</span> Intensity
           </h1>
 
-          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
             Track habits. See savings. Become who you're aiming to be. A scientific approach to consistency without the
             guilt.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" onClick={handleStartTrial} className="gap-2 text-lg px-8">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button size="lg" onClick={handleStartTrial} className="gap-2 px-8">
               Start Free
               <ArrowRight className="h-5 w-5" />
             </Button>
@@ -123,16 +123,16 @@ const Landing = () => {
       </section>
 
       {/* What becoMe Does */}
-      <section className="py-20 bg-secondary/30">
+      <section className="py-16 bg-secondary/40">
         <div className="container">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">What becoMe Does</h2>
+          <div className="text-center mb-12">
+            <h2 className="text-2xl font-bold mb-3">What becoMe Does</h2>
             <p className="text-muted-foreground max-w-xl mx-auto">
               A complete system for identity-driven behavior change
             </p>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {[
               {
                 icon: CheckCircle2,
@@ -165,12 +165,12 @@ const Landing = () => {
                 desc: "Define who you're becoming. Let habits flow from identity.",
               },
             ].map((item, i) => (
-              <Card key={i} className="glass border-border/30 group hover:glow-subtle transition-all">
-                <CardContent className="p-6">
-                  <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                    <item.icon className="h-6 w-6 text-primary" />
+              <Card key={i} className="border-border bg-card shadow-sm group hover:shadow-md transition-all">
+                <CardContent className="p-5">
+                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
+                    <item.icon className="h-5 w-5 text-primary" />
                   </div>
-                  <h3 className="font-semibold mb-2">{item.title}</h3>
+                  <h3 className="font-semibold mb-1.5">{item.title}</h3>
                   <p className="text-sm text-muted-foreground">{item.desc}</p>
                 </CardContent>
               </Card>
@@ -180,23 +180,23 @@ const Landing = () => {
       </section>
 
       {/* Why It Matters - Identity Segments */}
-      <section className="py-20">
+      <section className="py-16">
         <div className="container">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">Why It Matters</h2>
+          <div className="text-center mb-12">
+            <h2 className="text-2xl font-bold mb-3">Why It Matters</h2>
             <p className="text-muted-foreground max-w-xl mx-auto">Different people, same goal: lasting change</p>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2">
             {Object.entries(icpMessaging).map(([key, segment]) => (
-              <Card key={key} className="glass border-border/30 overflow-hidden">
-                <CardContent className="p-6">
-                  <Badge variant="outline" className="mb-4 capitalize">
+              <Card key={key} className="border-border bg-card shadow-sm overflow-hidden">
+                <CardContent className="p-5">
+                  <Badge variant="outline" className="mb-3 capitalize bg-secondary/50">
                     {key}
                   </Badge>
-                  <h3 className="text-xl font-bold mb-2">{segment.headline}</h3>
-                  <p className="text-muted-foreground mb-4">{segment.subheadline}</p>
-                  <ul className="space-y-2">
+                  <h3 className="text-lg font-bold mb-2">{segment.headline}</h3>
+                  <p className="text-muted-foreground mb-3 text-sm">{segment.subheadline}</p>
+                  <ul className="space-y-1.5">
                     {segment.benefits.map((benefit, i) => (
                       <li key={i} className="flex items-center gap-2 text-sm">
                         <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
@@ -212,19 +212,19 @@ const Landing = () => {
       </section>
 
       {/* Pricing */}
-      <section className="py-20 bg-secondary/30">
+      <section className="py-16 bg-secondary/40">
         <div className="container max-w-4xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Simple Pricing</h2>
+          <div className="text-center mb-10">
+            <h2 className="text-2xl font-bold mb-3">Simple Pricing</h2>
             <p className="text-muted-foreground">Start free. Upgrade when you're ready.</p>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-3">
             {Object.entries(pricingDisplay).map(([key, plan]) => (
               <Card
                 key={key}
                 className={cn(
-                  "glass border-border/30 relative overflow-hidden transition-all",
+                  "border-border bg-card shadow-sm relative overflow-hidden transition-all",
                   plan.popular && "border-primary/50 ring-2 ring-primary/20",
                 )}
               >
@@ -233,15 +233,15 @@ const Landing = () => {
                     Most Popular
                   </div>
                 )}
-                <CardContent className="p-6">
+                <CardContent className="p-5">
                   <h3 className="font-semibold mb-1">{plan.label}</h3>
                   <div className="flex items-baseline gap-1 mb-2">
-                    <span className="text-4xl font-bold">€{plan.price.toFixed(2).replace(".", ",")}</span>
-                    {plan.period !== "once" && <span className="text-muted-foreground">/{plan.period === "month" ? "mês" : "ano"}</span>}
+                    <span className="text-3xl font-bold">€{plan.price.toFixed(2).replace(".", ",")}</span>
+                    {plan.period !== "once" && <span className="text-muted-foreground text-sm">/{plan.period === "month" ? "mês" : "ano"}</span>}
                   </div>
-                  <p className="text-sm text-muted-foreground mb-4">{plan.description}</p>
+                  <p className="text-sm text-muted-foreground mb-3">{plan.description}</p>
                   {plan.savings && (
-                    <p className="text-xs text-success mb-4">{plan.savings}</p>
+                    <p className="text-xs text-success mb-3">{plan.savings}</p>
                   )}
                   <Button
                     className="w-full"
@@ -258,7 +258,7 @@ const Landing = () => {
             ))}
           </div>
 
-          <p className="text-center text-sm text-muted-foreground mt-8">
+          <p className="text-center text-sm text-muted-foreground mt-6">
             All plans include: Unlimited habits • Unlimited trackers • Full calendar • Financial tracking • Export • No
             ads
           </p>
@@ -315,22 +315,22 @@ const Landing = () => {
       </section>
 
       {/* FAQ */}
-      <section className="py-20 bg-secondary/30">
+      <section className="py-16 bg-secondary/40">
         <div className="container max-w-3xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Frequently Asked Questions</h2>
+          <div className="text-center mb-10">
+            <h2 className="text-2xl font-bold mb-3">Frequently Asked Questions</h2>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             {faqs.map((faq, i) => (
-              <div key={i} className="glass border border-border/30 rounded-xl overflow-hidden">
+              <div key={i} className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
                 <button
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   className="w-full flex items-center justify-between p-4 text-left"
                 >
-                  <span className="font-medium">{faq.q}</span>
+                  <span className="font-medium text-sm">{faq.q}</span>
                   <ChevronDown
-                    className={cn("h-5 w-5 text-muted-foreground transition-transform", openFaq === i && "rotate-180")}
+                    className={cn("h-4 w-4 text-muted-foreground transition-transform", openFaq === i && "rotate-180")}
                   />
                 </button>
                 {openFaq === i && <div className="px-4 pb-4 text-sm text-muted-foreground">{faq.a}</div>}
@@ -341,11 +341,11 @@ const Landing = () => {
       </section>
 
       {/* Final CTA */}
-      <section className="py-20">
+      <section className="py-16">
         <div className="container max-w-2xl text-center">
-          <h2 className="text-3xl font-bold mb-4">Ready to become?</h2>
-          <p className="text-muted-foreground mb-8">7 days free trial. Upgrade to Pro from €7.99/month.</p>
-          <Button size="lg" onClick={handleStartTrial} className="gap-2 text-lg px-8">
+          <h2 className="text-2xl font-bold mb-3">Ready to become?</h2>
+          <p className="text-muted-foreground mb-6">7 days free trial. Upgrade to Pro from €7.99/month.</p>
+          <Button size="lg" onClick={handleStartTrial} className="gap-2 px-8">
             Start Free
             <ArrowRight className="h-5 w-5" />
           </Button>
@@ -353,14 +353,14 @@ const Landing = () => {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 border-t border-border/30">
+      <footer className="py-10 border-t border-border">
         <div className="container">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-lg bg-primary/20 flex items-center justify-center">
-                <Flame className="h-5 w-5 text-primary" />
+              <div className="h-7 w-7 rounded-lg bg-primary flex items-center justify-center">
+                <Flame className="h-4 w-4 text-primary-foreground" />
               </div>
-              <span className="font-bold">becoMe</span>
+              <span className="font-semibold">becoMe</span>
             </div>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
               <a href="/privacy" className="hover:text-foreground transition-colors">

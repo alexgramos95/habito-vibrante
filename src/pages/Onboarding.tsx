@@ -188,11 +188,11 @@ const Onboarding = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Background gradient */}
+      {/* Subtle background gradient - lighter for premium feel */}
       <div
         className="fixed inset-0 pointer-events-none"
         style={{
-          background: "radial-gradient(ellipse at 50% 30%, hsl(174 72% 46% / 0.08) 0%, transparent 60%)",
+          background: "radial-gradient(ellipse at 50% 30%, hsl(174 65% 42% / 0.04) 0%, transparent 60%)",
         }}
       />
 
@@ -207,15 +207,15 @@ const Onboarding = () => {
         <div className="w-full max-w-md space-y-6">
           {/* Welcome */}
           {step === "welcome" && (
-            <div className="text-center space-y-8 animate-in fade-in duration-500">
-              <div className="inline-flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-accent text-primary-foreground font-bold text-3xl">
+            <div className="text-center space-y-6 animate-in fade-in duration-500">
+              <div className="inline-flex h-16 w-16 items-center justify-center rounded-xl bg-primary text-primary-foreground font-bold text-2xl shadow-sm">
                 B
               </div>
               <div>
-                <h1 className="text-4xl font-bold text-gradient mb-2">{t.app.name}</h1>
-                <p className="text-lg text-muted-foreground">Identity-Based Discipline</p>
+                <h1 className="text-3xl font-bold text-foreground mb-2">{t.app.name}</h1>
+                <p className="text-base text-muted-foreground">Identity-Based Discipline</p>
               </div>
-              <p className="text-muted-foreground max-w-sm mx-auto">
+              <p className="text-muted-foreground max-w-sm mx-auto text-sm">
                 Small consistent actions compound into who you become. Start shaping your identity today.
               </p>
               <Button onClick={handleNext} size="lg" className="w-full gap-2">
@@ -312,7 +312,7 @@ const Onboarding = () => {
               </div>
 
               {selectedIdentity.length > 0 && (
-                <Card className="glass border-border/30">
+                <Card className="border-border bg-card shadow-sm">
                   <CardContent className="p-4">
                     <p className="text-sm text-muted-foreground mb-2">You're becoming:</p>
                     <div className="flex flex-wrap gap-2">

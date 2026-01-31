@@ -321,7 +321,7 @@ const Auth = () => {
             <p className="text-muted-foreground">Check your inbox to continue</p>
           </div>
 
-          <Card className="glass border-border/30">
+          <Card className="border-border bg-card shadow-sm">
             <CardHeader className="space-y-1 text-center">
               <CardTitle className="text-xl">Almost there!</CardTitle>
               <CardDescription>
@@ -407,7 +407,7 @@ const Auth = () => {
           <p className="text-muted-foreground">Identity → Intensity → Consistency</p>
         </div>
 
-        <Card className="glass border-border/30">
+        <Card className="border-border bg-card shadow-sm">
           <CardHeader className="space-y-1">
             <CardTitle className="text-xl">
               {mode === 'signin' && 'Welcome back'}

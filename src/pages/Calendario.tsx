@@ -509,16 +509,16 @@ const Calendario = () => {
     <div className="min-h-screen bg-background pb-20 md:pb-0">
       <Navigation />
 
-      <main className="container py-6 space-y-6">
+      <main className="container py-6 space-y-5 max-w-3xl lg:max-w-4xl xl:max-w-5xl">
         {/* Header */}
         <PageHeader
           title={t.calendar.title}
           subtitle={(t as any).pageSubtitles?.calendar || (locale === 'pt-PT' ? 'Visualiza o teu progresso ao longo do tempo' : 'View your progress over time')}
           icon={CalendarIcon}
         >
-          <div className="flex items-center gap-2 px-4 py-2 rounded-xl glass">
-            <Flame className="h-5 w-5 text-warning" />
-            <span className="font-bold text-lg">{currentStreak}</span>
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary border border-border">
+            <Flame className="h-4 w-4 text-warning" />
+            <span className="font-semibold">{currentStreak}</span>
             <span className="text-sm text-muted-foreground">{t.kpis.days}</span>
           </div>
         </PageHeader>
@@ -533,7 +533,7 @@ const Calendario = () => {
 
           {/* Monthly View */}
           <TabsContent value="monthly" className="mt-6">
-            <Card className="premium-card border-border/30">
+            <Card className="border-border bg-card shadow-sm">
               <CardHeader className="pb-4">
                 <MonthSelector
                   year={currentYear}
@@ -590,7 +590,7 @@ const Calendario = () => {
 
           {/* Weekly View */}
           <TabsContent value="weekly" className="mt-6">
-            <Card className="premium-card border-border/30">
+            <Card className="border-border bg-card shadow-sm">
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
                   <Button variant="ghost" size="icon" onClick={handlePreviousWeek}>
@@ -646,7 +646,7 @@ const Calendario = () => {
 
           {/* Daily View */}
           <TabsContent value="daily" className="mt-6">
-            <Card className="premium-card border-border/30">
+            <Card className="border-border bg-card shadow-sm">
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
                   <Button variant="ghost" size="icon" onClick={handlePreviousDay}>
