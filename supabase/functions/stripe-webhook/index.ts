@@ -20,11 +20,11 @@ const toIsoFromSeconds = (s?: number | null): string | null => {
   return null;
 };
 
-// Map price IDs to plan names
+// Map price IDs to plan names - JANUARY 2026 (UPDATED)
 const PRICE_TO_PLAN: Record<string, string> = {
-  "price_1Sov5zPEplRqsp5If0ew4t8x": "monthly",
-  "price_1SovF8PEplRqsp5IPMsfrtOm": "yearly",
-  "price_1SovG2PEplRqsp5I52kZ77Vl": "lifetime",
+  "price_1SvNnvPEplRqsp5IM3Q8fFXr": "monthly",  // €7.99/month
+  "price_1SvNpwPEplRqsp5IyW3A5VZv": "yearly",   // €59.99/year
+  "price_1SvNtBPEplRqsp5IhDXGblEB": "lifetime", // €149 one-time
 };
 
 serve(async (req) => {

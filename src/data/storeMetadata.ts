@@ -292,9 +292,9 @@ export const pricingDisplay: Record<string, PricingPlan> = {
   },
 };
 
-// Stripe Price IDs - for reference
+// Stripe Price IDs - JANUARY 2026 (UPDATED)
 export const STRIPE_PRICE_IDS = {
-  monthly: "price_1Sov5zPEplRqsp5If0ew4t8x",
-  yearly: "price_1SovF8PEplRqsp5IPMsfrtOm",
-  lifetime: "price_1SovG2PEplRqsp5I52kZ77Vl",
+  monthly: "price_1SvNnvPEplRqsp5IM3Q8fFXr",  // €7.99/month
+  yearly: "price_1SvNpwPEplRqsp5IyW3A5VZv",   // €59.99/year
+  lifetime: "price_1SvNtBPEplRqsp5IhDXGblEB", // €149 one-time
 };

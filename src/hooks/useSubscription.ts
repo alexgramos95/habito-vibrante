@@ -22,11 +22,12 @@ export interface OnboardingState {
 
 const ONBOARDING_KEY = 'become-onboarding-state';
 
-// Feature limits
+// Feature limits - JANUARY 2026 (UPDATED)
+// FREE: Only 3 habits, 0 trackers, 3 pages (Hábitos, Calendário, Perfil)
 export const FREE_LIMITS = {
   maxHabits: 3,
-  maxTrackers: 3,
-  calendarDaysBack: 7,
+  maxTrackers: 0, // No trackers for FREE
+  calendarDaysBack: Infinity, // Calendar allowed
   financesAccess: false,
   exportAccess: false,
   fullReminders: false,

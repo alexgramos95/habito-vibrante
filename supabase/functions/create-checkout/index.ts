@@ -34,15 +34,15 @@ const getSafeErrorMessage = (rawMessage: string): string => {
   return "An error occurred. Please try again.";
 };
 
-// ACTUAL STRIPE PRICE IDS - DO NOT CHANGE
+// ACTUAL STRIPE PRICE IDS - JANUARY 2026 (UPDATED)
 const PRICE_IDS: Record<string, string> = {
-  monthly: "price_1Sov5zPEplRqsp5If0ew4t8x",   // €19.99/month
-  yearly: "price_1SovF8PEplRqsp5IPMsfrtOm",    // €189.99/year
-  lifetime: "price_1SovG2PEplRqsp5I52kZ77Vl",  // €399.99 one-time
+  monthly: "price_1SvNnvPEplRqsp5IM3Q8fFXr",   // €7.99/month
+  yearly: "price_1SvNpwPEplRqsp5IyW3A5VZv",    // €59.99/year
+  lifetime: "price_1SvNtBPEplRqsp5IhDXGblEB",  // €149 one-time
 };
 
 // Site URL for redirects
-const SITE_URL = Deno.env.get("SITE_URL") || "https://habito-vibrante.lovable.app";
+const SITE_URL = Deno.env.get("SITE_URL") || "https://becomeme.lovable.app";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {

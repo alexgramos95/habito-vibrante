@@ -43,23 +43,23 @@ const Landing = () => {
     navigate("/app");
   };
 
-  // FAQ items - Updated pricing
+  // FAQ items - Updated pricing JANUARY 2026
   const faqs = [
     {
       q: "What makes becoMe different from other habit trackers?",
-      a: "becoMe focuses on identity transformation, not just streak counting. It includes financial tracking to show the real cost of habits, uses weekly cycles that match how life actually works, and takes a scientific approach without moralization.",
+      a: "becoMe focuses on identity transformation, not just streak counting. It uses weekly cycles that match how life actually works, and takes a scientific approach without moralization.",
     },
     {
       q: "How does pricing work?",
-      a: "We offer three plans: Monthly at €19.99/month, Yearly at €189.99/year (save 20%), and Lifetime at €399.99 (one-time payment). All plans include full Pro access with unlimited habits, trackers, finances, and export.",
+      a: "We offer three plans: Monthly at €7.99/month, Yearly at €59.99/year (best value), and Lifetime at €149 (one-time payment). All plans include full Pro access with unlimited habits and trackers.",
     },
     {
       q: "Can I export my data?",
       a: "Yes, Pro users can export all data as CSV or PDF at any time. Your data is yours.",
     },
     {
-      q: "What's the financial tracking feature?",
-      a: "becoMe calculates savings from behavior changes. If you reduce coffee from 4 to 2 cups daily at €3.50 each, you'll see your monthly savings. Discipline pays off.",
+      q: "What happens during the free trial?",
+      a: "You get 7 days of full Pro access - unlimited habits, trackers, and all features. No credit card required to start.",
     },
     {
       q: "Is there a money-back guarantee?",
@@ -94,7 +94,7 @@ const Landing = () => {
         <div className="container max-w-4xl mx-auto text-center">
           <Badge variant="outline" className="mb-6 px-4 py-1.5 text-sm">
             <Sparkles className="h-3.5 w-3.5 mr-1.5" />
-            Free to start • Pro from €19.99/month
+            7 days free trial • Pro from €7.99/month
           </Badge>
 
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6">
@@ -344,7 +344,7 @@ const Landing = () => {
       <section className="py-20">
         <div className="container max-w-2xl text-center">
           <h2 className="text-3xl font-bold mb-4">Ready to become?</h2>
-          <p className="text-muted-foreground mb-8">Start free. Upgrade to Pro from €19.99/month.</p>
+          <p className="text-muted-foreground mb-8">7 days free trial. Upgrade to Pro from €7.99/month.</p>
           <Button size="lg" onClick={handleStartTrial} className="gap-2 text-lg px-8">
             Start Free
             <ArrowRight className="h-5 w-5" />

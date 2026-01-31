@@ -1,30 +1,52 @@
 import { NavLink } from "react-router-dom";
 import { 
   LayoutDashboard, Target, Calendar, 
-  ShoppingCart, User
+  ShoppingCart, User, Lock
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n/I18nContext";
+import { useSubscription } from "@/hooks/useSubscription";
 
 export const Navigation = () => {
   const { t } = useI18n();
+  const { subscription, trialStatus } = useSubscription();
 
-  const mainNavItems = [
-    { to: "/app", label: t.nav.habits, icon: LayoutDashboard },
-    { to: "/app/calendar", label: t.nav.calendar, icon: Calendar },
-    { to: "/app/trackers", label: t.nav.trackers, icon: Target },
-    { to: "/app/shopping", label: t.nav.shopping, icon: ShoppingCart },
+  // Check if user has PRO access (PRO plan or active trial)
+  const hasPro = subscription.plan === 'pro' || trialStatus.isActive;
+
+  // FREE users: only Hábitos, Calendário, Perfil
+  // TRIAL/PRO users: full navigation
+  const freeNavItems = [
+    { to: "/app", label: t.nav.habits, icon: LayoutDashboard, allowed: true },
+    { to: "/app/calendar", label: t.nav.calendar, icon: Calendar, allowed: true },
+    { to: "/app/profile", label: t.nav.profile, icon: User, allowed: true },
   ];
 
-  const secondaryNavItems = [
-    { to: "/app/profile", label: t.nav.profile, icon: User },
+  const proNavItems = [
+    { to: "/app", label: t.nav.habits, icon: LayoutDashboard, allowed: true },
+    { to: "/app/calendar", label: t.nav.calendar, icon: Calendar, allowed: true },
+    { to: "/app/trackers", label: t.nav.trackers, icon: Target, allowed: true },
+    { to: "/app/shopping", label: t.nav.shopping, icon: ShoppingCart, allowed: true },
+    { to: "/app/profile", label: t.nav.profile, icon: User, allowed: true },
   ];
 
-  const allMobileItems = [
-    { to: "/app", label: t.nav.habits, icon: LayoutDashboard },
-    { to: "/app/calendar", label: t.nav.calendar, icon: Calendar },
-    { to: "/app/trackers", label: t.nav.trackers, icon: Target },
-    { to: "/app/shopping", label: t.nav.shopping, icon: ShoppingCart },
+  // Use appropriate nav items based on tier
+  const navItems = hasPro ? proNavItems : freeNavItems;
+
+  // Desktop: separate main and secondary items for PRO
+  const desktopMainItems = hasPro 
+    ? [
+        { to: "/app", label: t.nav.habits, icon: LayoutDashboard },
+        { to: "/app/calendar", label: t.nav.calendar, icon: Calendar },
+        { to: "/app/trackers", label: t.nav.trackers, icon: Target },
+        { to: "/app/shopping", label: t.nav.shopping, icon: ShoppingCart },
+      ]
+    : [
+        { to: "/app", label: t.nav.habits, icon: LayoutDashboard },
+        { to: "/app/calendar", label: t.nav.calendar, icon: Calendar },
+      ];
+
+  const desktopSecondaryItems = [
     { to: "/app/profile", label: t.nav.profile, icon: User },
   ];
 
@@ -47,9 +69,9 @@ export const Navigation = () => {
             </div>
           </div>
           
-          {/* Desktop Navigation Links - More refined */}
+          {/* Desktop Navigation Links - Tier-aware */}
           <div className="hidden md:flex items-center gap-1.5">
-            {mainNavItems.map((item) => (
+            {desktopMainItems.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
@@ -70,7 +92,7 @@ export const Navigation = () => {
             
             <div className="h-5 w-px bg-border/40 mx-3" />
             
-            {secondaryNavItems.map((item) => (
+            {desktopSecondaryItems.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
@@ -91,10 +113,10 @@ export const Navigation = () => {
         </div>
       </nav>
       
-      {/* Mobile Bottom Navigation - Premium with better touch targets */}
+      {/* Mobile Bottom Navigation - Tier-aware with premium touch targets */}
       <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/20 bg-background/95 backdrop-blur-2xl md:hidden">
         <div className="flex items-center justify-around py-1.5 px-2 safe-bottom">
-          {allMobileItems.map((item) => (
+          {navItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}

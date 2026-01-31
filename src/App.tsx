@@ -8,6 +8,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { I18nProvider } from "@/i18n/I18nContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { DataProvider } from "@/contexts/DataContext";
+import { GatedPage } from "@/components/Premium/GatedPage";
 
 // Lazy load pages (except Onboarding, que importamos diretamente)
 const Index = lazy(() => import("./pages/Index"));
@@ -15,8 +16,6 @@ const Objetivos = lazy(() => import("./pages/Objetivos"));
 const Calendario = lazy(() => import("./pages/Calendario"));
 const Compras = lazy(() => import("./pages/Compras"));
 const Perfil = lazy(() => import("./pages/Perfil"));
-// Habitos removed - /app now handles habit management
-// const Onboarding = lazy(() => import("./pages/Onboarding")); // <- removido
 const Progresso = lazy(() => import("./pages/Progresso"));
 const Definicoes = lazy(() => import("./pages/Definicoes"));
 const Landing = lazy(() => import("./pages/Landing"));
@@ -41,6 +40,34 @@ const PageLoader = () => (
   </div>
 );
 
+// Gated page wrappers for PRO-only pages
+// FREE users: only Hábitos, Calendário, Perfil
+// PRO/TRIAL users: all pages
+
+const GatedTrackers = () => (
+  <GatedPage featureName="Trackers">
+    <Objetivos />
+  </GatedPage>
+);
+
+const GatedShopping = () => (
+  <GatedPage featureName="Lista de Compras">
+    <Compras />
+  </GatedPage>
+);
+
+const GatedProgress = () => (
+  <GatedPage featureName="Progresso">
+    <Progresso />
+  </GatedPage>
+);
+
+const GatedSettings = () => (
+  <GatedPage featureName="Definições">
+    <Definicoes />
+  </GatedPage>
+);
+
 // Main application component with providers
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -57,13 +84,16 @@ const App = () => (
                   <Route path="/" element={<Landing />} />
 
                   {/* App shell routes - consistent /app/* paths */}
+                  {/* FREE pages: Hábitos, Calendário, Perfil */}
                   <Route path="/app" element={<Index />} />
-                  <Route path="/app/trackers" element={<Objetivos />} />
                   <Route path="/app/calendar" element={<Calendario />} />
-                  <Route path="/app/shopping" element={<Compras />} />
                   <Route path="/app/profile" element={<Perfil />} />
-                  <Route path="/app/progress" element={<Progresso />} />
-                  <Route path="/app/settings" element={<Definicoes />} />
+                  
+                  {/* PRO-only pages: Trackers, Shopping, Progress, Settings */}
+                  <Route path="/app/trackers" element={<GatedTrackers />} />
+                  <Route path="/app/shopping" element={<GatedShopping />} />
+                  <Route path="/app/progress" element={<GatedProgress />} />
+                  <Route path="/app/settings" element={<GatedSettings />} />
 
                   {/* Standalone pages */}
                   <Route path="/onboarding" element={<Onboarding />} />
@@ -79,18 +109,18 @@ const App = () => (
                   <Route path="/habitos" element={<Index />} />
                   <Route path="/habits" element={<Index />} />
                   <Route path="/triggers" element={<Index />} />
-                  <Route path="/objetivos" element={<Objetivos />} />
-                  <Route path="/trackers" element={<Objetivos />} />
+                  <Route path="/objetivos" element={<GatedTrackers />} />
+                  <Route path="/trackers" element={<GatedTrackers />} />
                   <Route path="/calendario" element={<Calendario />} />
                   <Route path="/calendar" element={<Calendario />} />
-                  <Route path="/compras" element={<Compras />} />
-                  <Route path="/shopping" element={<Compras />} />
+                  <Route path="/compras" element={<GatedShopping />} />
+                  <Route path="/shopping" element={<GatedShopping />} />
                   <Route path="/perfil" element={<Perfil />} />
                   <Route path="/profile" element={<Perfil />} />
-                  <Route path="/progresso" element={<Progresso />} />
-                  <Route path="/progress" element={<Progresso />} />
-                  <Route path="/definicoes" element={<Definicoes />} />
-                  <Route path="/settings" element={<Definicoes />} />
+                  <Route path="/progresso" element={<GatedProgress />} />
+                  <Route path="/progress" element={<GatedProgress />} />
+                  <Route path="/definicoes" element={<GatedSettings />} />
+                  <Route path="/settings" element={<GatedSettings />} />
 
                   {/* Catch-all */}
                   <Route path="*" element={<NotFound />} />
