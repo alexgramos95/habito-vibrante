@@ -11,14 +11,12 @@ import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { 
   PLANS, 
-  PRO_FEATURES,
   TRUST_SIGNALS,
   APP_NAME,
-  PAYWALL_HEADLINE,
-  PAYWALL_CTA,
   formatPriceCompact,
   type PlanType 
 } from "@/config/billing";
+import { PAYWALL_COPY, UPGRADE_COPY } from "@/config/copy";
 
 interface PaywallModalProps {
   open: boolean;
@@ -45,7 +43,13 @@ export const PaywallModal = ({
 
   const isPT = locale === "pt-PT";
   const lang = isPT ? "pt" : "en";
-  const features = PRO_FEATURES[lang];
+  
+  // Use centralized copy
+  const headline = PAYWALL_COPY.headline[lang];
+  const subheadline = PAYWALL_COPY.subheadline[lang];
+  const benefits = PAYWALL_COPY.benefits[lang];
+  const ctaPrimary = PAYWALL_COPY.ctaPrimary[lang];
+  const ctaSecondary = PAYWALL_COPY.ctaSecondary[lang];
   const trustSignals = TRUST_SIGNALS[lang];
 
   const handleUpgrade = async () => {
@@ -141,9 +145,6 @@ export const PaywallModal = ({
     }
   };
 
-  // Find the yearly plan for the "most chosen" highlight
-  const yearlyPlan = PLANS.find(p => p.id === "yearly");
-
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-md p-0 gap-0 bg-card border-border/50 shadow-xl overflow-hidden">
@@ -155,27 +156,24 @@ export const PaywallModal = ({
             </div>
             
             <h2 className="text-xl font-bold tracking-tight text-foreground">
-              {PAYWALL_HEADLINE[lang]}
+              {headline}
             </h2>
             
             <p className="text-sm text-muted-foreground max-w-[280px] mx-auto leading-relaxed">
-              {isPT 
-                ? "A becoMe completa é o teu espaço para construir consistência e identidade, ao teu ritmo."
-                : "The full becoMe is your space to build consistency and identity, at your own pace."
-              }
+              {subheadline}
             </p>
           </div>
         </div>
 
         <div className="p-5 space-y-5">
-          {/* Identity-focused features */}
+          {/* Identity-focused benefits */}
           <div className="space-y-2.5">
-            {features.map((feature, i) => (
+            {benefits.map((benefit, i) => (
               <div key={i} className="flex items-center gap-3 text-sm">
                 <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                   <Check className="h-3 w-3 text-primary" />
                 </div>
-                <span className="text-foreground/80">{feature}</span>
+                <span className="text-foreground/80">{benefit}</span>
               </div>
             ))}
           </div>
@@ -184,7 +182,11 @@ export const PaywallModal = ({
           <div className="space-y-2">
             {PLANS.map((plan) => {
               const isYearly = plan.id === "yearly";
+              const isLifetime = plan.period === "once";
               const isSelected = selectedPlan === plan.id;
+              
+              // Use copy for plan descriptions
+              const planCopy = PAYWALL_COPY.plans[plan.id];
               
               return (
                 <button
@@ -199,7 +201,7 @@ export const PaywallModal = ({
                     isYearly && !isSelected && "border-primary/20 bg-primary/[0.02]"
                   )}
                 >
-                  {/* Badge for yearly plan */}
+                  {/* Badge for yearly plan - "Mais escolhido" */}
                   {isYearly && (
                     <Badge 
                       className="absolute -top-2.5 left-4 text-[10px] px-2 py-0.5 bg-primary text-primary-foreground shadow-sm"
@@ -209,7 +211,7 @@ export const PaywallModal = ({
                   )}
                   
                   {/* Lifetime badge */}
-                  {plan.period === "once" && (
+                  {isLifetime && (
                     <Badge 
                       className="absolute -top-2.5 left-4 text-[10px] px-2 py-0.5 bg-warning/90 text-warning-foreground"
                     >
@@ -237,7 +239,7 @@ export const PaywallModal = ({
                           (€{plan.monthlyEquivalent.toFixed(2)}/{isPT ? "mês" : "mo"})
                         </span>
                       )}
-                      {plan.period === "once" && (
+                      {isLifetime && (
                         <span className="text-xs text-success ml-2">
                           {isPT ? "Para sempre" : "Forever"}
                         </span>
@@ -261,14 +263,9 @@ export const PaywallModal = ({
           </div>
 
           {/* Trust signals - subtle and confidence-building */}
-          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-[11px] text-muted-foreground/70">
-            {trustSignals.map((signal, i) => (
-              <span key={i} className="flex items-center gap-1">
-                <Shield className="h-3 w-3" />
-                {signal}
-              </span>
-            ))}
-          </div>
+          <p className="text-center text-[11px] text-muted-foreground/70">
+            {trustSignals}
+          </p>
 
           {/* Primary CTA - Identity focused */}
           <Button 
@@ -289,7 +286,7 @@ export const PaywallModal = ({
             ) : (
               <>
                 <Crown className="h-5 w-5" />
-                {PAYWALL_CTA[lang]}
+                {ctaPrimary}
               </>
             )}
           </Button>
@@ -302,23 +299,20 @@ export const PaywallModal = ({
               disabled={restoring}
             >
               {restoring && <RefreshCw className="h-3 w-3 animate-spin" />}
-              {isPT ? "Restaurar compra" : "Restore purchase"}
+              {UPGRADE_COPY.restore[lang]}
             </button>
             <span className="text-muted-foreground/30">·</span>
             <button 
               onClick={onClose} 
               className="text-xs text-muted-foreground/50 hover:text-muted-foreground/70 transition-colors"
             >
-              {isPT ? "Agora não" : "Not now"}
+              {ctaSecondary}
             </button>
           </div>
 
           {/* Legal footer - present but discrete */}
           <p className="text-[10px] text-center text-muted-foreground/50 leading-relaxed">
-            {isPT 
-              ? "Subscrições renovam automaticamente." 
-              : "Subscriptions auto-renew."
-            }
+            {UPGRADE_COPY.termsPrefix[lang]}
             {" "}
             <a href="/terms" className="underline hover:text-muted-foreground/70">
               {isPT ? "Termos" : "Terms"}

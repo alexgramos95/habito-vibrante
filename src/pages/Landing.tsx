@@ -94,30 +94,29 @@ const Landing = () => {
         <div className="container max-w-4xl mx-auto text-center">
           <Badge variant="outline" className="mb-6 px-4 py-1.5 text-sm bg-secondary/50">
             <Sparkles className="h-3.5 w-3.5 mr-1.5" />
-            7 days free trial • Pro from €7.99/month
+            7 dias grátis · PRO desde €7,99/mês
           </Badge>
 
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6 text-foreground">
-            Identity <span className="text-primary">&gt;</span> Intensity
+            Torna-te consistente,<br />um dia de cada vez.
           </h1>
 
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Track habits. See savings. Become who you're aiming to be. A scientific approach to consistency without the
-            guilt.
+            A becoMe ajuda-te a criar hábitos com intenção, clareza e continuidade.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button size="lg" onClick={handleStartTrial} className="gap-2 px-8">
-              Start Free
+              Começar agora
               <ArrowRight className="h-5 w-5" />
             </Button>
             <Button size="lg" variant="outline" onClick={() => setShowPaywall(true)}>
-              View Pricing
+              Saber mais
             </Button>
           </div>
 
           <p className="text-sm text-muted-foreground mt-6">
-            Join thousands building lasting habits through identity, not willpower.
+            Junta-te a quem constrói hábitos duradouros através da identidade, não da força de vontade.
           </p>
         </div>
       </section>
@@ -343,10 +342,10 @@ const Landing = () => {
       {/* Final CTA */}
       <section className="py-16">
         <div className="container max-w-2xl text-center">
-          <h2 className="text-2xl font-bold mb-3">Ready to become?</h2>
-          <p className="text-muted-foreground mb-6">7 days free trial. Upgrade to Pro from €7.99/month.</p>
+          <h2 className="text-2xl font-bold mb-3">Pronto para começar?</h2>
+          <p className="text-muted-foreground mb-6">7 dias grátis. Atualiza para PRO desde €7,99/mês.</p>
           <Button size="lg" onClick={handleStartTrial} className="gap-2 px-8">
-            Start Free
+            Começar agora
             <ArrowRight className="h-5 w-5" />
           </Button>
         </div>

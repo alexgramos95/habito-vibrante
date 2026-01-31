@@ -205,7 +205,7 @@ const Onboarding = () => {
 
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-6">
         <div className="w-full max-w-md space-y-6">
-          {/* Welcome */}
+          {/* Welcome - Screen 1 */}
           {step === "welcome" && (
             <div className="text-center space-y-6 animate-in fade-in duration-500">
               <div className="inline-flex h-16 w-16 items-center justify-center rounded-xl bg-primary text-primary-foreground font-bold text-2xl shadow-sm">
@@ -213,13 +213,19 @@ const Onboarding = () => {
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-foreground mb-2">{t.app.name}</h1>
-                <p className="text-base text-muted-foreground">Identity-Based Discipline</p>
+                <p className="text-base text-muted-foreground whitespace-pre-line">
+                  {locale === 'pt-PT' 
+                    ? "A consistência não nasce da força.\nNasce da repetição certa."
+                    : "Consistency doesn't come from force.\nIt comes from the right repetition."}
+                </p>
               </div>
               <p className="text-muted-foreground max-w-sm mx-auto text-sm">
-                Small consistent actions compound into who you become. Start shaping your identity today.
+                {locale === 'pt-PT'
+                  ? "Pequenas ações, feitas com intenção, mudam tudo."
+                  : "Small actions, done with intention, change everything."}
               </p>
               <Button onClick={handleNext} size="lg" className="w-full gap-2">
-                Start Building
+                {locale === 'pt-PT' ? "Começar" : "Start"}
                 <ArrowRight className="h-5 w-5" />
               </Button>
             </div>

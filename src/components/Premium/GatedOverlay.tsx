@@ -2,6 +2,7 @@ import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n/I18nContext";
 import { useSubscription } from "@/hooks/useSubscription";
+import { GATING_COPY } from "@/config/copy";
 
 interface GatedOverlayProps {
   children: React.ReactNode;
@@ -15,6 +16,7 @@ interface GatedOverlayProps {
 export const GatedOverlay = ({ children, feature }: GatedOverlayProps) => {
   const { locale } = useI18n();
   const { trialStatus, subscription } = useSubscription();
+  const lang = locale === "pt-PT" ? "pt" : "en";
 
   // Determine CTA text based on plan
   const getCTAText = () => {
@@ -26,11 +28,8 @@ export const GatedOverlay = ({ children, feature }: GatedOverlayProps) => {
       // PRO - no CTA needed
       return null;
     }
-    if (subscription.plan === 'trial' && trialStatus.isExpired) {
-      return locale === 'pt-PT' ? 'Desbloquear becoMe PRO' : 'Unlock becoMe PRO';
-    }
-    // FREE
-    return locale === 'pt-PT' ? 'Explorar becoMe PRO' : 'Explore becoMe PRO';
+    // FREE or expired trial
+    return GATING_COPY.unlockCTA[lang];
   };
 
   const ctaText = getCTAText();
@@ -48,18 +47,22 @@ export const GatedOverlay = ({ children, feature }: GatedOverlayProps) => {
       </div>
       
       {/* Overlay */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-background/40 backdrop-blur-sm rounded-xl">
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Lock className="h-5 w-5" />
-          <span className="text-sm font-medium">
-            {feature || (locale === 'pt-PT' ? 'Funcionalidade PRO' : 'PRO Feature')}
-          </span>
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-background/40 backdrop-blur-sm rounded-xl p-6 text-center">
+        <Lock className="h-6 w-6 text-muted-foreground" />
+        
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-foreground">
+            {GATING_COPY.title[lang]}
+          </p>
+          <p className="text-xs text-muted-foreground max-w-[200px] whitespace-pre-line">
+            {feature || GATING_COPY.subtitle[lang]}
+          </p>
         </div>
+        
         <Button 
           size="sm" 
           className="gap-2"
           onClick={() => {
-            // Navigate to decision or show paywall
             window.location.href = '/decision';
           }}
         >
