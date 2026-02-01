@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Clock } from "lucide-react";
+import { X, Clock, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -51,6 +51,7 @@ export const HabitForm = ({ habit, onSave, onCancel }: HabitFormProps) => {
   const [active, setActive] = useState(habit?.active ?? true);
   const [scheduledTime, setScheduledTime] = useState(habit?.scheduledTime || "");
   const [scheduledDays, setScheduledDays] = useState<number[]>(habit?.scheduledDays || []);
+  const [reminderEnabled, setReminderEnabled] = useState(habit?.reminderEnabled ?? true);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,6 +64,7 @@ export const HabitForm = ({ habit, onSave, onCancel }: HabitFormProps) => {
       active,
       scheduledTime: scheduledTime || undefined,
       scheduledDays: scheduledDays.length > 0 ? scheduledDays : undefined,
+      reminderEnabled: scheduledTime ? reminderEnabled : undefined,
     });
   };
 
@@ -157,6 +159,30 @@ export const HabitForm = ({ habit, onSave, onCancel }: HabitFormProps) => {
               {locale === 'pt-PT' ? "Define um horário para lembrete" : "Set a reminder time"}
             </p>
           </div>
+
+          {/* Reminder notification toggle - only show when time is set */}
+          {scheduledTime && (
+            <div className="flex items-center justify-between rounded-lg border border-border/50 bg-secondary/30 p-4">
+              <div className="flex items-center gap-2">
+                <Bell className="h-4 w-4 text-primary" />
+                <div>
+                  <Label htmlFor="reminderEnabled" className="font-medium">
+                    {locale === 'pt-PT' ? "Notificação" : "Notification"}
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    {locale === 'pt-PT' 
+                      ? "Recebe um lembrete no horário definido" 
+                      : "Get reminded at the scheduled time"}
+                  </p>
+                </div>
+              </div>
+              <Switch
+                id="reminderEnabled"
+                checked={reminderEnabled}
+                onCheckedChange={setReminderEnabled}
+              />
+            </div>
+          )}
 
           {/* Scheduling - Days */}
           <div className="space-y-2">
