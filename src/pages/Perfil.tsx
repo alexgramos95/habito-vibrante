@@ -18,10 +18,10 @@ import { Switch } from "@/components/ui/switch";
 import { useI18n } from "@/i18n/I18nContext";
 import { localeNames, currencyNames, type Locale, type Currency } from "@/i18n";
 import { ACHIEVEMENTS } from "@/data/types";
-import { getLatestFutureSelf, getReflectionForDate, clearAllData } from "@/data/storage";
+import { getLatestFutureSelf, getReflectionForDate } from "@/data/storage";
 import { getLevelProgress, calculateTrackerFinancials } from "@/logic/computations";
 import { cn } from "@/lib/utils";
-import { ResetDataDialog } from "@/components/Profile/ResetDataDialog";
+import { ResetAppDialog } from "@/components/Profile/ResetAppDialog";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useDemoMode } from "@/hooks/useDemoMode";
@@ -37,8 +37,9 @@ const Perfil = () => {
   const navigate = useNavigate();
   const { t, locale, setLocale, currency, setCurrency, formatCurrency } = useI18n();
   const { isAuthenticated, user, signOut } = useAuth();
-  const { state } = useData();
+  const { state, resetAppData } = useData();
   const [showResetDialog, setShowResetDialog] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
   const [showExport, setShowExport] = useState(false);
   const { subscription, trialStatus, isPro, upgradeToPro } = useSubscription();
@@ -151,19 +152,27 @@ const Perfil = () => {
     localStorage.setItem('become-chronotype', value);
   };
 
-  const handleResetAllData = () => {
-    // Use centralized clearAllData function - clears everything except locale/theme
-    clearAllData();
-    
-    toast({
-      title: locale === 'pt-PT' ? "Dados reiniciados" : "Data reset",
-      description: locale === 'pt-PT' 
-        ? "Todos os dados foram eliminados." 
-        : "All data has been deleted.",
-    });
-    
-    // Reload page to start fresh
-    window.location.reload();
+  const handleResetAllData = async () => {
+    setIsResetting(true);
+    try {
+      await resetAppData();
+      toast({
+        title: "Progress reset.",
+        description: "All data has been deleted.",
+      });
+      // Reload page to start fresh
+      window.location.reload();
+    } catch (error) {
+      console.error("Reset failed:", error);
+      toast({
+        title: "Reset failed",
+        description: "Could not reset data. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsResetting(false);
+      setShowResetDialog(false);
+    }
   };
 
   const chronotypeLabels = {
@@ -684,10 +693,11 @@ const Perfil = () => {
       </main>
 
       {/* Reset Dialog */}
-      <ResetDataDialog
+      <ResetAppDialog
         open={showResetDialog}
         onOpenChange={setShowResetDialog}
         onConfirm={handleResetAllData}
+        isLoading={isResetting}
       />
 
       {/* Paywall */}

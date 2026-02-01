@@ -1,10 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Globe, RotateCcw, Trash2, Coins, ArrowLeft } from "lucide-react";
 import { useI18n } from "@/i18n/I18nContext";
 import { localeNames, currencyNames, type Locale, type Currency } from "@/i18n";
-import { AppState } from "@/data/types";
-import { loadState, saveState, resetMonth, resetAll } from "@/data/storage";
+import { resetMonth } from "@/data/storage";
 import { Navigation } from "@/components/Layout/Navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,17 +19,17 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { useData } from "@/contexts/DataContext";
+import { ResetAppDialog } from "@/components/Profile/ResetAppDialog";
 
 const Definicoes = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { t, locale, setLocale, currency, setCurrency } = useI18n();
-  const [state, setState] = useState<AppState>(() => loadState());
-  const [showResetConfirm, setShowResetConfirm] = useState<"month" | "all" | null>(null);
-
-  useEffect(() => {
-    saveState(state);
-  }, [state]);
+  const { state, setState, resetAppData } = useData();
+  const [showResetMonthConfirm, setShowResetMonthConfirm] = useState(false);
+  const [showResetAllConfirm, setShowResetAllConfirm] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
 
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
@@ -38,13 +37,30 @@ const Definicoes = () => {
   const handleResetMonth = () => {
     setState((prev) => resetMonth(prev, currentYear, currentMonth));
     toast({ title: t.settings.monthReset });
-    setShowResetConfirm(null);
+    setShowResetMonthConfirm(false);
   };
 
-  const handleResetAll = () => {
-    setState(resetAll());
-    toast({ title: t.settings.allReset });
-    setShowResetConfirm(null);
+  const handleResetAll = async () => {
+    setIsResetting(true);
+    try {
+      await resetAppData();
+      toast({ 
+        title: "Progress reset.",
+        description: "All data has been deleted.",
+      });
+      // Reload to ensure fresh state
+      window.location.reload();
+    } catch (error) {
+      console.error("Reset failed:", error);
+      toast({ 
+        title: "Reset failed",
+        description: "Could not reset data. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsResetting(false);
+      setShowResetAllConfirm(false);
+    }
   };
 
   const handleLocaleChange = (newLocale: string) => {
@@ -72,7 +88,7 @@ const Definicoes = () => {
           <h1 className="text-2xl font-bold">{t.settings.title}</h1>
         </div>
 
-        {/* Idioma */}
+        {/* Language */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -97,7 +113,7 @@ const Definicoes = () => {
           </CardContent>
         </Card>
 
-        {/* Moeda */}
+        {/* Currency */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -122,7 +138,7 @@ const Definicoes = () => {
           </CardContent>
         </Card>
 
-        {/* Reiniciar Dados */}
+        {/* Reset Data */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -137,7 +153,7 @@ const Definicoes = () => {
             <div className="flex flex-col sm:flex-row gap-4">
               <Button
                 variant="outline"
-                onClick={() => setShowResetConfirm("month")}
+                onClick={() => setShowResetMonthConfirm(true)}
                 className="gap-2"
               >
                 <RotateCcw className="h-4 w-4" />
@@ -146,7 +162,7 @@ const Definicoes = () => {
               
               <Button
                 variant="destructive"
-                onClick={() => setShowResetConfirm("all")}
+                onClick={() => setShowResetAllConfirm(true)}
                 className="gap-2"
               >
                 <Trash2 className="h-4 w-4" />
@@ -162,35 +178,34 @@ const Definicoes = () => {
         </Card>
       </main>
 
-      {/* Reset Confirmation Dialog */}
+      {/* Reset Month Confirmation Dialog */}
       <AlertDialog
-        open={!!showResetConfirm}
-        onOpenChange={() => setShowResetConfirm(null)}
+        open={showResetMonthConfirm}
+        onOpenChange={setShowResetMonthConfirm}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              {showResetConfirm === "month"
-                ? t.actions.resetMonth
-                : t.actions.resetAll}
-            </AlertDialogTitle>
+            <AlertDialogTitle>{t.actions.resetMonth}</AlertDialogTitle>
             <AlertDialogDescription>
-              {showResetConfirm === "month"
-                ? t.settings.resetMonthConfirm
-                : t.settings.resetAllConfirm}
+              {t.settings.resetMonthConfirm}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t.actions.cancel}</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={showResetConfirm === "month" ? handleResetMonth : handleResetAll}
-              className={showResetConfirm === "all" ? "bg-destructive hover:bg-destructive/90" : ""}
-            >
+            <AlertDialogAction onClick={handleResetMonth}>
               {t.actions.reset}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Reset All Confirmation Dialog - with exact copy */}
+      <ResetAppDialog
+        open={showResetAllConfirm}
+        onOpenChange={setShowResetAllConfirm}
+        onConfirm={handleResetAll}
+        isLoading={isResetting}
+      />
     </div>
   );
 };

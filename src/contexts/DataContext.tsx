@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { loadState, saveState as saveToLocalStorage } from '@/data/storage';
+import { loadState, saveState as saveToLocalStorage, clearAllData } from '@/data/storage';
 import type { AppState } from '@/data/types';
 import { useAuth, materializeOnboardingData } from '@/contexts/AuthContext';
 
@@ -11,6 +11,7 @@ interface DataContextType {
   isSyncing: boolean;
   lastSyncedAt: string | null;
   syncNow: () => Promise<void>;
+  resetAppData: () => Promise<void>;
   isPro: boolean;
 }
 
@@ -363,6 +364,28 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     setIsSyncing(false);
   }, [session?.access_token, isPro, state, downloadFromCloud, uploadToCloud]);
 
+  /**
+   * Reset ALL app data - complete factory reset
+   * For PRO users: also clears cloud data
+   */
+  const resetAppData = useCallback(async () => {
+    console.log('[DATA] 🔄 Resetting all app data...');
+    
+    // Clear localStorage
+    clearAllData();
+    
+    // Reset state to defaults
+    setStateInternal(defaultState);
+    
+    // For PRO users, also sync the empty state to cloud
+    if (isPro && session?.access_token) {
+      console.log('[DATA] PRO: Syncing empty state to cloud...');
+      await uploadToCloud(defaultState);
+    }
+    
+    console.log('[DATA] ✅ App data reset complete');
+  }, [isPro, session?.access_token, uploadToCloud]);
+
   return (
     <DataContext.Provider
       value={{
@@ -372,6 +395,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         isSyncing,
         lastSyncedAt,
         syncNow,
+        resetAppData,
         isPro,
       }}
     >
