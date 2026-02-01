@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Plus, Pencil, Trash2, GripVertical, CheckCircle2 } from "lucide-react";
+import { Plus, Pencil, Trash2, GripVertical, CheckCircle2, Bell } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useI18n } from "@/i18n/I18nContext";
 import { Habit } from "@/data/types";
@@ -28,6 +28,8 @@ import { useData } from "@/contexts/DataContext";
 import { TrialBanner } from "@/components/Paywall/TrialBanner";
 import { PaywallModal } from "@/components/Paywall/PaywallModal";
 import { Link } from "react-router-dom";
+import { useNotifications } from "@/hooks/useNotifications";
+import { NotificationPermissionBanner } from "@/components/Habits/NotificationPermissionBanner";
 
 const Index = () => {
   const { t } = useI18n();
@@ -59,6 +61,13 @@ const Index = () => {
   
   // Sort habits chronologically by scheduledTime
   const sortedHabits = useMemo(() => sortHabitsByTime(state.habits), [state.habits]);
+
+  // Initialize notifications system
+  const { 
+    isSupported: notificationsSupported, 
+    permission: notificationPermission, 
+    requestPermission 
+  } = useNotifications(state.habits);
 
   const handleSaveHabit = (data: Omit<Habit, "id" | "createdAt">) => {
     if (editingHabit) {
@@ -130,6 +139,13 @@ const Index = () => {
             />
           </div>
         )}
+
+        {/* Notification permission banner */}
+        <NotificationPermissionBanner
+          permission={notificationPermission}
+          isSupported={notificationsSupported}
+          onRequestPermission={requestPermission}
+        />
 
         {/* Header - Compact */}
         <div className="page-header">
@@ -211,7 +227,12 @@ const Index = () => {
 
                 {/* Habit info */}
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm truncate">{habit.nome}</p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="font-medium text-sm truncate">{habit.nome}</p>
+                    {habit.scheduledTime && habit.reminderEnabled !== false && (
+                      <Bell className="h-3 w-3 text-primary/60 shrink-0" />
+                    )}
+                  </div>
                   {(habit.categoria || habit.scheduledTime) && (
                     <p className="text-xs text-muted-foreground truncate mt-0.5">
                       {[habit.categoria, habit.scheduledTime].filter(Boolean).join(' · ')}
