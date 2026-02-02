@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Globe, RotateCcw, Trash2, Coins, ArrowLeft } from "lucide-react";
+import { Globe, RotateCcw, Trash2, Coins, ArrowLeft, Bell } from "lucide-react";
 import { useI18n } from "@/i18n/I18nContext";
 import { localeNames, currencyNames, type Locale, type Currency } from "@/i18n";
 import { resetMonth } from "@/data/storage";
@@ -21,6 +21,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useData } from "@/contexts/DataContext";
 import { ResetAppDialog } from "@/components/Profile/ResetAppDialog";
+import { NotificationStatusBadge } from "@/components/Habits/NotificationSetup";
 
 const Definicoes = () => {
   const { toast } = useToast();
@@ -135,6 +136,26 @@ const Definicoes = () => {
                 ))}
               </SelectContent>
             </Select>
+          </CardContent>
+        </Card>
+
+        {/* Notifications */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="h-5 w-5" />
+              Notifications
+            </CardTitle>
+            <CardDescription>
+              Status of habit reminders on this device.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <NotificationStatusBadge />
+            <p className="text-xs text-muted-foreground mt-3">
+              "Active (background)" = notifications work even with the app closed.
+              "Active (app open only)" = notifications only work while the app is open.
+            </p>
           </CardContent>
         </Card>
 
