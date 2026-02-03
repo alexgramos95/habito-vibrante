@@ -16,9 +16,52 @@ interface Habit {
   reminderEnabled?: boolean;
 }
 
-interface UserData {
+interface PushSubscription {
+  id: string;
   user_id: string;
-  habits: Habit[];
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+}
+
+// Send a push notification using the send-push-notification edge function
+async function sendPushNotification(
+  supabaseUrl: string,
+  serviceRoleKey: string,
+  subscription: PushSubscription,
+  payload: object
+): Promise<boolean> {
+  try {
+    const response = await fetch(`${supabaseUrl}/functions/v1/send-push-notification`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${serviceRoleKey}`,
+      },
+      body: JSON.stringify({
+        subscription: {
+          endpoint: subscription.endpoint,
+          keys: {
+            p256dh: subscription.p256dh,
+            auth: subscription.auth,
+          },
+        },
+        payload,
+      }),
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      return result.success === true;
+    } else {
+      const text = await response.text();
+      console.error(`[PUSH] Failed to send: ${response.status} - ${text}`);
+      return false;
+    }
+  } catch (error) {
+    console.error(`[PUSH] Error:`, error);
+    return false;
+  }
 }
 
 serve(async (req) => {
@@ -29,15 +72,9 @@ serve(async (req) => {
   try {
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    const VAPID_PUBLIC_KEY = Deno.env.get('VAPID_PUBLIC_KEY');
-    const VAPID_PRIVATE_KEY = Deno.env.get('VAPID_PRIVATE_KEY');
 
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
       throw new Error('Supabase credentials not configured');
-    }
-
-    if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
-      throw new Error('VAPID keys not configured');
     }
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
@@ -48,19 +85,19 @@ serve(async (req) => {
     const currentMinute = now.getUTCMinutes();
     const currentDay = now.getUTCDay(); // 0 = Sunday
 
-    console.log(`[REMINDERS] Checking habits at ${currentHour}:${currentMinute} UTC, day ${currentDay}`);
+    console.log(`[REMINDERS] Checking habits at ${currentHour}:${String(currentMinute).padStart(2, '0')} UTC, day ${currentDay}`);
 
     // Get all users with push subscriptions
     const { data: subscriptions, error: subError } = await supabase
       .from('push_subscriptions')
-      .select('user_id')
-      .order('user_id');
+      .select('id, user_id, endpoint, p256dh, auth');
 
     if (subError) {
       throw new Error(`Failed to fetch subscriptions: ${subError.message}`);
     }
 
     if (!subscriptions || subscriptions.length === 0) {
+      console.log('[REMINDERS] No push subscriptions found');
       return new Response(
         JSON.stringify({ success: true, checked: 0, sent: 0, message: 'No subscriptions' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -68,8 +105,8 @@ serve(async (req) => {
     }
 
     // Get unique user IDs
-    const userIds = [...new Set(subscriptions.map(s => s.user_id))];
-    console.log(`[REMINDERS] Found ${userIds.length} users with push subscriptions`);
+    const userIds = [...new Set(subscriptions.map((s: PushSubscription) => s.user_id))];
+    console.log(`[REMINDERS] Found ${userIds.length} users with ${subscriptions.length} subscriptions`);
 
     // Get user_data for these users
     const { data: userData, error: dataError } = await supabase
@@ -82,7 +119,7 @@ serve(async (req) => {
     }
 
     let totalSent = 0;
-    const notifications: { userId: string; habitName: string }[] = [];
+    const notifications: { userId: string; habitName: string; category?: string }[] = [];
 
     // Check each user's habits
     for (const user of (userData || [])) {
@@ -110,46 +147,47 @@ serve(async (req) => {
         if (!dayMatches) continue;
 
         // This habit should be notified!
-        notifications.push({ userId: user.user_id, habitName: habit.nome });
-        console.log(`[REMINDERS] Habit "${habit.nome}" due for user ${user.user_id}`);
+        notifications.push({ 
+          userId: user.user_id, 
+          habitName: habit.nome,
+          category: habit.categoria 
+        });
+        console.log(`[REMINDERS] Habit "${habit.nome}" due for user ${user.user_id.substring(0, 8)}...`);
       }
     }
+
+    console.log(`[REMINDERS] Found ${notifications.length} habits to notify`);
 
     // Send notifications
     for (const notification of notifications) {
       try {
         // Get user's push subscriptions
-        const { data: userSubs } = await supabase
-          .from('push_subscriptions')
-          .select('*')
-          .eq('user_id', notification.userId);
+        const userSubs = subscriptions.filter((s: PushSubscription) => s.user_id === notification.userId);
 
         if (!userSubs || userSubs.length === 0) continue;
 
+        const payload = {
+          title: `becoMe: ${notification.habitName}`,
+          body: notification.category 
+            ? `Time for your ${notification.category.toLowerCase()} habit!`
+            : 'Time for your habit!',
+          icon: '/icons/icon-192.png',
+          badge: '/icons/icon-192.png',
+          tag: `habit-reminder-${notification.habitName}`,
+          data: { type: 'habit-reminder', habitName: notification.habitName },
+        };
+
         // Send to all user's devices
         for (const sub of userSubs) {
-          try {
-            const pushPayload = JSON.stringify({
-              title: `becoMe: ${notification.habitName}`,
-              body: 'Time for your habit!',
-              icon: '/icons/icon-192.png',
-              badge: '/icons/icon-192.png',
-              tag: `habit-reminder-${notification.habitName}`,
-              data: { type: 'habit-reminder', habitName: notification.habitName },
-            });
-
-            await fetch(sub.endpoint, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/octet-stream',
-                'TTL': '86400',
-              },
-              body: pushPayload,
-            });
-
+          const success = await sendPushNotification(
+            SUPABASE_URL,
+            SUPABASE_SERVICE_ROLE_KEY,
+            sub,
+            payload
+          );
+          
+          if (success) {
             totalSent++;
-          } catch (pushError) {
-            console.error(`[REMINDERS] Failed to send push:`, pushError);
           }
         }
       } catch (error) {
@@ -157,7 +195,7 @@ serve(async (req) => {
       }
     }
 
-    console.log(`[REMINDERS] Checked ${userData?.length || 0} users, sent ${totalSent} notifications`);
+    console.log(`[REMINDERS] Sent ${totalSent} notifications`);
 
     return new Response(
       JSON.stringify({ 

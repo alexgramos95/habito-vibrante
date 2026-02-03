@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { VAPID_PUBLIC_KEY, isPushConfigured } from "@/config/push";
+import { getVapidPublicKey, VAPID_PUBLIC_KEY } from "@/config/push";
 
 export type NotificationMode = 'background' | 'in-app' | 'unsupported' | 'denied';
 
@@ -51,6 +51,7 @@ function isPushNotificationSupported(): boolean {
 
 export function usePushNotifications(userId: string | undefined) {
   const { toast } = useToast();
+  const vapidKeyRef = useRef<string | null>(VAPID_PUBLIC_KEY || null);
   const [state, setState] = useState<PushNotificationState>({
     isSupported: false,
     isPushSupported: false,
@@ -61,6 +62,18 @@ export function usePushNotifications(userId: string | undefined) {
     mode: 'unsupported',
     isSubscribed: false,
   });
+
+  // Load VAPID key from backend if not in env
+  useEffect(() => {
+    if (!VAPID_PUBLIC_KEY) {
+      getVapidPublicKey().then(key => {
+        if (key) {
+          vapidKeyRef.current = key;
+          console.log('[Push] VAPID key loaded from backend');
+        }
+      });
+    }
+  }, []);
 
   // Initialize state
   useEffect(() => {
@@ -183,8 +196,22 @@ export function usePushNotifications(userId: string | undefined) {
       return false;
     }
 
-    if (!VAPID_PUBLIC_KEY) {
+    // Get VAPID key - try env first, then fetch from backend
+    let vapidKey = vapidKeyRef.current;
+    if (!vapidKey) {
+      vapidKey = await getVapidPublicKey();
+      if (vapidKey) {
+        vapidKeyRef.current = vapidKey;
+      }
+    }
+
+    if (!vapidKey) {
       console.error('[Push] VAPID public key not configured');
+      toast({
+        title: "Configuration error",
+        description: "Push notifications are not configured. Please contact support.",
+        variant: "destructive",
+      });
       return false;
     }
 
@@ -202,7 +229,7 @@ export function usePushNotifications(userId: string | undefined) {
       
       if (!subscription) {
         // Create new subscription
-        const applicationServerKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+        const applicationServerKey = urlBase64ToUint8Array(vapidKey);
         subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey: applicationServerKey.buffer as ArrayBuffer,
@@ -217,23 +244,35 @@ export function usePushNotifications(userId: string | undefined) {
         throw new Error('Failed to get subscription keys');
       }
 
-      // Convert to base64
+      // Convert to base64url (Web Push standard format)
       const p256dhArray = new Uint8Array(p256dh);
       const authArray = new Uint8Array(auth);
-      const p256dhBase64 = btoa(String.fromCharCode.apply(null, Array.from(p256dhArray)));
-      const authBase64 = btoa(String.fromCharCode.apply(null, Array.from(authArray)));
+      
+      // Use base64url encoding (URL-safe)
+      const arrayToBase64Url = (arr: Uint8Array): string => {
+        const base64 = btoa(String.fromCharCode.apply(null, Array.from(arr)));
+        return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      };
+      
+      const p256dhBase64 = arrayToBase64Url(p256dhArray);
+      const authBase64 = arrayToBase64Url(authArray);
 
-      // Save to database
+      // Save to database - first try to delete existing, then insert
+      // This avoids upsert issues with the composite unique constraint
+      await supabase
+        .from('push_subscriptions')
+        .delete()
+        .eq('user_id', userId)
+        .eq('endpoint', subscription.endpoint);
+
       const { error } = await supabase
         .from('push_subscriptions')
-        .upsert({
+        .insert({
           user_id: userId,
           endpoint: subscription.endpoint,
           p256dh: p256dhBase64,
           auth: authBase64,
           user_agent: navigator.userAgent,
-        }, {
-          onConflict: 'user_id,endpoint',
         });
 
       if (error) {
