@@ -1,9 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-
-// VAPID public key - must match the one in secrets
-const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY || '';
+import { VAPID_PUBLIC_KEY, isPushConfigured } from "@/config/push";
 
 export type NotificationMode = 'background' | 'in-app' | 'unsupported' | 'denied';
 
