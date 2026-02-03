@@ -1,3 +1,4 @@
+console.log(import.meta.env.VITE_VAPID_PUBLIC_KEY);
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -72,13 +73,11 @@ const GatedSettings = () => (
 // PWA Update wrapper - must be inside BrowserRouter for hooks that use router
 const PWAUpdateWrapper = ({ children }: { children: React.ReactNode }) => {
   const { showUpdateToast, applyUpdate, dismissUpdate } = usePWAUpdate();
-  
+
   return (
     <>
       {children}
-      {showUpdateToast && (
-        <PWAUpdateToast onUpdate={applyUpdate} onDismiss={dismissUpdate} />
-      )}
+      {showUpdateToast && <PWAUpdateToast onUpdate={applyUpdate} onDismiss={dismissUpdate} />}
     </>
   );
 };
@@ -96,7 +95,7 @@ const AppRoutes = () => (
         <Route path="/app" element={<Index />} />
         <Route path="/app/calendar" element={<Calendario />} />
         <Route path="/app/profile" element={<Perfil />} />
-        
+
         {/* PRO-only pages: Trackers, Shopping, Progress, Settings */}
         <Route path="/app/trackers" element={<GatedTrackers />} />
         <Route path="/app/shopping" element={<GatedShopping />} />
