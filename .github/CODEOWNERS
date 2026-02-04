@@ -1,0 +1,6 @@
+# Core boundaries (require explicit attention)
+/supabase/ @alexgramos95
+/public/sw.js @alexgramos95
+/src/contexts/ @alexgramos95
+/src/config/push.ts @alexgramos95
+/src/integrations/supabase/ @alexgramos95
