@@ -1,5 +1,4 @@
-console.log(import.meta.env.VITE_VAPID_PUBLIC_KEY);
-import { lazy, Suspense } from "react";
+import { lazy, Suspense } from "react"
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
