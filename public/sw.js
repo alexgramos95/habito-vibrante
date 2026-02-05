@@ -1,3 +1,7 @@
+/**
+ * CORE FILE — DO NOT EDIT VIA LOVABLE.
+ * Changes must be reviewed and tested locally.
+ */
 // becoMe Service Worker - PWA Support with Push Notifications
 const CACHE_NAME = 'become-v3';
 const STATIC_ASSETS = [

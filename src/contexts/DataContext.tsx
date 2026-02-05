@@ -1,3 +1,7 @@
+/**
+ * CORE FILE — DO NOT EDIT VIA LOVABLE.
+ * Changes must be reviewed and tested locally.
+ */
 import { createContext, useContext, useEffect, useState, useCallback, useRef, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { loadState, saveState as saveToLocalStorage, clearAllData } from '@/data/storage';
