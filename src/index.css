@@ -498,3 +498,269 @@
     max-width: 1400px;
   }
 }
+
+/* ========================================
+   TRACKER MODULE — High-Tech / HUD Theme
+   Intentional visual exception for immersive
+   observational/monitoring experience
+   ======================================== */
+
+/* Dark HUD background for tracker pages */
+.tracker-hud {
+  background: linear-gradient(180deg, hsl(220 30% 8%) 0%, hsl(220 25% 12%) 100%);
+  color: hsl(210 20% 90%);
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+.tracker-hud::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: 
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      hsl(174 65% 42% / 0.015) 2px,
+      hsl(174 65% 42% / 0.015) 4px
+    );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Subtle grid overlay */
+.tracker-hud::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: 
+    linear-gradient(90deg, hsl(174 65% 42% / 0.03) 1px, transparent 1px),
+    linear-gradient(180deg, hsl(174 65% 42% / 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.tracker-hud > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* HUD card — glass-dark with neon border */
+.hud-card {
+  background: hsl(220 25% 12% / 0.8);
+  backdrop-filter: blur(20px);
+  border: 1px solid hsl(174 65% 42% / 0.15);
+  border-radius: 1rem;
+  box-shadow: 
+    0 0 20px hsl(174 65% 42% / 0.05),
+    inset 0 1px 0 hsl(174 65% 42% / 0.08);
+  transition: all 0.3s ease;
+}
+
+.hud-card:hover {
+  border-color: hsl(174 65% 42% / 0.3);
+  box-shadow: 
+    0 0 30px hsl(174 65% 42% / 0.08),
+    inset 0 1px 0 hsl(174 65% 42% / 0.12);
+}
+
+.hud-card-active {
+  border-color: hsl(174 65% 42% / 0.5);
+  box-shadow: 
+    0 0 40px hsl(174 65% 42% / 0.12),
+    inset 0 1px 0 hsl(174 65% 42% / 0.15);
+}
+
+/* Neon text utilities */
+.text-neon {
+  color: hsl(174 80% 55%);
+  text-shadow: 0 0 10px hsl(174 80% 55% / 0.4);
+}
+
+.text-neon-warning {
+  color: hsl(38 90% 60%);
+  text-shadow: 0 0 10px hsl(38 90% 60% / 0.4);
+}
+
+.text-neon-danger {
+  color: hsl(0 70% 60%);
+  text-shadow: 0 0 10px hsl(0 70% 60% / 0.4);
+}
+
+.text-neon-success {
+  color: hsl(155 70% 50%);
+  text-shadow: 0 0 10px hsl(155 70% 50% / 0.4);
+}
+
+/* HUD badge */
+.hud-badge {
+  background: hsl(174 65% 42% / 0.12);
+  border: 1px solid hsl(174 65% 42% / 0.25);
+  color: hsl(174 80% 60%);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.5rem;
+  border-radius: 0.5rem;
+}
+
+/* HUD progress bar */
+.hud-progress {
+  height: 3px;
+  background: hsl(220 25% 20%);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+
+.hud-progress-bar {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.5s ease;
+  position: relative;
+}
+
+.hud-progress-bar::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: -1px;
+  bottom: -1px;
+  width: 6px;
+  border-radius: 3px;
+  background: inherit;
+  box-shadow: 0 0 8px currentColor;
+}
+
+/* HUD stat box */
+.hud-stat {
+  background: hsl(220 25% 10% / 0.6);
+  border: 1px solid hsl(174 65% 42% / 0.1);
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  text-align: center;
+}
+
+.hud-stat-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.hud-stat-label {
+  font-size: 0.6rem;
+  color: hsl(210 15% 50%);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 0.25rem;
+}
+
+/* Scan-line animation overlay */
+@keyframes hud-scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+.hud-scanline {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, hsl(174 65% 42% / 0.15), transparent);
+  animation: hud-scan 8s linear infinite;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Neon pulse animation */
+@keyframes neon-pulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+.neon-pulse {
+  animation: neon-pulse 2s ease-in-out infinite;
+}
+
+/* HUD header */
+.hud-header {
+  border-bottom: 1px solid hsl(174 65% 42% / 0.12);
+  padding-bottom: 1rem;
+}
+
+.hud-header h1 {
+  color: hsl(210 20% 92%);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.hud-header p {
+  color: hsl(210 15% 50%);
+}
+
+/* HUD button */
+.hud-btn {
+  background: hsl(174 65% 42% / 0.15);
+  border: 1px solid hsl(174 65% 42% / 0.3);
+  color: hsl(174 80% 60%);
+  transition: all 0.2s ease;
+}
+
+.hud-btn:hover {
+  background: hsl(174 65% 42% / 0.25);
+  border-color: hsl(174 65% 42% / 0.5);
+  box-shadow: 0 0 15px hsl(174 65% 42% / 0.15);
+}
+
+/* HUD section label */
+.hud-section-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: hsl(174 65% 42% / 0.6);
+  padding-left: 0.25rem;
+}
+
+/* HUD chart container */
+.hud-chart-container {
+  background: hsl(220 25% 10% / 0.5);
+  border: 1px solid hsl(174 65% 42% / 0.1);
+  border-radius: 1rem;
+  padding: 1rem;
+}
+
+/* Override scrollbar for HUD */
+.tracker-hud ::-webkit-scrollbar-track {
+  background: hsl(220 25% 15% / 0.5);
+}
+
+.tracker-hud ::-webkit-scrollbar-thumb {
+  background: hsl(174 65% 42% / 0.3);
+}
+
+.tracker-hud ::-webkit-scrollbar-thumb:hover {
+  background: hsl(174 65% 42% / 0.5);
+}
+
+/* HUD empty state */
+.hud-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4rem 1.5rem;
+  color: hsl(210 15% 50%);
+}
+
+.hud-empty-state svg {
+  color: hsl(174 65% 42% / 0.3);
+  margin-bottom: 1rem;
+}

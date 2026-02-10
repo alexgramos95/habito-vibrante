@@ -1,8 +1,6 @@
 import { useState, useRef, useCallback } from "react";
-import { Check, TrendingDown, TrendingUp, Pencil, Trash2, GripVertical } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Check, TrendingDown, TrendingUp, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tracker } from "@/data/types";
 import { cn } from "@/lib/utils";
@@ -59,7 +57,7 @@ export const CompactTrackerCard = ({
     ? Math.max(0, 100 - (todayCount / goal) * 100)
     : Math.min(100, (todayCount / goal) * 100);
 
-  // Long press handlers for entering multi-select mode
+  // Long press handlers
   const handleTouchStart = useCallback(() => {
     setIsPressed(true);
     isLongPressTriggered.current = false;
@@ -70,7 +68,6 @@ export const CompactTrackerCard = ({
       if (onLongPress) {
         onLongPress();
       } else {
-        // If no onLongPress handler, trigger multi-select
         onToggleMultiSelect();
       }
     }, LONG_PRESS_DURATION);
@@ -85,7 +82,6 @@ export const CompactTrackerCard = ({
   }, []);
 
   const handleCardClick = (e: React.MouseEvent) => {
-    // If long press was triggered, don't process click
     if (isLongPressTriggered.current) {
       isLongPressTriggered.current = false;
       return;
@@ -108,16 +104,13 @@ export const CompactTrackerCard = ({
   };
 
   return (
-    <Card 
+    <div 
       className={cn(
-        "transition-all duration-300 cursor-pointer relative overflow-hidden group",
-        "border-border/20 hover:border-border/40",
+        "hud-card cursor-pointer relative overflow-hidden group transition-all duration-300",
         isPressed && "scale-[0.98]",
-        isSelected && !isMultiSelectMode
-          ? "bg-primary/8 border-primary/30 shadow-sm shadow-primary/5" 
-          : "bg-card/40 hover:bg-card/60",
-        isMultiSelectMode && isCheckedInMultiSelect && "bg-primary/10 border-primary/30",
-        isMultiSelectMode && !isCheckedInMultiSelect && "opacity-70"
+        isSelected && !isMultiSelectMode && "hud-card-active",
+        isMultiSelectMode && isCheckedInMultiSelect && "hud-card-active",
+        isMultiSelectMode && !isCheckedInMultiSelect && "opacity-50"
       )}
       onClick={handleCardClick}
       onTouchStart={handleTouchStart}
@@ -127,127 +120,114 @@ export const CompactTrackerCard = ({
       onMouseUp={handleTouchEnd}
       onMouseLeave={handleTouchEnd}
     >
-      {/* Progress bar background - more subtle gradient */}
+      {/* Progress bar — neon glow */}
       <div 
-        className={cn(
-          "absolute inset-y-0 left-0 transition-all duration-500 opacity-40",
-          tracker.type === 'reduce' 
-            ? isOnTrack ? "bg-gradient-to-r from-success/10 to-transparent" : "bg-gradient-to-r from-destructive/10 to-transparent"
-            : isOnTrack ? "bg-gradient-to-r from-success/10 to-transparent" : "bg-gradient-to-r from-warning/10 to-transparent"
-        )}
-        style={{ width: `${progressPercent}%` }}
+        className="absolute inset-y-0 left-0 transition-all duration-500 opacity-30"
+        style={{
+          width: `${progressPercent}%`,
+          background: tracker.type === 'reduce'
+            ? isOnTrack 
+              ? 'linear-gradient(90deg, hsl(155 70% 50% / 0.2), transparent)' 
+              : 'linear-gradient(90deg, hsl(0 70% 60% / 0.2), transparent)'
+            : isOnTrack 
+              ? 'linear-gradient(90deg, hsl(155 70% 50% / 0.2), transparent)' 
+              : 'linear-gradient(90deg, hsl(38 90% 60% / 0.2), transparent)',
+        }}
       />
       
-      <CardContent className="p-4 relative">
-        <div className="flex items-center gap-3.5">
-          {/* Multi-select checkbox with better styling */}
+      <div className="p-3.5 relative">
+        <div className="flex items-center gap-3">
+          {/* Multi-select checkbox */}
           {isMultiSelectMode && (
-            <div 
-              className="shrink-0 flex items-center"
-              onClick={handleCheckboxClick}
-            >
+            <div className="shrink-0 flex items-center" onClick={handleCheckboxClick}>
               <Checkbox 
                 checked={isCheckedInMultiSelect}
                 onCheckedChange={() => onToggleMultiSelect()}
                 className={cn(
                   "h-5 w-5 border-2 transition-all rounded-lg",
                   isCheckedInMultiSelect 
-                    ? "border-primary bg-primary data-[state=checked]:bg-primary" 
-                    : "border-muted-foreground/30"
+                    ? "border-[hsl(174_80%_55%)] bg-[hsl(174_65%_42%/0.3)] data-[state=checked]:bg-[hsl(174_65%_42%/0.3)]" 
+                    : "border-[hsl(210_15%_30%)]"
                 )}
               />
             </div>
           )}
           
-          {/* Icon with better container - more refined */}
+          {/* Icon */}
           <div className={cn(
-            "h-11 w-11 rounded-2xl flex items-center justify-center text-lg shrink-0 transition-all",
-            "border border-border/20",
+            "h-10 w-10 rounded-xl flex items-center justify-center text-base shrink-0",
+            "border transition-all",
             tracker.type === 'reduce' 
-              ? "bg-warning/8 text-warning" 
+              ? "border-[hsl(38_90%_60%/0.2)] bg-[hsl(38_90%_60%/0.08)]" 
               : tracker.type === 'boolean'
-              ? "bg-success/8 text-success"
+              ? "border-[hsl(155_70%_50%/0.2)] bg-[hsl(155_70%_50%/0.08)]"
               : tracker.type === 'event'
-              ? "bg-accent/8 text-accent"
-              : "bg-primary/8 text-primary"
+              ? "border-[hsl(174_65%_42%/0.2)] bg-[hsl(174_65%_42%/0.08)]"
+              : "border-[hsl(174_65%_42%/0.2)] bg-[hsl(174_65%_42%/0.08)]"
           )}>
-            {tracker.icon || (tracker.type === 'reduce' ? <TrendingDown className="h-4 w-4" /> : <TrendingUp className="h-4 w-4" />)}
+            {tracker.icon || (tracker.type === 'reduce' ? <TrendingDown className="h-4 w-4 text-neon-warning" /> : <TrendingUp className="h-4 w-4 text-neon" />)}
           </div>
           
           {/* Content */}
           <div className="flex-1 min-w-0">
-            <p className="font-medium text-[15px] truncate leading-tight">{tracker.name}</p>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-xs text-muted-foreground/70">
-                {todayCount} / {goal} {tracker.unitPlural}
+            <p className="font-medium text-[15px] truncate leading-tight text-[hsl(210_20%_90%)]">
+              {tracker.name}
+            </p>
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="text-xs text-[hsl(210_15%_45%)] font-mono">
+                {todayCount}<span className="text-[hsl(210_15%_30%)]">/</span>{goal} {tracker.unitPlural}
               </span>
               {isOnTrack && (
-                <Badge 
-                  variant="outline" 
-                  className="text-[9px] px-1.5 py-0 h-4 border-success/20 text-success bg-success/10 rounded-md"
-                >
-                  ✓
-                </Badge>
+                <span className="text-neon-success text-[10px] font-bold uppercase tracking-wider neon-pulse">
+                  ✓ ON
+                </span>
               )}
             </div>
           </div>
           
           {/* Actions */}
           <div className="flex items-center gap-2 shrink-0">
-            {/* Quick check button - always visible for actionable types */}
             {!isMultiSelectMode && (tracker.inputMode === "binary" || tracker.inputMode === "fixedAmount" || tracker.inputMode === "incremental") && (
-              <Button
-                variant={isCompleted ? "outline" : "default"}
-                size="icon"
+              <button
                 className={cn(
-                  "h-10 w-10 rounded-xl transition-all duration-200",
+                  "h-9 w-9 rounded-xl flex items-center justify-center transition-all duration-200 border",
                   isCompleted 
-                    ? "bg-success/10 border-success/30 text-success hover:bg-success/20" 
+                    ? "bg-[hsl(155_70%_50%/0.1)] border-[hsl(155_70%_50%/0.3)] text-neon-success" 
                     : tracker.type === 'reduce'
-                      ? "bg-warning hover:bg-warning/90 text-warning-foreground shadow-sm"
-                      : "bg-success hover:bg-success/90 text-success-foreground shadow-sm"
+                      ? "bg-[hsl(38_90%_60%/0.15)] border-[hsl(38_90%_60%/0.3)] text-neon-warning hover:bg-[hsl(38_90%_60%/0.25)] hover:shadow-[0_0_12px_hsl(38_90%_60%/0.2)]"
+                      : "bg-[hsl(155_70%_50%/0.15)] border-[hsl(155_70%_50%/0.3)] text-neon-success hover:bg-[hsl(155_70%_50%/0.25)] hover:shadow-[0_0_12px_hsl(155_70%_50%/0.2)]"
                 )}
                 onClick={handleQuickCheckClick}
                 disabled={isCompleted && tracker.inputMode !== "incremental"}
               >
                 {tracker.inputMode === "incremental" ? (
-                  <span className="text-sm font-semibold">+1</span>
+                  <span className="text-xs font-bold">+1</span>
                 ) : (
                   <Check className="h-4 w-4" />
                 )}
-              </Button>
+              </button>
             )}
             
-            {/* Edit/Delete buttons when selected - with slide animation */}
+            {/* Edit/Delete when selected */}
             {isSelected && !isMultiSelectMode && (
               <div className="flex items-center gap-1 animate-in slide-in-from-right-2 duration-200">
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  className="h-9 w-9 text-muted-foreground hover:text-foreground rounded-xl"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEdit();
-                  }}
+                <button 
+                  className="h-8 w-8 flex items-center justify-center rounded-lg text-[hsl(210_15%_50%)] hover:text-neon transition-colors"
+                  onClick={(e) => { e.stopPropagation(); onEdit(); }}
                 >
                   <Pencil className="h-3.5 w-3.5" />
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  className="h-9 w-9 text-destructive/60 hover:text-destructive hover:bg-destructive/10 rounded-xl"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete();
-                  }}
+                </button>
+                <button 
+                  className="h-8 w-8 flex items-center justify-center rounded-lg text-[hsl(0_70%_60%/0.6)] hover:text-neon-danger transition-colors"
+                  onClick={(e) => { e.stopPropagation(); onDelete(); }}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
-                </Button>
+                </button>
               </div>
             )}
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
