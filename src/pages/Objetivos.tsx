@@ -1,16 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { format, parseISO } from "date-fns";
 import { pt, enUS as enUSLocale } from "date-fns/locale";
 import {
-  Target, Plus, Trash2, TrendingUp, TrendingDown,
-  Clock, Check, Pencil, BarChart3, Settings2, Activity, CheckSquare
+  Target, Plus, BarChart3, Settings2, Activity
 } from "lucide-react";
 import { Navigation } from "@/components/Layout/Navigation";
-import { PageHeader } from "@/components/Layout/PageHeader";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/i18n/I18nContext";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -284,41 +279,97 @@ const Objetivos = () => {
   };
 
   return (
-    <div className="page-container">
+    <div className="tracker-hud">
+      {/* Scan-line effect */}
+      <div className="hud-scanline" />
+      
       <Navigation />
 
-      <main className="page-content">
-        {/* Header */}
-        <PageHeader
-          title={t.nav.trackers}
-          subtitle={(t as any).pageSubtitles?.trackers || t.motivational.consistencyWins}
-          icon={Activity}
-          action={{
-            icon: Plus,
-            label: t.objectives.newObjective,
-            onClick: () => setShowNewTrackerDialog(true),
-          }}
-        />
+      <main className="page-content pb-24 md:pb-8">
+        {/* HUD Header */}
+        <div className="hud-header flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="h-10 w-10 rounded-xl flex items-center justify-center border border-[hsl(174_65%_42%/0.3)] bg-[hsl(174_65%_42%/0.1)]">
+              <Activity className="h-5 w-5 text-neon" />
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-lg md:text-xl font-semibold tracking-tight text-[hsl(210_20%_92%)]">
+                {t.nav.trackers}
+              </h1>
+              <p className="text-xs text-[hsl(210_15%_50%)] truncate">
+                {(t as any).pageSubtitles?.trackers || t.motivational.consistencyWins}
+              </p>
+            </div>
+          </div>
+          <Button 
+            onClick={() => setShowNewTrackerDialog(true)} 
+            size="sm" 
+            className="hud-btn gap-1.5 h-9 px-3 rounded-xl"
+          >
+            <Plus className="h-4 w-4" />
+            <span className="hidden sm:inline">{t.objectives.newObjective}</span>
+          </Button>
+        </div>
+
+        {/* HUD Status Bar */}
+        {activeTrackers.length > 0 && (
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="hud-badge">
+              {activeTrackers.length} {locale === 'pt-PT' ? 'ativos' : 'active'}
+            </div>
+            {(() => {
+              const onTrackCount = activeTrackers.filter(tracker => {
+                const count = getTrackerTodayCount(tracker.id);
+                const goal = tracker.dailyGoal ?? tracker.baseline;
+                return tracker.type === 'reduce' ? count <= goal : count >= goal;
+              }).length;
+              const pct = Math.round((onTrackCount / activeTrackers.length) * 100);
+              return (
+                <>
+                  <div className="hud-badge" style={{ 
+                    borderColor: pct >= 70 ? 'hsl(155 70% 50% / 0.3)' : pct >= 40 ? 'hsl(38 90% 60% / 0.3)' : 'hsl(0 70% 60% / 0.3)',
+                    color: pct >= 70 ? 'hsl(155 70% 55%)' : pct >= 40 ? 'hsl(38 90% 65%)' : 'hsl(0 70% 65%)',
+                    background: pct >= 70 ? 'hsl(155 70% 50% / 0.1)' : pct >= 40 ? 'hsl(38 90% 60% / 0.1)' : 'hsl(0 70% 60% / 0.1)',
+                  }}>
+                    {pct}% on-track
+                  </div>
+                  <div className="flex-1 min-w-[80px]">
+                    <div className="hud-progress">
+                      <div 
+                        className="hud-progress-bar"
+                        style={{ 
+                          width: `${pct}%`,
+                          background: pct >= 70 ? 'hsl(155 70% 50%)' : pct >= 40 ? 'hsl(38 90% 60%)' : 'hsl(0 70% 60%)',
+                          color: pct >= 70 ? 'hsl(155 70% 50%)' : pct >= 40 ? 'hsl(38 90% 60%)' : 'hsl(0 70% 60%)',
+                        }}
+                      />
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+        )}
 
         {/* Empty State */}
         {activeTrackers.length === 0 ? (
-          <Card className="border-border/30 bg-card/50">
-            <CardContent className="empty-state">
-              <Target className="empty-state-icon" />
-              <p className="empty-state-title">{t.trackers.noTrackers}</p>
-              <p className="empty-state-description">{t.trackers.noTrackersDescription}</p>
-              <Button onClick={() => setShowNewTrackerDialog(true)} size="sm" className="mt-4">
+          <div className="hud-card">
+            <div className="hud-empty-state">
+              <Target className="h-12 w-12" />
+              <p className="text-base font-medium text-[hsl(210_20%_80%)] mb-1">{t.trackers.noTrackers}</p>
+              <p className="text-sm text-[hsl(210_15%_45%)] max-w-xs mb-4">{t.trackers.noTrackersDescription}</p>
+              <Button onClick={() => setShowNewTrackerDialog(true)} size="sm" className="hud-btn">
                 <Plus className="h-4 w-4 mr-1.5" />
                 {t.trackers.createFirst}
               </Button>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         ) : (
           <div className={cn(
             "grid gap-4",
             !isMobile && "lg:grid-cols-5"
           )}>
-            {/* Tracker List - All trackers visible, no artificial limits */}
+            {/* Tracker List */}
             <div className={cn(
               "space-y-0",
               !isMobile && "lg:col-span-2"
@@ -334,7 +385,7 @@ const Objetivos = () => {
                 getTrackerTodayCount={getTrackerTodayCount}
               />
               
-              {/* Tracker List - Show ALL trackers, no hidden items */}
+              {/* Tracker List */}
               <div className="space-y-2 py-3">
                 {activeTrackers.map(tracker => {
                   const todayCount = getTrackerTodayCount(tracker.id);
@@ -359,9 +410,8 @@ const Objetivos = () => {
                   );
                 })}
                 
-                {/* Tracker count indicator for transparency */}
                 {activeTrackers.length > 0 && (
-                  <p className="text-center text-[10px] text-muted-foreground/60 pt-2">
+                  <p className="text-center text-[10px] text-[hsl(210_15%_40%)] pt-2">
                     {activeTrackers.length} {activeTrackers.length === 1 
                       ? (locale === 'pt-PT' ? 'tracker' : 'tracker') 
                       : (locale === 'pt-PT' ? 'trackers' : 'trackers')}
@@ -370,151 +420,137 @@ const Objetivos = () => {
               </div>
             </div>
 
-            {/* Selected Tracker Details - Desktop only, full inline */}
+            {/* Desktop Detail Panel */}
             {!isMobile && currentTracker && currentSummary && (
               <div className="lg:col-span-3 space-y-4">
                 {/* Quick Add */}
-                <Card className="glass border-border/30">
-                  <CardHeader className="pb-2 pt-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="flex items-center gap-2 text-sm">
-                        <span className="text-lg">{currentTracker.icon}</span>
-                        {currentTracker.name}
-                      </CardTitle>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-xs">
-                          {currentSummary.todayCount} / {currentTracker.dailyGoal ?? currentTracker.baseline}
-                        </Badge>
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          className="h-7 w-7"
-                          onClick={() => openEditDialog(currentTracker)}
-                        >
-                          <Settings2 className="h-3.5 w-3.5" />
-                        </Button>
+                <div className="hud-card p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">{currentTracker.icon}</span>
+                      <span className="font-semibold text-[hsl(210_20%_90%)]">{currentTracker.name}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="hud-badge">
+                        {currentSummary.todayCount} / {currentTracker.dailyGoal ?? currentTracker.baseline}
+                      </span>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        className="h-7 w-7 text-[hsl(210_15%_50%)] hover:text-[hsl(174_80%_60%)]"
+                        onClick={() => openEditDialog(currentTracker)}
+                      >
+                        <Settings2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <TrackerInputButton
+                    tracker={currentTracker}
+                    todayCount={currentSummary.todayCount}
+                    onAddEntry={(qty, ts) => handleAddEntry(currentTracker.id, qty, ts)}
+                    className="h-11"
+                  />
+
+                  {currentTracker.type === 'reduce' && currentSummary.todayLoss > 0 && (
+                    <div className="text-center p-2 mt-3 rounded-lg bg-[hsl(0_70%_60%/0.1)] border border-[hsl(0_70%_60%/0.2)]">
+                      <p className="text-neon-danger text-sm font-medium">
+                        {t.trackers.todayLoss.replace("{{amount}}", formatCurrency(currentSummary.todayLoss))}
+                      </p>
+                    </div>
+                  )}
+
+                  {todayEntries.length > 0 && (
+                    <div className="space-y-2 mt-3">
+                      <h4 className="hud-section-label">{t.objectives.timeline}</h4>
+                      <div className="max-h-28 overflow-y-auto space-y-1">
+                        {todayEntries.map((entry) => (
+                          <TrackerEntryItem
+                            key={entry.id}
+                            entry={entry}
+                            tracker={currentTracker}
+                            onUpdate={handleUpdateEntry}
+                            onDelete={handleDeleteEntry}
+                          />
+                        ))}
                       </div>
                     </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3 pb-3">
-                    <TrackerInputButton
-                      tracker={currentTracker}
-                      todayCount={currentSummary.todayCount}
-                      onAddEntry={(qty, ts) => handleAddEntry(currentTracker.id, qty, ts)}
-                      className="h-11"
-                    />
+                  )}
+                </div>
 
-                    {currentTracker.type === 'reduce' && currentSummary.todayLoss > 0 && (
-                      <div className="text-center p-2 rounded-lg bg-destructive/10 border border-destructive/30">
-                        <p className="text-destructive text-sm font-medium">
-                          {t.trackers.todayLoss.replace("{{amount}}", formatCurrency(currentSummary.todayLoss))}
-                        </p>
-                      </div>
-                    )}
-
-                    {todayEntries.length > 0 && (
-                      <div className="space-y-2">
-                        <h4 className="text-xs font-medium text-muted-foreground">{t.objectives.timeline}</h4>
-                        <div className="max-h-28 overflow-y-auto space-y-1">
-                          {todayEntries.map((entry) => (
-                            <TrackerEntryItem
-                              key={entry.id}
-                              entry={entry}
-                              tracker={currentTracker}
-                              onUpdate={handleUpdateEntry}
-                              onDelete={handleDeleteEntry}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Stats */}
+                {/* Stats Grid */}
                 <div className="grid gap-3 grid-cols-4">
-                  <Card className="glass border-border/30">
-                    <CardContent className="p-3 text-center">
-                      <p className="text-xl font-bold text-primary">{currentSummary.daysOnTrack}</p>
-                      <p className="text-[10px] text-muted-foreground">{t.trackers.daysOnTrack}</p>
-                    </CardContent>
-                  </Card>
-                  <Card className="glass border-border/30">
-                    <CardContent className="p-3 text-center">
-                      <p className="text-xl font-bold">{currentSummary.average30Days.toFixed(1)}</p>
-                      <p className="text-[10px] text-muted-foreground">{t.trackers.average30Days}</p>
-                    </CardContent>
-                  </Card>
-                  <Card className="glass border-border/30">
-                    <CardContent className="p-3 text-center">
-                      <p className={cn(
-                        "text-xl font-bold",
-                        currentTracker.type === 'reduce' ? "text-destructive" : "text-success"
-                      )}>
-                        {currentTracker.type === 'reduce' 
-                          ? formatCurrency(currentSummary.monthlyLoss) 
-                          : formatCurrency(0)}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground">
-                        {currentTracker.type === 'reduce' ? t.trackers.monthLoss : t.trackers.monthSavings}
-                      </p>
-                    </CardContent>
-                  </Card>
-                  <Card className="glass border-border/30">
-                    <CardContent className="p-3 text-center">
-                      <p className="text-xl font-bold">{currentSummary.monthlyCount}</p>
-                      <p className="text-[10px] text-muted-foreground">{t.dashboard.thisMonth}</p>
-                    </CardContent>
-                  </Card>
+                  <div className="hud-stat">
+                    <p className="hud-stat-value text-neon">{currentSummary.daysOnTrack}</p>
+                    <p className="hud-stat-label">{t.trackers.daysOnTrack}</p>
+                  </div>
+                  <div className="hud-stat">
+                    <p className="hud-stat-value text-[hsl(210_20%_85%)]">{currentSummary.average30Days.toFixed(1)}</p>
+                    <p className="hud-stat-label">{t.trackers.average30Days}</p>
+                  </div>
+                  <div className="hud-stat">
+                    <p className={cn(
+                      "hud-stat-value",
+                      currentTracker.type === 'reduce' ? "text-neon-danger" : "text-neon-success"
+                    )}>
+                      {currentTracker.type === 'reduce' 
+                        ? formatCurrency(currentSummary.monthlyLoss) 
+                        : formatCurrency(0)}
+                    </p>
+                    <p className="hud-stat-label">
+                      {currentTracker.type === 'reduce' ? t.trackers.monthLoss : t.trackers.monthSavings}
+                    </p>
+                  </div>
+                  <div className="hud-stat">
+                    <p className="hud-stat-value text-[hsl(210_20%_85%)]">{currentSummary.monthlyCount}</p>
+                    <p className="hud-stat-label">{t.dashboard.thisMonth}</p>
+                  </div>
                 </div>
 
                 {/* Chart */}
-                <Card className="glass border-border/30">
-                  <CardHeader className="pb-2 pt-3">
-                    <CardTitle className="flex items-center gap-2 text-sm">
-                      <BarChart3 className="h-4 w-4 text-primary" />
-                      {t.objectives.monthlyChart}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pb-3">
-                    <ResponsiveContainer width="100%" height={160}>
-                      <AreaChart data={getChartData(currentTracker)}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <XAxis
-                          dataKey="date"
-                          tickFormatter={(val) => format(parseISO(val), "d", { locale: dateLocale })}
-                          stroke="hsl(var(--muted-foreground))"
-                          fontSize={10}
-                        />
-                        <YAxis stroke="hsl(var(--muted-foreground))" fontSize={10} />
-                        <RechartsTooltip
-                          contentStyle={{
-                            backgroundColor: "hsl(var(--card))",
-                            border: "1px solid hsl(var(--border))",
-                            borderRadius: "8px",
-                            fontSize: "12px",
-                          }}
-                          labelFormatter={(val) => format(parseISO(val as string), "d MMM", { locale: dateLocale })}
-                        />
-                        <Area
-                          type="monotone"
-                          dataKey="goal"
-                          stroke="hsl(var(--muted-foreground))"
-                          fill="transparent"
-                          strokeDasharray="5 5"
-                          strokeWidth={1}
-                        />
-                        <Area
-                          type="monotone"
-                          dataKey="value"
-                          stroke={currentTracker.type === 'reduce' ? "hsl(var(--warning))" : "hsl(var(--success))"}
-                          fill={currentTracker.type === 'reduce' ? "hsl(var(--warning) / 0.2)" : "hsl(var(--success) / 0.2)"}
-                          strokeWidth={2}
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </CardContent>
-                </Card>
+                <div className="hud-chart-container">
+                  <h3 className="hud-section-label mb-3 flex items-center gap-2">
+                    <BarChart3 className="h-3.5 w-3.5 text-neon" />
+                    {t.objectives.monthlyChart}
+                  </h3>
+                  <ResponsiveContainer width="100%" height={160}>
+                    <AreaChart data={getChartData(currentTracker)}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 25% 20%)" />
+                      <XAxis
+                        dataKey="date"
+                        tickFormatter={(val) => format(parseISO(val), "d", { locale: dateLocale })}
+                        stroke="hsl(210 15% 40%)"
+                        fontSize={10}
+                      />
+                      <YAxis stroke="hsl(210 15% 40%)" fontSize={10} />
+                      <RechartsTooltip
+                        contentStyle={{
+                          backgroundColor: "hsl(220 25% 12%)",
+                          border: "1px solid hsl(174 65% 42% / 0.3)",
+                          borderRadius: "8px",
+                          fontSize: "12px",
+                          color: "hsl(210 20% 85%)",
+                        }}
+                        labelFormatter={(val) => format(parseISO(val as string), "d MMM", { locale: dateLocale })}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="goal"
+                        stroke="hsl(210 15% 35%)"
+                        fill="transparent"
+                        strokeDasharray="5 5"
+                        strokeWidth={1}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="value"
+                        stroke={currentTracker.type === 'reduce' ? "hsl(38 90% 60%)" : "hsl(155 70% 50%)"}
+                        fill={currentTracker.type === 'reduce' ? "hsl(38 90% 60% / 0.15)" : "hsl(155 70% 50% / 0.15)"}
+                        strokeWidth={2}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             )}
           </div>

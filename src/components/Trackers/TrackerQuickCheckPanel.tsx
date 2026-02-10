@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Tracker } from "@/data/types";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -37,7 +36,6 @@ export const TrackerQuickCheckPanel = ({
   const selectedTrackers = trackers.filter(t => selectedIds.includes(t.id));
   const allSelected = selectedIds.length === trackers.length && trackers.length > 0;
 
-  // Check if all selected trackers can be quick-checked
   const canBulkCheck = selectedTrackers.every(t => 
     t.inputMode === "binary" || t.inputMode === "fixedAmount" || t.inputMode === "incremental"
   );
@@ -48,33 +46,26 @@ export const TrackerQuickCheckPanel = ({
       const goal = tracker.dailyGoal ?? tracker.baseline;
       
       if (tracker.inputMode === "binary") {
-        if (todayCount < 1) {
-          onQuickCheck(tracker.id, 1);
-        }
+        if (todayCount < 1) onQuickCheck(tracker.id, 1);
       } else if (tracker.inputMode === "fixedAmount") {
-        if (todayCount < goal) {
-          onQuickCheck(tracker.id, goal);
-        }
+        if (todayCount < goal) onQuickCheck(tracker.id, goal);
       } else if (tracker.inputMode === "incremental") {
         onQuickCheck(tracker.id, 1);
       }
     });
     
-    // Handle manual input trackers
     const manualTrackers = selectedTrackers.filter(t => t.inputMode === "manualAmount");
     if (manualTrackers.length > 0) {
       setManualInputTracker(manualTrackers[0]);
       setManualValue("");
       setCustomTime(format(new Date(), "HH:mm"));
     } else {
-      // Clear selection after bulk check if no manual trackers
       onClearSelection();
     }
   };
 
   const handleManualSubmit = () => {
     if (!manualInputTracker) return;
-    
     const value = parseFloat(manualValue);
     if (value > 0) {
       const now = new Date();
@@ -96,66 +87,59 @@ export const TrackerQuickCheckPanel = ({
     }
   };
 
-  // No selection state - show hint
+  // No selection — show hint in HUD style
   if (selectedIds.length === 0) {
     return (
-      <div className="bg-card/30 backdrop-blur-sm border-b border-border/30 px-3 py-2.5">
-        <p className="text-xs text-muted-foreground text-center">
+      <div className="border-b border-[hsl(174_65%_42%/0.08)] px-3 py-2.5">
+        <p className="text-[11px] text-[hsl(210_15%_40%)] text-center font-mono tracking-wide">
           {locale === 'pt-PT' 
-            ? '💡 Mantém pressionado para selecionar vários' 
-            : '💡 Long press to select multiple'}
+            ? '[ MANTÉM PRESSIONADO PARA SELEÇÃO MÚLTIPLA ]' 
+            : '[ LONG PRESS FOR MULTI-SELECT ]'}
         </p>
       </div>
     );
   }
 
-  // Multi-select active state
+  // Multi-select active
   return (
     <>
-      <div className="sticky top-0 z-10 bg-primary/5 backdrop-blur-lg border-b border-primary/20 p-3">
+      <div className="sticky top-0 z-10 bg-[hsl(174_65%_42%/0.06)] backdrop-blur-lg border-b border-[hsl(174_65%_42%/0.2)] p-3">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
+            <button
               onClick={onClearSelection}
-              className="h-8 w-8 text-muted-foreground hover:text-foreground"
+              className="h-8 w-8 flex items-center justify-center rounded-lg text-[hsl(210_15%_50%)] hover:text-neon transition-colors"
             >
               <X className="h-4 w-4" />
-            </Button>
+            </button>
             
-            <Badge 
-              variant="secondary" 
-              className="font-medium bg-primary/10 text-primary border-primary/20"
-            >
+            <span className="hud-badge">
               {selectedIds.length} {locale === 'pt-PT' ? 'selecionado(s)' : 'selected'}
-            </Badge>
+            </span>
             
             {!allSelected && (
-              <Button
-                variant="ghost"
-                size="sm"
+              <button
                 onClick={onSelectAll}
-                className="text-xs h-7 px-2 text-muted-foreground hover:text-foreground"
+                className="text-[11px] font-mono text-[hsl(210_15%_45%)] hover:text-neon transition-colors uppercase tracking-wider"
               >
                 {locale === 'pt-PT' ? 'Todos' : 'All'}
-              </Button>
+              </button>
             )}
           </div>
           
-          <Button
-            size="sm"
+          <button
             onClick={handleBulkCheck}
             disabled={!canBulkCheck && selectedTrackers.some(t => t.inputMode === "manualAmount") && selectedIds.length > 1}
             className={cn(
-              "gap-2 font-medium transition-all",
-              "bg-success hover:bg-success/90 text-success-foreground",
-              "shadow-lg shadow-success/20"
+              "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
+              "bg-[hsl(155_70%_50%/0.15)] border border-[hsl(155_70%_50%/0.3)] text-neon-success",
+              "hover:bg-[hsl(155_70%_50%/0.25)] hover:shadow-[0_0_15px_hsl(155_70%_50%/0.15)]",
+              "disabled:opacity-40 disabled:cursor-not-allowed"
             )}
           >
             <CheckCircle2 className="h-4 w-4" />
             {locale === 'pt-PT' ? 'Check' : 'Check all'}
-          </Button>
+          </button>
         </div>
       </div>
 
@@ -201,7 +185,7 @@ export const TrackerQuickCheckPanel = ({
             <Button 
               onClick={handleManualSubmit}
               disabled={!manualValue || parseFloat(manualValue) <= 0}
-              className="bg-success hover:bg-success/90"
+              className="bg-[hsl(155_70%_50%)] hover:bg-[hsl(155_70%_45%)]"
             >
               {locale === 'pt-PT' ? 'Registar' : 'Log'}
             </Button>

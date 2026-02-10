@@ -83,7 +83,6 @@ export type Database = {
           created_at: string
           currency: string | null
           display_name: string | null
-          email: string | null
           id: string
           language: string | null
           updated_at: string
@@ -94,7 +93,6 @@ export type Database = {
           created_at?: string
           currency?: string | null
           display_name?: string | null
-          email?: string | null
           id?: string
           language?: string | null
           updated_at?: string
@@ -105,7 +103,6 @@ export type Database = {
           created_at?: string
           currency?: string | null
           display_name?: string | null
-          email?: string | null
           id?: string
           language?: string | null
           updated_at?: string
