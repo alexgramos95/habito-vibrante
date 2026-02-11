@@ -122,7 +122,7 @@ export function usePushNotifications(userId: string | undefined) {
 
       try {
         const registration = await navigator.serviceWorker.ready;
-        const subscription = await registration.pushManager.getSubscription();
+        const subscription = await (registration as any).pushManager.getSubscription();
         
         if (subscription) {
           // Verify it exists in database
@@ -223,14 +223,15 @@ export function usePushNotifications(userId: string | undefined) {
       }
 
       const registration = await navigator.serviceWorker.ready;
+      const pm = (registration as any).pushManager;
       
       // Check for existing subscription
-      let subscription = await registration.pushManager.getSubscription();
+      let subscription = await pm.getSubscription();
       
       if (!subscription) {
         // Create new subscription
         const applicationServerKey = urlBase64ToUint8Array(vapidKey);
-        subscription = await registration.pushManager.subscribe({
+        subscription = await pm.subscribe({
           userVisibleOnly: true,
           applicationServerKey: applicationServerKey.buffer as ArrayBuffer,
         });
@@ -312,7 +313,7 @@ export function usePushNotifications(userId: string | undefined) {
 
     try {
       const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.getSubscription();
+      const subscription = await (registration as any).pushManager.getSubscription();
 
       if (subscription) {
         await subscription.unsubscribe();
