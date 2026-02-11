@@ -1,7 +1,7 @@
 import { useMemo, useCallback, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format, subDays, getDay } from "date-fns";
-import { ArrowLeft, Flame, CalendarDays, Lightbulb, BarChart3, CheckCircle2, Pencil, Trash2, Plus } from "lucide-react";
+import { ArrowLeft, Flame, CalendarDays, Lightbulb, BarChart3, CheckCircle2, Pencil, Trash2, Plus, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useData } from "@/contexts/DataContext";
 import { useI18n } from "@/i18n/I18nContext";
@@ -254,6 +254,17 @@ const HabitDetail = () => {
     setDeletingEntryId(null);
   }, [deletingEntryId, setState, toast]);
 
+  const handleToggleEntry = useCallback((entryId: string, currentQty: number) => {
+    // Toggle: se já existe, duplica; se está duplicado, remove um; se chega a 0, elimina
+    if (currentQty <= 1) {
+      setState(prev => deleteTrackerEntry(prev, entryId));
+      toast({ title: "Registo eliminado" });
+    } else {
+      setState(prev => updateTrackerEntry(prev, entryId, { quantity: currentQty - 1 }));
+      toast({ title: "✓ Quantidade reduzida" });
+    }
+  }, [setState, toast]);
+
   if (!habit || !stats) {
     return (
       <div className="page-container">
@@ -362,18 +373,31 @@ const HabitDetail = () => {
             ) : (
               <div className="space-y-1.5">
                 {todayEntries.map(entry => (
-                  <div key={entry.id} className="flex items-center justify-between p-2.5 rounded-xl bg-background/60 border border-border/30">
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm font-medium text-foreground">
-                        {entry.quantity} {entry.quantity === 1 ? habit.unitSingular : habit.unitPlural}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {format(new Date(entry.timestamp), "HH:mm")}
-                      </span>
+                  <div key={entry.id} className="flex items-center justify-between p-2.5 rounded-xl bg-background/60 border border-border/30 group hover:border-border/50 transition-colors">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <button
+                        onClick={() => handleToggleEntry(entry.id, entry.quantity)}
+                        className={cn(
+                          "flex items-center justify-center h-7 w-7 rounded-full border-2 shrink-0 transition-all",
+                          entry.quantity > 0
+                            ? "bg-primary border-primary text-primary-foreground"
+                            : "border-border/50 bg-transparent group-hover:border-border/80"
+                        )}
+                      >
+                        {entry.quantity > 0 && <Check className="h-3.5 w-3.5 stroke-[2.5]" />}
+                      </button>
+                      <div className="min-w-0">
+                        <span className="text-sm font-medium text-foreground">
+                          {entry.quantity} {entry.quantity === 1 ? habit.unitSingular : habit.unitPlural}
+                        </span>
+                        <span className="text-xs text-muted-foreground ml-2">
+                          {format(new Date(entry.timestamp), "HH:mm")}
+                        </span>
+                      </div>
                     </div>
                     <button
                       onClick={() => setDeletingEntryId(entry.id)}
-                      className="h-7 w-7 rounded-lg flex items-center justify-center text-destructive/50 hover:text-destructive hover:bg-destructive/10 transition-colors"
+                      className="h-7 w-7 rounded-lg flex items-center justify-center text-destructive/50 hover:text-destructive hover:bg-destructive/10 transition-colors shrink-0"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
