@@ -82,15 +82,45 @@ serve(async (req) => {
   try {
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY');
     const VAPID_PUBLIC_KEY = Deno.env.get('VAPID_PUBLIC_KEY');
     const VAPID_PRIVATE_KEY = Deno.env.get('VAPID_PRIVATE_KEY');
 
-    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !SUPABASE_ANON_KEY) {
       throw new Error('Supabase credentials not configured');
     }
 
     if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
       throw new Error('VAPID keys not configured');
+    }
+
+    // --- Authentication ---
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const isServiceRole = token === SUPABASE_SERVICE_ROLE_KEY;
+
+    let authenticatedUserId: string | null = null;
+
+    if (!isServiceRole) {
+      // Validate as user JWT
+      const anonClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const { data: claimsData, error: claimsError } = await anonClient.auth.getClaims(token);
+      if (claimsError || !claimsData?.claims?.sub) {
+        return new Response(
+          JSON.stringify({ error: 'Invalid authentication' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      authenticatedUserId = claimsData.claims.sub as string;
     }
 
     // Create application server with stored VAPID keys
@@ -109,6 +139,24 @@ serve(async (req) => {
       throw new Error('Payload with title is required');
     }
 
+    // --- Authorization ---
+    // Non-service-role callers can only send to themselves
+    if (!isServiceRole) {
+      if (userId && userId !== authenticatedUserId) {
+        return new Response(
+          JSON.stringify({ error: 'Cannot send notifications for other users' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      // If no userId specified, scope to authenticated user
+      if (!userId && !subscription) {
+        return new Response(
+          JSON.stringify({ error: 'userId or subscription required' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
     let subscriptionsToSend: { id: string; endpoint: string; p256dh: string; auth: string }[] = [];
 
     // If subscription is provided directly, use it
@@ -120,10 +168,11 @@ serve(async (req) => {
         auth: subscription.keys.auth,
       }];
     } else {
-      // Get subscriptions from database - either for a specific user or get all
+      // Get subscriptions from database
+      const targetUserId = isServiceRole ? userId : authenticatedUserId;
       let query = supabase.from('push_subscriptions').select('*');
-      if (userId) {
-        query = query.eq('user_id', userId);
+      if (targetUserId) {
+        query = query.eq('user_id', targetUserId);
       }
       
       const { data: subscriptions, error: subError } = await query;
