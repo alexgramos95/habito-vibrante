@@ -12,16 +12,16 @@
 
 @layer base {
   :root {
-    /* Core backgrounds - Warm off-white, never clinical */
-    --background: 40 20% 98%;
+    /* Core backgrounds - Warm sand, never white */
+    --background: 35 22% 93%;
     --foreground: 220 25% 15%;
 
-    /* Card surfaces - Subtle warmth */
-    --card: 40 25% 99%;
+    /* Card surfaces - Warm cream */
+    --card: 38 20% 96%;
     --card-foreground: 220 25% 15%;
 
     /* Elevated surfaces */
-    --popover: 0 0% 100%;
+    --popover: 38 18% 97%;
     --popover-foreground: 220 25% 15%;
 
     /* Primary accent - Refined teal, softer for light mode */
@@ -29,12 +29,12 @@
     --primary-foreground: 0 0% 100%;
 
     /* Secondary - Warm neutral */
-    --secondary: 40 15% 94%;
+    --secondary: 35 18% 89%;
     --secondary-foreground: 220 20% 35%;
 
-    /* Muted elements - Gentle gray with warmth */
-    --muted: 40 12% 92%;
-    --muted-foreground: 220 15% 50%;
+    /* Muted elements - Warm taupe */
+    --muted: 35 14% 86%;
+    --muted-foreground: 220 15% 48%;
 
     /* Accent variations */
     --accent: 174 50% 45%;
@@ -44,9 +44,9 @@
     --destructive: 0 65% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Borders and inputs - Subtle, low-contrast */
-    --border: 40 15% 88%;
-    --input: 40 15% 90%;
+    /* Borders and inputs */
+    --border: 35 16% 82%;
+    --input: 35 16% 85%;
     --ring: 174 65% 42%;
 
     --radius: 0.75rem;
@@ -61,8 +61,8 @@
 
     /* Premium gradients - subtle and sophisticated */
     --gradient-primary: linear-gradient(135deg, hsl(174 65% 42%) 0%, hsl(180 55% 50%) 100%);
-    --gradient-surface: linear-gradient(180deg, hsl(40 25% 99%) 0%, hsl(40 20% 97%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(40 20% 98%) 100%);
+    --gradient-surface: linear-gradient(180deg, hsl(38 20% 95%) 0%, hsl(35 22% 93%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(38 20% 97%) 0%, hsl(35 18% 94%) 100%);
     --gradient-success: linear-gradient(135deg, hsl(155 60% 40%) 0%, hsl(165 55% 45%) 100%);
     --gradient-glow: radial-gradient(ellipse at center, hsl(174 65% 42% / 0.06) 0%, transparent 70%);
     --gradient-subtle: linear-gradient(180deg, transparent 0%, hsl(174 65% 42% / 0.02) 100%);
@@ -75,13 +75,13 @@
     --shadow-button: 0 1px 4px hsl(174 65% 42% / 0.12);
 
     /* Sidebar tokens */
-    --sidebar-background: 40 20% 97%;
+    --sidebar-background: 35 20% 92%;
     --sidebar-foreground: 220 25% 25%;
     --sidebar-primary: 174 65% 42%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 40 15% 94%;
+    --sidebar-accent: 35 18% 89%;
     --sidebar-accent-foreground: 220 25% 25%;
-    --sidebar-border: 40 15% 90%;
+    --sidebar-border: 35 16% 84%;
     --sidebar-ring: 174 65% 42%;
 
     /* Chart colors - Harmonized palette */
@@ -111,9 +111,9 @@
     overscroll-behavior: none;
     /* Ambient background — subtle warm gradient mesh */
     background-image:
-      radial-gradient(ellipse 80% 60% at 20% 10%, hsl(174 50% 85% / 0.12) 0%, transparent 60%),
-      radial-gradient(ellipse 60% 50% at 85% 80%, hsl(38 60% 85% / 0.10) 0%, transparent 55%),
-      radial-gradient(ellipse 50% 40% at 50% 50%, hsl(220 30% 92% / 0.08) 0%, transparent 50%);
+      radial-gradient(ellipse 80% 60% at 20% 10%, hsl(174 50% 75% / 0.10) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 85% 80%, hsl(38 50% 75% / 0.10) 0%, transparent 55%),
+      radial-gradient(ellipse 50% 40% at 50% 50%, hsl(220 20% 85% / 0.08) 0%, transparent 50%);
     background-attachment: fixed;
   }
 
@@ -377,8 +377,8 @@
   pointer-events: none;
   z-index: 0;
   background:
-    linear-gradient(180deg, hsl(40 20% 98% / 0.6) 0%, transparent 40%),
-    linear-gradient(0deg, hsl(40 20% 97% / 0.4) 0%, transparent 30%);
+    linear-gradient(180deg, hsl(35 22% 93% / 0.5) 0%, transparent 40%),
+    linear-gradient(0deg, hsl(35 20% 91% / 0.3) 0%, transparent 30%);
 }
 
 .page-container > * {

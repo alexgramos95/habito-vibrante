@@ -24,7 +24,7 @@ import { PaywallModal } from "@/components/Paywall/PaywallModal";
 import { NotificationSetup } from "@/components/Habits/NotificationSetup";
 import { TrackerDetailDrawer } from "@/components/Trackers/TrackerDetailDrawer";
 import { TrackerEditDialog } from "@/components/Trackers/TrackerEditDialog";
-import { HabitCoachCard } from "@/components/Habits/HabitCoachCard";
+import { HabitCoachTip } from "@/components/Habits/HabitCoachTip";
 
 // --- Circular progress ring ---
 const CircularProgress = ({ percent, size = 60 }: { percent: number; size?: number }) => {
@@ -303,9 +303,7 @@ const Index = () => {
           </div>
         )}
 
-        {/* ═══ Coach Card ═══ */}
-        {state.habits.length > 0 && <HabitCoachCard coachData={coachData} />}
-
+        {/* Coach is now per-habit, no global card */}
         {/* ═══ Page Header ═══ */}
         <div className="flex items-center justify-between">
           <div>
@@ -346,13 +344,17 @@ const Index = () => {
               </h2>
             </div>
             <div className="space-y-1.5">
-              {sortedTodaySimple.map(habit => (
-                <div key={habit.id} className="relative group">
-                  <MinimalHabitCard
-                    habit={habit}
-                    isDone={isSimpleDone(habit.id)}
-                    onToggle={() => handleToggleSimple(habit.id)}
-                  />
+               {sortedTodaySimple.map(habit => {
+                const habitCoach = coachData.habits.find(h => h.name === habit.nome);
+                return (
+                  <div key={habit.id} className="relative group">
+                    <MinimalHabitCard
+                      habit={habit}
+                      isDone={isSimpleDone(habit.id)}
+                      onToggle={() => handleToggleSimple(habit.id)}
+                      completionRate7d={habitCoach?.completionRate7d ?? 0}
+                      currentStreak={streak}
+                    />
                   {/* Edit overlay on long-press / hover */}
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
                     <button
@@ -372,8 +374,9 @@ const Index = () => {
                       </svg>
                     </button>
                   </div>
-                </div>
-              ))}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -394,87 +397,90 @@ const Index = () => {
                   ? Math.max(0, 100 - (count / Math.max(goal, 1)) * 100)
                   : Math.min(100, (count / Math.max(goal, 1)) * 100);
                 const isOnTrack = habit.type === "reduce" ? count <= goal : count >= goal;
+                const habitCoach = coachData.habits.find(h => h.name === habit.nome);
 
                 return (
-                  <button
-                    key={habit.id}
-                    onClick={() => setSelectedMetricId(habit.id)}
-                    className={cn(
-                      "w-full flex items-center gap-3.5 p-4 rounded-2xl border transition-all duration-300 text-left group",
-                      "hover:shadow-sm hover:border-primary/20",
-                      isOnTrack
-                        ? "border-success/20 bg-success/3"
-                        : "border-border/40 bg-card/50"
-                    )}
-                  >
-                    {/* Icon */}
-                    <div className={cn(
-                      "h-11 w-11 rounded-xl flex items-center justify-center text-lg shrink-0 border transition-colors",
-                      isOnTrack
-                        ? "border-success/20 bg-success/8"
-                        : habit.type === "reduce"
-                          ? "border-warning/20 bg-warning/8"
-                          : "border-primary/20 bg-primary/8"
-                    )}>
-                      {habit.icon || "📊"}
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate text-foreground">{habit.nome}</p>
-                      <div className="flex items-center gap-2 mt-1.5">
-                        <div className="flex-1 h-1.5 rounded-full bg-muted/60 overflow-hidden">
-                          <div
-                            className={cn(
-                              "h-full rounded-full transition-all duration-700 ease-out",
-                              isOnTrack ? "bg-success" : habit.type === "reduce" ? "bg-warning" : "bg-primary"
-                            )}
-                            style={{ width: `${Math.min(100, prog)}%` }}
-                          />
+                  <div key={habit.id}>
+                    <button
+                      onClick={() => setSelectedMetricId(habit.id)}
+                      className={cn(
+                        "w-full flex items-center gap-3.5 p-4 rounded-2xl border transition-all duration-300 text-left group",
+                        "hover:shadow-sm hover:border-primary/20",
+                        isOnTrack
+                          ? "border-success/20 bg-success/5"
+                          : "border-border/40 bg-card/60"
+                      )}
+                    >
+                      <div className={cn(
+                        "h-11 w-11 rounded-xl flex items-center justify-center text-lg shrink-0 border transition-colors",
+                        isOnTrack
+                          ? "border-success/20 bg-success/8"
+                          : habit.type === "reduce"
+                            ? "border-warning/20 bg-warning/8"
+                            : "border-primary/20 bg-primary/8"
+                      )}>
+                        {habit.icon || "📊"}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate text-foreground">{habit.nome}</p>
+                        <div className="flex items-center gap-2 mt-1.5">
+                          <div className="flex-1 h-1.5 rounded-full bg-muted/60 overflow-hidden">
+                            <div
+                              className={cn(
+                                "h-full rounded-full transition-all duration-700 ease-out",
+                                isOnTrack ? "bg-success" : habit.type === "reduce" ? "bg-warning" : "bg-primary"
+                              )}
+                              style={{ width: `${Math.min(100, prog)}%` }}
+                            />
+                          </div>
+                          <span className="text-xs font-mono text-muted-foreground whitespace-nowrap">
+                            {count}/{goal}
+                          </span>
                         </div>
-                        <span className="text-xs font-mono text-muted-foreground whitespace-nowrap">
-                          {count}/{goal}
-                        </span>
                       </div>
-                    </div>
-
-                    {/* Quick action */}
-                    {habit.inputMode === "incremental" && (
-                      <div
-                        onClick={e => { e.stopPropagation(); handleAddMetricEntry(habit.id, 1); }}
-                        className={cn(
-                          "h-10 w-10 rounded-xl flex items-center justify-center shrink-0 border transition-all",
-                          "hover:shadow-md active:scale-95",
-                          habit.type === "reduce"
-                            ? "border-warning/30 bg-warning/10 text-warning hover:bg-warning/20"
-                            : "border-primary/30 bg-primary/10 text-primary hover:bg-primary/20"
-                        )}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </div>
-                    )}
-                    {(habit.inputMode === "binary" || habit.inputMode === "fixedAmount") && (
-                      <div
-                        onClick={e => {
-                          e.stopPropagation();
-                          if (!isOnTrack) handleAddMetricEntry(habit.id, habit.inputMode === "binary" ? 1 : goal);
-                        }}
-                        className={cn(
-                          "h-10 w-10 rounded-xl flex items-center justify-center shrink-0 border transition-all",
-                          isOnTrack
-                            ? "border-success/30 bg-success/10 text-success"
-                            : "border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 active:scale-95"
-                        )}
-                      >
-                        <Check className="h-4 w-4" />
-                      </div>
-                    )}
-
-                    {/* On-track badge */}
-                    {isOnTrack && (
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-success shrink-0">✓</span>
-                    )}
-                  </button>
+                      {habit.inputMode === "incremental" && (
+                        <div
+                          onClick={e => { e.stopPropagation(); handleAddMetricEntry(habit.id, 1); }}
+                          className={cn(
+                            "h-10 w-10 rounded-xl flex items-center justify-center shrink-0 border transition-all",
+                            "hover:shadow-md active:scale-95",
+                            habit.type === "reduce"
+                              ? "border-warning/30 bg-warning/10 text-warning hover:bg-warning/20"
+                              : "border-primary/30 bg-primary/10 text-primary hover:bg-primary/20"
+                          )}
+                        >
+                          <Plus className="h-4 w-4" />
+                        </div>
+                      )}
+                      {(habit.inputMode === "binary" || habit.inputMode === "fixedAmount") && (
+                        <div
+                          onClick={e => {
+                            e.stopPropagation();
+                            if (!isOnTrack) handleAddMetricEntry(habit.id, habit.inputMode === "binary" ? 1 : goal);
+                          }}
+                          className={cn(
+                            "h-10 w-10 rounded-xl flex items-center justify-center shrink-0 border transition-all",
+                            isOnTrack
+                              ? "border-success/30 bg-success/10 text-success"
+                              : "border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 active:scale-95"
+                          )}
+                        >
+                          <Check className="h-4 w-4" />
+                        </div>
+                      )}
+                      {isOnTrack && (
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-success shrink-0">✓</span>
+                      )}
+                    </button>
+                    <HabitCoachTip
+                      habitName={habit.nome}
+                      mode="metric"
+                      type={habit.type}
+                      completionRate7d={habitCoach?.completionRate7d ?? 0}
+                      currentStreak={streak}
+                      isDoneToday={isOnTrack}
+                    />
+                  </div>
                 );
               })}
             </div>

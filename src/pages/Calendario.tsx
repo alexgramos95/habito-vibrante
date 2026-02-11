@@ -113,7 +113,7 @@ const Calendario = () => {
     return getHabitsSortedForDay(activeHabits, dayOfWeek);
   };
 
-  // Include metric habits in day data
+  // Only use unified habits (mode-aware), no legacy tracker data
   const getDayData = (date: Date) => {
     const dateStr = format(date, "yyyy-MM-dd");
     const habitsForDay = getHabitsForDate(date);
@@ -123,9 +123,11 @@ const Calendario = () => {
       state.dailyLogs.some(log => log.habitId === habit.id && log.date === dateStr && log.done)
     ).length;
 
-    // Metric habits (from unified habits with mode=metric)
+    // Metric habits (unified habits with mode=metric only)
     const metricHabits = habitsForDay.filter(h => h.mode === "metric");
-    const metricEntries = (state.trackerEntries || []).filter(e => e.date === dateStr);
+    const metricEntries = (state.trackerEntries || []).filter(e => 
+      e.date === dateStr && metricHabits.some(h => h.id === e.trackerId)
+    );
     const onTrackMetrics = metricHabits.filter(h => {
       const qty = metricEntries.filter(e => e.trackerId === h.id).reduce((s, e) => s + e.quantity, 0);
       const goal = h.dailyGoal ?? h.baseline ?? 0;
@@ -135,9 +137,8 @@ const Calendario = () => {
     const totalHabits = simpleHabits.length + metricHabits.length;
     const completedHabits = completedSimple + onTrackMetrics;
     const reflection = getReflectionForDate(state, dateStr);
-    const trackerCount = metricEntries.reduce((sum, e) => sum + e.quantity, 0);
 
-    return { completedHabits, totalHabits, reflection, trackerCount, metricEntries, simpleHabits, metricHabits };
+    return { completedHabits, totalHabits, reflection, metricEntries, simpleHabits, metricHabits };
   };
 
   // Monthly overview stats
