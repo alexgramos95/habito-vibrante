@@ -106,9 +106,29 @@ serve(async (req) => {
   try {
     const { imageBase64 } = await req.json();
 
-    if (!imageBase64) {
+    if (!imageBase64 || typeof imageBase64 !== 'string') {
       return new Response(
         JSON.stringify({ error: "Image data is required", items: [] }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate image size (base64 is ~133% of original; limit to 5MB original)
+    const estimatedBytes = (imageBase64.length * 3) / 4;
+    const maxBytes = 5 * 1024 * 1024;
+    if (estimatedBytes > maxBytes) {
+      return new Response(
+        JSON.stringify({ error: "Image too large. Maximum 5MB.", items: [] }),
+        { status: 413, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate image format (must be JPEG, PNG, or WebP)
+    const validPrefixes = ['data:image/jpeg', 'data:image/png', 'data:image/webp', '/9j/', 'iVBOR'];
+    const isValidFormat = validPrefixes.some(p => imageBase64.startsWith(p));
+    if (!isValidFormat && imageBase64.startsWith('data:') && !imageBase64.startsWith('data:image/')) {
+      return new Response(
+        JSON.stringify({ error: "Invalid image format. Use JPEG, PNG, or WebP.", items: [] }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

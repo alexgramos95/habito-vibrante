@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "npm:stripe@18.5.0";
-import { createClient } from "npm:@supabase/supabase-js@2.57.2";
+import { createClient } from "npm:@supabase/supabase-js@2";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
@@ -8,9 +8,24 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const sanitize = (details?: Record<string, unknown>): Record<string, unknown> | undefined => {
+  if (!details) return undefined;
+  const safe: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(details)) {
+    if (typeof v === 'string') {
+      if (k.toLowerCase().includes('email')) { safe[k] = '***'; continue; }
+      if (k.toLowerCase().includes('url')) { safe[k] = '***'; continue; }
+      if (v.length > 12 && (k.includes('Id') || k.includes('id') || k.includes('customer'))) {
+        safe[k] = v.substring(0, 8) + '…'; continue;
+      }
+    }
+    safe[k] = v;
+  }
+  return safe;
+};
 const logStep = (step: string, details?: Record<string, unknown>) => {
-  const detailsStr = details ? ` - ${JSON.stringify(details)}` : "";
-  console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
+  const s = sanitize(details);
+  console.log(`[CREATE-CHECKOUT] ${step}${s ? ` - ${JSON.stringify(s)}` : ''}`);
 };
 
 const CheckoutSchema = z.object({

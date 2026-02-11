@@ -1,15 +1,29 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "npm:stripe@18.5.0";
-import { createClient } from "npm:@supabase/supabase-js@2.57.2";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const sanitize = (details?: Record<string, unknown>): Record<string, unknown> | undefined => {
+  if (!details) return undefined;
+  const safe: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(details)) {
+    if (typeof v === 'string') {
+      if (k.toLowerCase().includes('email')) { safe[k] = '***'; continue; }
+      if (v.length > 12 && (k.includes('Id') || k.includes('id') || k.includes('customer'))) {
+        safe[k] = v.substring(0, 8) + '…'; continue;
+      }
+    }
+    safe[k] = v;
+  }
+  return safe;
+};
 const logStep = (step: string, details?: Record<string, unknown>) => {
-  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
-  console.log(`[STRIPE-WEBHOOK] ${step}${detailsStr}`);
+  const s = sanitize(details);
+  console.log(`[STRIPE-WEBHOOK] ${step}${s ? ` - ${JSON.stringify(s)}` : ''}`);
 };
 
 // Safe epoch-seconds to ISO converter (returns null for invalid/missing values)

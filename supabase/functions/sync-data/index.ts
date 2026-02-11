@@ -7,10 +7,23 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Helper logging function for debugging
+const sanitize = (details?: Record<string, unknown>): Record<string, unknown> | undefined => {
+  if (!details) return undefined;
+  const safe: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(details)) {
+    if (typeof v === 'string') {
+      if (k.toLowerCase().includes('email')) { safe[k] = '***'; continue; }
+      if (v.length > 12 && (k.includes('Id') || k.includes('id'))) {
+        safe[k] = v.substring(0, 8) + '…'; continue;
+      }
+    }
+    safe[k] = v;
+  }
+  return safe;
+};
 const logStep = (step: string, details?: Record<string, unknown>) => {
-  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
-  console.log(`[SYNC-DATA] ${step}${detailsStr}`);
+  const s = sanitize(details);
+  console.log(`[SYNC-DATA] ${step}${s ? ` - ${JSON.stringify(s)}` : ''}`);
 };
 
 // Input validation schemas
