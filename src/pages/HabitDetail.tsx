@@ -255,14 +255,13 @@ const HabitDetail = () => {
   }, [deletingEntryId, setState, toast]);
 
   const handleToggleEntry = useCallback((entryId: string, currentQty: number) => {
-    // Toggle: se já existe, duplica; se está duplicado, remove um; se chega a 0, elimina
-    if (currentQty <= 1) {
-      setState(prev => deleteTrackerEntry(prev, entryId));
-      toast({ title: "Registo eliminado" });
-    } else {
-      setState(prev => updateTrackerEntry(prev, entryId, { quantity: currentQty - 1 }));
-      toast({ title: "✓ Quantidade reduzida" });
-    }
+    // For quantities > 1, decrement. For 1, delete the entry.
+    setState(prev => 
+      currentQty > 1 
+        ? updateTrackerEntry(prev, entryId, { quantity: currentQty - 1 })
+        : deleteTrackerEntry(prev, entryId)
+    );
+    toast({ title: currentQty > 1 ? "✓ Reduzido" : "✓ Eliminado" });
   }, [setState, toast]);
 
   if (!habit || !stats) {
