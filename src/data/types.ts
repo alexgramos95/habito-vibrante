@@ -78,6 +78,22 @@ export interface Habit {
   scheduledTime?: string; // HH:MM format for scheduled time
   scheduledDays?: number[]; // 0-6 for Sun-Sat, empty = every day
   reminderEnabled?: boolean; // Whether to show reminder notifications
+  
+  // Unified mode system: simple checkbox or metric tracking
+  mode?: "simple" | "metric";  // "simple" = checkbox, "metric" = quantitative tracking
+  
+  // Metric-specific fields (when mode="metric") - tracker functionality
+  type?: TrackerType;  // "increase" | "reduce" | "boolean" | "event"
+  inputMode?: TrackerInputMode;  // "binary" | "fixedAmount" | "incremental" | "manualAmount"
+  icon?: string;
+  unitSingular?: string;
+  unitPlural?: string;
+  baseline?: number;
+  dailyGoal?: number;
+  valuePerUnit?: number;
+  frequency?: TrackerFrequency;
+  includeInFinances?: boolean;
+  specificDays?: number[]; // 0-6 for Sun-Sat when frequency is 'specific_days'
 }
 
 export interface DailyLog {

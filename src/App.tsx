@@ -13,7 +13,6 @@ import { PWAUpdateToast, usePWAUpdate } from "@/components/PWA/PWAUpdateToast";
 
 // Lazy load pages (except Onboarding, que importamos diretamente)
 const Index = lazy(() => import("./pages/Index"));
-const Objetivos = lazy(() => import("./pages/Objetivos"));
 const Calendario = lazy(() => import("./pages/Calendario"));
 const Compras = lazy(() => import("./pages/Compras"));
 const Perfil = lazy(() => import("./pages/Perfil"));
@@ -44,12 +43,6 @@ const PageLoader = () => (
 // Gated page wrappers for PRO-only pages
 // FREE users: only Hábitos, Calendário, Perfil
 // PRO/TRIAL users: all pages
-
-const GatedTrackers = () => (
-  <GatedPage featureName="Trackers">
-    <Objetivos />
-  </GatedPage>
-);
 
 const GatedShopping = () => (
   <GatedPage featureName="Lista de Compras">
@@ -95,8 +88,7 @@ const AppRoutes = () => (
         <Route path="/app/calendar" element={<Calendario />} />
         <Route path="/app/profile" element={<Perfil />} />
 
-        {/* PRO-only pages: Trackers, Shopping, Progress, Settings */}
-        <Route path="/app/trackers" element={<GatedTrackers />} />
+        {/* PRO-only pages: Shopping, Progress, Settings */}
         <Route path="/app/shopping" element={<GatedShopping />} />
         <Route path="/app/progress" element={<GatedProgress />} />
         <Route path="/app/settings" element={<GatedSettings />} />
@@ -111,12 +103,13 @@ const AppRoutes = () => (
         <Route path="/terms" element={<Terms />} />
         <Route path="/privacy" element={<Privacy />} />
 
-        {/* Legacy routes for backwards compatibility */}
+        {/* Legacy routes - redirect old tracker routes to hábitos */}
         <Route path="/habitos" element={<Index />} />
         <Route path="/habits" element={<Index />} />
         <Route path="/triggers" element={<Index />} />
-        <Route path="/objetivos" element={<GatedTrackers />} />
-        <Route path="/trackers" element={<GatedTrackers />} />
+        <Route path="/objetivos" element={<Index />} />
+        <Route path="/trackers" element={<Index />} />
+        <Route path="/app/trackers" element={<Index />} />
         <Route path="/calendario" element={<Calendario />} />
         <Route path="/calendar" element={<Calendario />} />
         <Route path="/compras" element={<GatedShopping />} />
