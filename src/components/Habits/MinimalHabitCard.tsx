@@ -1,14 +1,12 @@
-import { Check } from "lucide-react";
+import { Check, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Habit } from "@/data/types";
-import { HabitCoachTip } from "./HabitCoachTip";
+import { useNavigate } from "react-router-dom";
 
 interface MinimalHabitCardProps {
   habit: Habit;
   isDone: boolean;
   onToggle: () => void;
-  completionRate7d?: number;
-  currentStreak?: number;
 }
 
 /**
@@ -21,9 +19,8 @@ export const MinimalHabitCard = ({
   habit,
   isDone,
   onToggle,
-  completionRate7d = 0,
-  currentStreak = 0,
 }: MinimalHabitCardProps) => {
+  const navigate = useNavigate();
   return (
     <div>
       <button
@@ -77,23 +74,14 @@ export const MinimalHabitCard = ({
           {habit.nome}
         </span>
 
-        {/* Time indicator */}
-        {habit.scheduledTime && (
-          <span className={cn(
-            "text-xs tabular-nums transition-colors shrink-0",
-            isDone ? "text-primary/60" : "text-muted-foreground/60"
-          )}>
-            {habit.scheduledTime}
-          </span>
-        )}
+        {/* Navigate to detail */}
+        <button
+          onClick={(e) => { e.stopPropagation(); navigate(`/app/habit/${habit.id}`); }}
+          className="shrink-0 text-muted-foreground/40 hover:text-muted-foreground transition-colors"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </button>
       </button>
-      <HabitCoachTip
-        habitName={habit.nome}
-        mode="simple"
-        completionRate7d={completionRate7d}
-        currentStreak={currentStreak}
-        isDoneToday={isDone}
-      />
     </div>
   );
 };
