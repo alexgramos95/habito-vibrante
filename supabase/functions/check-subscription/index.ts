@@ -10,10 +10,24 @@ const corsHeaders = {
 // Trial duration: 7 days (168 hours)
 const TRIAL_DURATION_HOURS = 168;
 
-// Helper logging function for debugging
+// Safe logging — strips PII (emails, full IDs, Stripe secrets)
+const sanitize = (details?: Record<string, unknown>): Record<string, unknown> | undefined => {
+  if (!details) return undefined;
+  const safe: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(details)) {
+    if (typeof v === 'string') {
+      if (k.toLowerCase().includes('email')) { safe[k] = '***'; continue; }
+      if (v.length > 12 && (k.includes('Id') || k.includes('id') || k.includes('customer'))) {
+        safe[k] = v.substring(0, 8) + '…'; continue;
+      }
+    }
+    safe[k] = v;
+  }
+  return safe;
+};
 const logStep = (step: string, details?: Record<string, unknown>) => {
-  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
-  console.log(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
+  const s = sanitize(details);
+  console.log(`[CHECK-SUBSCRIPTION] ${step}${s ? ` - ${JSON.stringify(s)}` : ''}`);
 };
 
 // Safe error mapping
