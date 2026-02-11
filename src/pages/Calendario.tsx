@@ -1,19 +1,17 @@
-import { useState, useEffect, useMemo } from "react";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday, isFuture, getDay, startOfWeek, endOfWeek, addDays, subDays, addWeeks, subWeeks, differenceInWeeks } from "date-fns";
+import { useState, useMemo } from "react";
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday, isFuture, getDay, startOfWeek, addDays, subDays, addWeeks, subWeeks } from "date-fns";
 import { pt, enUS as enUSLocale } from "date-fns/locale";
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Flame, Check, X, Clock, PenLine, ShoppingCart, Lock, Bell } from "lucide-react";
+import { ChevronLeft, ChevronRight, Flame, Check, X, Clock, PenLine, ShoppingCart, Lock, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Habit, Tracker, DailyReflection, ShoppingItem } from "@/data/types";
+import { Habit, DailyReflection } from "@/data/types";
 import { toggleDailyLog, getReflectionForDate } from "@/data/storage";
 import { getCompletedHabitsOnDate, getActiveHabits } from "@/logic/computations";
 import { getHabitsSortedForDay } from "@/logic/habitSorting";
 import { Navigation } from "@/components/Layout/Navigation";
-import { PageHeader } from "@/components/Layout/PageHeader";
 import { MonthSelector } from "@/components/Dashboard/MonthSelector";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useI18n } from "@/i18n/I18nContext";
 import { cn } from "@/lib/utils";
@@ -22,7 +20,29 @@ import { useData } from "@/contexts/DataContext";
 import { PaywallModal } from "@/components/Paywall/PaywallModal";
 import { TrialBanner } from "@/components/Paywall/TrialBanner";
 
-type ViewMode = "daily" | "weekly" | "monthly";
+// --- Circular progress ring (shared pattern) ---
+const CircularProgress = ({ percent, size = 52 }: { percent: number; size?: number }) => {
+  const r = (size - 6) / 2;
+  const circ = 2 * Math.PI * r;
+  const offset = circ - (Math.min(100, percent) / 100) * circ;
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="hsl(var(--muted))" strokeWidth="4" />
+      <circle
+        cx={size / 2} cy={size / 2} r={r} fill="none"
+        stroke="hsl(var(--primary))" strokeWidth="4"
+        strokeDasharray={circ} strokeDashoffset={offset}
+        strokeLinecap="round" transform={`rotate(-90 ${size / 2} ${size / 2})`}
+        className="transition-all duration-700 ease-out"
+      />
+      <text x={size / 2} y={size / 2 + 4} textAnchor="middle" className="text-xs font-bold fill-foreground">
+        {Math.round(percent)}%
+      </text>
+    </svg>
+  );
+};
+
+type ViewMode = "monthly" | "weekly" | "daily";
 
 const Calendario = () => {
   const navigate = useNavigate();
@@ -36,11 +56,10 @@ const Calendario = () => {
   const [detailDate, setDetailDate] = useState<Date | null>(null);
   const [showPaywall, setShowPaywall] = useState(false);
   const { isPro, trialStatus, upgradeToPro, getLimits } = useSubscription();
-  
+
   const dateLocale = locale === 'pt-PT' ? pt : enUSLocale;
   const limits = getLimits();
-  
-  // Check if date is within allowed history
+
   const isDateAccessible = (date: Date): boolean => {
     if (isPro) return true;
     const today = new Date();
@@ -48,77 +67,29 @@ const Calendario = () => {
     return daysBack <= (limits.calendarDaysBack as number);
   };
 
-  useEffect(() => {
-    const handleStorageChange = () => {
-      // Storage change will be handled by DataContext
-    };
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
-
-  const weekdays = locale === 'pt-PT' 
+  const weekdays = locale === 'pt-PT'
     ? ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"]
     : ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-  const handlePreviousMonth = () => {
-    if (currentMonth === 0) {
-      setCurrentMonth(11);
-      setCurrentYear((y) => y - 1);
-    } else {
-      setCurrentMonth((m) => m - 1);
-    }
-  };
+  const viewTabs: { id: ViewMode; label: string }[] = [
+    { id: 'daily', label: locale === 'pt-PT' ? 'Dia' : 'Day' },
+    { id: 'weekly', label: locale === 'pt-PT' ? 'Semana' : 'Week' },
+    { id: 'monthly', label: locale === 'pt-PT' ? 'Mês' : 'Month' },
+  ];
 
-  const handleNextMonth = () => {
-    if (currentMonth === 11) {
-      setCurrentMonth(0);
-      setCurrentYear((y) => y + 1);
-    } else {
-      setCurrentMonth((m) => m + 1);
-    }
-  };
-
-  const handleToday = () => {
-    const today = new Date();
-    setCurrentMonth(today.getMonth());
-    setCurrentYear(today.getFullYear());
-    setSelectedDate(today);
-  };
-
-  const handlePreviousWeek = () => {
-    setSelectedDate(prev => subWeeks(prev, 1));
-  };
-
-  const handleNextWeek = () => {
-    setSelectedDate(prev => addWeeks(prev, 1));
-  };
-
-  const handlePreviousDay = () => {
-    setSelectedDate(prev => subDays(prev, 1));
-  };
-
-  const handleNextDay = () => {
-    setSelectedDate(prev => addDays(prev, 1));
-  };
+  // Navigation handlers
+  const handlePreviousMonth = () => { if (currentMonth === 0) { setCurrentMonth(11); setCurrentYear(y => y - 1); } else setCurrentMonth(m => m - 1); };
+  const handleNextMonth = () => { if (currentMonth === 11) { setCurrentMonth(0); setCurrentYear(y => y + 1); } else setCurrentMonth(m => m + 1); };
+  const handleToday = () => { const d = new Date(); setCurrentMonth(d.getMonth()); setCurrentYear(d.getFullYear()); setSelectedDate(d); };
 
   const calendarDays = useMemo(() => {
     const monthStart = startOfMonth(new Date(currentYear, currentMonth));
     const monthEnd = endOfMonth(new Date(currentYear, currentMonth));
     const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
-    
     const firstDayOfMonth = getDay(monthStart);
     const startPadding = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
-    
-    const paddingDays = Array.from({ length: startPadding }, (_, i) => ({
-      date: null,
-      key: `padding-${i}`,
-    }));
-    
-    const monthDays = daysInMonth.map((date) => ({
-      date,
-      key: format(date, "yyyy-MM-dd"),
-    }));
-    
+    const paddingDays = Array.from({ length: startPadding }, (_, i) => ({ date: null as Date | null, key: `p-${i}` }));
+    const monthDays = daysInMonth.map(date => ({ date, key: format(date, "yyyy-MM-dd") }));
     return [...paddingDays, ...monthDays];
   }, [currentYear, currentMonth]);
 
@@ -127,7 +98,6 @@ const Calendario = () => {
     return Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
   }, [selectedDate]);
 
-  // Get active habits sorted by scheduled time
   const activeHabits = useMemo(() => {
     const habits = getActiveHabits(state);
     return habits.sort((a, b) => {
@@ -138,95 +108,69 @@ const Calendario = () => {
     });
   }, [state]);
 
-  // Helper to check if a habit is scheduled for a specific weekday
-  // weekday: 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-  const isHabitScheduledForDay = (habit: Habit, date: Date): boolean => {
-    // If no scheduledDays or empty, habit is scheduled every day
-    if (!habit.scheduledDays || habit.scheduledDays.length === 0) {
-      return true;
-    }
-    const dayOfWeek = getDay(date); // 0 = Sunday
-    return habit.scheduledDays.includes(dayOfWeek);
-  };
-
-  // Get habits for a specific date (filtered by weekday schedule and sorted by time)
   const getHabitsForDate = (date: Date) => {
     const dayOfWeek = getDay(date);
     return getHabitsSortedForDay(activeHabits, dayOfWeek);
   };
-  
-  const activeTrackers = (state.trackers || []).filter(t => t.active);
 
-  // Get daily tracker reminders (trackers with frequency=daily and scheduledTime set)
-  const dailyTrackerReminders = useMemo(() => {
-    return activeTrackers.filter(t => 
-      t.frequency === 'daily' && t.scheduledTime
-    );
-  }, [activeTrackers]);
-
+  // Include metric habits in day data
   const getDayData = (date: Date) => {
     const dateStr = format(date, "yyyy-MM-dd");
-    
-    // Get habits scheduled for this specific day
     const habitsForDay = getHabitsForDate(date);
-    
-    // Count completed habits that are actually scheduled for this day
-    const completedHabits = habitsForDay.filter(habit =>
-      state.dailyLogs.some(
-        log => log.habitId === habit.id && log.date === dateStr && log.done
-      )
+    // Simple habits completion
+    const simpleHabits = habitsForDay.filter(h => !h.mode || h.mode === "simple");
+    const completedSimple = simpleHabits.filter(habit =>
+      state.dailyLogs.some(log => log.habitId === habit.id && log.date === dateStr && log.done)
     ).length;
-    
+
+    // Metric habits (from unified habits with mode=metric)
+    const metricHabits = habitsForDay.filter(h => h.mode === "metric");
+    const metricEntries = (state.trackerEntries || []).filter(e => e.date === dateStr);
+    const onTrackMetrics = metricHabits.filter(h => {
+      const qty = metricEntries.filter(e => e.trackerId === h.id).reduce((s, e) => s + e.quantity, 0);
+      const goal = h.dailyGoal ?? h.baseline ?? 0;
+      return h.type === "reduce" ? qty <= goal : qty >= goal;
+    }).length;
+
+    const totalHabits = simpleHabits.length + metricHabits.length;
+    const completedHabits = completedSimple + onTrackMetrics;
     const reflection = getReflectionForDate(state, dateStr);
-    
-    const trackerEntries = (state.trackerEntries || []).filter(e => e.date === dateStr);
-    const trackerCount = trackerEntries.reduce((sum, e) => sum + e.quantity, 0);
-    
-    const shoppingItems = (state.shoppingItems || []).filter(item => {
-      const weekStart = startOfWeek(date, { weekStartsOn: 1 });
-      return item.weekStartDate === format(weekStart, "yyyy-MM-dd");
+    const trackerCount = metricEntries.reduce((sum, e) => sum + e.quantity, 0);
+
+    return { completedHabits, totalHabits, reflection, trackerCount, metricEntries, simpleHabits, metricHabits };
+  };
+
+  // Monthly overview stats
+  const monthStats = useMemo(() => {
+    const monthStart = startOfMonth(new Date(currentYear, currentMonth));
+    const monthEnd = endOfMonth(new Date(currentYear, currentMonth));
+    const days = eachDayOfInterval({ start: monthStart, end: monthEnd }).filter(d => !isFuture(d));
+    let perfectDays = 0;
+    let totalCompleted = 0;
+    let totalPossible = 0;
+    days.forEach(d => {
+      const data = getDayData(d);
+      totalCompleted += data.completedHabits;
+      totalPossible += data.totalHabits;
+      if (data.completedHabits === data.totalHabits && data.totalHabits > 0) perfectDays++;
     });
-    
-    const triggers = (state.triggers || []).filter(trigger => trigger.active);
+    const consistency = totalPossible > 0 ? Math.round((totalCompleted / totalPossible) * 100) : 0;
+    return { perfectDays, totalDays: days.length, consistency };
+  }, [currentYear, currentMonth, state]);
 
-    // Get daily tracker reminders for this date
-    const trackerReminders = dailyTrackerReminders.map(tracker => ({
-      trackerId: tracker.id,
-      name: tracker.name,
-      icon: tracker.icon,
-      time: tracker.scheduledTime!,
-    }));
-
-    return {
-      completedHabits,
-      totalHabits: habitsForDay.length,
-      reflection,
-      trackerEntries,
-      trackerCount,
-      shoppingItems,
-      triggers,
-      trackerReminders,
-    };
-  };
-
-  const calculateStreak = () => {
+  // Streak
+  const currentStreak = useMemo(() => {
     let streak = 0;
-    let currentDate = new Date();
-    
-    while (true) {
-      const dateStr = format(currentDate, "yyyy-MM-dd");
-      const completed = getCompletedHabitsOnDate(state, currentDate);
-      
-      if (completed === activeHabits.length && activeHabits.length > 0) {
-        streak++;
-        currentDate = subDays(currentDate, 1);
-      } else {
-        break;
-      }
+    let d = new Date();
+    for (let i = 0; i < 365; i++) {
+      const data = getDayData(d);
+      if (data.totalHabits === 0) { d = subDays(d, 1); continue; }
+      if (data.completedHabits === data.totalHabits) streak++;
+      else break;
+      d = subDays(d, 1);
     }
-    
     return streak;
-  };
+  }, [state]);
 
   const handleToggleHabit = (habitId: string, date: Date) => {
     const dateStr = format(date, "yyyy-MM-dd");
@@ -235,29 +179,18 @@ const Calendario = () => {
   };
 
   const openDayDetail = (date: Date) => {
-    // Check if date is accessible (within free limits) - only for past dates
-    if (!isFuture(date) && !isDateAccessible(date)) {
-      setShowPaywall(true);
-      return;
-    }
+    if (!isFuture(date) && !isDateAccessible(date)) { setShowPaywall(true); return; }
     setDetailDate(date);
     setShowDayDetail(true);
   };
 
-  const currentStreak = calculateStreak();
-
   const renderDayCell = (date: Date | null, key: string) => {
-    if (!date) {
-      return <div key={key} className="aspect-square" />;
-    }
-
+    if (!date) return <div key={key} className="aspect-square" />;
     const data = getDayData(date);
     const isTodayDate = isToday(date);
     const isFutureDate = isFuture(date);
     const isComplete = data.completedHabits === data.totalHabits && data.totalHabits > 0;
     const isPartial = data.completedHabits > 0 && data.completedHabits < data.totalHabits;
-    const hasReflection = !!data.reflection;
-    const hasTrackerActivity = data.trackerCount > 0;
     const isLocked = !isFutureDate && !isDateAccessible(date);
 
     return (
@@ -285,218 +218,113 @@ const Calendario = () => {
             )}
           </>
         )}
-        {/* Indicators */}
-        {!isLocked && (hasReflection || hasTrackerActivity || data.trackerReminders.length > 0) && (
-          <div className="absolute bottom-0.5 flex gap-0.5">
-            {hasReflection && <div className="w-1 h-1 rounded-full bg-accent" />}
-            {hasTrackerActivity && <div className="w-1 h-1 rounded-full bg-warning" />}
-            {data.trackerReminders.length > 0 && <div className="w-1 h-1 rounded-full bg-primary" />}
-          </div>
-        )}
       </button>
     );
   };
 
   const renderDayDetail = () => {
     if (!detailDate) return null;
-    
     const data = getDayData(detailDate);
     const dateStr = format(detailDate, "yyyy-MM-dd");
     const isComplete = data.completedHabits === data.totalHabits && data.totalHabits > 0;
-
-    // Get shopping items for this specific day (items bought on this date or with done status in this week)
-    const dailyShoppingItems = (state.shoppingItems || []).filter(item => {
-      if (item.purchaseDate) {
-        return item.purchaseDate === dateStr;
-      }
-      // Fallback: show done items from the same week
-      return item.done && item.weekStartDate === format(startOfWeek(detailDate, { weekStartsOn: 1 }), "yyyy-MM-dd");
-    });
+    const isFutureDetail = isFuture(detailDate);
 
     return (
       <Dialog open={showDayDetail} onOpenChange={setShowDayDetail}>
         <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <CalendarIcon className="h-5 w-5 text-primary" />
+            <DialogTitle className="text-base">
               {formatDate(detailDate, locale === 'pt-PT' ? "EEEE, d 'de' MMMM" : "EEEE, MMMM d")}
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-6">
-            {/* Completion Status */}
+          <div className="space-y-4">
+            {/* Status */}
             <div className={cn(
-              "p-4 rounded-xl border",
-              isComplete 
-                ? "bg-success/10 border-success/30" 
-                : "bg-secondary/50 border-border/30"
+              "p-4 rounded-xl border text-center",
+              isComplete ? "bg-success/10 border-success/30" : "bg-secondary/50 border-border/30"
             )}>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  {isComplete ? <Check className="h-5 w-5 text-success" /> : <X className="h-5 w-5 text-muted-foreground" />}
-                  <span className="font-medium">
-                    {data.completedHabits} / {data.totalHabits} {locale === 'pt-PT' ? 'hábitos' : 'habits'}
-                  </span>
-                </div>
-                <Badge variant={isComplete ? "default" : "secondary"}>
-                  {isComplete 
-                    ? (locale === 'pt-PT' ? 'Completo' : 'Complete')
-                    : (locale === 'pt-PT' ? 'Incompleto' : 'Incomplete')}
-                </Badge>
-              </div>
+              <p className="text-2xl font-bold">{data.completedHabits}/{data.totalHabits}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {isComplete
+                  ? (locale === 'pt-PT' ? '✨ Dia perfeito!' : '✨ Perfect day!')
+                  : (locale === 'pt-PT' ? 'hábitos concluídos' : 'habits completed')}
+              </p>
             </div>
 
-            {/* Habits List with Toggle - Filtered by weekday schedule */}
-            {(() => {
-              const habitsForDay = getHabitsForDate(detailDate);
-              return habitsForDay.length > 0 && (
-                <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-muted-foreground">
-                    {locale === 'pt-PT' ? 'Hábitos' : 'Habits'}
-                  </h4>
-                  <div className="space-y-2">
-                                    {habitsForDay.map(habit => {
-                                      const isDone = state.dailyLogs.some(
-                                        l => l.habitId === habit.id && l.date === dateStr && l.done
-                                      );
-                                      const isFutureDetail = detailDate ? isFuture(detailDate) : false;
-                                      return (
-                                        <button
-                                          key={habit.id}
-                                          onClick={() => !isFutureDetail && handleToggleHabit(habit.id, detailDate!)}
-                                          disabled={isFutureDetail}
-                                          className={cn(
-                                            "w-full flex items-center justify-between p-3 rounded-lg transition-all",
-                                            isFutureDetail && "opacity-50 cursor-not-allowed",
-                                            isDone 
-                                              ? "bg-primary/10 border border-primary/30" 
-                                              : "bg-secondary/50 border border-border/30 hover:bg-secondary"
-                                          )}
-                                        >
-                                          <div className="flex items-center gap-3">
-                                            <div 
-                                              className="w-3 h-3 rounded-full" 
-                                              style={{ backgroundColor: habit.cor || '#14b8a6' }} 
-                                            />
-                                            <div className="flex flex-col items-start">
-                                              <span className={cn(isDone && "line-through opacity-70")}>{habit.nome}</span>
-                                              {habit.scheduledTime && (
-                                                <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                                  <Clock className="h-3 w-3" />
-                                                  {habit.scheduledTime}
-                                                </span>
-                                              )}
-                                            </div>
-                                          </div>
-                                          {isDone ? <Check className="h-4 w-4 text-primary" /> : <div className="w-4 h-4 rounded border border-muted-foreground" />}
-                                        </button>
-                                      );
-                                    })}
-                  </div>
-                </div>
-              );
-            })()}
-
-            {/* Tracker Reminders (Scheduled) */}
-            {data.trackerReminders.length > 0 && (
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <Bell className="h-4 w-4" />
-                  {locale === 'pt-PT' ? 'Lembretes de Trackers' : 'Tracker Reminders'}
+            {/* Simple Habits */}
+            {data.simpleHabits.length > 0 && (
+              <div className="space-y-1.5">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  {locale === 'pt-PT' ? 'Rituais' : 'Rituals'}
                 </h4>
-                <div className="space-y-1">
-                  {data.trackerReminders.map(reminder => (
+                {data.simpleHabits.map(habit => {
+                  const isDone = state.dailyLogs.some(l => l.habitId === habit.id && l.date === dateStr && l.done);
+                  return (
                     <button
-                      key={reminder.trackerId}
-                      onClick={() => {
-                        setShowDayDetail(false);
-                        navigate('/app/trackers');
-                      }}
-                      className="w-full flex items-center justify-between p-2 rounded-lg bg-primary/10 border border-primary/30 hover:bg-primary/20 transition-colors"
-                    >
-                      <span className="text-sm">
-                        {reminder.icon} {reminder.name}
-                      </span>
-                      <span className="text-sm font-medium text-primary flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {reminder.time}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Tracker Activity */}
-            {data.trackerEntries.length > 0 && (
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
-                  {locale === 'pt-PT' ? 'Registos de Trackers' : 'Tracker Entries'}
-                </h4>
-                <div className="space-y-1">
-                  {data.trackerEntries.map(entry => {
-                    const tracker = state.trackers?.find(t => t.id === entry.trackerId);
-                    return (
-                      <div key={entry.id} className="flex items-center justify-between p-2 rounded-lg bg-secondary/50">
-                        <span className="text-sm">
-                          {tracker?.icon} {tracker?.name}
-                        </span>
-                        <span className="text-sm font-medium">
-                          +{entry.quantity} {entry.quantity === 1 ? tracker?.unitSingular : tracker?.unitPlural}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Shopping Items */}
-            {dailyShoppingItems.length > 0 && (
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <ShoppingCart className="h-4 w-4" />
-                  {locale === 'pt-PT' ? 'Compras' : 'Purchases'}
-                </h4>
-                <div className="space-y-1">
-                  {dailyShoppingItems.map(item => (
-                    <div key={item.id} className="flex items-center justify-between p-2 rounded-lg bg-secondary/50">
-                      <span className="text-sm">{item.nome}</span>
-                      {item.price && (
-                        <span className="text-sm font-medium text-warning">
-                          {item.price.toFixed(2)}€
-                        </span>
+                      key={habit.id}
+                      onClick={() => !isFutureDetail && handleToggleHabit(habit.id, detailDate)}
+                      disabled={isFutureDetail}
+                      className={cn(
+                        "w-full flex items-center justify-between p-3 rounded-xl transition-all",
+                        isFutureDetail && "opacity-50 cursor-not-allowed",
+                        isDone ? "bg-primary/10 border border-primary/20" : "bg-secondary/40 hover:bg-secondary/60"
                       )}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: habit.cor || '#14b8a6' }} />
+                        <span className={cn("text-sm", isDone && "line-through opacity-70")}>{habit.nome}</span>
+                      </div>
+                      {isDone ? <Check className="h-4 w-4 text-primary" /> : <div className="w-4 h-4 rounded border border-muted-foreground/40" />}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Metric Habits */}
+            {data.metricHabits.length > 0 && (
+              <div className="space-y-1.5">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  {locale === 'pt-PT' ? 'Métricas' : 'Metrics'}
+                </h4>
+                {data.metricHabits.map(habit => {
+                  const qty = data.metricEntries.filter(e => e.trackerId === habit.id).reduce((s, e) => s + e.quantity, 0);
+                  const goal = habit.dailyGoal ?? habit.baseline ?? 0;
+                  const onTrack = habit.type === "reduce" ? qty <= goal : qty >= goal;
+                  return (
+                    <div key={habit.id} className={cn(
+                      "flex items-center justify-between p-3 rounded-xl",
+                      onTrack ? "bg-success/8 border border-success/20" : "bg-secondary/40"
+                    )}>
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">{habit.icon || "📊"}</span>
+                        <span className="text-sm font-medium">{habit.nome}</span>
+                      </div>
+                      <span className={cn("text-sm font-mono", onTrack ? "text-success" : "text-muted-foreground")}>
+                        {qty}/{goal} {habit.unitSingular || ""}
+                      </span>
                     </div>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
             )}
 
             {/* Reflection */}
             {data.reflection && (
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <PenLine className="h-4 w-4" />
-                  {locale === 'pt-PT' ? 'Reflexão' : 'Reflection'}
-                </h4>
-                <div className="p-3 rounded-lg bg-accent/10 border border-accent/30">
-                  <p className="text-sm">{data.reflection.text}</p>
-                  <Badge variant="outline" className="mt-2">
-                    {data.reflection.mood === 'positive' ? '😊' : data.reflection.mood === 'challenging' ? '💪' : '😐'}
-                  </Badge>
+              <div className="p-3 rounded-xl bg-accent/10 border border-accent/20">
+                <div className="flex items-center gap-2 mb-1">
+                  <PenLine className="h-3.5 w-3.5 text-accent" />
+                  <span className="text-xs font-medium text-accent">{locale === 'pt-PT' ? 'Reflexão' : 'Reflection'}</span>
                 </div>
+                <p className="text-sm text-foreground/80">{data.reflection.text}</p>
               </div>
             )}
 
-            {/* Empty State */}
-            {data.completedHabits === 0 && data.trackerEntries.length === 0 && data.trackerReminders.length === 0 && !data.reflection && dailyShoppingItems.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                <CalendarIcon className="h-10 w-10 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">
-                  {locale === 'pt-PT' ? 'Sem atividade registada' : 'No activity recorded'}
-                </p>
+            {/* Empty */}
+            {data.totalHabits === 0 && !data.reflection && (
+              <div className="text-center py-6 text-muted-foreground">
+                <p className="text-sm">{locale === 'pt-PT' ? 'Sem atividade registada' : 'No activity recorded'}</p>
               </div>
             )}
           </div>
@@ -506,261 +334,243 @@ const Calendario = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-0">
+    <div className="page-container">
       <Navigation />
 
-      <main className="container py-6 space-y-5 max-w-3xl lg:max-w-4xl xl:max-w-5xl">
-        {/* Header */}
-        <PageHeader
-          title={t.calendar.title}
-          subtitle={(t as any).pageSubtitles?.calendar || (locale === 'pt-PT' ? 'Visualiza o teu progresso ao longo do tempo' : 'View your progress over time')}
-          icon={CalendarIcon}
-        >
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary border border-border">
-            <Flame className="h-4 w-4 text-warning" />
-            <span className="font-semibold">{currentStreak}</span>
-            <span className="text-sm text-muted-foreground">{t.kpis.days}</span>
+      <main className="page-content max-w-xl mx-auto space-y-5">
+        {/* Trial banner */}
+        {trialStatus.isActive && (
+          <div className="flex justify-center">
+            <TrialBanner daysRemaining={trialStatus.daysRemaining} onUpgrade={() => setShowPaywall(true)} />
           </div>
-        </PageHeader>
+        )}
 
-        {/* View Mode Tabs */}
-        <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
-          <TabsList className="grid w-full grid-cols-3 max-w-md">
-            <TabsTrigger value="daily">{locale === 'pt-PT' ? 'Diário' : 'Daily'}</TabsTrigger>
-            <TabsTrigger value="weekly">{locale === 'pt-PT' ? 'Semanal' : 'Weekly'}</TabsTrigger>
-            <TabsTrigger value="monthly">{locale === 'pt-PT' ? 'Mensal' : 'Monthly'}</TabsTrigger>
-          </TabsList>
-
-          {/* Monthly View */}
-          <TabsContent value="monthly" className="mt-4">
-            <Card className="border-border/30 bg-card/50 shadow-sm">
-              <CardHeader className="pb-2 px-3 md:px-6">
-                <MonthSelector
-                  year={currentYear}
-                  month={currentMonth}
-                  onPrevious={handlePreviousMonth}
-                  onNext={handleNextMonth}
-                  onToday={handleToday}
-                />
-              </CardHeader>
-              <CardContent className="px-2 md:px-6 pb-4">
-                {/* Weekday headers - compact */}
-                <div className="mb-1 grid grid-cols-7 gap-1">
-                  {weekdays.map((day) => (
-                    <div
-                      key={day}
-                      className="py-1.5 text-center text-[10px] md:text-xs font-medium uppercase tracking-wider text-muted-foreground/70"
-                    >
-                      {day}
-                    </div>
-                  ))}
-                </div>
-
-                {/* Calendar grid - tighter spacing on mobile */}
-                <div className="grid grid-cols-7 gap-1 md:gap-1.5">
-                  {calendarDays.map(({ date, key }) => renderDayCell(date, key))}
-                </div>
-
-                {/* Legend - compact inline */}
-                <div className="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[10px] md:text-xs text-muted-foreground/70">
-                  <div className="flex items-center gap-1">
-                    <div className="w-2.5 h-2.5 rounded bg-primary" />
-                    <span>{locale === 'pt-PT' ? 'Completo' : 'Complete'}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-2.5 h-2.5 rounded bg-primary/20" />
-                    <span>{locale === 'pt-PT' ? 'Parcial' : 'Partial'}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-1 h-1 rounded-full bg-accent" />
-                    <span>{locale === 'pt-PT' ? 'Reflexão' : 'Reflection'}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Weekly View */}
-          <TabsContent value="weekly" className="mt-4">
-            <Card className="border-border/30 bg-card/50 shadow-sm">
-              <CardHeader className="pb-2 px-3 md:px-6">
-                <div className="week-nav">
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handlePreviousWeek}>
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <span className="week-nav-label">
-                    {format(weekDays[0], "d MMM", { locale: dateLocale })} - {format(weekDays[6], "d MMM", { locale: dateLocale })}
+        {/* ═══ Month Overview Hero ═══ */}
+        <div className="rounded-2xl border border-primary/15 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 p-5">
+          <div className="flex items-center gap-5">
+            <CircularProgress percent={monthStats.consistency} />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-muted-foreground">
+                {locale === 'pt-PT' ? 'Consistência mensal' : 'Monthly consistency'}
+              </p>
+              <p className="text-2xl font-bold text-foreground tracking-tight">
+                {monthStats.perfectDays}<span className="text-muted-foreground font-normal text-lg">/{monthStats.totalDays} {locale === 'pt-PT' ? 'dias' : 'days'}</span>
+              </p>
+              <div className="flex items-center gap-3 mt-1">
+                {currentStreak > 0 && (
+                  <span className="flex items-center gap-1 text-xs font-semibold text-primary">
+                    <Flame className="h-3.5 w-3.5" /> {currentStreak} {currentStreak === 1 ? (locale === 'pt-PT' ? "dia" : "day") : (locale === 'pt-PT' ? "dias" : "days")}
                   </span>
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleNextWeek}>
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="px-2 md:px-6 pb-4">
-                <div className="grid grid-cols-7 gap-1">
-                  {weekDays.map((date) => {
-                    const data = getDayData(date);
-                    const isTodayDate = isToday(date);
-                    const isFutureDate = isFuture(date);
-                    const isComplete = data.completedHabits === data.totalHabits && data.totalHabits > 0;
+                )}
+                {monthStats.consistency >= 80 && (
+                  <span className="flex items-center gap-1 text-xs font-semibold text-success">
+                    <Sparkles className="h-3.5 w-3.5" /> {locale === 'pt-PT' ? 'Excelente!' : 'Excellent!'}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
 
+        {/* ═══ Page Header ═══ */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-foreground">{t.calendar.title}</h1>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {locale === 'pt-PT' ? 'Visualiza o teu progresso' : 'View your progress'}
+            </p>
+          </div>
+          {/* View mode tabs */}
+          <div className="flex items-center gap-1 p-1 bg-secondary/50 rounded-xl">
+            {viewTabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setViewMode(tab.id)}
+                className={cn(
+                  "px-3 py-1.5 rounded-lg text-xs font-medium transition-all",
+                  viewMode === tab.id
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* ═══ Monthly View ═══ */}
+        {viewMode === "monthly" && (
+          <div className="space-y-3">
+            <MonthSelector
+              year={currentYear}
+              month={currentMonth}
+              onPrevious={handlePreviousMonth}
+              onNext={handleNextMonth}
+              onToday={handleToday}
+            />
+            <div className="rounded-2xl border border-border/30 bg-card/50 p-3">
+              <div className="mb-1 grid grid-cols-7 gap-1">
+                {weekdays.map(day => (
+                  <div key={day} className="py-1 text-center text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70">
+                    {day}
+                  </div>
+                ))}
+              </div>
+              <div className="grid grid-cols-7 gap-1">
+                {calendarDays.map(({ date, key }) => renderDayCell(date, key))}
+              </div>
+              {/* Legend */}
+              <div className="mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[10px] text-muted-foreground/70">
+                <div className="flex items-center gap-1"><div className="w-2 h-2 rounded bg-primary" /><span>{locale === 'pt-PT' ? 'Completo' : 'Complete'}</span></div>
+                <div className="flex items-center gap-1"><div className="w-2 h-2 rounded bg-primary/20" /><span>{locale === 'pt-PT' ? 'Parcial' : 'Partial'}</span></div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ═══ Weekly View ═══ */}
+        {viewMode === "weekly" && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelectedDate(d => subWeeks(d, 1))}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="text-sm font-medium">
+                {format(weekDays[0], "d MMM", { locale: dateLocale })} – {format(weekDays[6], "d MMM", { locale: dateLocale })}
+              </span>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelectedDate(d => addWeeks(d, 1))}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="grid grid-cols-7 gap-1.5">
+              {weekDays.map(date => {
+                const data = getDayData(date);
+                const isTodayDate = isToday(date);
+                const isFutureDate = isFuture(date);
+                const isComplete = data.completedHabits === data.totalHabits && data.totalHabits > 0;
+                return (
+                  <button
+                    key={format(date, "yyyy-MM-dd")}
+                    onClick={() => openDayDetail(date)}
+                    className={cn(
+                      "flex flex-col items-center py-3 px-1 rounded-xl transition-all hover:bg-secondary/50",
+                      isFutureDate && "opacity-40",
+                      isTodayDate && "ring-2 ring-primary ring-offset-1 ring-offset-background",
+                      isComplete && "bg-primary/10"
+                    )}
+                  >
+                    <span className="text-[10px] text-muted-foreground/70">{weekdays[weekDays.indexOf(date)]}</span>
+                    <span className={cn("text-lg font-bold my-1", isComplete && "text-primary")}>{format(date, "d")}</span>
+                    {!isFutureDate ? (
+                      isComplete
+                        ? <Check className="h-3 w-3 text-success" />
+                        : <span className="text-[10px] text-muted-foreground">{data.completedHabits}/{data.totalHabits}</span>
+                    ) : <span className="text-[10px] text-muted-foreground">—</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ═══ Daily View ═══ */}
+        {viewMode === "daily" && (() => {
+          const data = getDayData(selectedDate);
+          const dateStr = format(selectedDate, "yyyy-MM-dd");
+          const isComplete = data.completedHabits === data.totalHabits && data.totalHabits > 0;
+          return (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelectedDate(d => subDays(d, 1))}>
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <div className="text-center">
+                  <span className="font-medium text-sm">{formatDate(selectedDate, locale === 'pt-PT' ? "EEEE" : "EEEE")}</span>
+                  <p className="text-xs text-muted-foreground">{formatDate(selectedDate, locale === 'pt-PT' ? "d 'de' MMMM" : "MMMM d")}</p>
+                </div>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelectedDate(d => addDays(d, 1))}>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <div className={cn(
+                "p-4 rounded-2xl text-center border",
+                isComplete ? "bg-success/10 border-success/20" : "bg-secondary/30 border-border/30"
+              )}>
+                <p className="text-3xl font-bold">{data.completedHabits}/{data.totalHabits}</p>
+                <p className="text-xs text-muted-foreground">{locale === 'pt-PT' ? 'hábitos concluídos' : 'habits completed'}</p>
+              </div>
+
+              {/* Simple habits */}
+              {data.simpleHabits.length > 0 && (
+                <div className="space-y-1.5">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-1">
+                    {locale === 'pt-PT' ? 'Rituais' : 'Rituals'}
+                  </h4>
+                  {data.simpleHabits.map(habit => {
+                    const isDone = state.dailyLogs.some(l => l.habitId === habit.id && l.date === dateStr && l.done);
                     return (
                       <button
-                        key={format(date, "yyyy-MM-dd")}
-                        onClick={() => openDayDetail(date)}
+                        key={habit.id}
+                        onClick={() => handleToggleHabit(habit.id, selectedDate)}
+                        disabled={isFuture(selectedDate)}
                         className={cn(
-                          "flex flex-col items-center py-2.5 px-1 rounded-lg transition-all hover:bg-secondary/50 cursor-pointer",
-                          isFutureDate && "opacity-40",
-                          isTodayDate && "ring-2 ring-primary ring-offset-1 ring-offset-background",
-                          isComplete && "bg-primary/10"
+                          "w-full flex items-center justify-between p-3.5 rounded-xl transition-all",
+                          isDone ? "bg-primary/10 border border-primary/20" : "bg-card/50 border border-border/30 hover:bg-secondary/50"
                         )}
                       >
-                        <span className="text-[10px] text-muted-foreground/70">{weekdays[weekDays.indexOf(date)]}</span>
-                        <span className={cn("text-lg md:text-xl font-bold my-1", isComplete && "text-primary")}>
-                          {format(date, "d")}
-                        </span>
-                        <div className="flex items-center gap-1">
-                          {!isFutureDate ? (
-                            isComplete 
-                              ? <Check className="h-3 w-3 text-success" />
-                              : <span className="text-[10px] text-muted-foreground">{data.completedHabits}/{data.totalHabits}</span>
-                          ) : (
-                            <span className="text-[10px] text-muted-foreground">—</span>
-                          )}
+                        <div className="flex items-center gap-3">
+                          <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: habit.cor || '#14b8a6' }} />
+                          <span className={cn("text-sm", isDone && "line-through opacity-70")}>{habit.nome}</span>
                         </div>
+                        {isDone ? <Check className="h-4 w-4 text-primary" /> : <div className="w-4 h-4 rounded border border-muted-foreground/40" />}
                       </button>
                     );
                   })}
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+              )}
 
-          {/* Daily View */}
-          <TabsContent value="daily" className="mt-4">
-            <Card className="border-border/30 bg-card/50 shadow-sm">
-              <CardHeader className="pb-2 px-3 md:px-6">
-                <div className="week-nav">
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handlePreviousDay}>
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <div className="text-center">
-                    <span className="font-medium text-sm md:text-base">
-                      {formatDate(selectedDate, locale === 'pt-PT' ? "EEEE" : "EEEE")}
-                    </span>
-                    <p className="text-xs text-muted-foreground">
-                      {formatDate(selectedDate, locale === 'pt-PT' ? "d 'de' MMMM" : "MMMM d")}
-                    </p>
-                  </div>
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleNextDay}>
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4 px-3 md:px-6 pb-4">
-                {(() => {
-                  const data = getDayData(selectedDate);
-                  const dateStr = format(selectedDate, "yyyy-MM-dd");
-                  const isComplete = data.completedHabits === data.totalHabits && data.totalHabits > 0;
-
-                  return (
-                    <>
-                      {/* Status - more compact */}
-                      <div className={cn(
-                        "p-4 rounded-xl text-center",
-                        isComplete ? "bg-success/10 border border-success/20" : "bg-secondary/40"
+              {/* Metric habits */}
+              {data.metricHabits.length > 0 && (
+                <div className="space-y-1.5">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-1">
+                    {locale === 'pt-PT' ? 'Métricas' : 'Metrics'}
+                  </h4>
+                  {data.metricHabits.map(habit => {
+                    const qty = data.metricEntries.filter(e => e.trackerId === habit.id).reduce((s, e) => s + e.quantity, 0);
+                    const goal = habit.dailyGoal ?? habit.baseline ?? 0;
+                    const onTrack = habit.type === "reduce" ? qty <= goal : qty >= goal;
+                    return (
+                      <div key={habit.id} className={cn(
+                        "flex items-center justify-between p-3.5 rounded-xl",
+                        onTrack ? "bg-success/8 border border-success/20" : "bg-card/50 border border-border/30"
                       )}>
-                        <div className="text-2xl md:text-3xl font-bold mb-0.5">
-                          {data.completedHabits}/{data.totalHabits}
+                        <div className="flex items-center gap-2">
+                          <span>{habit.icon || "📊"}</span>
+                          <span className="text-sm font-medium">{habit.nome}</span>
                         </div>
-                        <p className="text-xs text-muted-foreground">
-                          {locale === 'pt-PT' ? 'hábitos concluídos' : 'habits completed'}
-                        </p>
+                        <span className={cn("text-sm font-mono", onTrack ? "text-success" : "text-muted-foreground")}>
+                          {qty}/{goal}
+                        </span>
                       </div>
+                    );
+                  })}
+                </div>
+              )}
 
-                      {/* Habits - Filtered by weekday schedule */}
-                      {(() => {
-                        const habitsForDay = getHabitsForDate(selectedDate);
-                        return habitsForDay.length > 0 && (
-                          <div className="space-y-2">
-                            <h4 className="font-medium">{locale === 'pt-PT' ? 'Hábitos' : 'Habits'}</h4>
-                            {habitsForDay.map(habit => {
-                              const isDone = state.dailyLogs.some(
-                                l => l.habitId === habit.id && l.date === dateStr && l.done
-                              );
-                              return (
-                                <button
-                                  key={habit.id}
-                                  onClick={() => handleToggleHabit(habit.id, selectedDate)}
-                                  disabled={isFuture(selectedDate)}
-                                  className={cn(
-                                    "w-full flex items-center justify-between p-4 rounded-xl transition-all",
-                                    isFuture(selectedDate) && "opacity-50 cursor-not-allowed",
-                                    isDone 
-                                      ? "bg-primary/10 border border-primary/30" 
-                                      : "bg-secondary/50 hover:bg-secondary"
-                                  )}
-                                >
-                                  <div className="flex items-center gap-3">
-                                    <div 
-                                      className="w-3 h-3 rounded-full" 
-                                      style={{ backgroundColor: habit.cor || '#14b8a6' }} 
-                                    />
-                                    <span>
-                                      {habit.nome}
-                                      {habit.scheduledTime && (
-                                        <span className="text-muted-foreground ml-2 text-sm">
-                                          {habit.scheduledTime}
-                                        </span>
-                                      )}
-                                    </span>
-                                  </div>
-                                  {isDone 
-                                    ? <Check className="h-5 w-5 text-primary" />
-                                    : <div className="w-5 h-5 rounded border-2 border-muted-foreground" />
-                                  }
-                                </button>
-                              );
-                            })}
-                          </div>
-                        );
-                      })()}
-
-                      {/* Tracker Summary */}
-                      {data.trackerCount > 0 && (
-                        <div className="p-4 rounded-xl bg-warning/10 border border-warning/30">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Clock className="h-4 w-4 text-warning" />
-                            <span className="font-medium">{locale === 'pt-PT' ? 'Atividade de Trackers' : 'Tracker Activity'}</span>
-                          </div>
-                          <p className="text-sm text-muted-foreground">
-                            {data.trackerEntries.length} {locale === 'pt-PT' ? 'registos' : 'entries'} ({data.trackerCount} {locale === 'pt-PT' ? 'total' : 'total'})
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Reflection */}
-                      {data.reflection && (
-                        <div className="p-4 rounded-xl bg-accent/10 border border-accent/30">
-                          <div className="flex items-center gap-2 mb-2">
-                            <PenLine className="h-4 w-4 text-accent" />
-                            <span className="font-medium">{locale === 'pt-PT' ? 'Reflexão do Dia' : 'Daily Reflection'}</span>
-                          </div>
-                          <p className="text-sm">{data.reflection.text}</p>
-                        </div>
-                      )}
-                    </>
-                  );
-                })()}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+              {data.reflection && (
+                <div className="p-3 rounded-xl bg-accent/10 border border-accent/20">
+                  <p className="text-sm text-foreground/80">{data.reflection.text}</p>
+                </div>
+              )}
+            </div>
+          );
+        })()}
       </main>
 
       {renderDayDetail()}
 
-      {/* Paywall Modal */}
       <PaywallModal
         open={showPaywall}
         onClose={() => setShowPaywall(false)}
