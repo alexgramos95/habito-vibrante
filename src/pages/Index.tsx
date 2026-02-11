@@ -118,8 +118,9 @@ const Index = () => {
   const doneSimple = todaySimple.filter(h => isSimpleDone(h.id)).length;
   const onTrackMetrics = activeMetrics.filter(h => {
     const c = getTodayCount(h.id);
-    const g = h.dailyGoal ?? h.baseline ?? 0;
-    return h.type === "reduce" ? c <= g : c >= g;
+    const g = h.dailyGoal ?? h.baseline ?? 1;
+    if (h.type === "reduce") return c <= g;
+    return g > 0 ? c >= g : c > 0; // For increase: need at least goal met, or any entry if goal is 0
   }).length;
   const totalTracked = todaySimple.length + activeMetrics.length;
   const totalDone = doneSimple + onTrackMetrics;
@@ -432,21 +433,28 @@ const Index = () => {
                         <div
                           onClick={e => {
                             e.stopPropagation();
-                            if (!isOnTrack) handleAddMetricEntry(habit.id, habit.inputMode === "binary" ? 1 : goal);
+                            if (isOnTrack && count > 0) {
+                              // Uncheck: remove today's entries for this metric
+                              const todayEntries = state.trackerEntries.filter(
+                                en => en.trackerId === habit.id && en.date === today
+                              );
+                              todayEntries.forEach(en => handleDeleteMetricEntry(en.id));
+                            } else {
+                              handleAddMetricEntry(habit.id, habit.inputMode === "binary" ? 1 : goal);
+                            }
                           }}
                           className={cn(
                             "h-10 w-10 rounded-xl flex items-center justify-center shrink-0 border transition-all",
-                            isOnTrack
+                            "hover:shadow-md active:scale-95",
+                            isOnTrack && count > 0
                               ? "border-success/30 bg-success/10 text-success"
-                              : "border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 active:scale-95"
+                              : "border-primary/30 bg-primary/10 text-primary hover:bg-primary/20"
                           )}
                         >
                           <Check className="h-4 w-4" />
                         </div>
                       )}
-                      {isOnTrack && (
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-success shrink-0">✓</span>
-                      )}
+                      <ChevronRight className="h-4 w-4 text-muted-foreground/30 shrink-0" />
                     </button>
                   </div>
                 );
