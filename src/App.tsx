@@ -13,6 +13,7 @@ import { PWAUpdateToast, usePWAUpdate } from "@/components/PWA/PWAUpdateToast";
 
 // Lazy load pages (except Onboarding, que importamos diretamente)
 const Index = lazy(() => import("./pages/Index"));
+const HabitDetail = lazy(() => import("./pages/HabitDetail"));
 const Calendario = lazy(() => import("./pages/Calendario"));
 const Compras = lazy(() => import("./pages/Compras"));
 const Perfil = lazy(() => import("./pages/Perfil"));
@@ -85,6 +86,7 @@ const AppRoutes = () => (
         {/* App shell routes - consistent /app/* paths */}
         {/* FREE pages: Hábitos, Calendário, Perfil */}
         <Route path="/app" element={<Index />} />
+        <Route path="/app/habit/:id" element={<HabitDetail />} />
         <Route path="/app/calendar" element={<Calendario />} />
         <Route path="/app/profile" element={<Perfil />} />
 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { format, getDay, subDays } from "date-fns";
-import { Plus, CheckCircle2, Flame, Sparkles, TrendingUp, TrendingDown, Check } from "lucide-react";
+import { Plus, CheckCircle2, Flame, Sparkles, TrendingUp, TrendingDown, Check, ChevronRight } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { useI18n } from "@/i18n/I18nContext";
 import { Habit, Tracker, TrackerEntry } from "@/data/types";
@@ -24,7 +24,7 @@ import { PaywallModal } from "@/components/Paywall/PaywallModal";
 import { NotificationSetup } from "@/components/Habits/NotificationSetup";
 import { TrackerDetailDrawer } from "@/components/Trackers/TrackerDetailDrawer";
 import { TrackerEditDialog } from "@/components/Trackers/TrackerEditDialog";
-import { HabitCoachTip } from "@/components/Habits/HabitCoachTip";
+// HabitCoachTip removed — coach is now on the detail page
 
 // --- Circular progress ring ---
 const CircularProgress = ({ percent, size = 60 }: { percent: number; size?: number }) => {
@@ -309,7 +309,7 @@ const Index = () => {
           <div>
             <h1 className="text-xl font-bold text-foreground">Hábitos</h1>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {state.habits.length} {state.habits.length === 1 ? "hábito" : "hábitos"}
+              {totalTracked} {totalTracked === 1 ? "hábito hoje" : "hábitos hoje"}
               {!isPro && simpleHabits.length < FREE_LIMIT && ` · ${FREE_LIMIT - simpleHabits.length} disponíveis`}
             </p>
           </div>
@@ -345,15 +345,12 @@ const Index = () => {
             </div>
             <div className="space-y-1.5">
                {sortedTodaySimple.map(habit => {
-                const habitCoach = coachData.habits.find(h => h.name === habit.nome);
                 return (
                   <div key={habit.id} className="relative group">
                     <MinimalHabitCard
                       habit={habit}
                       isDone={isSimpleDone(habit.id)}
                       onToggle={() => handleToggleSimple(habit.id)}
-                      completionRate7d={habitCoach?.completionRate7d ?? 0}
-                      currentStreak={streak}
                     />
                   {/* Edit overlay on long-press / hover */}
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
@@ -397,12 +394,11 @@ const Index = () => {
                   ? Math.max(0, 100 - (count / Math.max(goal, 1)) * 100)
                   : Math.min(100, (count / Math.max(goal, 1)) * 100);
                 const isOnTrack = habit.type === "reduce" ? count <= goal : count >= goal;
-                const habitCoach = coachData.habits.find(h => h.name === habit.nome);
 
                 return (
                   <div key={habit.id}>
                     <button
-                      onClick={() => setSelectedMetricId(habit.id)}
+                      onClick={() => navigate(`/app/habit/${habit.id}`)}
                       className={cn(
                         "w-full flex items-center gap-3.5 p-4 rounded-2xl border transition-all duration-300 text-left group",
                         "hover:shadow-sm hover:border-primary/20",
@@ -472,14 +468,6 @@ const Index = () => {
                         <span className="text-[10px] font-bold uppercase tracking-wider text-success shrink-0">✓</span>
                       )}
                     </button>
-                    <HabitCoachTip
-                      habitName={habit.nome}
-                      mode="metric"
-                      type={habit.type}
-                      completionRate7d={habitCoach?.completionRate7d ?? 0}
-                      currentStreak={streak}
-                      isDoneToday={isOnTrack}
-                    />
                   </div>
                 );
               })}
