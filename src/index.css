@@ -109,6 +109,12 @@
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     overscroll-behavior: none;
+    /* Ambient background — subtle warm gradient mesh */
+    background-image:
+      radial-gradient(ellipse 80% 60% at 20% 10%, hsl(174 50% 85% / 0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 85% 80%, hsl(38 60% 85% / 0.10) 0%, transparent 55%),
+      radial-gradient(ellipse 50% 40% at 50% 50%, hsl(220 30% 92% / 0.08) 0%, transparent 50%);
+    background-attachment: fixed;
   }
 
   /* Prevent text selection on interactive elements */
@@ -358,7 +364,26 @@
 
 /* Page layout containers - normalized spacing */
 .page-container {
-  @apply min-h-screen bg-background pb-24 md:pb-8;
+  @apply min-h-screen pb-24 md:pb-8;
+  /* Inherit body ambient bg, add subtle top fade for depth */
+  background: transparent;
+  position: relative;
+}
+
+.page-container::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    linear-gradient(180deg, hsl(40 20% 98% / 0.6) 0%, transparent 40%),
+    linear-gradient(0deg, hsl(40 20% 97% / 0.4) 0%, transparent 30%);
+}
+
+.page-container > * {
+  position: relative;
+  z-index: 1;
 }
 
 .page-content {
@@ -505,13 +530,19 @@
    observational/monitoring experience
    ======================================== */
 
-/* Dark HUD background for tracker pages */
+/* Dark HUD background for tracker pages — overrides global ambient */
 .tracker-hud {
-  background: linear-gradient(180deg, hsl(220 30% 8%) 0%, hsl(220 25% 12%) 100%);
+  background: linear-gradient(180deg, hsl(220 30% 8%) 0%, hsl(220 25% 12%) 100%) !important;
   color: hsl(210 20% 90%);
   min-height: 100vh;
   position: relative;
   overflow: hidden;
+}
+
+/* Disable page-container ambient overlay inside tracker-hud */
+.tracker-hud.page-container::before,
+.tracker-hud .page-container::before {
+  display: none;
 }
 
 .tracker-hud::before {
