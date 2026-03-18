@@ -41,13 +41,30 @@ function base64UrlDecode(str: string): Uint8Array {
   return bytes;
 }
 
+// PKCS#8 header for P-256 EC private key (RFC 5958)
+const PKCS8_EC_P256_HEADER = new Uint8Array([
+  0x30, 0x41, 0x02, 0x01, 0x00, 0x30, 0x13, 0x06,
+  0x07, 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x02, 0x01,
+  0x06, 0x08, 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x03,
+  0x01, 0x07, 0x04, 0x27, 0x30, 0x25, 0x02, 0x01,
+  0x01, 0x04, 0x20,
+]);
+
+// Wrap a 32-byte raw EC private key in PKCS#8 DER
+function wrapRawKeyInPkcs8(rawKey: Uint8Array): Uint8Array {
+  const pkcs8 = new Uint8Array(PKCS8_EC_P256_HEADER.length + rawKey.length);
+  pkcs8.set(PKCS8_EC_P256_HEADER);
+  pkcs8.set(rawKey, PKCS8_EC_P256_HEADER.length);
+  return pkcs8;
+}
+
 // Create application server from base64url VAPID keys
 async function createAppServer(publicKeyB64: string, privateKeyB64: string): Promise<ApplicationServer> {
-  // Decode base64url keys to raw bytes
   const publicKeyRaw = base64UrlDecode(publicKeyB64);
   const privateKeyRaw = base64UrlDecode(privateKeyB64);
 
-  // Import keys as CryptoKey - use .buffer to get ArrayBuffer
+  console.log(`[PUSH] Public key: ${publicKeyRaw.length} bytes, Private key: ${privateKeyRaw.length} bytes`);
+
   const publicKey = await crypto.subtle.importKey(
     'raw',
     publicKeyRaw.buffer as ArrayBuffer,
@@ -56,9 +73,14 @@ async function createAppServer(publicKeyB64: string, privateKeyB64: string): Pro
     ['verify']
   );
 
+  // If raw key is 32 bytes, wrap in PKCS#8; otherwise assume already PKCS#8
+  const privateKeyDer = privateKeyRaw.length === 32
+    ? wrapRawKeyInPkcs8(privateKeyRaw)
+    : privateKeyRaw;
+
   const privateKey = await crypto.subtle.importKey(
     'pkcs8',
-    privateKeyRaw.buffer as ArrayBuffer,
+    privateKeyDer.buffer as ArrayBuffer,
     { name: 'ECDSA', namedCurve: 'P-256' },
     true,
     ['sign']
