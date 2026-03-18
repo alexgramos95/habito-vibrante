@@ -1,13 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { 
-  ApplicationServer,
-  type PushSubscription as WebPushSubscription
-} from "jsr:@negrel/webpush@0.5.0";
+import webpush from "npm:web-push@3.6.7";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 interface PushPayload {
@@ -19,84 +16,7 @@ interface PushPayload {
   data?: Record<string, unknown>;
 }
 
-interface SubscriptionInput {
-  endpoint: string;
-  keys: {
-    p256dh: string;
-    auth: string;
-  };
-}
-
-// URL-safe base64 decode
-function base64UrlDecode(str: string): Uint8Array {
-  let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
-  const padding = (4 - base64.length % 4) % 4;
-  base64 += '='.repeat(padding);
-  
-  const binary = atob(base64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-  return bytes;
-}
-
-// PKCS#8 header for P-256 EC private key (RFC 5958)
-const PKCS8_EC_P256_HEADER = new Uint8Array([
-  0x30, 0x41, 0x02, 0x01, 0x00, 0x30, 0x13, 0x06,
-  0x07, 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x02, 0x01,
-  0x06, 0x08, 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x03,
-  0x01, 0x07, 0x04, 0x27, 0x30, 0x25, 0x02, 0x01,
-  0x01, 0x04, 0x20,
-]);
-
-// Wrap a 32-byte raw EC private key in PKCS#8 DER
-function wrapRawKeyInPkcs8(rawKey: Uint8Array): Uint8Array {
-  const pkcs8 = new Uint8Array(PKCS8_EC_P256_HEADER.length + rawKey.length);
-  pkcs8.set(PKCS8_EC_P256_HEADER);
-  pkcs8.set(rawKey, PKCS8_EC_P256_HEADER.length);
-  return pkcs8;
-}
-
-// Create application server from base64url VAPID keys
-async function createAppServer(publicKeyB64: string, privateKeyB64: string): Promise<ApplicationServer> {
-  const publicKeyRaw = base64UrlDecode(publicKeyB64);
-  const privateKeyRaw = base64UrlDecode(privateKeyB64);
-
-  console.log(`[PUSH] Public key: ${publicKeyRaw.length} bytes, Private key: ${privateKeyRaw.length} bytes`);
-
-  const publicKey = await crypto.subtle.importKey(
-    'raw',
-    publicKeyRaw.buffer as ArrayBuffer,
-    { name: 'ECDSA', namedCurve: 'P-256' },
-    true,
-    ['verify']
-  );
-
-  // If raw key is 32 bytes, wrap in PKCS#8; otherwise assume already PKCS#8
-  const privateKeyDer = privateKeyRaw.length === 32
-    ? wrapRawKeyInPkcs8(privateKeyRaw)
-    : privateKeyRaw;
-
-  const privateKey = await crypto.subtle.importKey(
-    'pkcs8',
-    privateKeyDer.buffer as ArrayBuffer,
-    { name: 'ECDSA', namedCurve: 'P-256' },
-    true,
-    ['sign']
-  );
-
-  const keyPair: CryptoKeyPair = { publicKey, privateKey };
-
-  return new ApplicationServer({
-    keys: keyPair,
-    vapidKeys: keyPair,
-    contactInformation: 'mailto:support@become.app',
-  });
-}
-
 serve(async (req) => {
-  // Handle CORS
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -111,10 +31,15 @@ serve(async (req) => {
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !SUPABASE_ANON_KEY) {
       throw new Error('Supabase credentials not configured');
     }
-
     if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
       throw new Error('VAPID keys not configured');
     }
+
+    webpush.setVapidDetails(
+      'mailto:support@become.app',
+      VAPID_PUBLIC_KEY,
+      VAPID_PRIVATE_KEY
+    );
 
     // --- Authentication ---
     const authHeader = req.headers.get('Authorization');
@@ -131,29 +56,25 @@ serve(async (req) => {
     let authenticatedUserId: string | null = null;
 
     if (!isServiceRole) {
-      // Validate as user JWT
       const anonClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
         global: { headers: { Authorization: authHeader } },
       });
-      const { data: claimsData, error: claimsError } = await anonClient.auth.getClaims(token);
-      if (claimsError || !claimsData?.claims?.sub) {
+      const { data: { user }, error: userError } = await anonClient.auth.getUser(token);
+      if (userError || !user) {
         return new Response(
           JSON.stringify({ error: 'Invalid authentication' }),
           { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-      authenticatedUserId = claimsData.claims.sub as string;
+      authenticatedUserId = user.id;
     }
-
-    // Create application server with stored VAPID keys
-    const appServer = await createAppServer(VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     const body = await req.json();
-    const { userId, subscription, payload }: { 
-      userId?: string; 
-      subscription?: SubscriptionInput;
+    const { userId, subscription, payload }: {
+      userId?: string;
+      subscription?: { endpoint: string; keys: { p256dh: string; auth: string } };
       payload: PushPayload;
     } = body;
 
@@ -161,7 +82,6 @@ serve(async (req) => {
       throw new Error('Payload with title is required');
     }
 
-    // --- Authorization ---
     // Non-service-role callers can only send to themselves
     if (!isServiceRole) {
       if (userId && userId !== authenticatedUserId) {
@@ -170,7 +90,6 @@ serve(async (req) => {
           { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-      // If no userId specified, scope to authenticated user
       if (!userId && !subscription) {
         return new Response(
           JSON.stringify({ error: 'userId or subscription required' }),
@@ -181,7 +100,6 @@ serve(async (req) => {
 
     let subscriptionsToSend: { id: string; endpoint: string; p256dh: string; auth: string }[] = [];
 
-    // If subscription is provided directly, use it
     if (subscription) {
       subscriptionsToSend = [{
         id: 'direct',
@@ -190,18 +108,14 @@ serve(async (req) => {
         auth: subscription.keys.auth,
       }];
     } else {
-      // Get subscriptions from database
       const targetUserId = isServiceRole ? userId : authenticatedUserId;
       let query = supabase.from('push_subscriptions').select('*');
       if (targetUserId) {
         query = query.eq('user_id', targetUserId);
       }
-      
+
       const { data: subscriptions, error: subError } = await query;
-      
-      if (subError) {
-        throw new Error(`Failed to fetch subscriptions: ${subError.message}`);
-      }
+      if (subError) throw new Error(`Failed to fetch subscriptions: ${subError.message}`);
 
       if (!subscriptions || subscriptions.length === 0) {
         return new Response(
@@ -229,31 +143,20 @@ serve(async (req) => {
 
     for (const sub of subscriptionsToSend) {
       try {
-        // Create subscriber for this subscription
-        const webPushSub: WebPushSubscription = {
+        const pushSubscription = {
           endpoint: sub.endpoint,
-          keys: {
-            p256dh: sub.p256dh,
-            auth: sub.auth,
-          },
+          keys: { p256dh: sub.p256dh, auth: sub.auth },
         };
-        
-        const subscriber = appServer.subscribe(webPushSub);
 
-        // Send the notification
-        await subscriber.pushTextMessage(pushPayload, {
-          ttl: 86400, // 24 hours
-        });
-
+        await webpush.sendNotification(pushSubscription, pushPayload, { TTL: 86400 });
         sent++;
         console.log(`[PUSH] Sent to ${sub.endpoint.substring(0, 50)}...`);
-      } catch (error) {
+      } catch (error: any) {
         failed++;
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        console.error(`[PUSH] Error sending to ${sub.id}:`, errorMessage);
-        
-        // If subscription is expired/invalid, remove it (only for db entries)
-        if (sub.id !== 'direct' && (errorMessage.includes('410') || errorMessage.includes('404') || errorMessage.includes('Gone'))) {
+        console.error(`[PUSH] Error sending to ${sub.id}:`, error?.message || error);
+
+        // Remove expired/invalid subscriptions
+        if (sub.id !== 'direct' && (error?.statusCode === 410 || error?.statusCode === 404)) {
           console.log(`[PUSH] Removing invalid subscription: ${sub.id}`);
           await supabase.from('push_subscriptions').delete().eq('id', sub.id);
         }
@@ -263,12 +166,7 @@ serve(async (req) => {
     console.log(`[PUSH] Sent: ${sent}, Failed: ${failed}`);
 
     return new Response(
-      JSON.stringify({ 
-        success: sent > 0, 
-        sent, 
-        failed,
-        total: subscriptionsToSend.length 
-      }),
+      JSON.stringify({ success: sent > 0, sent, failed, total: subscriptionsToSend.length }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
