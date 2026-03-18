@@ -128,10 +128,21 @@ export function usePushNotifications(userId: string | undefined) {
           // Verify it exists in database
           const { data } = await supabase
             .from('push_subscriptions')
-            .select('id')
+            .select('id, timezone' as any)
             .eq('user_id', userId)
             .eq('endpoint', subscription.endpoint)
             .single();
+
+          if (data) {
+            // Backfill timezone if missing
+            const currentTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            if (!(data as any).timezone || (data as any).timezone === 'UTC') {
+              await supabase
+                .from('push_subscriptions')
+                .update({ timezone: currentTz } as any)
+                .eq('id', (data as any).id);
+            }
+          }
 
           setState(prev => ({
             ...prev,
@@ -274,7 +285,8 @@ export function usePushNotifications(userId: string | undefined) {
           p256dh: p256dhBase64,
           auth: authBase64,
           user_agent: navigator.userAgent,
-        });
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        } as any);
 
       if (error) {
         console.error('[Push] Error saving subscription:', error);

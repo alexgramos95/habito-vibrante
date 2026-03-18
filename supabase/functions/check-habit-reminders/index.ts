@@ -22,9 +22,42 @@ interface PushSubscription {
   endpoint: string;
   p256dh: string;
   auth: string;
+  timezone?: string;
 }
 
-// Send a push notification using the send-push-notification edge function
+/**
+ * Get the current time in a given IANA timezone.
+ * Returns { hour, minute, dayOfWeek } in that timezone.
+ */
+function getTimeInTimezone(tz: string): { hour: number; minute: number; dayOfWeek: number } {
+  try {
+    const now = new Date();
+    // Use Intl to get components in the target timezone
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: tz,
+      hour: 'numeric',
+      minute: 'numeric',
+      weekday: 'short',
+      hour12: false,
+    });
+    const parts = formatter.formatToParts(now);
+    const hour = parseInt(parts.find(p => p.type === 'hour')?.value ?? '0', 10);
+    const minute = parseInt(parts.find(p => p.type === 'minute')?.value ?? '0', 10);
+    const weekdayStr = parts.find(p => p.type === 'weekday')?.value ?? 'Mon';
+    
+    const dayMap: Record<string, number> = {
+      'Sun': 0, 'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6,
+    };
+    const dayOfWeek = dayMap[weekdayStr] ?? 0;
+    
+    return { hour, minute, dayOfWeek };
+  } catch {
+    // Fallback to UTC if timezone is invalid
+    const now = new Date();
+    return { hour: now.getUTCHours(), minute: now.getUTCMinutes(), dayOfWeek: now.getUTCDay() };
+  }
+}
+
 async function sendPushNotification(
   supabaseUrl: string,
   serviceRoleKey: string,
@@ -41,10 +74,7 @@ async function sendPushNotification(
       body: JSON.stringify({
         subscription: {
           endpoint: subscription.endpoint,
-          keys: {
-            p256dh: subscription.p256dh,
-            auth: subscription.auth,
-          },
+          keys: { p256dh: subscription.p256dh, auth: subscription.auth },
         },
         payload,
       }),
@@ -79,32 +109,28 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // Get current time
-    const now = new Date();
-    const currentHour = now.getUTCHours();
-    const currentMinute = now.getUTCMinutes();
-    const currentDay = now.getUTCDay(); // 0 = Sunday
-
-    console.log(`[REMINDERS] Checking habits at ${currentHour}:${String(currentMinute).padStart(2, '0')} UTC, day ${currentDay}`);
-
-    // Get all users with push subscriptions
+    // Get all users with push subscriptions (including timezone)
     const { data: subscriptions, error: subError } = await supabase
       .from('push_subscriptions')
-      .select('id, user_id, endpoint, p256dh, auth');
+      .select('id, user_id, endpoint, p256dh, auth, timezone');
 
-    if (subError) {
-      throw new Error(`Failed to fetch subscriptions: ${subError.message}`);
-    }
+    if (subError) throw new Error(`Failed to fetch subscriptions: ${subError.message}`);
 
     if (!subscriptions || subscriptions.length === 0) {
-      console.log('[REMINDERS] No push subscriptions found');
       return new Response(
         JSON.stringify({ success: true, checked: 0, sent: 0, message: 'No subscriptions' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Get unique user IDs
+    // Group subscriptions by user, pick timezone from first subscription
+    const userTimezones = new Map<string, string>();
+    for (const sub of subscriptions) {
+      if (!userTimezones.has(sub.user_id) && sub.timezone) {
+        userTimezones.set(sub.user_id, sub.timezone);
+      }
+    }
+
     const userIds = [...new Set(subscriptions.map((s: PushSubscription) => s.user_id))];
     console.log(`[REMINDERS] Found ${userIds.length} users with ${subscriptions.length} subscriptions`);
 
@@ -114,61 +140,46 @@ serve(async (req) => {
       .select('user_id, habits')
       .in('user_id', userIds);
 
-    if (dataError) {
-      throw new Error(`Failed to fetch user data: ${dataError.message}`);
-    }
+    if (dataError) throw new Error(`Failed to fetch user data: ${dataError.message}`);
 
     let totalSent = 0;
     const notifications: { userId: string; habitName: string; category?: string }[] = [];
 
-    // Check each user's habits
     for (const user of (userData || [])) {
       const habits: Habit[] = user.habits || [];
-      
-      for (const habit of habits) {
-        // Skip inactive habits or those without reminders
-        if (!habit.active || !habit.scheduledTime || habit.reminderEnabled === false) {
-          continue;
-        }
+      const tz = userTimezones.get(user.user_id) || 'UTC';
+      const { hour: localHour, minute: localMinute, dayOfWeek: localDay } = getTimeInTimezone(tz);
 
-        // Parse scheduled time (HH:MM format)
+      console.log(`[REMINDERS] User ${user.user_id.substring(0, 8)}... tz=${tz} localTime=${localHour}:${String(localMinute).padStart(2, '0')} day=${localDay}, habits=${habits.length}`);
+
+      for (const habit of habits) {
+        if (!habit.active || !habit.scheduledTime || habit.reminderEnabled === false) continue;
+
         const [scheduledHour, scheduledMinute] = habit.scheduledTime.split(':').map(Number);
 
-        // Check if current time matches (within 1 minute window)
-        // Note: This is UTC time - user's local time should be stored as UTC offset in future
-        const timeMatches = scheduledHour === currentHour && scheduledMinute === currentMinute;
-
+        // Compare against user's LOCAL time
+        const timeMatches = scheduledHour === localHour && scheduledMinute === localMinute;
         if (!timeMatches) continue;
 
-        // Check if today is a scheduled day
         const scheduledDays = habit.scheduledDays || [];
-        const dayMatches = scheduledDays.length === 0 || scheduledDays.includes(currentDay);
-
+        const dayMatches = scheduledDays.length === 0 || scheduledDays.includes(localDay);
         if (!dayMatches) continue;
 
-        // This habit should be notified!
-        notifications.push({ 
-          userId: user.user_id, 
-          habitName: habit.nome,
-          category: habit.categoria 
-        });
+        notifications.push({ userId: user.user_id, habitName: habit.nome, category: habit.categoria });
         console.log(`[REMINDERS] Habit "${habit.nome}" due for user ${user.user_id.substring(0, 8)}...`);
       }
     }
 
     console.log(`[REMINDERS] Found ${notifications.length} habits to notify`);
 
-    // Send notifications
     for (const notification of notifications) {
       try {
-        // Get user's push subscriptions
         const userSubs = subscriptions.filter((s: PushSubscription) => s.user_id === notification.userId);
-
         if (!userSubs || userSubs.length === 0) continue;
 
         const payload = {
           title: `becoMe: ${notification.habitName}`,
-          body: notification.category 
+          body: notification.category
             ? `Time for your ${notification.category.toLowerCase()} habit!`
             : 'Time for your habit!',
           icon: '/icons/icon-192.png',
@@ -177,18 +188,9 @@ serve(async (req) => {
           data: { type: 'habit-reminder', habitName: notification.habitName },
         };
 
-        // Send to all user's devices
         for (const sub of userSubs) {
-          const success = await sendPushNotification(
-            SUPABASE_URL,
-            SUPABASE_SERVICE_ROLE_KEY,
-            sub,
-            payload
-          );
-          
-          if (success) {
-            totalSent++;
-          }
+          const success = await sendPushNotification(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, sub, payload);
+          if (success) totalSent++;
         }
       } catch (error) {
         console.error(`[REMINDERS] Error processing notification:`, error);
@@ -198,12 +200,7 @@ serve(async (req) => {
     console.log(`[REMINDERS] Sent ${totalSent} notifications`);
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        checked: userData?.length || 0,
-        habitsMatched: notifications.length,
-        sent: totalSent 
-      }),
+      JSON.stringify({ success: true, checked: userData?.length || 0, habitsMatched: notifications.length, sent: totalSent }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 

@@ -13,7 +13,7 @@ interface NotificationState {
  */
 export const useNotifications = (habits: Habit[]) => {
   const { toast } = useToast();
-  const scheduledTimeoutsRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
+  const scheduledTimeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const lastFiredRef = useRef<Map<string, string>>(new Map()); // habitId -> date to prevent duplicates
   
   // Check if notifications are supported

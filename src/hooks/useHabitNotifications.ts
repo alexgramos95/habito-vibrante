@@ -16,7 +16,7 @@ export function useHabitNotifications(habits: Habit[]) {
   
   const pushNotifications = usePushNotifications(userId);
   
-  const scheduledTimeoutsRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
+  const scheduledTimeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const lastFiredRef = useRef<Map<string, string>>(new Map());
 
   // Check if notifications are supported

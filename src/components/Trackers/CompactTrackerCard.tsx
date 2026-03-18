@@ -37,7 +37,7 @@ export const CompactTrackerCard = ({
 }: CompactTrackerCardProps) => {
   const { t, locale } = useI18n();
   const [isPressed, setIsPressed] = useState(false);
-  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLongPressTriggered = useRef(false);
   
   const goal = tracker.dailyGoal ?? tracker.baseline;
