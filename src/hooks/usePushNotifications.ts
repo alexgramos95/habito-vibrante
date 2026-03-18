@@ -124,23 +124,24 @@ export function usePushNotifications(userId: string | undefined) {
         const registration = await navigator.serviceWorker.ready;
         const subscription = await (registration as any).pushManager.getSubscription();
         
-        if (subscription) {
+      if (subscription) {
           // Verify it exists in database
           const { data } = await supabase
             .from('push_subscriptions')
-            .select('id, timezone' as any)
+            .select('id, timezone')
             .eq('user_id', userId)
             .eq('endpoint', subscription.endpoint)
             .single();
 
           if (data) {
-            // Backfill timezone if missing
+            // Always update timezone to current local timezone
             const currentTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            if (!(data as any).timezone || (data as any).timezone === 'UTC') {
+            if (!data.timezone || data.timezone === 'UTC' || data.timezone !== currentTz) {
+              console.log(`[Push] Updating timezone from ${data.timezone} to ${currentTz}`);
               await supabase
                 .from('push_subscriptions')
-                .update({ timezone: currentTz } as any)
-                .eq('id', (data as any).id);
+                .update({ timezone: currentTz })
+                .eq('id', data.id);
             }
           }
 
