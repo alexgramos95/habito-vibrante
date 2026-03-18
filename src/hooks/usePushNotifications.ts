@@ -274,7 +274,8 @@ export function usePushNotifications(userId: string | undefined) {
           p256dh: p256dhBase64,
           auth: authBase64,
           user_agent: navigator.userAgent,
-        });
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        } as any);
 
       if (error) {
         console.error('[Push] Error saving subscription:', error);
