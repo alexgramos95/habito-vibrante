@@ -25,9 +25,37 @@ const Definicoes = () => {
   const navigate = useNavigate();
   const { t, locale, setLocale, currency, setCurrency } = useI18n();
   const { state, setState, resetAppData } = useData();
+  const { session } = useAuth();
+  const userId = session?.user?.id;
+  const push = usePushNotifications(userId);
   const [showResetMonthConfirm, setShowResetMonthConfirm] = useState(false);
   const [showResetAllConfirm, setShowResetAllConfirm] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  const [showDebug, setShowDebug] = useState(false);
+  const [dbTimezone, setDbTimezone] = useState<string | null>(null);
+  const [habitsWithReminder, setHabitsWithReminder] = useState<{ nome: string; time: string; days: number[]; enabled: boolean }[]>([]);
+
+  // Fetch debug info
+  useEffect(() => {
+    if (!showDebug || !userId) return;
+    
+    supabase
+      .from('push_subscriptions')
+      .select('timezone, endpoint, created_at')
+      .eq('user_id', userId)
+      .then(({ data }) => {
+        setDbTimezone(data?.[0]?.timezone ?? 'Not found');
+      });
+
+    // Parse habits with reminders
+    const habits = state.habits?.filter((h: any) => h.scheduledTime && h.active) || [];
+    setHabitsWithReminder(habits.map((h: any) => ({
+      nome: h.nome,
+      time: h.scheduledTime,
+      days: h.scheduledDays || [],
+      enabled: h.reminderEnabled !== false,
+    })));
+  }, [showDebug, userId, state.habits]);
 
   const handleResetMonth = () => {
     setState(prev => resetMonth(prev, new Date().getFullYear(), new Date().getMonth()));
