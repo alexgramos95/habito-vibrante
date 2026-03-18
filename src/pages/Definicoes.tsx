@@ -136,6 +136,62 @@ const Definicoes = () => {
           </p>
         </div>
 
+        {/* Debug Notifications */}
+        <div className="rounded-2xl border border-border/30 bg-card/50 p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Bug className="h-4 w-4 text-muted-foreground" />
+              <Label className="text-sm font-semibold">Notification Debug</Label>
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => setShowDebug(v => !v)} className="text-xs h-7">
+              {showDebug ? 'Hide' : 'Show'}
+            </Button>
+          </div>
+          {showDebug && (
+            <div className="space-y-2 text-[11px] font-mono">
+              <div className="grid grid-cols-[110px_1fr] gap-1">
+                <span className="text-muted-foreground">Mode:</span>
+                <span className={push.mode === 'background' ? 'text-green-500' : 'text-yellow-500'}>
+                  {push.mode} {push.isSubscribed ? '(subscribed)' : '(not subscribed)'}
+                </span>
+                <span className="text-muted-foreground">Permission:</span>
+                <span>{push.permission}</span>
+                <span className="text-muted-foreground">Push supported:</span>
+                <span>{push.isPushSupported ? '✅' : '❌'}</span>
+                <span className="text-muted-foreground">Browser TZ:</span>
+                <span>{Intl.DateTimeFormat().resolvedOptions().timeZone}</span>
+                <span className="text-muted-foreground">DB TZ:</span>
+                <span className={dbTimezone === 'UTC' ? 'text-destructive font-bold' : ''}>
+                  {dbTimezone ?? 'Loading...'}
+                </span>
+                <span className="text-muted-foreground">Local time:</span>
+                <span>{new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</span>
+                <span className="text-muted-foreground">Day of week:</span>
+                <span>{new Date().getDay()} ({['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date().getDay()]})</span>
+              </div>
+              
+              {habitsWithReminder.length > 0 && (
+                <div className="mt-2 pt-2 border-t border-border/20 space-y-1.5">
+                  <span className="text-muted-foreground font-semibold">Habits with reminders:</span>
+                  {habitsWithReminder.map((h, i) => (
+                    <div key={i} className="pl-2 flex items-center gap-2">
+                      {h.enabled ? <Bell className="h-3 w-3 text-green-500" /> : <WifiOff className="h-3 w-3 text-muted-foreground" />}
+                      <span>{h.nome}</span>
+                      <span className="text-muted-foreground">@ {h.time}</span>
+                      <span className="text-muted-foreground">
+                        {h.days.length ? `[${h.days.join(',')}]` : '[daily]'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {habitsWithReminder.length === 0 && (
+                <p className="text-muted-foreground italic">No habits with scheduled times</p>
+              )}
+            </div>
+          )}
+        </div>
+
         {/* Reset Data */}
         <div className="rounded-2xl border border-destructive/20 bg-destructive/3 p-4 space-y-3">
           <div className="flex items-center gap-2">
