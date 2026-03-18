@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Globe, RotateCcw, Trash2, Coins, ArrowLeft, Bell, Settings } from "lucide-react";
+import { Globe, RotateCcw, Trash2, Coins, ArrowLeft, Bell, Bug, Clock, Wifi, WifiOff } from "lucide-react";
 import { useI18n } from "@/i18n/I18nContext";
 import { localeNames, currencyNames, type Locale, type Currency } from "@/i18n";
 import { resetMonth } from "@/data/storage";
@@ -16,6 +16,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useData } from "@/contexts/DataContext";
 import { ResetAppDialog } from "@/components/Profile/ResetAppDialog";
 import { NotificationStatusBadge } from "@/components/Habits/NotificationSetup";
+import { useAuth } from "@/contexts/AuthContext";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { supabase } from "@/integrations/supabase/client";
 
 const Definicoes = () => {
   const { toast } = useToast();
