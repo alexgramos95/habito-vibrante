@@ -159,14 +159,20 @@ serve(async (req) => {
 
         // Compare against user's LOCAL time
         const timeMatches = scheduledHour === localHour && scheduledMinute === localMinute;
+        
+        console.log(`[REMINDERS]   Habit "${habit.nome}" scheduled=${habit.scheduledTime} vs local=${String(localHour).padStart(2,'0')}:${String(localMinute).padStart(2,'0')} match=${timeMatches}`);
+        
         if (!timeMatches) continue;
 
         const scheduledDays = habit.scheduledDays || [];
         const dayMatches = scheduledDays.length === 0 || scheduledDays.includes(localDay);
-        if (!dayMatches) continue;
+        if (!dayMatches) {
+          console.log(`[REMINDERS]   Day mismatch: today=${localDay} scheduled=${JSON.stringify(scheduledDays)}`);
+          continue;
+        }
 
         notifications.push({ userId: user.user_id, habitName: habit.nome, category: habit.categoria });
-        console.log(`[REMINDERS] Habit "${habit.nome}" due for user ${user.user_id.substring(0, 8)}...`);
+        console.log(`[REMINDERS] ✅ Habit "${habit.nome}" due for user ${user.user_id.substring(0, 8)}...`);
       }
     }
 
