@@ -191,8 +191,42 @@ const Definicoes = () => {
                 <p className="text-muted-foreground italic">No habits with scheduled times</p>
               )}
 
-              {/* Test Push Button */}
-              <div className="mt-3 pt-3 border-t border-border/20">
+              {/* Re-subscribe + Test Push */}
+              <div className="mt-3 pt-3 border-t border-border/20 space-y-2">
+                {!push.isSubscribed && (
+                  <Button
+                    variant="default"
+                    size="sm"
+                    disabled={isResubscribing || !userId}
+                    onClick={async () => {
+                      setIsResubscribing(true);
+                      try {
+                        // Force unsubscribe old + re-subscribe
+                        const reg = await navigator.serviceWorker.ready;
+                        const oldSub = await reg.pushManager.getSubscription();
+                        if (oldSub) {
+                          await oldSub.unsubscribe();
+                          // Clean DB
+                          await supabase.from('push_subscriptions').delete().eq('user_id', userId!);
+                        }
+                        const success = await push.subscribeToPush();
+                        if (success) {
+                          toast({ title: '✅ Subscrição recriada', description: 'Agora testa com o botão abaixo.' });
+                        } else {
+                          toast({ title: '❌ Falhou a recriar subscrição', variant: 'destructive' });
+                        }
+                      } catch (err: any) {
+                        toast({ title: '❌ Erro', description: err?.message || String(err), variant: 'destructive' });
+                      } finally {
+                        setIsResubscribing(false);
+                      }
+                    }}
+                    className="gap-1.5 w-full"
+                  >
+                    <Wifi className="h-3.5 w-3.5" />
+                    {isResubscribing ? 'A recriar...' : '⚠️ Recriar subscrição push'}
+                  </Button>
+                )}
                 <Button
                   variant="outline"
                   size="sm"
