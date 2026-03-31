@@ -33,6 +33,7 @@ const Definicoes = () => {
   const [isResetting, setIsResetting] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
   const [isSendingTest, setIsSendingTest] = useState(false);
+  const [isResubscribing, setIsResubscribing] = useState(false);
   const [dbTimezone, setDbTimezone] = useState<string | null>(null);
   const [habitsWithReminder, setHabitsWithReminder] = useState<{ nome: string; time: string; days: number[]; enabled: boolean }[]>([]);
 
