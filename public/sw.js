@@ -3,7 +3,7 @@
  * Changes must be reviewed and tested locally.
  */
 // becoMe Service Worker - PWA Support with Push Notifications
-const CACHE_NAME = 'become-v3';
+const CACHE_NAME = 'become-v4';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
@@ -86,44 +86,56 @@ self.addEventListener('fetch', (event) => {
 
 // Push event - handle incoming push notifications
 self.addEventListener('push', (event) => {
-  console.log('[SW] Push notification received');
+  console.log('[SW] Push event fired');
   
-  let data = {
-    title: 'becoMe',
-    body: 'Time for your habit!',
-    icon: '/icons/icon-192.png',
-    badge: '/icons/icon-192.png',
-    tag: 'habit-reminder',
-    data: {}
-  };
-
-  if (event.data) {
+  event.waitUntil((async () => {
     try {
-      const payload = event.data.json();
-      data = { ...data, ...payload };
-    } catch (e) {
-      // If not JSON, use text as body
-      data.body = event.data.text();
+      let title = 'becoMe';
+      let body = 'Time for your habit!';
+      let icon = '/icons/icon-192.png';
+      let badge = '/icons/icon-192.png';
+      let tag = 'habit-reminder';
+      let extraData = {};
+
+      if (event.data) {
+        try {
+          const payload = event.data.json();
+          console.log('[SW] Push payload:', JSON.stringify(payload));
+          title = payload.title || title;
+          body = payload.body || body;
+          icon = payload.icon || icon;
+          badge = payload.badge || badge;
+          tag = payload.tag || tag;
+          extraData = payload.data || extraData;
+        } catch (e) {
+          body = event.data.text() || body;
+          console.log('[SW] Push payload as text:', body);
+        }
+      }
+
+      await self.registration.showNotification(title, {
+        body,
+        icon,
+        badge,
+        tag,
+        data: extraData,
+        vibrate: [200, 100, 200],
+        requireInteraction: true,
+        actions: [
+          { action: 'open', title: 'Open App' },
+          { action: 'dismiss', title: 'Dismiss' }
+        ]
+      });
+      console.log('[SW] showNotification called successfully');
+    } catch (err) {
+      console.error('[SW] Push handler error:', err);
+      // Fallback: always show something
+      await self.registration.showNotification('becoMe', {
+        body: 'You have a notification',
+        icon: '/icons/icon-192.png',
+      });
     }
-  }
-
-  const options = {
-    body: data.body,
-    icon: data.icon || '/icons/icon-192.png',
-    badge: data.badge || '/icons/icon-192.png',
-    tag: data.tag || 'habit-reminder',
-    data: data.data || {},
-    vibrate: [100, 50, 100],
-    requireInteraction: false,
-    actions: [
-      { action: 'open', title: 'Open App' },
-      { action: 'dismiss', title: 'Dismiss' }
-    ]
-  };
-
-  event.waitUntil(
-    self.registration.showNotification(data.title, options)
-  );
+  })());
 });
 
 // Notification click event
