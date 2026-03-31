@@ -189,6 +189,50 @@ const Definicoes = () => {
               {habitsWithReminder.length === 0 && (
                 <p className="text-muted-foreground italic">No habits with scheduled times</p>
               )}
+
+              {/* Test Push Button */}
+              <div className="mt-3 pt-3 border-t border-border/20">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={isSendingTest || !userId}
+                  onClick={async () => {
+                    setIsSendingTest(true);
+                    try {
+                      const { data, error } = await supabase.functions.invoke('send-push-notification', {
+                        body: {
+                          userId,
+                          payload: {
+                            title: 'becoMe Teste 🔔',
+                            body: 'Se vês isto, as notificações funcionam!',
+                            tag: 'test-notification',
+                          },
+                        },
+                      });
+                      if (error) throw error;
+                      toast({
+                        title: '✅ Push enviada',
+                        description: `Sent: ${data?.sent ?? '?'}, Failed: ${data?.failed ?? '?'}`,
+                      });
+                    } catch (err: any) {
+                      toast({
+                        title: '❌ Erro ao enviar push',
+                        description: err?.message || String(err),
+                        variant: 'destructive',
+                      });
+                    } finally {
+                      setIsSendingTest(false);
+                    }
+                  }}
+                  className="gap-1.5 w-full"
+                >
+                  <Bell className="h-3.5 w-3.5" />
+                  {isSendingTest ? 'A enviar...' : 'Enviar notificação de teste'}
+                </Button>
+                <p className="text-[9px] text-muted-foreground mt-1">
+                  Testa no URL publicado (becomeme.lovable.app), não no preview.
+                </p>
+              </div>
             </div>
           )}
         </div>
