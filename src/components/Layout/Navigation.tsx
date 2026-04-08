@@ -39,6 +39,7 @@ export const Navigation = () => {
     ? [
         { to: "/app", label: t.nav.habits, icon: LayoutDashboard },
         { to: "/app/calendar", label: t.nav.calendar, icon: Calendar },
+        { to: "/app/nutrition", label: lang === "pt" ? "Nutrição" : "Nutrition", icon: Leaf },
         { to: "/app/shopping", label: t.nav.shopping, icon: ShoppingCart },
       ]
     : [
