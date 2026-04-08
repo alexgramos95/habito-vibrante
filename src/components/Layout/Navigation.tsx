@@ -8,8 +8,9 @@ import { useI18n } from "@/i18n/I18nContext";
 import { useSubscription } from "@/hooks/useSubscription";
 
 export const Navigation = () => {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { subscription, trialStatus } = useSubscription();
+  const lang = locale.startsWith("pt") ? "pt" : "en";
 
   // Check if user has PRO access (PRO plan or active trial)
   const hasPro = subscription.plan === 'pro' || trialStatus.isActive;
