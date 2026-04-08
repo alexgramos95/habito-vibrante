@@ -1,7 +1,7 @@
 import { NavLink } from "react-router-dom";
 import { 
   LayoutDashboard, Calendar, 
-  ShoppingCart, User, Lock, Settings
+  ShoppingCart, User, Lock, Settings, Leaf
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n/I18nContext";
@@ -25,6 +25,7 @@ export const Navigation = () => {
   const proNavItems = [
     { to: "/app", label: t.nav.habits, icon: LayoutDashboard, allowed: true },
     { to: "/app/calendar", label: t.nav.calendar, icon: Calendar, allowed: true },
+    { to: "/app/nutrition", label: lang === "pt" ? "Nutrição" : "Nutrition", icon: Leaf, allowed: true },
     { to: "/app/shopping", label: t.nav.shopping, icon: ShoppingCart, allowed: true },
     { to: "/app/profile", label: t.nav.profile, icon: User, allowed: true },
   ];
