@@ -1,17 +1,26 @@
 import { useState, useRef, useEffect } from "react";
-import { MessageCircle, Send, Loader2, X } from "lucide-react";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose } from "@/components/ui/drawer";
+import { MessageCircle, Send, Loader2, Check } from "lucide-react";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import type { Recipe } from "@/data/nutritionTypes";
+import type { Recipe, Ingredient } from "@/data/nutritionTypes";
+
+interface Substitution {
+  original: string;
+  replacement: string;
+  quantity: string;
+  unit: string;
+}
 
 interface ChatMessage {
   role: "user" | "assistant";
   content: string;
+  substitutions?: Substitution[] | null;
+  applied?: boolean;
 }
 
 interface RecipeChatDrawerProps {
@@ -19,6 +28,7 @@ interface RecipeChatDrawerProps {
   onOpenChange: (open: boolean) => void;
   recipe: Recipe;
   locale: string;
+  onUpdateRecipe?: (updated: Recipe) => void;
 }
 
 const SUGGESTIONS_PT = [
@@ -33,7 +43,7 @@ const SUGGESTIONS_EN = [
   "How can I increase the protein in this recipe?",
 ];
 
-export function RecipeChatDrawer({ open, onOpenChange, recipe, locale }: RecipeChatDrawerProps) {
+export function RecipeChatDrawer({ open, onOpenChange, recipe, locale, onUpdateRecipe }: RecipeChatDrawerProps) {
   const lang = locale.startsWith("pt") ? "pt" : "en";
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
@@ -56,6 +66,41 @@ export function RecipeChatDrawer({ open, onOpenChange, recipe, locale }: RecipeC
     }
   }, [messages]);
 
+  const applySubstitutions = (msgIndex: number) => {
+    const msg = messages[msgIndex];
+    if (!msg.substitutions || !onUpdateRecipe) return;
+
+    const newIngredients = recipe.ingredients.map((ing) => {
+      const sub = msg.substitutions!.find(
+        (s) => s.original.toLowerCase() === ing.name.toLowerCase()
+      );
+      if (sub) {
+        return {
+          ...ing,
+          name: sub.replacement,
+          quantity: sub.quantity || ing.quantity,
+          unit: sub.unit || ing.unit,
+        } as Ingredient;
+      }
+      return ing;
+    });
+
+    const updatedRecipe: Recipe = { ...recipe, ingredients: newIngredients };
+    onUpdateRecipe(updatedRecipe);
+
+    setMessages((prev) =>
+      prev.map((m, i) => (i === msgIndex ? { ...m, applied: true } : m))
+    );
+
+    toast({
+      title: lang === "pt" ? "Receita atualizada" : "Recipe updated",
+      description:
+        lang === "pt"
+          ? "Os ingredientes foram substituídos com sucesso."
+          : "Ingredients were successfully substituted.",
+    });
+  };
+
   const sendMessage = async (text: string) => {
     if (!text.trim() || loading) return;
 
@@ -73,7 +118,7 @@ export function RecipeChatDrawer({ open, onOpenChange, recipe, locale }: RecipeC
             ingredients: recipe.ingredients,
             macros: recipe.macros,
           },
-          messages: newMessages,
+          messages: newMessages.map((m) => ({ role: m.role, content: m.content })),
           locale: lang,
         },
       });
@@ -89,11 +134,21 @@ export function RecipeChatDrawer({ open, onOpenChange, recipe, locale }: RecipeC
         return;
       }
 
-      setMessages(prev => [...prev, { role: "assistant", content: data.reply }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: data.reply,
+          substitutions: data.substitutions || null,
+        },
+      ]);
     } catch (err: any) {
       toast({
         title: lang === "pt" ? "Erro" : "Error",
-        description: lang === "pt" ? "Não foi possível obter resposta." : "Failed to get response.",
+        description:
+          lang === "pt"
+            ? "Não foi possível obter resposta."
+            : "Failed to get response.",
         variant: "destructive",
       });
     } finally {
@@ -113,8 +168,8 @@ export function RecipeChatDrawer({ open, onOpenChange, recipe, locale }: RecipeC
           </div>
           <p className="text-[11px] text-muted-foreground">
             {lang === "pt"
-              ? "Pergunta sobre substituições ou melhorias de ingredientes"
-              : "Ask about ingredient substitutions or improvements"}
+              ? "Pergunta sobre substituições — podes aplicar as sugestões diretamente"
+              : "Ask about substitutions — you can apply suggestions directly"}
           </p>
         </DrawerHeader>
 
@@ -140,16 +195,44 @@ export function RecipeChatDrawer({ open, onOpenChange, recipe, locale }: RecipeC
               )}
 
               {messages.map((msg, i) => (
-                <div
-                  key={i}
-                  className={cn(
-                    "text-xs rounded-xl px-3 py-2 max-w-[85%] whitespace-pre-wrap",
-                    msg.role === "user"
-                      ? "ml-auto bg-primary text-primary-foreground"
-                      : "bg-muted"
-                  )}
-                >
-                  {msg.content}
+                <div key={i}>
+                  <div
+                    className={cn(
+                      "text-xs rounded-xl px-3 py-2 max-w-[85%] whitespace-pre-wrap",
+                      msg.role === "user"
+                        ? "ml-auto bg-primary text-primary-foreground"
+                        : "bg-muted"
+                    )}
+                  >
+                    {msg.content}
+                  </div>
+
+                  {/* Apply substitution button */}
+                  {msg.role === "assistant" &&
+                    msg.substitutions &&
+                    msg.substitutions.length > 0 &&
+                    onUpdateRecipe && (
+                      <div className="mt-1.5 max-w-[85%]">
+                        {msg.applied ? (
+                          <div className="flex items-center gap-1.5 text-[11px] text-primary font-medium px-1">
+                            <Check className="h-3 w-3" />
+                            {lang === "pt" ? "Aplicado" : "Applied"}
+                          </div>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="default"
+                            className="text-[11px] h-7 gap-1.5"
+                            onClick={() => applySubstitutions(i)}
+                          >
+                            <Check className="h-3 w-3" />
+                            {lang === "pt"
+                              ? `Aplicar ${msg.substitutions.length} substituição(ões)`
+                              : `Apply ${msg.substitutions.length} substitution(s)`}
+                          </Button>
+                        )}
+                      </div>
+                    )}
                 </div>
               ))}
 
@@ -166,9 +249,13 @@ export function RecipeChatDrawer({ open, onOpenChange, recipe, locale }: RecipeC
           <div className="flex gap-2 pt-2 border-t">
             <Input
               value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && sendMessage(input)}
-              placeholder={lang === "pt" ? "Escreve a tua pergunta..." : "Type your question..."}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && sendMessage(input)}
+              placeholder={
+                lang === "pt"
+                  ? "Escreve a tua pergunta..."
+                  : "Type your question..."
+              }
               className="text-xs h-9"
               disabled={loading}
             />

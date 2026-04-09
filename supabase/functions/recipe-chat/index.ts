@@ -35,6 +35,18 @@ Help the user with:
 - Portion adjustments
 - Nutritional impact of changes
 
+IMPORTANT: When suggesting substitutions, ALWAYS include a JSON block at the END of your response with the proposed changes in this exact format:
+\`\`\`substitutions
+[{"original": "ingredient name", "replacement": "new ingredient name", "quantity": "new quantity", "unit": "new unit"}]
+\`\`\`
+
+For example, if replacing milk with oat milk:
+\`\`\`substitutions
+[{"original": "Leite", "replacement": "Bebida de aveia", "quantity": "200", "unit": "ml"}]
+\`\`\`
+
+If the user is just asking a general question without requesting a specific substitution, do NOT include the substitutions block.
+
 Keep answers concise, practical and friendly. Always mention the approximate nutritional impact when suggesting substitutions.`;
 
     const aiMessages = [
@@ -79,7 +91,21 @@ Keep answers concise, practical and friendly. Always mention the approximate nut
     const aiResult = await response.json();
     const content = aiResult.choices?.[0]?.message?.content || "";
 
-    return new Response(JSON.stringify({ reply: content }), {
+    // Parse substitutions block if present
+    let substitutions = null;
+    const subMatch = content.match(/```substitutions\s*\n([\s\S]*?)\n```/);
+    if (subMatch) {
+      try {
+        substitutions = JSON.parse(subMatch[1]);
+      } catch (_) {
+        // ignore parse errors
+      }
+    }
+
+    // Clean content: remove the substitutions code block from the visible text
+    const cleanContent = content.replace(/```substitutions\s*\n[\s\S]*?\n```/, "").trim();
+
+    return new Response(JSON.stringify({ reply: cleanContent, substitutions }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
