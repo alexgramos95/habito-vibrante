@@ -446,6 +446,7 @@ const Nutricao = () => {
   const [showProfile, setShowProfile] = useState(false);
   const [showShopping, setShowShopping] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generatingProgress, setGeneratingProgress] = useState("");
   const [selectedDay, setSelectedDay] = useState(0);
 
   const weekdays = lang === "pt" ? WEEKDAYS_PT : WEEKDAYS_EN;
