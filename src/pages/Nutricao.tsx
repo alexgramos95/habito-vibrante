@@ -340,6 +340,7 @@ const RecipeCard = ({
         onOpenChange={setChatOpen}
         recipe={recipe}
         locale={locale}
+        onUpdateRecipe={onUpdateRecipe}
       />
     </Card>
   );
