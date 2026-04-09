@@ -692,14 +692,9 @@ const Nutricao = () => {
               <Settings2 className="h-4 w-4" />
             </Button>
             {plan && (
-              <>
-                <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => setShowPlanChat(true)}>
-                  <MessageCircle className="h-4 w-4" />
-                </Button>
-                <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => setShowShopping(true)}>
-                  <ShoppingBasket className="h-4 w-4" />
-                </Button>
-              </>
+              <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => setShowShopping(true)}>
+                <ShoppingBasket className="h-4 w-4" />
+              </Button>
             )}
           </div>
         </div>
@@ -855,7 +850,7 @@ const Nutricao = () => {
               )}
             </div>
 
-            {/* Regenerate button */}
+            {/* Action buttons */}
             <div className="flex justify-center gap-2">
               <Button
                 variant="outline"
@@ -870,6 +865,15 @@ const Nutricao = () => {
                   <RefreshCw className="h-3.5 w-3.5" />
                 )}
                 {lang === "pt" ? "Regenerar semana" : "Regenerate week"}
+              </Button>
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => setShowPlanChat(true)}
+                className="gap-1.5"
+              >
+                <MessageCircle className="h-3.5 w-3.5" />
+                {lang === "pt" ? "Alterar ingredientes" : "Change ingredients"}
               </Button>
             </div>
 

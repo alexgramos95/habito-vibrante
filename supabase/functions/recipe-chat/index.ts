@@ -53,6 +53,12 @@ Keep answers concise, practical and friendly. Always mention the approximate nut
     } else {
       // Single recipe mode
       const { recipe } = body;
+      if (!recipe || !recipe.ingredients) {
+        return new Response(
+          JSON.stringify({ error: "Recipe data is required for single-recipe mode" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
       const ingredientsList = recipe.ingredients
         .map((i: any) => `${i.quantity} ${i.unit} ${i.name}`)
         .join(", ");
