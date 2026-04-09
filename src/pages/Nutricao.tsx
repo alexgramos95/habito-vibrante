@@ -620,6 +620,7 @@ const Nutricao = () => {
       });
     } finally {
       setIsGenerating(false);
+      setGeneratingProgress("");
     }
   }, [hasPro, profile, weekStart, weekdays, plan, lang, toast]);
 
