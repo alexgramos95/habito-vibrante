@@ -135,19 +135,19 @@ const AppRoutes = () => (
 // Main application component with providers
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <I18nProvider>
-      <AuthProvider>
-        <DataProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
+    <BrowserRouter>
+      <I18nProvider>
+        <AuthProvider>
+          <DataProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
               <AppRoutes />
-            </BrowserRouter>
-          </TooltipProvider>
-        </DataProvider>
-      </AuthProvider>
-    </I18nProvider>
+            </TooltipProvider>
+          </DataProvider>
+        </AuthProvider>
+      </I18nProvider>
+    </BrowserRouter>
   </QueryClientProvider>
 );
 
