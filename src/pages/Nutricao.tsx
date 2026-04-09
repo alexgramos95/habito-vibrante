@@ -838,6 +838,7 @@ const Nutricao = () => {
                     mealType={meal.type}
                     locale={locale}
                     onSwap={hasPro ? () => generatePlan(selectedDay) : undefined}
+                    onUpdateRecipe={(updated) => updateRecipeInPlan(selectedDay, i, updated)}
                   />
                 ))
               ) : (
