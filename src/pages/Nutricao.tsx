@@ -704,7 +704,9 @@ const Nutricao = () => {
                   ) : (
                     <Sparkles className="h-4 w-4" />
                   )}
-                  {lang === "pt" ? "Gerar plano semanal" : "Generate weekly plan"}
+                  {isGenerating && generatingProgress
+                    ? generatingProgress
+                    : lang === "pt" ? "Gerar plano semanal" : "Generate weekly plan"}
                 </Button>
               </div>
               {!hasPro && (
