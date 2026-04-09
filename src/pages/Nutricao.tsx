@@ -24,6 +24,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { GatedOverlay } from "@/components/Premium/GatedOverlay";
 import { RecipeChatDrawer } from "@/components/Nutrition/RecipeChatDrawer";
+import { PlanChatDrawer } from "@/components/Nutrition/PlanChatDrawer";
 import {
   NutritionProfile, NutritionGoal, DietaryRestriction, MealType,
   Recipe, DayMealPlan, WeeklyMealPlan, ShoppingListItem,
