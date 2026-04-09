@@ -446,6 +446,7 @@ const Nutricao = () => {
   const [showProfile, setShowProfile] = useState(false);
   const [showShopping, setShowShopping] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generatingProgress, setGeneratingProgress] = useState("");
   const [selectedDay, setSelectedDay] = useState(0);
 
   const weekdays = lang === "pt" ? WEEKDAYS_PT : WEEKDAYS_EN;
@@ -513,21 +514,27 @@ const Nutricao = () => {
       const existingDays = plan?.days || new Array(7).fill(null);
       const newDays: (DayMealPlan | null)[] = [...existingDays];
 
-      // Generate days with a small delay between calls to avoid rate limits
+      const invokeWithTimeout = async (body: any, timeoutMs = 30000) => {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), timeoutMs);
+        try {
+          const { data, error } = await supabase.functions.invoke("generate-meal-plan", {
+            body,
+          });
+          clearTimeout(timer);
+          if (error) throw new Error(error.message || "Edge function error");
+          if (data?.error) throw new Error(data.error);
+          return data;
+        } catch (err: any) {
+          clearTimeout(timer);
+          if (err.name === "AbortError") throw new Error("Timeout (30s)");
+          throw err;
+        }
+      };
+
       const generateDay = async (idx: number): Promise<{ idx: number; day: DayMealPlan }> => {
         const date = format(addDays(weekStart, idx), "yyyy-MM-dd");
-        const { data, error } = await supabase.functions.invoke("generate-meal-plan", {
-          body: { profile, dayOfWeek: weekdays[idx], locale: lang },
-        });
-
-        if (error) {
-          console.error(`AI error for day ${idx}:`, error);
-          throw new Error(error.message || `Failed for ${weekdays[idx]}`);
-        }
-        if (data?.error) {
-          console.error(`AI data error for day ${idx}:`, data.error);
-          throw new Error(data.error);
-        }
+        const data = await invokeWithTimeout({ profile, dayOfWeek: weekdays[idx], locale: lang });
 
         const meals = (data.meals || []).map((m: any) => ({
           type: m.type,
@@ -542,12 +549,15 @@ const Nutricao = () => {
         return { idx, day: { date, meals, totalMacros } };
       };
 
-      // Process sequentially with delay to avoid rate limits (429)
       let successCount = 0;
       for (const idx of daysToGenerate) {
         try {
+          setGeneratingProgress(
+            lang === "pt"
+              ? `A gerar ${weekdays[idx]}… (${successCount + 1}/${daysToGenerate.length})`
+              : `Generating ${weekdays[idx]}… (${successCount + 1}/${daysToGenerate.length})`
+          );
           if (successCount > 0) {
-            // Small delay between requests to avoid rate limiting
             await new Promise(r => setTimeout(r, 1500));
           }
           const result = await generateDay(idx);
@@ -610,6 +620,7 @@ const Nutricao = () => {
       });
     } finally {
       setIsGenerating(false);
+      setGeneratingProgress("");
     }
   }, [hasPro, profile, weekStart, weekdays, plan, lang, toast]);
 
@@ -693,7 +704,9 @@ const Nutricao = () => {
                   ) : (
                     <Sparkles className="h-4 w-4" />
                   )}
-                  {lang === "pt" ? "Gerar plano semanal" : "Generate weekly plan"}
+                  {isGenerating && generatingProgress
+                    ? generatingProgress
+                    : lang === "pt" ? "Gerar plano semanal" : "Generate weekly plan"}
                 </Button>
               </div>
               {!hasPro && (
