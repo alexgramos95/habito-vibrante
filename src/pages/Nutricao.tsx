@@ -4,7 +4,7 @@ import { pt } from "date-fns/locale";
 import { 
   UtensilsCrossed, Leaf, ChefHat, ShoppingBasket, Sparkles, 
   ChevronLeft, ChevronRight, Settings2, Loader2, RefreshCw,
-  Clock, Flame, Dumbbell, Wheat, Droplets, Check, X, Plus
+  Clock, Flame, Dumbbell, Wheat, Droplets, Check, X, Plus, MessageCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n/I18nContext";
@@ -23,6 +23,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { GatedOverlay } from "@/components/Premium/GatedOverlay";
+import { RecipeChatDrawer } from "@/components/Nutrition/RecipeChatDrawer";
 import {
   NutritionProfile, NutritionGoal, DietaryRestriction, MealType,
   Recipe, DayMealPlan, WeeklyMealPlan, ShoppingListItem,
