@@ -692,14 +692,9 @@ const Nutricao = () => {
               <Settings2 className="h-4 w-4" />
             </Button>
             {plan && (
-              <>
-                <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => setShowPlanChat(true)}>
-                  <MessageCircle className="h-4 w-4" />
-                </Button>
-                <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => setShowShopping(true)}>
-                  <ShoppingBasket className="h-4 w-4" />
-                </Button>
-              </>
+              <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => setShowShopping(true)}>
+                <ShoppingBasket className="h-4 w-4" />
+              </Button>
             )}
           </div>
         </div>
