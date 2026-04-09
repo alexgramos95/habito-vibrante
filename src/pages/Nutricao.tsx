@@ -320,8 +320,26 @@ const RecipeCard = ({
               ))}
             </div>
           )}
+
+          {/* Chat button */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full mt-3 text-xs gap-1.5"
+            onClick={() => setChatOpen(true)}
+          >
+            <MessageCircle className="h-3.5 w-3.5" />
+            {lang === "pt" ? "Substituir ingredientes" : "Substitute ingredients"}
+          </Button>
         </div>
       )}
+
+      <RecipeChatDrawer
+        open={chatOpen}
+        onOpenChange={setChatOpen}
+        recipe={recipe}
+        locale={locale}
+      />
     </Card>
   );
 };
