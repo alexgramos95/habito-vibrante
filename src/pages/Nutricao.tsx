@@ -468,6 +468,7 @@ const Nutricao = () => {
   });
   const [showProfile, setShowProfile] = useState(false);
   const [showShopping, setShowShopping] = useState(false);
+  const [showPlanChat, setShowPlanChat] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatingProgress, setGeneratingProgress] = useState("");
   const [selectedDay, setSelectedDay] = useState(0);
