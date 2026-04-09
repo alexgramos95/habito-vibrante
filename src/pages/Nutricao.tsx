@@ -911,6 +911,18 @@ const Nutricao = () => {
         plan={plan}
         locale={locale}
       />
+      {plan && (
+        <PlanChatDrawer
+          open={showPlanChat}
+          onOpenChange={setShowPlanChat}
+          plan={plan}
+          locale={locale}
+          onUpdatePlan={(updated) => {
+            setPlan(updated);
+            localStorage.setItem(STORAGE_KEY_PLAN, JSON.stringify(updated));
+          }}
+        />
+      )}
     </div>
   );
 };
