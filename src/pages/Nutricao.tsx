@@ -210,6 +210,7 @@ const RecipeCard = ({
 }) => {
   const lang = locale.startsWith("pt") ? "pt" : "en";
   const [expanded, setExpanded] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
 
   return (
     <Card className="overflow-hidden transition-all">
