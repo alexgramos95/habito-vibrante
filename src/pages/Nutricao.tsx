@@ -646,6 +646,25 @@ const Nutricao = () => {
     }
   }, [hasPro, profile, weekStart, weekdays, plan, lang, toast]);
 
+  const updateRecipeInPlan = useCallback((dayIdx: number, mealIdx: number, updatedRecipe: Recipe) => {
+    if (!plan) return;
+    const newDays = [...plan.days];
+    const day = { ...newDays[dayIdx] };
+    const meals = [...day.meals];
+    meals[mealIdx] = { ...meals[mealIdx], recipe: updatedRecipe };
+    day.meals = meals;
+    day.totalMacros = {
+      calories: meals.reduce((s, m) => s + m.recipe.macros.calories, 0),
+      protein: meals.reduce((s, m) => s + m.recipe.macros.protein, 0),
+      carbs: meals.reduce((s, m) => s + m.recipe.macros.carbs, 0),
+      fat: meals.reduce((s, m) => s + m.recipe.macros.fat, 0),
+    };
+    newDays[dayIdx] = day;
+    const updated = { ...plan, days: newDays, isCustomized: true };
+    setPlan(updated);
+    localStorage.setItem(STORAGE_KEY_PLAN, JSON.stringify(updated));
+  }, [plan]);
+
   const currentDay = plan?.days?.[selectedDay];
 
   // Daily total macros
