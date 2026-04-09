@@ -855,7 +855,7 @@ const Nutricao = () => {
               )}
             </div>
 
-            {/* Regenerate button */}
+            {/* Action buttons */}
             <div className="flex justify-center gap-2">
               <Button
                 variant="outline"
@@ -870,6 +870,15 @@ const Nutricao = () => {
                   <RefreshCw className="h-3.5 w-3.5" />
                 )}
                 {lang === "pt" ? "Regenerar semana" : "Regenerate week"}
+              </Button>
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => setShowPlanChat(true)}
+                className="gap-1.5"
+              >
+                <MessageCircle className="h-3.5 w-3.5" />
+                {lang === "pt" ? "Alterar ingredientes" : "Change ingredients"}
               </Button>
             </div>
 
