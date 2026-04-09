@@ -4,7 +4,7 @@ import { pt } from "date-fns/locale";
 import { 
   UtensilsCrossed, Leaf, ChefHat, ShoppingBasket, Sparkles, 
   ChevronLeft, ChevronRight, Settings2, Loader2, RefreshCw,
-  Clock, Flame, Dumbbell, Wheat, Droplets, Check, X, Plus
+  Clock, Flame, Dumbbell, Wheat, Droplets, Check, X, Plus, MessageCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n/I18nContext";
@@ -23,6 +23,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { GatedOverlay } from "@/components/Premium/GatedOverlay";
+import { RecipeChatDrawer } from "@/components/Nutrition/RecipeChatDrawer";
 import {
   NutritionProfile, NutritionGoal, DietaryRestriction, MealType,
   Recipe, DayMealPlan, WeeklyMealPlan, ShoppingListItem,
@@ -209,6 +210,7 @@ const RecipeCard = ({
 }) => {
   const lang = locale.startsWith("pt") ? "pt" : "en";
   const [expanded, setExpanded] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
 
   return (
     <Card className="overflow-hidden transition-all">
@@ -318,8 +320,26 @@ const RecipeCard = ({
               ))}
             </div>
           )}
+
+          {/* Chat button */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full mt-3 text-xs gap-1.5"
+            onClick={() => setChatOpen(true)}
+          >
+            <MessageCircle className="h-3.5 w-3.5" />
+            {lang === "pt" ? "Substituir ingredientes" : "Substitute ingredients"}
+          </Button>
         </div>
       )}
+
+      <RecipeChatDrawer
+        open={chatOpen}
+        onOpenChange={setChatOpen}
+        recipe={recipe}
+        locale={locale}
+      />
     </Card>
   );
 };
