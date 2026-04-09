@@ -201,12 +201,13 @@ const ProfileSetupModal = ({
 
 // ─── Recipe Card ───
 const RecipeCard = ({
-  recipe, mealType, locale, onSwap,
+  recipe, mealType, locale, onSwap, onUpdateRecipe,
 }: {
   recipe: Recipe;
   mealType: MealType;
   locale: string;
   onSwap?: () => void;
+  onUpdateRecipe?: (updated: Recipe) => void;
 }) => {
   const lang = locale.startsWith("pt") ? "pt" : "en";
   const [expanded, setExpanded] = useState(false);
