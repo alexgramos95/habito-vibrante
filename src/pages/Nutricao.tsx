@@ -24,6 +24,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { GatedOverlay } from "@/components/Premium/GatedOverlay";
 import { RecipeChatDrawer } from "@/components/Nutrition/RecipeChatDrawer";
+import { PlanChatDrawer } from "@/components/Nutrition/PlanChatDrawer";
 import {
   NutritionProfile, NutritionGoal, DietaryRestriction, MealType,
   Recipe, DayMealPlan, WeeklyMealPlan, ShoppingListItem,
@@ -467,6 +468,7 @@ const Nutricao = () => {
   });
   const [showProfile, setShowProfile] = useState(false);
   const [showShopping, setShowShopping] = useState(false);
+  const [showPlanChat, setShowPlanChat] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatingProgress, setGeneratingProgress] = useState("");
   const [selectedDay, setSelectedDay] = useState(0);
@@ -690,9 +692,14 @@ const Nutricao = () => {
               <Settings2 className="h-4 w-4" />
             </Button>
             {plan && (
-              <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => setShowShopping(true)}>
-                <ShoppingBasket className="h-4 w-4" />
-              </Button>
+              <>
+                <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => setShowPlanChat(true)}>
+                  <MessageCircle className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => setShowShopping(true)}>
+                  <ShoppingBasket className="h-4 w-4" />
+                </Button>
+              </>
             )}
           </div>
         </div>
@@ -904,6 +911,18 @@ const Nutricao = () => {
         plan={plan}
         locale={locale}
       />
+      {plan && (
+        <PlanChatDrawer
+          open={showPlanChat}
+          onOpenChange={setShowPlanChat}
+          plan={plan}
+          locale={locale}
+          onUpdatePlan={(updated) => {
+            setPlan(updated);
+            localStorage.setItem(STORAGE_KEY_PLAN, JSON.stringify(updated));
+          }}
+        />
+      )}
     </div>
   );
 };

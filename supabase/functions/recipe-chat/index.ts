@@ -12,17 +12,52 @@ serve(async (req) => {
   }
 
   try {
-    const { recipe, messages, locale } = await req.json();
+    const body = await req.json();
+    const { messages, locale, planMode } = body;
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
     const lang = locale === "pt" ? "português" : "English";
 
-    const ingredientsList = recipe.ingredients
-      .map((i: any) => `${i.quantity} ${i.unit} ${i.name}`)
-      .join(", ");
+    let systemPrompt: string;
 
-    const systemPrompt = `You are a friendly nutritionist assistant helping with recipe ingredient questions.
+    if (planMode) {
+      // Global plan mode — all ingredients summary
+      const { ingredientsSummary } = body;
+
+      systemPrompt = `You are a friendly nutritionist assistant helping with ingredient changes across an entire weekly meal plan.
+Language: ${lang}.
+
+All ingredients in the plan (with occurrence count): ${ingredientsSummary}
+
+Help the user with:
+- Replacing a specific ingredient across ALL recipes (e.g. swap oat flakes for oat flour everywhere)
+- Healthier alternatives for commonly used ingredients
+- Allergy-based global substitutions
+- Nutritional impact of the change
+
+IMPORTANT: When suggesting a substitution, ALWAYS include a JSON block at the END of your response with the proposed changes in this exact format:
+\`\`\`substitutions
+[{"original": "ingredient name", "replacement": "new ingredient name", "quantity": "new quantity or empty string to keep original", "unit": "new unit or empty string to keep original"}]
+\`\`\`
+
+For example, if replacing "Aveia em flocos" with "Farinha de aveia":
+\`\`\`substitutions
+[{"original": "Aveia em flocos", "replacement": "Farinha de aveia", "quantity": "", "unit": ""}]
+\`\`\`
+
+If the quantity/unit should stay the same, use empty strings.
+If the user is just asking a general question without requesting a specific substitution, do NOT include the substitutions block.
+
+Keep answers concise, practical and friendly. Always mention the approximate nutritional impact when suggesting substitutions.`;
+    } else {
+      // Single recipe mode
+      const { recipe } = body;
+      const ingredientsList = recipe.ingredients
+        .map((i: any) => `${i.quantity} ${i.unit} ${i.name}`)
+        .join(", ");
+
+      systemPrompt = `You are a friendly nutritionist assistant helping with recipe ingredient questions.
 Language: ${lang}.
 
 Current recipe: "${recipe.name}"
@@ -48,6 +83,7 @@ For example, if replacing milk with oat milk:
 If the user is just asking a general question without requesting a specific substitution, do NOT include the substitutions block.
 
 Keep answers concise, practical and friendly. Always mention the approximate nutritional impact when suggesting substitutions.`;
+    }
 
     const aiMessages = [
       { role: "system", content: systemPrompt },
