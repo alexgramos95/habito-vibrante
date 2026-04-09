@@ -513,14 +513,21 @@ const Nutricao = () => {
       const existingDays = plan?.days || new Array(7).fill(null);
       const newDays: (DayMealPlan | null)[] = [...existingDays];
 
-      for (const idx of daysToGenerate) {
+      // Generate days with a small delay between calls to avoid rate limits
+      const generateDay = async (idx: number): Promise<{ idx: number; day: DayMealPlan }> => {
         const date = format(addDays(weekStart, idx), "yyyy-MM-dd");
         const { data, error } = await supabase.functions.invoke("generate-meal-plan", {
           body: { profile, dayOfWeek: weekdays[idx], locale: lang },
         });
 
-        if (error) throw error;
-        if (data?.error) throw new Error(data.error);
+        if (error) {
+          console.error(`AI error for day ${idx}:`, error);
+          throw new Error(error.message || `Failed for ${weekdays[idx]}`);
+        }
+        if (data?.error) {
+          console.error(`AI data error for day ${idx}:`, data.error);
+          throw new Error(data.error);
+        }
 
         const meals = (data.meals || []).map((m: any) => ({
           type: m.type,
@@ -532,7 +539,42 @@ const Nutricao = () => {
           carbs: meals.reduce((s: number, m: any) => s + (m.recipe.macros?.carbs || 0), 0),
           fat: meals.reduce((s: number, m: any) => s + (m.recipe.macros?.fat || 0), 0),
         };
-        newDays[idx] = { date, meals, totalMacros };
+        return { idx, day: { date, meals, totalMacros } };
+      };
+
+      // Process sequentially with delay to avoid rate limits (429)
+      let successCount = 0;
+      for (const idx of daysToGenerate) {
+        try {
+          if (successCount > 0) {
+            // Small delay between requests to avoid rate limiting
+            await new Promise(r => setTimeout(r, 1500));
+          }
+          const result = await generateDay(idx);
+          newDays[result.idx] = result.day;
+          successCount++;
+        } catch (dayErr: any) {
+          console.warn(`Failed to generate day ${idx}, using base recipes:`, dayErr.message);
+          // Fallback to base recipes for this day
+          const date = format(addDays(weekStart, idx), "yyyy-MM-dd");
+          const mealTypes: MealType[] = profile.mealsPerDay === 5
+            ? ["breakfast", "morning_snack", "lunch", "afternoon_snack", "dinner"]
+            : profile.mealsPerDay === 4
+              ? ["breakfast", "lunch", "afternoon_snack", "dinner"]
+              : ["breakfast", "lunch", "dinner"];
+          const meals = mealTypes.map(type => {
+            const matching = BASE_RECIPES.filter(r => r.mealType === type);
+            const recipe = matching[Math.floor(Math.random() * matching.length)] || BASE_RECIPES[0];
+            return { type, recipe };
+          });
+          const totalMacros = {
+            calories: meals.reduce((s, m) => s + m.recipe.macros.calories, 0),
+            protein: meals.reduce((s, m) => s + m.recipe.macros.protein, 0),
+            carbs: meals.reduce((s, m) => s + m.recipe.macros.carbs, 0),
+            fat: meals.reduce((s, m) => s + m.recipe.macros.fat, 0),
+          };
+          newDays[idx] = { date, meals, totalMacros };
+        }
       }
 
       // Fill any nulls with empty
@@ -550,6 +592,15 @@ const Nutricao = () => {
         generatedAt: new Date().toISOString(),
         isCustomized: dayIndex !== undefined,
       });
+
+      if (successCount < daysToGenerate.length) {
+        toast({
+          title: lang === "pt" ? "Plano parcialmente gerado" : "Plan partially generated",
+          description: lang === "pt" 
+            ? `${successCount}/${daysToGenerate.length} dias com IA. Os restantes usam receitas base.`
+            : `${successCount}/${daysToGenerate.length} days with AI. Others use base recipes.`,
+        });
+      }
     } catch (err: any) {
       console.error("Meal plan generation error:", err);
       toast({
