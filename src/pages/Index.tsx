@@ -172,13 +172,27 @@ const Index = () => {
   // --- Handlers ---
   const handleToggleSimple = useCallback((habitId: string) => {
     const isDone = isSimpleDone(habitId);
+    const habit = state.habits.find(h => h.id === habitId);
     setState(prev => {
       const logs = isDone
         ? prev.dailyLogs.filter(l => !(l.habitId === habitId && l.date === today))
         : [...prev.dailyLogs, { id: Math.random().toString(36).substring(7), habitId, date: today, done: true, completedAt: new Date().toISOString() }];
       return { ...prev, dailyLogs: logs };
     });
-  }, [isSimpleDone, today, setState]);
+    if (!isDone && habit) {
+      const messages = [
+        `Mais um passo dado — "${habit.nome}" concluído.`,
+        `Bom. "${habit.nome}" feito hoje.`,
+        `"${habit.nome}" registado. Continua assim.`,
+        `Feito. Estás a construir consistência.`,
+      ];
+      toast({
+        title: "✓ Hábito concluído",
+        description: messages[Math.floor(Math.random() * messages.length)],
+        duration: 2200,
+      });
+    }
+  }, [isSimpleDone, today, setState, state.habits, toast]);
 
   const handleAddMetricEntry = useCallback((habitId: string, qty: number, ts?: string) => {
     setState(prev => addTrackerEntry(prev, habitId, qty, undefined, ts));
