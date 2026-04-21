@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { X, Clock, Bell, AlertTriangle } from "lucide-react";
+import { Clock, Bell, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +15,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface HabitFormProps {
   habit?: Habit;
