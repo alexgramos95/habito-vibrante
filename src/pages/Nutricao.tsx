@@ -498,7 +498,7 @@ const Nutricao = () => {
     setGeneratingPercent(0);
 
     if (!hasPro) {
-      // FREE: use base recipes
+      // FREE: use base recipes (with progress simulation)
       const days: DayMealPlan[] = [];
       const mealTypes: MealType[] = profile.mealsPerDay === 5
         ? ["breakfast", "morning_snack", "lunch", "afternoon_snack", "dinner"]
@@ -507,6 +507,12 @@ const Nutricao = () => {
           : ["breakfast", "lunch", "dinner"];
 
       for (let i = 0; i < 7; i++) {
+        setGeneratingPercent(Math.round(((i + 1) / 7) * 100));
+        setGeneratingProgress(
+          lang === "pt"
+            ? `A gerar ${weekdays[i]}…`
+            : `Generating ${weekdays[i]}…`
+        );
         const date = format(addDays(weekStart, i), "yyyy-MM-dd");
         const meals = mealTypes.map(type => {
           const matching = BASE_RECIPES.filter(r => r.mealType === type);
@@ -520,6 +526,7 @@ const Nutricao = () => {
           fat: meals.reduce((s, m) => s + m.recipe.macros.fat, 0),
         };
         days.push({ date, meals, totalMacros });
+        await new Promise(r => setTimeout(r, 120));
       }
 
       setPlan({
@@ -531,6 +538,8 @@ const Nutricao = () => {
         isCustomized: false,
       });
       setIsGenerating(false);
+      setGeneratingProgress("");
+      setGeneratingPercent(0);
       return;
     }
 
