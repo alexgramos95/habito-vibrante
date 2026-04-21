@@ -24,6 +24,7 @@ import { PaywallModal } from "@/components/Paywall/PaywallModal";
 import { NotificationSetup } from "@/components/Habits/NotificationSetup";
 import { TrackerDetailDrawer } from "@/components/Trackers/TrackerDetailDrawer";
 import { TrackerEditDialog } from "@/components/Trackers/TrackerEditDialog";
+import { getContextualHabitFeedback, getHabitFeedbackEnabled } from "@/logic/habitFeedback";
 // HabitCoachTip removed — coach is now on the detail page
 
 // --- Circular progress ring ---
@@ -180,19 +181,15 @@ const Index = () => {
       return { ...prev, dailyLogs: logs };
     });
     if (!isDone && habit) {
-      const messages = [
-        `Mais um passo dado — "${habit.nome}" concluído.`,
-        `Bom. "${habit.nome}" feito hoje.`,
-        `"${habit.nome}" registado. Continua assim.`,
-        `Feito. Estás a construir consistência.`,
-      ];
-      toast({
-        title: "✓ Hábito concluído",
-        description: messages[Math.floor(Math.random() * messages.length)],
-        duration: 2200,
-      });
+      // Only show feedback (a) if user enabled it, AND (b) on first completion of the day for this habit
+      const feedbackEnabled = getHabitFeedbackEnabled();
+      const alreadyCompletedToday = state.dailyLogs.some(l => l.habitId === habitId && l.date === today && l.done);
+      if (feedbackEnabled && !alreadyCompletedToday) {
+        const { title, description } = getContextualHabitFeedback(habit);
+        toast({ title, description, duration: 2200 });
+      }
     }
-  }, [isSimpleDone, today, setState, state.habits, toast]);
+  }, [isSimpleDone, today, setState, state.habits, state.dailyLogs, toast]);
 
   const handleAddMetricEntry = useCallback((habitId: string, qty: number, ts?: string) => {
     setState(prev => addTrackerEntry(prev, habitId, qty, undefined, ts));
