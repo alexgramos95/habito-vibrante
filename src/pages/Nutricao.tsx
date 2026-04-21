@@ -866,30 +866,49 @@ const Nutricao = () => {
             </div>
 
             {/* Action buttons */}
-            <div className="flex justify-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => generatePlan()}
-                disabled={isGenerating}
-                className="gap-1.5"
-              >
-                {isGenerating ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <RefreshCw className="h-3.5 w-3.5" />
-                )}
-                {lang === "pt" ? "Regenerar semana" : "Regenerate week"}
-              </Button>
-              <Button
-                variant="default"
-                size="sm"
-                onClick={() => setShowPlanChat(true)}
-                className="gap-1.5"
-              >
-                <MessageCircle className="h-3.5 w-3.5" />
-                {lang === "pt" ? "Alterar ingredientes" : "Change ingredients"}
-              </Button>
+            <div className="flex flex-col items-center gap-2">
+              <div className="flex justify-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => generatePlan()}
+                  disabled={isGenerating}
+                  className="gap-1.5"
+                >
+                  {isGenerating ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <RefreshCw className="h-3.5 w-3.5" />
+                  )}
+                  {isGenerating
+                    ? `${lang === "pt" ? "A gerar" : "Generating"}… ${generatingPercent}%`
+                    : lang === "pt" ? "Gerar refeições" : "Generate meals"}
+                </Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => setShowPlanChat(true)}
+                  className="gap-1.5"
+                  disabled={isGenerating}
+                >
+                  <MessageCircle className="h-3.5 w-3.5" />
+                  {lang === "pt" ? "Alterar ingredientes" : "Change ingredients"}
+                </Button>
+              </div>
+              {isGenerating && (
+                <div className="w-full max-w-xs space-y-1">
+                  <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-primary transition-all duration-300"
+                      style={{ width: `${generatingPercent}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-[10px] text-muted-foreground">
+                    <span>{generatingProgress || (lang === "pt" ? "A preparar…" : "Preparing…")}</span>
+                    <span>{generatingPercent}%</span>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* PRO gating overlay for AI features */}
