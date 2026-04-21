@@ -109,21 +109,24 @@ const Perfil = () => {
           </div>
         )}
 
-        {/* ═══ Profile Hero ═══ */}
-        <div className="rounded-2xl border border-primary/15 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 p-5">
+        {/* ═══ Operator Hero ═══ */}
+        <div className="border-2 border-primary/40 bg-card shadow-[4px_4px_0_0_hsl(var(--neon-ultra)/0.4)] p-5">
+          <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mb-3">
+            // OPERADOR
+          </p>
           <div className="flex items-center gap-4">
-            <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center text-xl font-bold text-primary shrink-0">
+            <div className="h-14 w-14 bg-primary/15 border-2 border-primary flex items-center justify-center font-black italic uppercase tracking-tighter text-2xl text-primary shrink-0 shadow-[2px_2px_0_0_hsl(var(--neon-ultra))]">
               {displayName[0]?.toUpperCase() || 'G'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-lg font-bold text-foreground truncate">{displayName}</p>
-              <p className="text-xs text-muted-foreground truncate">{displayEmail}</p>
-              <div className="flex items-center gap-3 mt-1">
-                <span className="flex items-center gap-1 text-xs font-semibold text-primary">
-                  <Star className="h-3.5 w-3.5" /> Nível {levelProgress.current}
+              <p className="font-black italic uppercase tracking-tighter text-xl text-foreground truncate">{displayName}</p>
+              <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground/70 truncate">{displayEmail}</p>
+              <div className="flex items-center gap-3 mt-2">
+                <span className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider text-primary">
+                  <Star className="h-3 w-3" /> LV.{levelProgress.current}
                 </span>
-                <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                  {activeHabits} hábitos ativos
+                <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                  {activeHabits} ATIVOS
                 </span>
               </div>
             </div>

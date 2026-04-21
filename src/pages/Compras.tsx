@@ -109,26 +109,37 @@ const Compras = () => {
       <Navigation />
 
       <main className="page-content max-w-xl mx-auto space-y-5">
-        {/* ═══ Weekly Overview Hero ═══ */}
-        <div className="rounded-2xl border border-primary/15 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 p-5">
+        {/* ═══ Weekly Telemetry Hero ═══ */}
+        <div className="border-2 border-primary/40 bg-card shadow-[4px_4px_0_0_hsl(var(--neon-ultra)/0.4)] p-5">
+          <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mb-3">
+            // INVENTÁRIO SEMANAL
+          </p>
           <div className="flex items-center justify-between mb-3">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">{t.shopping.title}</p>
-              <p className="text-2xl font-bold text-foreground tracking-tight">
+              <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                {locale === 'pt-PT' ? 'CUSTO TOTAL' : 'TOTAL COST'}
+              </p>
+              <p className="font-black italic uppercase tracking-tighter text-3xl text-foreground tabular-nums">
                 {formatCurrency(weeklyTotal)}
               </p>
             </div>
             <div className="text-right">
-              <p className="text-xs text-muted-foreground">{locale === 'pt-PT' ? 'Comprado' : 'Bought'}</p>
-              <p className="text-lg font-bold text-success">{formatCurrency(weeklyDoneTotal)}</p>
+              <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                {locale === 'pt-PT' ? 'EXECUTADO' : 'EXECUTED'}
+              </p>
+              <p className="font-black italic uppercase tracking-tighter text-2xl text-primary tabular-nums">
+                {formatCurrency(weeklyDoneTotal)}
+              </p>
             </div>
           </div>
           {totalCount > 0 && (
-            <div className="h-1.5 rounded-full bg-muted/60 overflow-hidden">
-              <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
+            <div className="h-2 bg-foreground/5 border border-foreground/10 overflow-hidden">
+              <div className="h-full bg-primary shadow-[0_0_8px_hsl(var(--neon-toxic)/0.6)] transition-all duration-500" style={{ width: `${progress}%` }} />
             </div>
           )}
-          <p className="text-xs text-muted-foreground mt-1.5">{doneCount}/{totalCount} itens</p>
+          <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mt-2 tabular-nums">
+            {doneCount}/{totalCount} ITENS · {Math.round(progress)}%
+          </p>
         </div>
 
         {/* ═══ Page Header ═══ */}
