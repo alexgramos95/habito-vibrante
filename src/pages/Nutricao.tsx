@@ -762,9 +762,9 @@ const Nutricao = () => {
                   ) : (
                     <Sparkles className="h-4 w-4" />
                   )}
-                  {isGenerating && generatingProgress
-                    ? generatingProgress
-                    : lang === "pt" ? "Gerar plano semanal" : "Generate weekly plan"}
+                  {isGenerating
+                    ? `${lang === "pt" ? "A gerar" : "Generating"}… ${generatingPercent}%`
+                    : lang === "pt" ? "Gerar refeições" : "Generate meals"}
                 </Button>
               </div>
               {!hasPro && (
