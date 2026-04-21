@@ -294,7 +294,7 @@ export const HabitForm = ({ habit, onSave, onCancel }: HabitFormProps) => {
             </Button>
           </div>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };
