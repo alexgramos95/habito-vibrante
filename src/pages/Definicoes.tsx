@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Globe, RotateCcw, Trash2, Coins, ArrowLeft, Bell } from "lucide-react";
+import { Globe, RotateCcw, Trash2, Coins, ArrowLeft } from "lucide-react";
 import { useI18n } from "@/i18n/I18nContext";
 import { localeNames, currencyNames, type Locale, type Currency } from "@/i18n";
 import { resetMonth } from "@/data/storage";
@@ -15,7 +15,6 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useData } from "@/contexts/DataContext";
 import { ResetAppDialog } from "@/components/Profile/ResetAppDialog";
-import { NotificationStatusBadge } from "@/components/Habits/NotificationSetup";
 
 const Definicoes = () => {
   const { toast } = useToast();
@@ -91,22 +90,6 @@ const Definicoes = () => {
               ))}
             </SelectContent>
           </Select>
-        </div>
-
-        {/* Notifications */}
-        <div className="rounded-2xl border border-border/30 bg-card/50 p-4 space-y-3">
-          <div className="flex items-center gap-2">
-            <Bell className="h-4 w-4 text-accent" />
-            <Label className="text-sm font-semibold">
-              {locale === 'pt-PT' ? 'Notificações' : 'Notifications'}
-            </Label>
-          </div>
-          <NotificationStatusBadge />
-          <p className="text-[10px] text-muted-foreground leading-relaxed">
-            {locale === 'pt-PT'
-              ? '"Ativo (background)" = as notificações funcionam mesmo com a app fechada.'
-              : '"Active (background)" = notifications work even with the app closed.'}
-          </p>
         </div>
 
         {/* Reset Data */}

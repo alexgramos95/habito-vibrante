@@ -474,6 +474,11 @@ const Nutricao = () => {
   const [generatingPercent, setGeneratingPercent] = useState(0);
   const [selectedDay, setSelectedDay] = useState(0);
 
+  const clearNutritionStorage = useCallback(() => {
+    localStorage.removeItem(STORAGE_KEY_PROFILE);
+    localStorage.removeItem(STORAGE_KEY_PLAN);
+  }, []);
+
   const weekdays = lang === "pt" ? WEEKDAYS_PT : WEEKDAYS_EN;
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
 
@@ -489,19 +494,49 @@ const Nutricao = () => {
 
   // Save plan
   useEffect(() => {
-    if (plan) localStorage.setItem(STORAGE_KEY_PLAN, JSON.stringify(plan));
+    if (plan) {
+      localStorage.setItem(STORAGE_KEY_PLAN, JSON.stringify(plan));
+      return;
+    }
+
+    localStorage.removeItem(STORAGE_KEY_PLAN);
   }, [plan]);
 
   // Listen for global app reset → clear in-memory plan/profile so the
   // useEffect above doesn't re-save the stale plan to localStorage.
   useEffect(() => {
     const handleReset = () => {
+      clearNutritionStorage();
       setPlan(null);
       setProfile(DEFAULT_NUTRITION_PROFILE);
       setSelectedDay(0);
     };
     window.addEventListener("become:app-reset", handleReset);
     return () => window.removeEventListener("become:app-reset", handleReset);
+  }, [clearNutritionStorage]);
+
+  useEffect(() => {
+    const reconcileNutritionReset = () => {
+      const hasSavedProfile = localStorage.getItem(STORAGE_KEY_PROFILE);
+      const hasSavedPlan = localStorage.getItem(STORAGE_KEY_PLAN);
+
+      if (!hasSavedProfile) {
+        setProfile(DEFAULT_NUTRITION_PROFILE);
+      }
+
+      if (!hasSavedPlan) {
+        setPlan(null);
+        setSelectedDay(0);
+      }
+    };
+
+    window.addEventListener("focus", reconcileNutritionReset);
+    document.addEventListener("visibilitychange", reconcileNutritionReset);
+
+    return () => {
+      window.removeEventListener("focus", reconcileNutritionReset);
+      document.removeEventListener("visibilitychange", reconcileNutritionReset);
+    };
   }, []);
 
   // Generate plan with AI (PRO) or base recipes (FREE)
