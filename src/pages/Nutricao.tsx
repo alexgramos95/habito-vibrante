@@ -659,6 +659,7 @@ const Nutricao = () => {
     } finally {
       setIsGenerating(false);
       setGeneratingProgress("");
+      setGeneratingPercent(0);
     }
   }, [hasPro, profile, weekStart, weekdays, plan, lang, toast]);
 
