@@ -10,6 +10,10 @@ interface KPICardProps {
   className?: string;
 }
 
+/**
+ * KPICard — Arcade Overdrive
+ * Tactile shadow, mono labels, neon values.
+ */
 export const KPICard = ({
   title,
   value,
@@ -18,67 +22,42 @@ export const KPICard = ({
   variant = "default",
   className,
 }: KPICardProps) => {
+  const accent =
+    variant === "primary"
+      ? "border-primary/50 shadow-[4px_4px_0_0_hsl(var(--neon-ultra)/0.4)]"
+      : variant === "success"
+        ? "border-success/50 shadow-[4px_4px_0_0_hsl(var(--success)/0.3)]"
+        : variant === "warning"
+          ? "border-warning/50 shadow-[4px_4px_0_0_hsl(var(--warning)/0.3)]"
+          : "border-foreground/15 shadow-[4px_4px_0_0_hsl(var(--neon-ultra)/0.2)]";
+
+  const valueColor =
+    variant === "primary"
+      ? "text-primary"
+      : variant === "success"
+        ? "text-success"
+        : variant === "warning"
+          ? "text-warning"
+          : "text-foreground";
+
   return (
-    <div
-      className={cn(
-        "group relative overflow-hidden rounded-2xl p-5",
-        "glass transition-all duration-300",
-        "hover:glow-subtle",
-        variant === "primary" && "border-primary/20 hover:border-primary/40",
-        variant === "success" && "border-success/20 hover:border-success/40",
-        variant === "warning" && "border-warning/20 hover:border-warning/40",
-        variant === "default" && "border-border/30 hover:border-border/50",
-        className
-      )}
-    >
-      {/* Background gradient glow */}
-      <div
-        className={cn(
-          "absolute -inset-px opacity-0 transition-opacity duration-500 group-hover:opacity-100 blur-xl",
-          variant === "primary" && "bg-primary/20",
-          variant === "success" && "bg-success/20",
-          variant === "warning" && "bg-warning/20",
-          variant === "default" && "bg-primary/10"
-        )}
-      />
-
-      {/* Content */}
-      <div className="relative z-10">
-        <div className="mb-4 flex items-center justify-between">
-          <span className="text-sm font-medium text-muted-foreground tracking-wide">
-            {title}
-          </span>
-          <div
-            className={cn(
-              "flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300",
-              "group-hover:scale-110",
-              variant === "primary" && "bg-primary/15 text-primary",
-              variant === "success" && "bg-success/15 text-success",
-              variant === "warning" && "bg-warning/15 text-warning",
-              variant === "default" && "bg-secondary text-muted-foreground"
-            )}
-          >
-            {icon}
-          </div>
-        </div>
-
-        <div className="space-y-1">
-          <p
-            className={cn(
-              "text-3xl md:text-4xl font-bold tracking-tight transition-all duration-300",
-              variant === "primary" && "text-primary group-hover:text-primary",
-              variant === "success" && "text-success group-hover:text-success",
-              variant === "warning" && "text-warning group-hover:text-warning",
-              variant === "default" && "text-foreground"
-            )}
-          >
-            {value}
-          </p>
-          {subtitle && (
-            <p className="text-sm text-muted-foreground">{subtitle}</p>
-          )}
+    <div className={cn("relative bg-card border-2 p-4 transition-all", accent, className)}>
+      <div className="flex items-center justify-between mb-3">
+        <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+          {title}
+        </span>
+        <div className={cn("flex h-8 w-8 items-center justify-center border", valueColor, "border-current/30")}>
+          {icon}
         </div>
       </div>
+      <p className={cn("font-black italic uppercase tracking-tighter text-3xl md:text-4xl leading-none", valueColor)}>
+        {value}
+      </p>
+      {subtitle && (
+        <p className="mt-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground/70">
+          {subtitle}
+        </p>
+      )}
     </div>
   );
 };
