@@ -313,28 +313,30 @@ const Auth = () => {
           {/* Logo */}
           <div className="text-center space-y-2">
             <div className="flex items-center justify-center gap-2 mb-4">
-              <div className="p-3 rounded-xl bg-primary/10 border border-primary/20">
-                <Mail className="h-8 w-8 text-primary" />
+              <div className="h-14 w-14 bg-card border-2 border-primary flex items-center justify-center shadow-[3px_3px_0_0_hsl(var(--neon-ultra))]">
+                <Mail className="h-7 w-7 text-primary" />
               </div>
             </div>
-            <h1 className="text-3xl font-bold tracking-tight">Verify Your Email</h1>
-            <p className="text-muted-foreground">Check your inbox to continue</p>
+            <h1 className="text-3xl font-black italic uppercase tracking-tighter">// VERIFICAR ACESSO</h1>
+            <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+              Confirma o link enviado para o teu email
+            </p>
           </div>
 
-          <Card className="border-border bg-card shadow-sm">
+          <Card className="border-2 border-primary/40 bg-card shadow-[8px_8px_0_0_hsl(var(--neon-ultra)/0.6)]">
             <CardHeader className="space-y-1 text-center">
-              <CardTitle className="text-xl">Almost there!</CardTitle>
-              <CardDescription>
-                We sent a verification link to <strong>{user?.email}</strong>
+              <CardTitle className="text-xl font-black italic uppercase tracking-tighter">PROTOCOLO PENDENTE</CardTitle>
+              <CardDescription className="font-mono text-xs">
+                Link enviado para <strong className="text-primary not-italic">{user?.email}</strong>
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="bg-muted/50 rounded-lg p-4 text-center">
-                <p className="text-sm text-muted-foreground mb-2">
-                  Click the link in your email to verify your account and start your 2-day trial.
+              <div className="border-2 border-foreground/15 bg-background/40 p-4 text-center">
+                <p className="text-sm text-foreground/80 mb-2">
+                  Clica no link no email para confirmar o acesso e iniciar o teu trial de 2 dias.
                 </p>
-                <p className="text-xs text-muted-foreground">
-                  Don't see it? Check your spam folder.
+                <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                  // SEM SINAL? VERIFICA SPAM
                 </p>
               </div>
 
@@ -347,12 +349,12 @@ const Auth = () => {
                 {resending ? (
                   <>
                     <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                    Sending...
+                    A ENVIAR...
                   </>
                 ) : (
                   <>
                     <RefreshCw className="mr-2 h-4 w-4" />
-                    Resend verification email
+                    REENVIAR LINK
                   </>
                 )}
               </Button>
@@ -363,9 +365,9 @@ const Auth = () => {
                   onClick={() => {
                     setMode('signin');
                   }}
-                  className="text-sm text-muted-foreground hover:text-foreground"
+                  className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
                 >
-                  Use a different account
+                  // USAR OUTRA CONTA
                 </button>
               </div>
             </CardContent>
@@ -379,9 +381,9 @@ const Auth = () => {
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       {/* Back button */}
       <div className="w-full max-w-md mb-4">
-        <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-          <ArrowLeft className="h-4 w-4" />
-          Back to home
+        <Link to="/" className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors">
+          <ArrowLeft className="h-3.5 w-3.5" />
+          // VOLTAR
         </Link>
       </div>
       
@@ -409,19 +411,25 @@ const Auth = () => {
           </p>
         </div>
 
-        <Card className="border-border bg-card shadow-sm">
+        <Card className="border-2 border-primary/40 bg-card shadow-[8px_8px_0_0_hsl(var(--neon-ultra)/0.6)]">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-xl">
-              {mode === 'signin' && 'Welcome back'}
-              {mode === 'signup' && 'Create your account'}
-              {mode === 'forgot-password' && 'Reset password'}
-              {mode === 'reset-password' && 'Set new password'}
+            <p className="font-mono text-[10px] uppercase tracking-widest text-primary/70">
+              {mode === 'signin' && '// ACESSO'}
+              {mode === 'signup' && '// REGISTO'}
+              {mode === 'forgot-password' && '// RECUPERAR ACESSO'}
+              {mode === 'reset-password' && '// NOVA CHAVE'}
+            </p>
+            <CardTitle className="text-2xl font-black italic uppercase tracking-tighter">
+              {mode === 'signin' && 'Bem-vindo de volta'}
+              {mode === 'signup' && 'Cria a tua conta'}
+              {mode === 'forgot-password' && 'Repor palavra-passe'}
+              {mode === 'reset-password' && 'Define nova chave'}
             </CardTitle>
-            <CardDescription>
-              {mode === 'signin' && 'Sign in to continue your journey'}
-              {mode === 'signup' && 'Start your 2-day free trial'}
-              {mode === 'forgot-password' && 'Enter your email to receive a reset link'}
-              {mode === 'reset-password' && 'Choose a new secure password'}
+            <CardDescription className="font-mono text-xs">
+              {mode === 'signin' && 'Entra para continuar o teu protocolo'}
+              {mode === 'signup' && 'Inicia o teu trial de 2 dias'}
+              {mode === 'forgot-password' && 'Indica o email para receber link'}
+              {mode === 'reset-password' && 'Escolhe uma chave segura'}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -539,12 +547,12 @@ const Auth = () => {
               )}
 
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'Please wait...' : (
+                {loading ? 'A PROCESSAR...' : (
                   <>
-                    {mode === 'signin' && 'Sign In'}
-                    {mode === 'signup' && 'Create Account'}
-                    {mode === 'forgot-password' && 'Send Reset Link'}
-                    {mode === 'reset-password' && 'Update Password'}
+                    {mode === 'signin' && 'EXECUTAR LOGIN'}
+                    {mode === 'signup' && 'CRIAR CONTA'}
+                    {mode === 'forgot-password' && 'ENVIAR LINK'}
+                    {mode === 'reset-password' && 'ATUALIZAR CHAVE'}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </>
                 )}
@@ -556,11 +564,11 @@ const Auth = () => {
               <>
                 <div className="relative my-6">
                   <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
+                    <span className="w-full border-t-2 border-foreground/15" />
                   </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-card px-2 text-muted-foreground">
-                      Or continue with
+                  <div className="relative flex justify-center">
+                    <span className="bg-card px-3 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                      // OU
                     </span>
                   </div>
                 </div>
@@ -574,45 +582,45 @@ const Auth = () => {
                   <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
                   </svg>
-                  Continue with Apple
+                  CONTINUAR COM APPLE
                 </Button>
               </>
             )}
 
-            <div className="mt-6 text-center text-sm">
+            <div className="mt-6 text-center font-mono text-[11px] uppercase tracking-widest">
               {mode === 'signin' && (
-                <p>
-                  Don't have an account?{' '}
+                <p className="text-muted-foreground">
+                  Sem conta?{' '}
                   <button
                     type="button"
                     onClick={() => setMode('signup')}
-                    className="text-primary hover:underline font-medium"
+                    className="text-primary hover:underline font-bold"
                   >
-                    Sign up
+                    REGISTAR
                   </button>
                 </p>
               )}
               {mode === 'signup' && (
-                <p>
-                  Already have an account?{' '}
+                <p className="text-muted-foreground">
+                  Já tens conta?{' '}
                   <button
                     type="button"
                     onClick={() => setMode('signin')}
-                    className="text-primary hover:underline font-medium"
+                    className="text-primary hover:underline font-bold"
                   >
-                    Sign in
+                    ENTRAR
                   </button>
                 </p>
               )}
               {mode === 'forgot-password' && (
-                <p>
-                  Remember your password?{' '}
+                <p className="text-muted-foreground">
+                  Lembraste-te?{' '}
                   <button
                     type="button"
                     onClick={() => setMode('signin')}
-                    className="text-primary hover:underline font-medium"
+                    className="text-primary hover:underline font-bold"
                   >
-                    Sign in
+                    ENTRAR
                   </button>
                 </p>
               )}
@@ -621,11 +629,11 @@ const Auth = () => {
         </Card>
 
         {/* Terms */}
-        <p className="text-center text-xs text-muted-foreground">
-          By continuing, you agree to our{' '}
-          <a href="/terms" className="underline hover:text-foreground">Terms of Service</a>
-          {' '}and{' '}
-          <a href="/privacy" className="underline hover:text-foreground">Privacy Policy</a>
+        <p className="text-center font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+          // AO CONTINUAR ACEITAS{' '}
+          <a href="/terms" className="underline hover:text-primary">TERMOS</a>
+          {' '}E{' '}
+          <a href="/privacy" className="underline hover:text-primary">PRIVACIDADE</a>
         </p>
       </div>
     </div>
