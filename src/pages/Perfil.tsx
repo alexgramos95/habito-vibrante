@@ -31,6 +31,8 @@ import { TrialBanner } from "@/components/Paywall/TrialBanner";
 import { ExportDialog } from "@/components/Export/ExportDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { ProfileEditor } from "@/components/Profile/ProfileEditor";
+import { getHabitFeedbackEnabled, setHabitFeedbackEnabled } from "@/logic/habitFeedback";
+import { Sparkles } from "lucide-react";
 
 const Perfil = () => {
   const { toast } = useToast();
@@ -48,6 +50,7 @@ const Perfil = () => {
     try { return (localStorage.getItem('become-chronotype') as 'early' | 'moderate' | 'late') || 'moderate'; }
     catch { return 'moderate'; }
   });
+  const [habitFeedback, setHabitFeedback] = useState<boolean>(() => getHabitFeedbackEnabled());
 
   const getDisplayName = () => {
     if (!user) return locale === 'pt-PT' ? 'Visitante' : 'Guest';
