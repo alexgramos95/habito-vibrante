@@ -78,13 +78,6 @@ export const MinimalHabitCard = ({
         {habit.nome}
       </span>
 
-      {/* Status */}
-      <span className={cn(
-        "mono-label shrink-0 text-[10px]",
-        isDone ? "text-primary" : "text-muted-foreground/50",
-      )}>
-        {isDone ? "OK" : "—"}
-      </span>
     </div>
   );
 };
