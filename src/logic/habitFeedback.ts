@@ -4,96 +4,121 @@ import type { Habit } from "@/data/types";
  * Returns contextualized positive feedback for completing a habit.
  * Detects habit type from name + categoria to avoid nonsensical messages
  * (e.g. "just 2min" for sleep). Falls back to neutral, observational copy.
+ *
+ * Copy guidelines (PT-PT):
+ * - Acentuação portuguesa europeia (registado, contigo, hábito).
+ * - Tom observacional, neutro em género (evitar "atenta/atento", "pronta/pronto").
+ * - Sem terminologia de performance ("parabéns", "incrível", "campeão").
+ * - Sem anglicismos no copy visível ("deep work", "mindfulness" só nos keywords).
  */
 export const getContextualHabitFeedback = (habit: Habit): { title: string; description: string } => {
   const text = `${habit.nome ?? ""} ${habit.categoria ?? ""}`.toLowerCase();
 
   const match = (keywords: string[]) => keywords.some(k => text.includes(k));
+  const pick = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
 
-  // — Sleep / rest —
+  // — Sono / descanso —
   if (match(["dormir", "sono", "deitar", "descansar", "sleep", "rest", "bedtime"])) {
-    const opts = [
-      "O descanso é parte do trabalho. Dormiste com intenção.",
-      "Ritual de sono cumprido. O teu corpo agradece.",
-      "Boa noite começa com decisão. Feita.",
-    ];
-    return { title: "Ritual de sono cumprido", description: opts[Math.floor(Math.random() * opts.length)] };
+    return {
+      title: "Ritual de sono cumprido",
+      description: pick([
+        "O descanso faz parte do trabalho. Ficou registado.",
+        "O corpo agradece. Bom descanso.",
+        "Mais uma noite com intenção.",
+      ]),
+    };
   }
 
-  // — Reading / learning —
+  // — Leitura / estudo —
   if (match(["ler", "leitura", "livro", "estudar", "estudo", "read", "book", "learn"])) {
-    const opts = [
-      "Mais umas páginas viradas. A mente cresce em silêncio.",
-      "Leste hoje. Pequenos minutos, grande diferença ao longo do tempo.",
-      "Conhecimento somado. Continua.",
-    ];
-    return { title: "Leitura registada", description: opts[Math.floor(Math.random() * opts.length)] };
+    return {
+      title: "Leitura registada",
+      description: pick([
+        "Mais umas páginas viradas. A mente cresce em silêncio.",
+        "Pequenos minutos de leitura, grande diferença ao longo do tempo.",
+        "Conhecimento somado. Continua.",
+      ]),
+    };
   }
 
-  // — Exercise / movement —
+  // — Exercício / movimento —
   if (match(["correr", "corrida", "ginásio", "ginasio", "treino", "exercício", "exercicio", "yoga", "alongar", "caminhar", "passear", "andar", "run", "gym", "workout", "exercise", "walk"])) {
-    const opts = [
-      "Corpo movido. Esse é o gesto que te define.",
-      "Treinaste hoje. Não é sobre intensidade, é sobre presença.",
-      "Movimento cumprido. O resto vem com o tempo.",
-    ];
-    return { title: "Movimento feito", description: opts[Math.floor(Math.random() * opts.length)] };
+    return {
+      title: "Movimento feito",
+      description: pick([
+        "Corpo movido. É esse o gesto que constrói.",
+        "Mais um treino registado. Não é a intensidade, é a presença.",
+        "Movimento cumprido. O resto vem com o tempo.",
+      ]),
+    };
   }
 
-  // — Meditation / mindfulness —
+  // — Meditação / respiração —
   if (match(["meditar", "meditação", "meditacao", "respirar", "mindfulness", "meditate", "breathe"])) {
-    const opts = [
-      "Pausa cumprida. A mente também precisa de espaço.",
-      "Respiraste com intenção. Isso conta.",
-      "Momento de presença registado.",
-    ];
-    return { title: "Pausa cumprida", description: opts[Math.floor(Math.random() * opts.length)] };
+    return {
+      title: "Pausa cumprida",
+      description: pick([
+        "Pausa feita. A mente também precisa de espaço.",
+        "Mais uns minutos contigo. Isso conta.",
+        "Momento de presença registado.",
+      ]),
+    };
   }
 
-  // — Water / hydration —
+  // — Hidratação —
   if (match(["água", "agua", "beber", "hidratar", "water", "hydrate", "drink"])) {
-    const opts = [
-      "Hidratação registada. Pequeno gesto, grande impacto.",
-      "Mais um copo. Continua atenta ao corpo.",
-    ];
-    return { title: "Hidratação feita", description: opts[Math.floor(Math.random() * opts.length)] };
+    return {
+      title: "Hidratação registada",
+      description: pick([
+        "Pequeno gesto, grande impacto.",
+        "Mais um copo. Continua a ouvir o corpo.",
+      ]),
+    };
   }
 
-  // — Nutrition / food —
-  if (match(["comer", "refeição", "refeicao", "alimentação", "alimentacao", "pequeno-almoço", "almoço", "almoco", "jantar", "dieta", "eat", "meal", "breakfast", "lunch", "dinner"])) {
-    const opts = [
-      "Refeição registada. Comer bem é cuidar de ti.",
-      "Mais uma escolha consciente à mesa.",
-    ];
-    return { title: "Refeição registada", description: opts[Math.floor(Math.random() * opts.length)] };
+  // — Alimentação —
+  if (match(["comer", "refeição", "refeicao", "alimentação", "alimentacao", "pequeno-almoço", "pequeno almoço", "almoço", "almoco", "jantar", "dieta", "eat", "meal", "breakfast", "lunch", "dinner"])) {
+    return {
+      title: "Refeição registada",
+      description: pick([
+        "Comer bem é cuidar de ti.",
+        "Mais uma escolha consciente à mesa.",
+      ]),
+    };
   }
 
-  // — Writing / journaling —
+  // — Escrita / diário —
   if (match(["escrever", "diário", "diario", "journal", "write", "writing"])) {
-    const opts = [
-      "Palavras no papel. O pensamento ganha forma.",
-      "Escreveste hoje. Ficou registado.",
-    ];
-    return { title: "Escrita feita", description: opts[Math.floor(Math.random() * opts.length)] };
+    return {
+      title: "Escrita registada",
+      description: pick([
+        "Palavras no papel. O pensamento ganha forma.",
+        "Mais umas linhas escritas hoje.",
+      ]),
+    };
   }
 
-  // — Work / focus —
+  // — Trabalho / foco —
   if (match(["trabalhar", "trabalho", "focar", "foco", "deep work", "work", "focus"])) {
-    const opts = [
-      "Tempo dedicado. Foco é a moeda mais rara.",
-      "Bloco de trabalho cumprido.",
-    ];
-    return { title: "Foco cumprido", description: opts[Math.floor(Math.random() * opts.length)] };
+    return {
+      title: "Foco cumprido",
+      description: pick([
+        "Tempo dedicado. O foco é a moeda mais rara.",
+        "Mais um bloco de trabalho registado.",
+      ]),
+    };
   }
 
-  // — Default neutral fallback (no time/intensity claims) —
-  const opts = [
-    `"${habit.nome}" — feito hoje.`,
-    `Mais um passo dado. "${habit.nome}" registado.`,
-    `Continuas a construir. "${habit.nome}" cumprido.`,
-    `Feito. Estás a manter o ritmo.`,
-  ];
-  return { title: "✓ Hábito concluído", description: opts[Math.floor(Math.random() * opts.length)] };
+  // — Fallback neutro (sem afirmações de tempo ou intensidade) —
+  return {
+    title: "Hábito registado",
+    description: pick([
+      `"${habit.nome}" — feito hoje.`,
+      `Mais um passo dado. "${habit.nome}" registado.`,
+      `"${habit.nome}" cumprido. Continuas a construir.`,
+      "Feito. O ritmo mantém-se.",
+    ]),
+  };
 };
 
 const STORAGE_KEY = "become-habit-feedback-enabled";
