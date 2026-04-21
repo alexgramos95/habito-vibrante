@@ -495,6 +495,7 @@ const Nutricao = () => {
   // Generate plan with AI (PRO) or base recipes (FREE)
   const generatePlan = useCallback(async (dayIndex?: number) => {
     setIsGenerating(true);
+    setGeneratingPercent(0);
 
     if (!hasPro) {
       // FREE: use base recipes
