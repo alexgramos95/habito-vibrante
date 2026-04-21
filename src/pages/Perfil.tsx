@@ -31,6 +31,8 @@ import { TrialBanner } from "@/components/Paywall/TrialBanner";
 import { ExportDialog } from "@/components/Export/ExportDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { ProfileEditor } from "@/components/Profile/ProfileEditor";
+import { getHabitFeedbackEnabled, setHabitFeedbackEnabled } from "@/logic/habitFeedback";
+import { Sparkles } from "lucide-react";
 
 const Perfil = () => {
   const { toast } = useToast();
@@ -48,6 +50,7 @@ const Perfil = () => {
     try { return (localStorage.getItem('become-chronotype') as 'early' | 'moderate' | 'late') || 'moderate'; }
     catch { return 'moderate'; }
   });
+  const [habitFeedback, setHabitFeedback] = useState<boolean>(() => getHabitFeedbackEnabled());
 
   const getDisplayName = () => {
     if (!user) return locale === 'pt-PT' ? 'Visitante' : 'Guest';
@@ -269,6 +272,30 @@ const Perfil = () => {
           <Button variant="outline" onClick={handleCopyInviteLink} className="w-full gap-2 h-9">
             <Copy className="h-3.5 w-3.5" /> {locale === 'pt-PT' ? 'Copiar link' : 'Copy link'}
           </Button>
+        </div>
+
+        {/* ═══ Habit Feedback Toggle ═══ */}
+        <div className="rounded-2xl border border-border/30 bg-card/50 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-start gap-2 min-w-0">
+              <Sparkles className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+              <div className="min-w-0">
+                <Label htmlFor="habit-feedback-toggle" className="text-sm font-medium cursor-pointer">
+                  {locale === 'pt-PT' ? 'Mensagens ao concluir hábitos' : 'Messages when completing habits'}
+                </Label>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {locale === 'pt-PT'
+                    ? 'Recebe uma nota positiva na primeira marcação de cada hábito por dia.'
+                    : 'Get a short positive note on the first completion of each habit per day.'}
+                </p>
+              </div>
+            </div>
+            <Switch
+              id="habit-feedback-toggle"
+              checked={habitFeedback}
+              onCheckedChange={(checked) => { setHabitFeedback(checked); setHabitFeedbackEnabled(checked); }}
+            />
+          </div>
         </div>
 
         {/* ═══ Screenshot/Demo Mode ═══ */}
