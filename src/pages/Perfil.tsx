@@ -274,6 +274,30 @@ const Perfil = () => {
           </Button>
         </div>
 
+        {/* ═══ Habit Feedback Toggle ═══ */}
+        <div className="rounded-2xl border border-border/30 bg-card/50 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-start gap-2 min-w-0">
+              <Sparkles className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+              <div className="min-w-0">
+                <Label htmlFor="habit-feedback-toggle" className="text-sm font-medium cursor-pointer">
+                  {locale === 'pt-PT' ? 'Mensagens ao concluir hábitos' : 'Messages when completing habits'}
+                </Label>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {locale === 'pt-PT'
+                    ? 'Recebe uma nota positiva na primeira marcação de cada hábito por dia.'
+                    : 'Get a short positive note on the first completion of each habit per day.'}
+                </p>
+              </div>
+            </div>
+            <Switch
+              id="habit-feedback-toggle"
+              checked={habitFeedback}
+              onCheckedChange={(checked) => { setHabitFeedback(checked); setHabitFeedbackEnabled(checked); }}
+            />
+          </div>
+        </div>
+
         {/* ═══ Screenshot/Demo Mode ═══ */}
         {import.meta.env.VITE_ENABLE_SCREENSHOT_MODE === 'true' && (
           <div className="rounded-2xl border border-border/30 bg-card/50 p-4">
