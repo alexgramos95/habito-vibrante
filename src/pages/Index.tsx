@@ -344,6 +344,9 @@ const Index = () => {
           </div>
         )}
 
+        {/* ═══ Daily Motivation Card ═══ */}
+        {state.habits.length > 0 && <MotivationCard card={motivationCard} />}
+
         {/* Coach is now per-habit, no global card */}
         {/* ═══ Page Header ═══ */}
         <div className="flex items-center justify-between">
