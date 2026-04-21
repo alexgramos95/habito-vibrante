@@ -11,6 +11,10 @@ interface MonthSelectorProps {
   onToday: () => void;
 }
 
+/**
+ * MonthSelector — Arcade Overdrive
+ * Brutal borders, mono labels, neon hover.
+ */
 export const MonthSelector = ({
   year,
   month,
@@ -18,49 +22,56 @@ export const MonthSelector = ({
   onNext,
   onToday,
 }: MonthSelectorProps) => {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const monthName = t.calendar.months[month];
   const isCurrentMonth =
     new Date().getMonth() === month && new Date().getFullYear() === year;
 
+  const todayLabel = locale === "pt-PT" ? "HOJE" : "TODAY";
+
   return (
-    <div className="flex items-center justify-between gap-4">
-      <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onPrevious}
-          className="h-9 w-9 rounded-lg border border-border/50 hover:border-primary/50 hover:bg-primary/10"
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onNext}
-          className="h-9 w-9 rounded-lg border border-border/50 hover:border-primary/50 hover:bg-primary/10"
-        >
-          <ChevronRight className="h-4 w-4" />
-        </Button>
+    <div className="flex items-center justify-between gap-3 border-2 border-foreground/15 bg-card/60 p-2 shadow-[3px_3px_0_0_hsl(var(--neon-ultra)/0.3)]">
+      <button
+        type="button"
+        onClick={onPrevious}
+        aria-label={locale === "pt-PT" ? "Mês anterior" : "Previous month"}
+        className="flex h-9 w-9 items-center justify-center border border-foreground/20 bg-background/50 text-foreground transition-all hover:border-primary hover:bg-primary/10 hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/50"
+      >
+        <ChevronLeft className="h-4 w-4" />
+      </button>
+
+      <div className="flex flex-1 flex-col items-center justify-center text-center">
+        <span className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground/70">
+          // CICLO
+        </span>
+        <h2 className="font-black italic uppercase tracking-tighter text-lg leading-none text-foreground">
+          {monthName} <span className="text-primary">{year}</span>
+        </h2>
       </div>
 
-      <h2 className="text-xl font-semibold tracking-tight">
-        {monthName} {year}
-      </h2>
+      <button
+        type="button"
+        onClick={onNext}
+        aria-label={locale === "pt-PT" ? "Próximo mês" : "Next month"}
+        className="flex h-9 w-9 items-center justify-center border border-foreground/20 bg-background/50 text-foreground transition-all hover:border-primary hover:bg-primary/10 hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/50"
+      >
+        <ChevronRight className="h-4 w-4" />
+      </button>
 
-      <Button
-        variant="outline"
-        size="sm"
+      <button
+        type="button"
         onClick={onToday}
         disabled={isCurrentMonth}
         className={cn(
-          "gap-2 rounded-lg border-border/50",
-          isCurrentMonth && "opacity-50"
+          "flex h-9 items-center gap-1.5 border-2 border-primary/50 bg-primary/10 px-3 font-mono text-[10px] font-bold uppercase tracking-widest text-primary transition-all",
+          "hover:bg-primary hover:text-primary-foreground hover:shadow-[2px_2px_0_0_hsl(var(--neon-ultra)/0.5)]",
+          "focus:outline-none focus:ring-2 focus:ring-primary/50",
+          isCurrentMonth && "cursor-not-allowed opacity-30 hover:bg-primary/10 hover:text-primary hover:shadow-none",
         )}
       >
-        <Calendar className="h-4 w-4" />
-        {t.actions.today}
-      </Button>
+        <Calendar className="h-3 w-3" />
+        {todayLabel}
+      </button>
     </div>
   );
 };
