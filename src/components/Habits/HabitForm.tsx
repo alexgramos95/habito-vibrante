@@ -1,10 +1,11 @@
-import { useState } from "react";
-import { X, Clock, Bell } from "lucide-react";
+import { useState, useMemo } from "react";
+import { X, Clock, Bell, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useI18n } from "@/i18n/I18nContext";
+import { useData } from "@/contexts/DataContext";
 import { Habit, DEFAULT_COLORS, DEFAULT_CATEGORIES } from "@/data/types";
 import { cn } from "@/lib/utils";
 import {
@@ -43,8 +44,9 @@ const WEEKDAYS_PT = [
 
 export const HabitForm = ({ habit, onSave, onCancel }: HabitFormProps) => {
   const { t, locale } = useI18n();
+  const { state } = useData();
   const WEEKDAYS = locale === 'pt-PT' ? WEEKDAYS_PT : WEEKDAYS_EN;
-  
+
   const [nome, setNome] = useState(habit?.nome || "");
   const [categoria, setCategoria] = useState(habit?.categoria || "");
   const [cor, setCor] = useState(habit?.cor || DEFAULT_COLORS[0]);
@@ -52,10 +54,42 @@ export const HabitForm = ({ habit, onSave, onCancel }: HabitFormProps) => {
   const [scheduledTime, setScheduledTime] = useState(habit?.scheduledTime || "");
   const [scheduledDays, setScheduledDays] = useState<number[]>(habit?.scheduledDays || []);
   const [reminderEnabled, setReminderEnabled] = useState(habit?.reminderEnabled ?? true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Count of active habits excluding the one being edited (if editing)
+  const otherActiveCount = useMemo(() => {
+    return state.habits.filter(h => h.active && h.id !== habit?.id).length;
+  }, [state.habits, habit?.id]);
+
+  // Lock deactivation if this is the last active habit
+  const isLastActive = habit?.active === true && otherActiveCount === 0;
+
+  const handleActiveChange = (next: boolean) => {
+    if (!next && isLastActive) {
+      setError(
+        locale === 'pt-PT'
+          ? "Tem de existir pelo menos 1 hábito ativo. Ativa outro antes de desativar este."
+          : "At least one active habit is required. Activate another before deactivating this one."
+      );
+      return;
+    }
+    setError(null);
+    setActive(next);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!nome.trim()) return;
+
+    // Final guard: block save if it would leave 0 active habits
+    if (!active && otherActiveCount === 0) {
+      setError(
+        locale === 'pt-PT'
+          ? "Não podes guardar — pelo menos 1 hábito tem de estar ativo."
+          : "Cannot save — at least one habit must remain active."
+      );
+      return;
+    }
 
     onSave({
       nome: nome.trim(),
@@ -207,21 +241,42 @@ export const HabitForm = ({ habit, onSave, onCancel }: HabitFormProps) => {
           </div>
 
           {/* Active toggle */}
-          <div className="flex items-center justify-between rounded-lg border border-border/50 bg-secondary/30 p-4">
-            <div>
+          <div className={cn(
+            "flex items-center justify-between rounded-lg border p-4",
+            isLastActive
+              ? "border-warning/40 bg-warning/5"
+              : "border-border/50 bg-secondary/30"
+          )}>
+            <div className="flex-1 pr-3">
               <Label htmlFor="active" className="font-medium">
                 {t.habits.active}
               </Label>
               <p className="text-sm text-muted-foreground">
-                {locale === 'pt-PT' ? "Incluir no rastreamento diário" : "Include in daily tracking"}
+                {isLastActive
+                  ? (locale === 'pt-PT'
+                      ? "Último hábito ativo — não pode ser desativado"
+                      : "Last active habit — cannot be deactivated")
+                  : (locale === 'pt-PT' ? "Incluir no rastreamento diário" : "Include in daily tracking")}
               </p>
             </div>
             <Switch
               id="active"
               checked={active}
-              onCheckedChange={setActive}
+              onCheckedChange={handleActiveChange}
+              disabled={isLastActive}
             />
           </div>
+
+          {/* Validation error */}
+          {error && (
+            <div
+              role="alert"
+              className="flex items-start gap-2 rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive"
+            >
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
 
           {/* Actions */}
           <div className="flex gap-3 pt-2">
