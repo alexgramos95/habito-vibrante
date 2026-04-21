@@ -1,105 +1,117 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300..900;1,300..900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* 
-  becoMe Design System
-  Theme: Premium Clear — Sophisticated, Calm, Mature
-  Light-first, warm undertones, optimized for prolonged daily use
+/*
+  becoMe Design System — ARCADE OVERDRIVE
+  Dark void background, toxic green + ultraviolet neon accents.
+  Inspired by retro-arcade / high-stakes simulation aesthetics.
+  Tokens in HSL only — never use raw hex in components.
 */
 
 @layer base {
   :root {
-    /* Core backgrounds - Warm sand, never white */
-    --background: 35 22% 93%;
-    --foreground: 220 25% 15%;
+    /* ============================================
+       DARK = DEFAULT (Arcade Overdrive)
+       ============================================ */
 
-    /* Card surfaces - Warm cream */
-    --card: 38 20% 96%;
-    --card-foreground: 220 25% 15%;
+    /* Core surfaces - deep void */
+    --background: 0 0% 2%;            /* #050505 */
+    --foreground: 0 0% 100%;          /* white */
 
-    /* Elevated surfaces */
-    --popover: 38 18% 97%;
-    --popover-foreground: 220 25% 15%;
+    /* Card / elevated panels - near-black with slight warmth */
+    --card: 0 0% 4%;                  /* zinc-950ish */
+    --card-foreground: 0 0% 100%;
 
-    /* Primary accent - Refined teal, softer for light mode */
-    --primary: 174 65% 42%;
-    --primary-foreground: 0 0% 100%;
+    --popover: 0 0% 6%;
+    --popover-foreground: 0 0% 100%;
 
-    /* Secondary - Warm neutral */
-    --secondary: 35 18% 89%;
-    --secondary-foreground: 220 20% 35%;
+    /* PRIMARY = TOXIC GREEN (#ccff00) */
+    --primary: 72 100% 50%;
+    --primary-foreground: 0 0% 2%;
 
-    /* Muted elements - Warm taupe */
-    --muted: 35 14% 86%;
-    --muted-foreground: 220 15% 48%;
+    /* SECONDARY = subtle dark surface */
+    --secondary: 0 0% 9%;
+    --secondary-foreground: 0 0% 100%;
 
-    /* Accent variations */
-    --accent: 174 50% 45%;
+    /* Muted - darker chrome */
+    --muted: 0 0% 8%;
+    --muted-foreground: 0 0% 60%;
+
+    /* ACCENT = ULTRAVIOLET (#9d00ff) */
+    --accent: 276 100% 50%;
     --accent-foreground: 0 0% 100%;
 
-    /* Destructive */
-    --destructive: 0 65% 55%;
+    /* Destructive - hot magenta-red so it reads on dark */
+    --destructive: 350 100% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Borders and inputs */
-    --border: 35 16% 82%;
-    --input: 35 16% 85%;
-    --ring: 174 65% 42%;
+    /* Borders and inputs - low-contrast white veil */
+    --border: 0 0% 100%;              /* used with /10 opacity in components */
+    --input: 0 0% 12%;
+    --ring: 72 100% 50%;
 
-    --radius: 0.75rem;
+    /* Sharp corners — arcade brutalism */
+    --radius: 0;
 
-    /* Semantic colors - Harmonized for light */
-    --success: 155 60% 40%;
-    --success-foreground: 0 0% 100%;
-    
-    /* Warning - warm amber */
-    --warning: 38 90% 55%;
-    --warning-foreground: 30 80% 15%;
+    /* Semantic colors */
+    --success: 72 100% 50%;           /* same as primary toxic */
+    --success-foreground: 0 0% 2%;
+    --warning: 45 100% 55%;
+    --warning-foreground: 0 0% 2%;
 
-    /* Premium gradients - subtle and sophisticated */
-    --gradient-primary: linear-gradient(135deg, hsl(174 65% 42%) 0%, hsl(180 55% 50%) 100%);
-    --gradient-surface: linear-gradient(180deg, hsl(38 20% 95%) 0%, hsl(35 22% 93%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(38 20% 97%) 0%, hsl(35 18% 94%) 100%);
-    --gradient-success: linear-gradient(135deg, hsl(155 60% 40%) 0%, hsl(165 55% 45%) 100%);
-    --gradient-glow: radial-gradient(ellipse at center, hsl(174 65% 42% / 0.06) 0%, transparent 70%);
-    --gradient-subtle: linear-gradient(180deg, transparent 0%, hsl(174 65% 42% / 0.02) 100%);
-    
-    /* Premium shadows - soft and elegant for light UI */
-    --shadow-glow: 0 0 40px hsl(174 65% 42% / 0.08);
-    --shadow-card: 0 1px 3px hsl(220 25% 15% / 0.04), 0 4px 12px hsl(220 25% 15% / 0.03);
-    --shadow-elevated: 0 4px 24px hsl(220 25% 15% / 0.08);
-    --shadow-inset: inset 0 1px 0 hsl(0 0% 100% / 0.8);
-    --shadow-button: 0 1px 4px hsl(174 65% 42% / 0.12);
+    /* Neon tokens - reusable */
+    --neon-toxic: 72 100% 50%;        /* #ccff00 */
+    --neon-ultra: 276 100% 50%;       /* #9d00ff */
+    --neon-void: 0 0% 2%;
+    --neon-dim: 0 0% 60%;
 
-    /* Sidebar tokens */
-    --sidebar-background: 35 20% 92%;
-    --sidebar-foreground: 220 25% 25%;
-    --sidebar-primary: 174 65% 42%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 35 18% 89%;
-    --sidebar-accent-foreground: 220 25% 25%;
-    --sidebar-border: 35 16% 84%;
-    --sidebar-ring: 174 65% 42%;
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--neon-toxic)) 0%, hsl(72 100% 60%) 100%);
+    --gradient-ultra: linear-gradient(135deg, hsl(var(--neon-ultra)) 0%, hsl(276 100% 65%) 100%);
+    --gradient-surface: linear-gradient(180deg, hsl(0 0% 4%) 0%, hsl(0 0% 2%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 6%) 0%, hsl(0 0% 3%) 100%);
+    --gradient-glow: radial-gradient(ellipse at center, hsl(var(--neon-toxic) / 0.15) 0%, transparent 70%);
+    --gradient-subtle: linear-gradient(180deg, transparent 0%, hsl(var(--neon-toxic) / 0.04) 100%);
 
-    /* Chart colors - Harmonized palette */
-    --chart-1: 174 65% 42%;
-    --chart-2: 155 60% 40%;
-    --chart-3: 38 90% 55%;
-    --chart-4: 280 50% 55%;
-    --chart-5: 200 70% 50%;
+    /* Shadows / glows */
+    --shadow-glow: 0 0 40px hsl(var(--neon-toxic) / 0.25);
+    --shadow-glow-ultra: 0 0 40px hsl(var(--neon-ultra) / 0.25);
+    --shadow-card: 0 1px 0 hsl(0 0% 100% / 0.04), 0 0 0 1px hsl(0 0% 100% / 0.06);
+    --shadow-elevated: 0 8px 32px hsl(0 0% 0% / 0.6);
+    --shadow-inset: inset 0 1px 0 hsl(0 0% 100% / 0.04);
+    --shadow-button: 0 0 20px hsl(var(--neon-toxic) / 0.35);
+    --shadow-tactile: 4px 4px 0 0 hsl(var(--neon-ultra));
+    --shadow-tactile-toxic: 4px 4px 0 0 hsl(var(--neon-toxic));
+
+    /* Sidebar tokens (kept for shadcn compatibility) */
+    --sidebar-background: 0 0% 4%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 72 100% 50%;
+    --sidebar-primary-foreground: 0 0% 2%;
+    --sidebar-accent: 0 0% 9%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 0 0% 100%;
+    --sidebar-ring: 72 100% 50%;
+
+    /* Chart colors - neon palette */
+    --chart-1: 72 100% 50%;
+    --chart-2: 276 100% 50%;
+    --chart-3: 45 100% 55%;
+    --chart-4: 195 100% 50%;
+    --chart-5: 350 100% 55%;
   }
 }
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-border/10;
   }
 
   html {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Inter Tight', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     scroll-behavior: smooth;
@@ -107,14 +119,29 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    font-feature-settings: "ss01", "cv02", "cv11";
     overscroll-behavior: none;
-    /* Ambient background — subtle warm gradient mesh */
+    /* Ambient grid + subtle neon vignette */
     background-image:
-      radial-gradient(ellipse 80% 60% at 20% 10%, hsl(174 50% 75% / 0.10) 0%, transparent 60%),
-      radial-gradient(ellipse 60% 50% at 85% 80%, hsl(38 50% 75% / 0.10) 0%, transparent 55%),
-      radial-gradient(ellipse 50% 40% at 50% 50%, hsl(220 20% 85% / 0.08) 0%, transparent 50%);
+      radial-gradient(ellipse 60% 50% at 80% 10%, hsl(var(--neon-ultra) / 0.10) 0%, transparent 60%),
+      radial-gradient(ellipse 70% 40% at 10% 90%, hsl(var(--neon-toxic) / 0.06) 0%, transparent 55%);
     background-attachment: fixed;
+  }
+
+  /* Scanline overlay — applied globally, very subtle */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 100;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      hsl(var(--neon-toxic) / 0.025) 3px,
+      hsl(var(--neon-toxic) / 0.025) 3px
+    );
   }
 
   /* Prevent text selection on interactive elements */
