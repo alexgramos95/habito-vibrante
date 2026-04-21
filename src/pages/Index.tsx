@@ -25,6 +25,8 @@ import { NotificationSetup } from "@/components/Habits/NotificationSetup";
 import { TrackerDetailDrawer } from "@/components/Trackers/TrackerDetailDrawer";
 import { TrackerEditDialog } from "@/components/Trackers/TrackerEditDialog";
 import { getContextualHabitFeedback, getHabitFeedbackEnabled } from "@/logic/habitFeedback";
+import { MotivationCard } from "@/components/Dashboard/MotivationCard";
+import { getDailyMotivation } from "@/logic/dailyMotivation";
 // HabitCoachTip removed — coach is now on the detail page
 
 // --- Circular progress ring ---
@@ -147,6 +149,33 @@ const Index = () => {
     }
     return s;
   }, [simpleHabits, state.dailyLogs]);
+
+  // Did the user break yesterday? (had scheduled habits but completed none)
+  const brokeYesterday = useMemo(() => {
+    const y = subDays(new Date(), 1);
+    const yds = format(y, "yyyy-MM-dd");
+    const ydow = getDay(y);
+    const scheduled = simpleHabits.filter(h => {
+      if (!h.active) return false;
+      if (!h.scheduledDays || h.scheduledDays.length === 0) return true;
+      return h.scheduledDays.includes(ydow);
+    });
+    if (scheduled.length === 0) return false;
+    const anyDone = scheduled.some(h => state.dailyLogs.some(l => l.habitId === h.id && l.date === yds && l.done));
+    return !anyDone;
+  }, [simpleHabits, state.dailyLogs]);
+
+  // Daily motivation card — stable per day + state-bucket
+  const motivationCard = useMemo(() => {
+    return getDailyMotivation({
+      totalTracked,
+      totalDone,
+      streak,
+      brokeYesterday,
+      dateKey: today,
+      hour: new Date().getHours(),
+    });
+  }, [totalTracked, totalDone, streak, brokeYesterday, today]);
 
   // Coach data
   const coachData = useMemo(() => {
