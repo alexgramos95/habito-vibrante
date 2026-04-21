@@ -188,18 +188,23 @@ const Onboarding = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Subtle background gradient - lighter for premium feel */}
+      {/* Subtle scan grid */}
       <div
-        className="fixed inset-0 pointer-events-none"
+        className="fixed inset-0 pointer-events-none opacity-30"
         style={{
-          background: "radial-gradient(ellipse at 50% 30%, hsl(174 65% 42% / 0.04) 0%, transparent 60%)",
+          background:
+            "linear-gradient(90deg, hsl(var(--neon-ultra) / 0.04) 1px, transparent 1px), linear-gradient(180deg, hsl(var(--neon-ultra) / 0.04) 1px, transparent 1px)",
+          backgroundSize: "40px 40px",
         }}
       />
 
       {/* Progress bar */}
       {step !== "welcome" && step !== "ready" && (
-        <div className="fixed top-0 left-0 right-0 h-1 bg-border z-50">
-          <div className="h-full bg-primary transition-all duration-500" style={{ width: `${progress}%` }} />
+        <div className="fixed top-0 left-0 right-0 h-1 bg-foreground/10 z-50">
+          <div
+            className="h-full bg-primary transition-all duration-500 shadow-[0_0_8px_hsl(var(--neon-toxic))]"
+            style={{ width: `${progress}%` }}
+          />
         </div>
       )}
 
@@ -208,11 +213,16 @@ const Onboarding = () => {
           {/* Welcome - Screen 1 */}
           {step === "welcome" && (
             <div className="text-center space-y-6 animate-in fade-in duration-500">
-              <div className="inline-flex h-16 w-16 items-center justify-center rounded-xl bg-primary text-primary-foreground font-bold text-2xl shadow-sm">
+              <div className="inline-flex h-16 w-16 items-center justify-center bg-primary text-primary-foreground font-black italic uppercase tracking-tighter text-2xl border-2 border-primary shadow-[4px_4px_0_0_hsl(var(--neon-ultra))]">
                 B
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-foreground mb-2">{t.app.name}</h1>
+                <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mb-2">
+                  // INICIAR PROTOCOLO
+                </p>
+                <h1 className="text-4xl font-black italic uppercase tracking-tighter text-foreground mb-3">
+                  {t.app.name}
+                </h1>
                 <p className="text-base text-muted-foreground whitespace-pre-line">
                   Consistency doesn't come from force.{"\n"}It comes from the right repetition.
                 </p>
