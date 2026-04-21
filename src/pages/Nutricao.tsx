@@ -584,20 +584,19 @@ const Nutricao = () => {
         return { idx, day: { date, meals, totalMacros } };
       };
 
-      let successCount = 0;
+      let processedCount = 0;
       for (const idx of daysToGenerate) {
         try {
           setGeneratingProgress(
             lang === "pt"
-              ? `A gerar ${weekdays[idx]}… (${successCount + 1}/${daysToGenerate.length})`
-              : `Generating ${weekdays[idx]}… (${successCount + 1}/${daysToGenerate.length})`
+              ? `A gerar ${weekdays[idx]}… (${processedCount + 1}/${daysToGenerate.length})`
+              : `Generating ${weekdays[idx]}… (${processedCount + 1}/${daysToGenerate.length})`
           );
-          if (successCount > 0) {
+          if (processedCount > 0) {
             await new Promise(r => setTimeout(r, 1500));
           }
           const result = await generateDay(idx);
           newDays[result.idx] = result.day;
-          successCount++;
         } catch (dayErr: any) {
           console.warn(`Failed to generate day ${idx}, using base recipes:`, dayErr.message);
           // Fallback to base recipes for this day
@@ -620,7 +619,10 @@ const Nutricao = () => {
           };
           newDays[idx] = { date, meals, totalMacros };
         }
+        processedCount++;
+        setGeneratingPercent(Math.round((processedCount / daysToGenerate.length) * 100));
       }
+      const successCount = processedCount;
 
       // Fill any nulls with empty
       const finalDays = newDays.map((d, i) => d || {
