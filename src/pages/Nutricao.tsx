@@ -492,6 +492,18 @@ const Nutricao = () => {
     if (plan) localStorage.setItem(STORAGE_KEY_PLAN, JSON.stringify(plan));
   }, [plan]);
 
+  // Listen for global app reset → clear in-memory plan/profile so the
+  // useEffect above doesn't re-save the stale plan to localStorage.
+  useEffect(() => {
+    const handleReset = () => {
+      setPlan(null);
+      setProfile(DEFAULT_NUTRITION_PROFILE);
+      setSelectedDay(0);
+    };
+    window.addEventListener("become:app-reset", handleReset);
+    return () => window.removeEventListener("become:app-reset", handleReset);
+  }, []);
+
   // Generate plan with AI (PRO) or base recipes (FREE)
   const generatePlan = useCallback(async (dayIndex?: number) => {
     setIsGenerating(true);

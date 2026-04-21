@@ -695,6 +695,12 @@ export const clearAllData = (): void => {
   localStorage.removeItem("become_nutrition_profile");
   localStorage.removeItem("become_meal_plan");
   // Note: Locale/currency/theme are stored with different keys and are preserved
+
+  // Notify any mounted modules with isolated localStorage state (e.g. Nutrition)
+  // so they can drop their in-memory copy before any pending effect re-saves it.
+  try {
+    window.dispatchEvent(new CustomEvent("become:app-reset"));
+  } catch { /* noop */ }
 };
 
 // ============= LEGACY TOBACCO OPERATIONS (for migration) =============
