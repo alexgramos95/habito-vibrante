@@ -346,26 +346,29 @@ const Calendario = () => {
           </div>
         )}
 
-        {/* ═══ Month Overview Hero ═══ */}
-        <div className="rounded-2xl border border-primary/15 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 p-5">
+        {/* ═══ Month Telemetry Hero ═══ */}
+        <div className="border-2 border-primary/40 bg-card shadow-[4px_4px_0_0_hsl(var(--neon-ultra)/0.4)] p-5">
+          <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mb-3">
+            // CICLO · {format(new Date(currentYear, currentMonth), "MMM yyyy", { locale: dateLocale }).toUpperCase()}
+          </p>
           <div className="flex items-center gap-5">
             <CircularProgress percent={monthStats.consistency} />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-muted-foreground">
-                {locale === 'pt-PT' ? 'Consistência mensal' : 'Monthly consistency'}
+              <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                {locale === 'pt-PT' ? 'DIAS PERFEITOS' : 'PERFECT DAYS'}
               </p>
-              <p className="text-2xl font-bold text-foreground tracking-tight">
-                {monthStats.perfectDays}<span className="text-muted-foreground font-normal text-lg">/{monthStats.totalDays} {locale === 'pt-PT' ? 'dias' : 'days'}</span>
+              <p className="font-black italic uppercase tracking-tighter text-3xl text-foreground tabular-nums">
+                {monthStats.perfectDays}<span className="text-muted-foreground/50 text-lg">/{monthStats.totalDays}</span>
               </p>
-              <div className="flex items-center gap-3 mt-1">
+              <div className="flex items-center gap-3 mt-2">
                 {currentStreak > 0 && (
-                  <span className="flex items-center gap-1 text-xs font-semibold text-primary">
-                    <Flame className="h-3.5 w-3.5" /> {currentStreak} {currentStreak === 1 ? (locale === 'pt-PT' ? "dia" : "day") : (locale === 'pt-PT' ? "dias" : "days")}
+                  <span className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider text-primary">
+                    <Flame className="h-3 w-3" /> {currentStreak}D STREAK
                   </span>
                 )}
                 {monthStats.consistency >= 80 && (
-                  <span className="flex items-center gap-1 text-xs font-semibold text-success">
-                    <Sparkles className="h-3.5 w-3.5" /> {locale === 'pt-PT' ? 'Excelente!' : 'Excellent!'}
+                  <span className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider text-accent">
+                    <Sparkles className="h-3 w-3" /> {locale === 'pt-PT' ? 'PEAK' : 'PEAK'}
                   </span>
                 )}
               </div>

@@ -399,12 +399,14 @@ const Auth = () => {
         {/* Logo */}
         <div className="text-center space-y-2">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <div className="p-3 rounded-xl bg-primary/10 border border-primary/20">
-              <Flame className="h-8 w-8 text-primary" />
+            <div className="h-14 w-14 bg-primary border-2 border-primary flex items-center justify-center shadow-[3px_3px_0_0_hsl(var(--neon-ultra))]">
+              <Flame className="h-7 w-7 text-primary-foreground" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">becoMe</h1>
-          <p className="text-muted-foreground">Identity → Intensity → Consistency</p>
+          <h1 className="text-4xl font-black italic uppercase tracking-tighter">becoMe</h1>
+          <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+            // IDENTITY · INTENSITY · CONSISTENCY
+          </p>
         </div>
 
         <Card className="border-border bg-card shadow-sm">

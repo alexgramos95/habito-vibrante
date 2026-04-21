@@ -37,26 +37,31 @@ export const MonthView = ({ state, currentMonth, currentYear }: MonthViewProps) 
   const insights = generateNarrativeInsights(state, viewMonth.getFullYear(), viewMonth.getMonth(), locale);
 
   const content = (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Month navigation */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between border-y-2 border-foreground/10 py-3">
         <Button
           variant="ghost"
           size="icon"
-          className="h-9 w-9 rounded-xl"
+          className="h-9 w-9"
           onClick={() => setMonthOffset(prev => prev - 1)}
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
-        
-        <h2 className="text-lg font-medium capitalize">
-          {format(monthStart, "MMMM yyyy", { locale: dateLocale })}
-        </h2>
-        
+
+        <div className="text-center">
+          <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+            {locale === 'pt-PT' ? 'CICLO' : 'CYCLE'}
+          </p>
+          <h2 className="text-xl font-black italic uppercase tracking-tighter text-foreground">
+            {format(monthStart, "MMMM yyyy", { locale: dateLocale })}
+          </h2>
+        </div>
+
         <Button
           variant="ghost"
           size="icon"
-          className="h-9 w-9 rounded-xl"
+          className="h-9 w-9"
           onClick={() => setMonthOffset(prev => prev + 1)}
         >
           <ChevronRight className="h-4 w-4" />
@@ -71,13 +76,16 @@ export const MonthView = ({ state, currentMonth, currentYear }: MonthViewProps) 
       />
 
       {/* Narrative insights */}
-      <div className="space-y-3">
+      <div className="space-y-2">
+        <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground px-1">
+          {locale === 'pt-PT' ? '// LEITURA' : '// READOUT'}
+        </p>
         {insights.map((insight, idx) => (
           <div
             key={idx}
-            className="p-5 rounded-2xl bg-card/30 border border-border/20"
+            className="border-l-2 border-primary/60 bg-card/50 p-4"
           >
-            <p className="text-sm text-muted-foreground leading-relaxed italic">
+            <p className="text-sm text-foreground/90 leading-relaxed">
               {insight}
             </p>
           </div>
@@ -146,22 +154,26 @@ const MonthSparkline = ({
   const barWidth = 100 / days.length;
 
   return (
-    <div className="p-4 rounded-2xl bg-card/20 border border-border/10">
-      <div className="flex items-end justify-between h-12 gap-0.5">
+    <div className="border-2 border-foreground/10 bg-card/50 p-4">
+      <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mb-2">
+        {/* localized later */}// SIGNAL · 30D
+      </p>
+      <div className="flex items-end justify-between h-14 gap-0.5">
         {dailyData.map((data, idx) => (
           <div
             key={idx}
             className={cn(
-              "flex-1 rounded-t-sm transition-all",
-              data.isFuture 
-                ? "bg-border/20" 
-                : data.ratio === 0 
-                  ? "bg-muted-foreground/10"
-                  : "bg-primary/60"
+              "flex-1 transition-all",
+              data.isFuture
+                ? "bg-foreground/5"
+                : data.ratio === 0
+                  ? "bg-foreground/10"
+                  : "bg-primary",
             )}
             style={{
               height: data.isFuture ? 4 : Math.max(4, data.ratio * maxHeight),
-              opacity: data.isFuture ? 0.3 : 0.4 + (data.ratio * 0.6)
+              opacity: data.isFuture ? 0.3 : 0.5 + (data.ratio * 0.5),
+              boxShadow: data.ratio > 0.5 && !data.isFuture ? '0 0 6px hsl(var(--neon-toxic)/0.4)' : undefined,
             }}
           />
         ))}
@@ -308,26 +320,29 @@ const MonthGrid = ({
     : ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
+      <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground px-1">
+        // GRID
+      </p>
       {/* Day labels */}
-      <div className="grid grid-cols-7 gap-1.5 text-center">
+      <div className="grid grid-cols-7 gap-1 text-center">
         {dayLabels.map((day, i) => (
-          <span key={i} className="text-[10px] text-muted-foreground/40 font-medium">{day}</span>
+          <span key={i} className="font-mono text-[10px] uppercase text-muted-foreground/50">{day}</span>
         ))}
       </div>
 
       {/* Days grid */}
-      <div className="grid grid-cols-7 gap-1.5">
+      <div className="grid grid-cols-7 gap-1">
         {/* Empty cells for offset */}
         {Array.from({ length: offset }).map((_, i) => (
           <div key={`empty-${i}`} className="aspect-square" />
         ))}
-        
+
         {/* Actual days */}
         {days.map((day) => {
           const dateStr = format(day, "yyyy-MM-dd");
           const isFuture = day > today;
-          
+
           // Calculate completion ratio
           let completed = 0;
           activeHabits.forEach(habit => {
@@ -341,16 +356,16 @@ const MonthGrid = ({
             <div
               key={dateStr}
               className={cn(
-                "aspect-square rounded-md transition-all",
+                "aspect-square border transition-all",
                 isFuture
-                  ? "bg-border/15"
+                  ? "border-foreground/5 bg-foreground/5"
                   : ratio === 0
-                    ? "bg-muted-foreground/8"
+                    ? "border-foreground/10 bg-foreground/[0.03]"
                     : ratio < 0.5
-                      ? "bg-primary/25"
+                      ? "border-primary/30 bg-primary/15"
                       : ratio < 1
-                        ? "bg-primary/50"
-                        : "bg-primary/75"
+                        ? "border-primary/50 bg-primary/40"
+                        : "border-primary bg-primary/80 shadow-[inset_0_0_8px_hsl(var(--neon-toxic)/0.5)]",
               )}
             />
           );

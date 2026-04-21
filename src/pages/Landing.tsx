@@ -70,16 +70,16 @@ const Landing = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Marketing Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/60 shadow-sm">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-b-2 border-primary/30">
         <div className="container flex items-center justify-between h-14">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
+            <div className="h-8 w-8 bg-primary border-2 border-primary flex items-center justify-center shadow-[2px_2px_0_0_hsl(var(--neon-ultra))]">
               <Flame className="h-4 w-4 text-primary-foreground" />
             </div>
-            <span className="font-semibold">becoMe</span>
+            <span className="font-black italic uppercase tracking-tighter text-lg">becoMe</span>
           </div>
           <div className="flex items-center gap-4">
-            <Link to="/auth" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <Link to="/auth" className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors">
               Sign In
             </Link>
             <Button size="sm" onClick={handleStartTrial}>
@@ -90,15 +90,28 @@ const Landing = () => {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-28 pb-16 px-4">
-        <div className="container max-w-4xl mx-auto text-center">
-          <Badge variant="outline" className="mb-6 px-4 py-1.5 text-sm bg-secondary/50">
-            <Sparkles className="h-3.5 w-3.5 mr-1.5" />
-            7 days free · PRO from €7.99/mo
-          </Badge>
+      <section className="pt-28 pb-16 px-4 relative overflow-hidden">
+        <div
+          className="absolute inset-0 pointer-events-none opacity-40"
+          style={{
+            background:
+              "linear-gradient(90deg, hsl(var(--neon-ultra) / 0.04) 1px, transparent 1px), linear-gradient(180deg, hsl(var(--neon-ultra) / 0.04) 1px, transparent 1px)",
+            backgroundSize: "60px 60px",
+          }}
+        />
+        <div className="container max-w-4xl mx-auto text-center relative z-10">
+          <div className="inline-flex items-center gap-1.5 mb-6 px-3 py-1 border border-primary/40 bg-primary/10">
+            <Sparkles className="h-3 w-3 text-primary" />
+            <span className="font-mono text-[10px] uppercase tracking-widest text-primary">
+              7 DAYS FREE · PRO €7.99/MO
+            </span>
+          </div>
 
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6 text-foreground">
-            Become consistent,<br />one day at a time.
+          <h1 className="text-5xl sm:text-6xl md:text-7xl font-black italic uppercase tracking-tighter mb-6 text-foreground leading-[0.9]">
+            Become<br />
+            <span className="text-primary" style={{ textShadow: "0 0 30px hsl(var(--neon-toxic) / 0.5)" }}>
+              consistent
+            </span>
           </h1>
 
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
@@ -115,8 +128,8 @@ const Landing = () => {
             </Button>
           </div>
 
-          <p className="text-sm text-muted-foreground mt-6">
-            Join those who build lasting habits through identity, not willpower.
+          <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground/70 mt-6">
+            // IDENTITY · INTENSITY · CONSISTENCY
           </p>
         </div>
       </section>

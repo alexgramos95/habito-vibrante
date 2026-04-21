@@ -64,47 +64,52 @@ export const WeekView = ({ state, selectedDate }: WeekViewProps) => {
   };
 
   const content = (
-    <div className="space-y-10">
-      {/* Week navigation - more elegant */}
-      <div className="flex items-center justify-between">
+    <div className="space-y-6">
+      {/* Week navigation */}
+      <div className="flex items-center justify-between border-y-2 border-foreground/10 py-3">
         <Button
           variant="ghost"
           size="icon"
-          className="h-10 w-10 rounded-xl hover:bg-secondary/80 transition-colors"
+          className="h-9 w-9"
           onClick={() => setWeekOffset(prev => prev - 1)}
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
-        
+
         <div className="text-center">
-          <p className="text-sm font-semibold tracking-tight">
-            {format(weekStart, "d MMM", { locale: dateLocale })} — {format(weekEnd, "d MMM", { locale: dateLocale })}
+          <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+            {locale === 'pt-PT' ? 'CADÊNCIA' : 'CADENCE'}
           </p>
-          <p className="text-xs text-muted-foreground/70 mt-1.5 italic font-light">
+          <p className="font-mono text-sm font-bold text-foreground tabular-nums">
+            {format(weekStart, "dd.MM", { locale: dateLocale })} → {format(weekEnd, "dd.MM", { locale: dateLocale })}
+          </p>
+          <p className="text-[11px] text-primary mt-1 italic font-medium">
             {getEditorialCopy()}
           </p>
         </div>
-        
+
         <Button
           variant="ghost"
           size="icon"
-          className="h-10 w-10 rounded-xl hover:bg-secondary/80 transition-colors"
+          className="h-9 w-9"
           onClick={() => setWeekOffset(prev => prev + 1)}
         >
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
 
-      {/* Days header row - refined */}
-      <div className="flex justify-between px-3">
+      {/* Days header row */}
+      <div className="flex justify-between px-2">
         {weekDays.map((day) => (
-          <div key={day.toISOString()} className="flex flex-col items-center gap-2.5">
-            <span className="text-[10px] text-muted-foreground/50 uppercase font-semibold tracking-wider">
+          <div key={day.toISOString()} className="flex flex-col items-center gap-2">
+            <span className="font-mono text-[10px] text-muted-foreground/60 uppercase tracking-wider">
               {format(day, "EEE", { locale: dateLocale }).slice(0, 3)}
             </span>
             <span className={cn(
-              "text-sm font-medium w-9 h-9 flex items-center justify-center rounded-full transition-all duration-300",
-              isSameDay(day, new Date()) && "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+              "font-mono text-sm font-bold w-8 h-8 flex items-center justify-center transition-all tabular-nums",
+              isSameDay(day, new Date())
+                ? "bg-primary text-primary-foreground border-2 border-primary shadow-[2px_2px_0_0_hsl(var(--neon-ultra))]"
+                : "border border-foreground/10 text-foreground/70",
             )}>
               {format(day, "d")}
             </span>
@@ -112,8 +117,8 @@ export const WeekView = ({ state, selectedDate }: WeekViewProps) => {
         ))}
       </div>
 
-      {/* Habits rhythm - better spacing */}
-      <div className="space-y-3">
+      {/* Habits rhythm */}
+      <div className="space-y-2">
         {activeHabits.map((habit) => (
           <HabitWeekRhythm
             key={habit.id}
@@ -125,8 +130,10 @@ export const WeekView = ({ state, selectedDate }: WeekViewProps) => {
       </div>
 
       {activeHabits.length === 0 && (
-        <div className="text-center py-16 text-muted-foreground/60 text-sm">
-          <p>{locale === 'pt-PT' ? 'Adiciona hábitos para ver o ritmo' : 'Add habits to see rhythm'}</p>
+        <div className="text-center py-16 border-2 border-dashed border-foreground/10">
+          <p className="font-mono text-xs text-muted-foreground/60 uppercase tracking-wider">
+            {locale === 'pt-PT' ? '// SEM PROTOCOLOS ATIVOS' : '// NO ACTIVE PROTOCOLS'}
+          </p>
         </div>
       )}
     </div>
@@ -157,40 +164,39 @@ const HabitWeekRhythm = ({
   const today = new Date();
   
   return (
-    <div className="flex items-center gap-4 p-5 rounded-3xl bg-card/30 border border-border/15 backdrop-blur-sm transition-all duration-200 hover:bg-card/40">
+    <div className="flex items-center gap-3 p-3 border border-foreground/10 bg-card/40 hover:border-primary/40 transition-all">
       {/* Habit info */}
-      <div className="flex-1 min-w-0 flex items-center gap-3.5">
+      <div className="flex-1 min-w-0 flex items-center gap-3">
         <div
-          className="w-1.5 h-10 rounded-full shrink-0"
-          style={{ backgroundColor: habit.cor || "hsl(var(--primary))" }}
+          className="w-1 h-9 shrink-0"
+          style={{ backgroundColor: habit.cor || "hsl(var(--primary))", boxShadow: `0 0 8px ${habit.cor || "hsl(var(--neon-toxic))"}` }}
         />
-        <span className="font-medium text-[15px] truncate">{habit.nome}</span>
+        <span className="font-bold uppercase tracking-tight text-sm truncate">{habit.nome}</span>
       </div>
 
-      {/* Dots - more refined */}
-      <div className="flex gap-3">
+      {/* Dots */}
+      <div className="flex gap-2">
         {weekDays.map((day) => {
           const dateStr = format(day, "yyyy-MM-dd");
           const isDone = isHabitDoneOnDate(state, habit.id, dateStr);
           const isFuture = day > today;
           const isToday = isSameDay(day, today);
-          
+
           return (
             <div
               key={day.toISOString()}
               className={cn(
-                "w-4 h-4 rounded-full transition-all duration-300",
+                "w-3 h-3 transition-all",
                 isFuture
-                  ? "bg-border/20"
+                  ? "bg-foreground/10"
                   : isDone
-                    ? "scale-110 shadow-sm"
-                    : "bg-muted-foreground/10",
-                isToday && !isDone && "ring-2 ring-primary/30 ring-offset-1 ring-offset-background"
+                    ? "scale-110"
+                    : "bg-foreground/15",
+                isToday && !isDone && "ring-1 ring-primary",
               )}
-              style={isDone ? { 
+              style={isDone ? {
                 backgroundColor: habit.cor || "hsl(var(--primary))",
-                opacity: 0.9,
-                boxShadow: `0 2px 8px ${habit.cor || "hsl(var(--primary))"}40`
+                boxShadow: `0 0 8px ${habit.cor || "hsl(var(--neon-toxic))"}`
               } : undefined}
             />
           );
