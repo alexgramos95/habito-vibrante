@@ -1,6 +1,6 @@
 import { format, getDay, isToday, startOfWeek, addDays } from "date-fns";
 import { pt, enUS } from "date-fns/locale";
-import { Plus, Settings2 } from "lucide-react";
+import { Plus, Settings2, Zap } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -18,50 +18,52 @@ interface DayViewProps {
   onAddHabit: () => void;
 }
 
-// Editorial copy based on day context
-const getEditorialCopy = (date: Date, locale: string): string => {
-  const dayOfWeek = getDay(date);
+// Directive copy (Life Reset tone, PT direto)
+const getDirective = (date: Date, locale: string): { label: string; title: string; subtitle: string } => {
   const hour = new Date().getHours();
-  
-  // Morning
+  const dayOfWeek = getDay(date);
+
+  if (locale === 'pt-PT') {
+    if (hour < 12) {
+      const titles = ['Ativar Sistema', 'Override Matinal', 'Iniciar Protocolo', 'Calibrar Foco'];
+      return {
+        label: 'DIRETIVA_MATINAL',
+        title: titles[dayOfWeek % titles.length],
+        subtitle: 'Executa a primeira ação. Sem hesitação. Sem negociação.',
+      };
+    }
+    if (hour < 18) {
+      const titles = ['Manter Cadência', 'Sustentar Pressão', 'Override Tarde', 'Recalibrar'];
+      return {
+        label: 'DIRETIVA_ATIVA',
+        title: titles[dayOfWeek % titles.length],
+        subtitle: 'Sistema em operação. Cumpre as ações pendentes antes do reset.',
+      };
+    }
+    const titles = ['Encerrar Ciclo', 'Power Down', 'Auditar Dia', 'Sincronizar'];
+    return {
+      label: 'DIRETIVA_NOTURNA',
+      title: titles[dayOfWeek % titles.length],
+      subtitle: 'Fecha as últimas ações. Reflete antes do próximo ciclo.',
+    };
+  }
+
   if (hour < 12) {
-    const morningPhrases = locale === 'pt-PT' 
-      ? ['Um dia com intenção', 'Começa devagar', 'Hoje, um passo de cada vez', 'A manhã convida ao movimento']
-      : ['A day with intention', 'Start slowly', 'Today, one step at a time', 'The morning invites movement'];
-    return morningPhrases[dayOfWeek % morningPhrases.length];
+    return { label: 'MORNING_DIRECTIVE', title: 'Activate System', subtitle: 'Execute first action. No hesitation. No negotiation.' };
   }
-  
-  // Afternoon
   if (hour < 18) {
-    const afternoonPhrases = locale === 'pt-PT'
-      ? ['O ritmo está em ti', 'Continua presente', 'Cada gesto conta', 'O essencial primeiro']
-      : ['The rhythm is within', 'Stay present', 'Every gesture counts', 'Essentials first'];
-    return afternoonPhrases[dayOfWeek % afternoonPhrases.length];
+    return { label: 'ACTIVE_DIRECTIVE', title: 'Sustain Cadence', subtitle: 'System operational. Complete pending actions before reset.' };
   }
-  
-  // Evening
-  const eveningPhrases = locale === 'pt-PT'
-    ? ['Encerra com gentileza', 'Um dia de cada vez', 'Reconhece o que fizeste', 'Descansa com leveza']
-    : ['Close gently', 'One day at a time', 'Acknowledge what you did', 'Rest with lightness'];
-  return eveningPhrases[dayOfWeek % eveningPhrases.length];
+  return { label: 'NIGHT_DIRECTIVE', title: 'Close Cycle', subtitle: 'Finish remaining actions. Reflect before next cycle.' };
 };
 
-// Filter active habits to only show those scheduled for the selected day, sorted by time
 const getHabitsForDay = (habits: Habit[], date: Date): Habit[] => {
   const dayOfWeek = getDay(date);
-  
-  // First filter active habits, then filter by scheduled days
   const filtered = habits.filter(habit => {
     if (!habit.active) return false;
-    
-    // If no scheduled days defined, show every day
-    if (!habit.scheduledDays || habit.scheduledDays.length === 0) {
-      return true;
-    }
-    // Only show if this day is in the scheduled days
+    if (!habit.scheduledDays || habit.scheduledDays.length === 0) return true;
     return habit.scheduledDays.includes(dayOfWeek);
   });
-  
   return filtered.sort((a, b) => {
     if (!a.scheduledTime && !b.scheduledTime) return 0;
     if (!a.scheduledTime) return 1;
@@ -70,75 +72,130 @@ const getHabitsForDay = (habits: Habit[], date: Date): Habit[] => {
   });
 };
 
-/**
- * Day View - Main screen
- * Dia = ação
- * 1 hábito = 1 card
- * tap = marcar
- * Header editorial + micro-gráfico semanal
- */
 export const DayView = ({
   state,
   selectedDate,
   onToggleHabit,
   onAddHabit,
 }: DayViewProps) => {
-  const { t, locale, formatDate } = useI18n();
+  const { t, locale } = useI18n();
   const navigate = useNavigate();
-  const { isPro, getLimits, subscription, trialStatus } = useSubscription();
+  const { isPro, getLimits } = useSubscription();
   const dateStr = format(selectedDate, "yyyy-MM-dd");
   const dateLocale = locale === 'pt-PT' ? pt : enUS;
-  
+
   const habitsForDay = getHabitsForDay(state.habits, selectedDate);
   const activeHabits = state.habits.filter(h => h.active);
   const activeTrackers = (state.trackers || []).filter(t => t.active);
   const limits = getLimits();
-
-  // Check if can add more habits
   const canAddHabit = isPro || habitsForDay.filter(h => h.active).length < (limits.maxHabits as number);
 
-  // Date display - editorial format
-  const dateLabel = isToday(selectedDate)
-    ? format(selectedDate, locale === 'pt-PT' ? "EEEE, d 'de' MMMM" : "EEEE, MMMM d", { locale: dateLocale })
-    : format(selectedDate, locale === 'pt-PT' ? "EEEE, d 'de' MMMM" : "EEEE, MMMM d", { locale: dateLocale });
-
-  // Capitalize first letter
+  const dateLabel = format(selectedDate, locale === 'pt-PT' ? "EEEE, d 'de' MMMM" : "EEEE, MMMM d", { locale: dateLocale });
   const formattedDate = dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1);
-  
-  // Editorial copy
-  const editorialCopy = getEditorialCopy(selectedDate, locale);
+
+  const directive = getDirective(selectedDate, locale);
+  const gam = state.gamification;
+  const completedToday = habitsForDay.filter(h => isHabitDoneOnDate(state, h.id, dateStr)).length;
+  const totalToday = habitsForDay.length;
+  const completionPct = totalToday > 0 ? Math.round((completedToday / totalToday) * 100) : 0;
+
+  // Pick the "priority" habit = first scheduled, not done
+  const priorityHabit = habitsForDay.find(h => !isHabitDoneOnDate(state, h.id, dateStr)) || habitsForDay[0];
 
   return (
-    <div className="space-y-10">
-      {/* Editorial Header - More breathing room */}
-      <header className="text-center space-y-3 py-4">
-        <h1 className="text-2xl font-semibold text-foreground tracking-tight">{formattedDate}</h1>
-        <p className="text-sm text-muted-foreground/80 italic font-light">{editorialCopy}</p>
+    <div className="space-y-8">
+      {/* Operator Telemetry Header */}
+      <header className="space-y-5 border-b border-foreground/10 pb-6">
+        <div className="flex items-center gap-3">
+          <span className="size-2 bg-primary animate-pulse shadow-[0_0_8px_hsl(var(--neon-toxic))]" />
+          <span className="mono-label text-primary text-[10px]">
+            {locale === 'pt-PT' ? 'SISTEMA ATIVO' : 'SYSTEM ACTIVE'} · {formattedDate.toUpperCase()}
+          </span>
+        </div>
+
+        <div className="flex items-end justify-between gap-4">
+          <h1 className="display-headline text-5xl md:text-6xl">
+            {locale === 'pt-PT' ? 'NÍVEL ' : 'LEVEL '}
+            <span className="text-primary glow-toxic tabular-nums">{gam.nivel}</span>
+          </h1>
+          <div className="text-right">
+            <div className="mono-label text-muted-foreground/60 text-[10px]">
+              {locale === 'pt-PT' ? 'STREAK' : 'STREAK'}
+            </div>
+            <div className="display-headline text-3xl text-accent glow-ultra tabular-nums">
+              {gam.currentStreak ?? 0}<span className="text-sm text-muted-foreground/60 ml-1 not-italic">D</span>
+            </div>
+          </div>
+        </div>
+
+        {/* XP / completion bar */}
+        <div className="space-y-2">
+          <div className="flex justify-between mono-label text-[10px]">
+            <span className="text-primary">{locale === 'pt-PT' ? 'PROGRESSO_DIA' : 'DAY_PROGRESS'}</span>
+            <span className="text-muted-foreground/60 tabular-nums">{completedToday}/{totalToday} · {completionPct}%</span>
+          </div>
+          <div className="h-2 bg-foreground/5 relative overflow-hidden">
+            <div
+              className="absolute inset-y-0 left-0 bg-primary transition-all duration-500 shadow-[0_0_12px_hsl(var(--neon-toxic)/0.7)]"
+              style={{ width: `${completionPct}%` }}
+            />
+          </div>
+        </div>
       </header>
 
-      {/* Habits section - Better visual hierarchy */}
-      <section className="space-y-5">
-        <div className="flex items-center justify-between px-1">
-          <h2 className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-widest">
-            {locale === 'pt-PT' ? 'Hábitos' : 'Habits'}
-          </h2>
-          <div className="flex items-center gap-0.5">
+      {/* Directive — Main Mission */}
+      {priorityHabit && (
+        <section className="relative">
+          <div className="absolute -top-3 left-4 bg-background px-2 z-10">
+            <span className="mono-label text-primary text-[10px]">{directive.label}</span>
+          </div>
+          <div className="directive-box p-6 md:p-8 space-y-5">
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-2 flex-1">
+                <span className="inline-block bg-primary text-primary-foreground px-2 py-0.5 mono-label text-[10px]">
+                  {locale === 'pt-PT' ? 'PRIORIDADE' : 'PRIORITY'}
+                </span>
+                <h2 className="display-headline text-3xl md:text-4xl text-foreground">
+                  {priorityHabit.nome}
+                </h2>
+                <p className="text-sm text-muted-foreground max-w-[36ch]">
+                  {directive.subtitle}
+                </p>
+              </div>
+              <Zap className="h-8 w-8 text-primary shrink-0 drop-shadow-[0_0_8px_hsl(var(--neon-toxic))]" />
+            </div>
+
+            <Button
+              onClick={() => onToggleHabit(priorityHabit.id)}
+              size="xl"
+              className="w-full"
+              disabled={isHabitDoneOnDate(state, priorityHabit.id, dateStr)}
+            >
+              {isHabitDoneOnDate(state, priorityHabit.id, dateStr)
+                ? (locale === 'pt-PT' ? 'EXECUTADO ✓' : 'EXECUTED ✓')
+                : (locale === 'pt-PT' ? 'EXECUTAR PROTOCOLO' : 'EXECUTE PROTOCOL')}
+            </Button>
+          </div>
+        </section>
+      )}
+
+      {/* Subsystems — secondary habits */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3 flex-1">
+            <span className="mono-label text-muted-foreground/60 text-[10px] whitespace-nowrap">
+              {locale === 'pt-PT' ? 'SUBSISTEMAS' : 'SUBSYSTEMS'}
+            </span>
+            <div className="h-px flex-1 bg-foreground/10" />
+          </div>
+          <div className="flex items-center gap-1">
             <Link to="/app">
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-10 w-10 p-0 text-muted-foreground/60 hover:text-foreground rounded-xl transition-colors"
-              >
+              <Button size="icon" variant="ghost">
                 <Settings2 className="h-4 w-4" />
               </Button>
             </Link>
             {canAddHabit && (
-              <Button
-                onClick={onAddHabit}
-                size="sm"
-                variant="ghost"
-                className="h-10 w-10 p-0 rounded-xl hover:bg-primary/10 text-primary transition-colors"
-              >
+              <Button onClick={onAddHabit} size="icon" variant="ghost">
                 <Plus className="h-4 w-4" />
               </Button>
             )}
@@ -146,26 +203,22 @@ export const DayView = ({
         </div>
 
         {habitsForDay.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-border/30 bg-card/20 py-20 text-center">
-            <p className="text-muted-foreground/70 text-sm mb-4">
-              {locale === 'pt-PT' ? 'Sem hábitos para hoje' : 'No habits for today'}
+          <div className="flex flex-col items-center justify-center border border-dashed border-foreground/10 bg-card/30 py-16 text-center">
+            <p className="mono-label text-muted-foreground/60 mb-4">
+              {locale === 'pt-PT' ? 'SEM PROTOCOLOS PARA HOJE' : 'NO PROTOCOLS FOR TODAY'}
             </p>
-            <Button
-              onClick={onAddHabit}
-              variant="ghost"
-              size="sm"
-              className="text-primary hover:text-primary/80 gap-2"
-            >
+            <Button onClick={onAddHabit} variant="outline" size="sm" className="gap-2">
               <Plus className="h-4 w-4" />
               {t.habits.add}
             </Button>
           </div>
         ) : (
-          <div className="space-y-3">
-            {habitsForDay.map((habit) => (
+          <div className="space-y-2">
+            {habitsForDay.map((habit, idx) => (
               <MinimalHabitCard
                 key={habit.id}
                 habit={habit}
+                index={idx}
                 isDone={isHabitDoneOnDate(state, habit.id, dateStr)}
                 onToggle={() => onToggleHabit(habit.id)}
               />
@@ -174,43 +227,45 @@ export const DayView = ({
         )}
       </section>
 
-      {/* Micro Weekly Rhythm Preview - Premium */}
+      {/* Week Rhythm */}
       {activeHabits.length > 0 && (
-        <section className="space-y-5">
-          <h2 className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-widest px-1">
-            {locale === 'pt-PT' ? 'Ritmo da semana' : 'Week rhythm'}
-          </h2>
-          
+        <section className="space-y-4">
+          <div className="flex items-center gap-3">
+            <span className="mono-label text-muted-foreground/60 text-[10px]">
+              {locale === 'pt-PT' ? 'CADÊNCIA_SEMANAL' : 'WEEK_CADENCE'}
+            </span>
+            <div className="h-px flex-1 bg-foreground/10" />
+          </div>
+
           {isPro ? (
             <WeekRhythmPreview state={state} selectedDate={selectedDate} locale={locale} />
           ) : (
-            <GatedOverlay feature={locale === 'pt-PT' ? 'Ritmo semanal' : 'Weekly rhythm'}>
+            <GatedOverlay feature={locale === 'pt-PT' ? 'Cadência semanal' : 'Weekly cadence'}>
               <WeekRhythmPreview state={state} selectedDate={selectedDate} locale={locale} />
             </GatedOverlay>
           )}
         </section>
       )}
 
-      {/* Trackers section - Gated for FREE */}
+      {/* Trackers */}
       {activeTrackers.length > 0 && (
-        <section className="space-y-5">
-          <div className="flex items-center justify-between px-1">
-            <h2 className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-widest">
-              Trackers
-            </h2>
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3 flex-1">
+              <span className="mono-label text-accent/80 text-[10px]">
+                {locale === 'pt-PT' ? 'MÉTRICAS' : 'METRICS'}
+              </span>
+              <div className="h-px flex-1 bg-foreground/10" />
+            </div>
             <Link to="/app/trackers">
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-10 w-10 p-0 text-muted-foreground/60 hover:text-foreground rounded-xl transition-colors"
-              >
+              <Button size="icon" variant="ghost">
                 <Settings2 className="h-4 w-4" />
               </Button>
             </Link>
           </div>
 
           {isPro ? (
-            <div className="grid gap-3">
+            <div className="grid gap-2">
               {activeTrackers.slice(0, 4).map((tracker) => (
                 <TrackerMiniCard
                   key={tracker.id}
@@ -222,7 +277,7 @@ export const DayView = ({
             </div>
           ) : (
             <GatedOverlay feature="Trackers">
-              <div className="grid gap-3">
+              <div className="grid gap-2">
                 {activeTrackers.slice(0, 2).map((tracker) => (
                   <TrackerMiniCard
                     key={tracker.id}
@@ -240,7 +295,6 @@ export const DayView = ({
   );
 };
 
-// Micro weekly rhythm preview - dots sparkline - refined
 const WeekRhythmPreview = ({
   state,
   selectedDate,
@@ -257,17 +311,16 @@ const WeekRhythmPreview = ({
   const today = new Date();
 
   return (
-    <div className="p-5 rounded-3xl bg-card/30 border border-border/15 backdrop-blur-sm">
-      {/* Days header - more refined */}
+    <div className="p-5 bg-card/50 border border-foreground/10">
       <div className="flex justify-between mb-5">
         {weekDays.map((day) => (
           <div key={day.toISOString()} className="flex flex-col items-center">
-            <span className="text-[10px] text-muted-foreground/50 uppercase font-medium tracking-wider">
+            <span className="mono-label text-[9px] text-muted-foreground/50">
               {format(day, "EEE", { locale: dateLocale }).slice(0, 1)}
             </span>
             <span className={cn(
-              "text-xs font-medium mt-1 w-7 h-7 flex items-center justify-center rounded-full transition-colors",
-              isToday(day) && "bg-primary/15 text-primary"
+              "text-xs font-bold mt-1 w-7 h-7 flex items-center justify-center transition-colors tabular-nums",
+              isToday(day) && "bg-primary text-primary-foreground shadow-[0_0_8px_hsl(var(--neon-toxic)/0.6)]",
             )}>
               {format(day, "d")}
             </span>
@@ -275,12 +328,11 @@ const WeekRhythmPreview = ({
         ))}
       </div>
 
-      {/* Compact dots grid - more elegant spacing */}
       <div className="space-y-3">
         {activeHabits.slice(0, 4).map((habit) => (
           <div key={habit.id} className="flex items-center gap-4">
             <div
-              className="w-1.5 h-1.5 rounded-full shrink-0"
+              className="w-1.5 h-1.5 shrink-0"
               style={{ backgroundColor: habit.cor || "hsl(var(--primary))" }}
             />
             <div className="flex-1 flex justify-between">
@@ -288,19 +340,21 @@ const WeekRhythmPreview = ({
                 const dateStr = format(day, "yyyy-MM-dd");
                 const isDone = isHabitDoneOnDate(state, habit.id, dateStr);
                 const isFuture = day > today;
-
                 return (
                   <div
                     key={day.toISOString()}
                     className={cn(
-                      "w-2.5 h-2.5 rounded-full transition-all duration-300",
+                      "w-2.5 h-2.5 transition-all duration-200",
                       isFuture
-                        ? "bg-border/15"
+                        ? "bg-foreground/5"
                         : isDone
-                          ? "bg-primary/80 scale-110"
-                          : "bg-muted-foreground/10"
+                          ? "scale-110"
+                          : "bg-foreground/10",
                     )}
-                    style={isDone && habit.cor ? { backgroundColor: habit.cor, opacity: 0.85 } : undefined}
+                    style={isDone ? {
+                      backgroundColor: habit.cor || "hsl(var(--neon-toxic))",
+                      boxShadow: `0 0 6px ${habit.cor || "hsl(var(--neon-toxic))"}`,
+                    } : undefined}
                   />
                 );
               })}
@@ -310,15 +364,14 @@ const WeekRhythmPreview = ({
       </div>
 
       {activeHabits.length > 4 && (
-        <p className="text-[10px] text-muted-foreground/40 text-center mt-4 font-medium">
-          +{activeHabits.length - 4} {locale === 'pt-PT' ? 'mais' : 'more'}
+        <p className="mono-label text-[9px] text-muted-foreground/50 text-center mt-4">
+          +{activeHabits.length - 4} {locale === 'pt-PT' ? 'MAIS' : 'MORE'}
         </p>
       )}
     </div>
   );
 };
 
-// Mini tracker card for day view - refined
 const TrackerMiniCard = ({
   tracker,
   entries,
@@ -335,18 +388,18 @@ const TrackerMiniCard = ({
   return (
     <button
       onClick={onClick}
-      className="flex items-center gap-4 p-5 rounded-3xl bg-card/30 border border-border/15 hover:bg-card/50 hover:border-border/25 transition-all duration-300 touch-target text-left w-full active:scale-[0.98]"
+      className="flex items-center gap-4 p-4 bg-card border border-foreground/10 hover:border-accent/50 transition-colors text-left w-full"
     >
       <div className="text-2xl">{tracker.icon || '📊'}</div>
       <div className="flex-1 min-w-0">
-        <p className="font-medium text-[15px] truncate">{tracker.name}</p>
-        <p className="text-sm text-muted-foreground/70">
-          {todayCount > 0 
-            ? `${todayCount} ${todayCount === 1 ? tracker.unitSingular : tracker.unitPlural}`
-            : '—'
-          }
+        <p className="font-bold uppercase tracking-tight text-sm truncate">{tracker.name}</p>
+        <p className="mono-label text-[10px] text-muted-foreground/70 mt-0.5">
+          {todayCount > 0
+            ? `${todayCount} ${todayCount === 1 ? tracker.unitSingular : tracker.unitPlural}`.toUpperCase()
+            : '— SEM REGISTO'}
         </p>
       </div>
+      <span className="mono-label text-accent text-[10px]">+</span>
     </button>
   );
 };
