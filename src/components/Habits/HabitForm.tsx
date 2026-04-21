@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { X, Clock, Bell, AlertTriangle } from "lucide-react";
+import { Clock, Bell, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +15,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface HabitFormProps {
   habit?: Habit;
@@ -111,18 +117,13 @@ export const HabitForm = ({ habit, onSave, onCancel }: HabitFormProps) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm animate-fade-in">
-      <div className="relative w-full max-w-md rounded-2xl border border-border/50 bg-card p-6 shadow-xl animate-scale-in max-h-[90vh] overflow-y-auto">
-        <button
-          onClick={onCancel}
-          className="absolute right-4 top-4 rounded-lg p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-        >
-          <X className="h-5 w-5" />
-        </button>
-
-        <h2 className="mb-6 text-xl font-semibold">
-          {habit ? t.habits.edit : t.habits.add}
-        </h2>
+    <Dialog open onOpenChange={(open) => { if (!open) onCancel(); }}>
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>
+            {habit ? t.habits.edit : t.habits.add}
+          </DialogTitle>
+        </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Nome */}
@@ -293,7 +294,7 @@ export const HabitForm = ({ habit, onSave, onCancel }: HabitFormProps) => {
             </Button>
           </div>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };
