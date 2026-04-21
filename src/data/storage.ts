@@ -691,6 +691,9 @@ export const clearAllData = (): void => {
   localStorage.removeItem(STORAGE_KEY);
   // Also remove legacy key if it exists
   localStorage.removeItem("habit-tracker-data");
+  // Nutrition module keys (meal plan + profile)
+  localStorage.removeItem("become_nutrition_profile");
+  localStorage.removeItem("become_meal_plan");
   // Note: Locale/currency/theme are stored with different keys and are preserved
 };
 
