@@ -471,6 +471,7 @@ const Nutricao = () => {
   const [showPlanChat, setShowPlanChat] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatingProgress, setGeneratingProgress] = useState("");
+  const [generatingPercent, setGeneratingPercent] = useState(0);
   const [selectedDay, setSelectedDay] = useState(0);
 
   const weekdays = lang === "pt" ? WEEKDAYS_PT : WEEKDAYS_EN;
@@ -494,9 +495,10 @@ const Nutricao = () => {
   // Generate plan with AI (PRO) or base recipes (FREE)
   const generatePlan = useCallback(async (dayIndex?: number) => {
     setIsGenerating(true);
+    setGeneratingPercent(0);
 
     if (!hasPro) {
-      // FREE: use base recipes
+      // FREE: use base recipes (with progress simulation)
       const days: DayMealPlan[] = [];
       const mealTypes: MealType[] = profile.mealsPerDay === 5
         ? ["breakfast", "morning_snack", "lunch", "afternoon_snack", "dinner"]
@@ -505,6 +507,12 @@ const Nutricao = () => {
           : ["breakfast", "lunch", "dinner"];
 
       for (let i = 0; i < 7; i++) {
+        setGeneratingPercent(Math.round(((i + 1) / 7) * 100));
+        setGeneratingProgress(
+          lang === "pt"
+            ? `A gerar ${weekdays[i]}…`
+            : `Generating ${weekdays[i]}…`
+        );
         const date = format(addDays(weekStart, i), "yyyy-MM-dd");
         const meals = mealTypes.map(type => {
           const matching = BASE_RECIPES.filter(r => r.mealType === type);
@@ -518,6 +526,7 @@ const Nutricao = () => {
           fat: meals.reduce((s, m) => s + m.recipe.macros.fat, 0),
         };
         days.push({ date, meals, totalMacros });
+        await new Promise(r => setTimeout(r, 120));
       }
 
       setPlan({
@@ -529,6 +538,8 @@ const Nutricao = () => {
         isCustomized: false,
       });
       setIsGenerating(false);
+      setGeneratingProgress("");
+      setGeneratingPercent(0);
       return;
     }
 
@@ -573,15 +584,16 @@ const Nutricao = () => {
         return { idx, day: { date, meals, totalMacros } };
       };
 
+      let processedCount = 0;
       let successCount = 0;
       for (const idx of daysToGenerate) {
         try {
           setGeneratingProgress(
             lang === "pt"
-              ? `A gerar ${weekdays[idx]}… (${successCount + 1}/${daysToGenerate.length})`
-              : `Generating ${weekdays[idx]}… (${successCount + 1}/${daysToGenerate.length})`
+              ? `A gerar ${weekdays[idx]}… (${processedCount + 1}/${daysToGenerate.length})`
+              : `Generating ${weekdays[idx]}… (${processedCount + 1}/${daysToGenerate.length})`
           );
-          if (successCount > 0) {
+          if (processedCount > 0) {
             await new Promise(r => setTimeout(r, 1500));
           }
           const result = await generateDay(idx);
@@ -609,6 +621,8 @@ const Nutricao = () => {
           };
           newDays[idx] = { date, meals, totalMacros };
         }
+        processedCount++;
+        setGeneratingPercent(Math.round((processedCount / daysToGenerate.length) * 100));
       }
 
       // Fill any nulls with empty
@@ -645,6 +659,7 @@ const Nutricao = () => {
     } finally {
       setIsGenerating(false);
       setGeneratingProgress("");
+      setGeneratingPercent(0);
     }
   }, [hasPro, profile, weekStart, weekdays, plan, lang, toast]);
 
@@ -747,9 +762,9 @@ const Nutricao = () => {
                   ) : (
                     <Sparkles className="h-4 w-4" />
                   )}
-                  {isGenerating && generatingProgress
-                    ? generatingProgress
-                    : lang === "pt" ? "Gerar plano semanal" : "Generate weekly plan"}
+                  {isGenerating
+                    ? `${lang === "pt" ? "A gerar" : "Generating"}… ${generatingPercent}%`
+                    : lang === "pt" ? "Gerar refeições" : "Generate meals"}
                 </Button>
               </div>
               {!hasPro && (
@@ -851,30 +866,49 @@ const Nutricao = () => {
             </div>
 
             {/* Action buttons */}
-            <div className="flex justify-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => generatePlan()}
-                disabled={isGenerating}
-                className="gap-1.5"
-              >
-                {isGenerating ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <RefreshCw className="h-3.5 w-3.5" />
-                )}
-                {lang === "pt" ? "Regenerar semana" : "Regenerate week"}
-              </Button>
-              <Button
-                variant="default"
-                size="sm"
-                onClick={() => setShowPlanChat(true)}
-                className="gap-1.5"
-              >
-                <MessageCircle className="h-3.5 w-3.5" />
-                {lang === "pt" ? "Alterar ingredientes" : "Change ingredients"}
-              </Button>
+            <div className="flex flex-col items-center gap-2">
+              <div className="flex justify-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => generatePlan()}
+                  disabled={isGenerating}
+                  className="gap-1.5"
+                >
+                  {isGenerating ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <RefreshCw className="h-3.5 w-3.5" />
+                  )}
+                  {isGenerating
+                    ? `${lang === "pt" ? "A gerar" : "Generating"}… ${generatingPercent}%`
+                    : lang === "pt" ? "Gerar refeições" : "Generate meals"}
+                </Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => setShowPlanChat(true)}
+                  className="gap-1.5"
+                  disabled={isGenerating}
+                >
+                  <MessageCircle className="h-3.5 w-3.5" />
+                  {lang === "pt" ? "Alterar ingredientes" : "Change ingredients"}
+                </Button>
+              </div>
+              {isGenerating && (
+                <div className="w-full max-w-xs space-y-1">
+                  <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-primary transition-all duration-300"
+                      style={{ width: `${generatingPercent}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-[10px] text-muted-foreground">
+                    <span>{generatingProgress || (lang === "pt" ? "A preparar…" : "Preparing…")}</span>
+                    <span>{generatingPercent}%</span>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* PRO gating overlay for AI features */}
