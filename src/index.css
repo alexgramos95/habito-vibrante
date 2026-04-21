@@ -1,105 +1,117 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300..900;1,300..900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* 
-  becoMe Design System
-  Theme: Premium Clear — Sophisticated, Calm, Mature
-  Light-first, warm undertones, optimized for prolonged daily use
+/*
+  becoMe Design System — ARCADE OVERDRIVE
+  Dark void background, toxic green + ultraviolet neon accents.
+  Inspired by retro-arcade / high-stakes simulation aesthetics.
+  Tokens in HSL only — never use raw hex in components.
 */
 
 @layer base {
   :root {
-    /* Core backgrounds - Warm sand, never white */
-    --background: 35 22% 93%;
-    --foreground: 220 25% 15%;
+    /* ============================================
+       DARK = DEFAULT (Arcade Overdrive)
+       ============================================ */
 
-    /* Card surfaces - Warm cream */
-    --card: 38 20% 96%;
-    --card-foreground: 220 25% 15%;
+    /* Core surfaces - deep void */
+    --background: 0 0% 2%;            /* #050505 */
+    --foreground: 0 0% 100%;          /* white */
 
-    /* Elevated surfaces */
-    --popover: 38 18% 97%;
-    --popover-foreground: 220 25% 15%;
+    /* Card / elevated panels - near-black with slight warmth */
+    --card: 0 0% 4%;                  /* zinc-950ish */
+    --card-foreground: 0 0% 100%;
 
-    /* Primary accent - Refined teal, softer for light mode */
-    --primary: 174 65% 42%;
-    --primary-foreground: 0 0% 100%;
+    --popover: 0 0% 6%;
+    --popover-foreground: 0 0% 100%;
 
-    /* Secondary - Warm neutral */
-    --secondary: 35 18% 89%;
-    --secondary-foreground: 220 20% 35%;
+    /* PRIMARY = TOXIC GREEN (#ccff00) */
+    --primary: 72 100% 50%;
+    --primary-foreground: 0 0% 2%;
 
-    /* Muted elements - Warm taupe */
-    --muted: 35 14% 86%;
-    --muted-foreground: 220 15% 48%;
+    /* SECONDARY = subtle dark surface */
+    --secondary: 0 0% 9%;
+    --secondary-foreground: 0 0% 100%;
 
-    /* Accent variations */
-    --accent: 174 50% 45%;
+    /* Muted - darker chrome */
+    --muted: 0 0% 8%;
+    --muted-foreground: 0 0% 60%;
+
+    /* ACCENT = ULTRAVIOLET (#9d00ff) */
+    --accent: 276 100% 50%;
     --accent-foreground: 0 0% 100%;
 
-    /* Destructive */
-    --destructive: 0 65% 55%;
+    /* Destructive - hot magenta-red so it reads on dark */
+    --destructive: 350 100% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Borders and inputs */
-    --border: 35 16% 82%;
-    --input: 35 16% 85%;
-    --ring: 174 65% 42%;
+    /* Borders and inputs - low-contrast white veil */
+    --border: 0 0% 100%;              /* used with /10 opacity in components */
+    --input: 0 0% 12%;
+    --ring: 72 100% 50%;
 
-    --radius: 0.75rem;
+    /* Sharp corners — arcade brutalism */
+    --radius: 0;
 
-    /* Semantic colors - Harmonized for light */
-    --success: 155 60% 40%;
-    --success-foreground: 0 0% 100%;
-    
-    /* Warning - warm amber */
-    --warning: 38 90% 55%;
-    --warning-foreground: 30 80% 15%;
+    /* Semantic colors */
+    --success: 72 100% 50%;           /* same as primary toxic */
+    --success-foreground: 0 0% 2%;
+    --warning: 45 100% 55%;
+    --warning-foreground: 0 0% 2%;
 
-    /* Premium gradients - subtle and sophisticated */
-    --gradient-primary: linear-gradient(135deg, hsl(174 65% 42%) 0%, hsl(180 55% 50%) 100%);
-    --gradient-surface: linear-gradient(180deg, hsl(38 20% 95%) 0%, hsl(35 22% 93%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(38 20% 97%) 0%, hsl(35 18% 94%) 100%);
-    --gradient-success: linear-gradient(135deg, hsl(155 60% 40%) 0%, hsl(165 55% 45%) 100%);
-    --gradient-glow: radial-gradient(ellipse at center, hsl(174 65% 42% / 0.06) 0%, transparent 70%);
-    --gradient-subtle: linear-gradient(180deg, transparent 0%, hsl(174 65% 42% / 0.02) 100%);
-    
-    /* Premium shadows - soft and elegant for light UI */
-    --shadow-glow: 0 0 40px hsl(174 65% 42% / 0.08);
-    --shadow-card: 0 1px 3px hsl(220 25% 15% / 0.04), 0 4px 12px hsl(220 25% 15% / 0.03);
-    --shadow-elevated: 0 4px 24px hsl(220 25% 15% / 0.08);
-    --shadow-inset: inset 0 1px 0 hsl(0 0% 100% / 0.8);
-    --shadow-button: 0 1px 4px hsl(174 65% 42% / 0.12);
+    /* Neon tokens - reusable */
+    --neon-toxic: 72 100% 50%;        /* #ccff00 */
+    --neon-ultra: 276 100% 50%;       /* #9d00ff */
+    --neon-void: 0 0% 2%;
+    --neon-dim: 0 0% 60%;
 
-    /* Sidebar tokens */
-    --sidebar-background: 35 20% 92%;
-    --sidebar-foreground: 220 25% 25%;
-    --sidebar-primary: 174 65% 42%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 35 18% 89%;
-    --sidebar-accent-foreground: 220 25% 25%;
-    --sidebar-border: 35 16% 84%;
-    --sidebar-ring: 174 65% 42%;
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--neon-toxic)) 0%, hsl(72 100% 60%) 100%);
+    --gradient-ultra: linear-gradient(135deg, hsl(var(--neon-ultra)) 0%, hsl(276 100% 65%) 100%);
+    --gradient-surface: linear-gradient(180deg, hsl(0 0% 4%) 0%, hsl(0 0% 2%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 6%) 0%, hsl(0 0% 3%) 100%);
+    --gradient-glow: radial-gradient(ellipse at center, hsl(var(--neon-toxic) / 0.15) 0%, transparent 70%);
+    --gradient-subtle: linear-gradient(180deg, transparent 0%, hsl(var(--neon-toxic) / 0.04) 100%);
 
-    /* Chart colors - Harmonized palette */
-    --chart-1: 174 65% 42%;
-    --chart-2: 155 60% 40%;
-    --chart-3: 38 90% 55%;
-    --chart-4: 280 50% 55%;
-    --chart-5: 200 70% 50%;
+    /* Shadows / glows */
+    --shadow-glow: 0 0 40px hsl(var(--neon-toxic) / 0.25);
+    --shadow-glow-ultra: 0 0 40px hsl(var(--neon-ultra) / 0.25);
+    --shadow-card: 0 1px 0 hsl(0 0% 100% / 0.04), 0 0 0 1px hsl(0 0% 100% / 0.06);
+    --shadow-elevated: 0 8px 32px hsl(0 0% 0% / 0.6);
+    --shadow-inset: inset 0 1px 0 hsl(0 0% 100% / 0.04);
+    --shadow-button: 0 0 20px hsl(var(--neon-toxic) / 0.35);
+    --shadow-tactile: 4px 4px 0 0 hsl(var(--neon-ultra));
+    --shadow-tactile-toxic: 4px 4px 0 0 hsl(var(--neon-toxic));
+
+    /* Sidebar tokens (kept for shadcn compatibility) */
+    --sidebar-background: 0 0% 4%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 72 100% 50%;
+    --sidebar-primary-foreground: 0 0% 2%;
+    --sidebar-accent: 0 0% 9%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 0 0% 100%;
+    --sidebar-ring: 72 100% 50%;
+
+    /* Chart colors - neon palette */
+    --chart-1: 72 100% 50%;
+    --chart-2: 276 100% 50%;
+    --chart-3: 45 100% 55%;
+    --chart-4: 195 100% 50%;
+    --chart-5: 350 100% 55%;
   }
 }
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-border/10;
   }
 
   html {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Inter Tight', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     scroll-behavior: smooth;
@@ -107,14 +119,29 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    font-feature-settings: "ss01", "cv02", "cv11";
     overscroll-behavior: none;
-    /* Ambient background — subtle warm gradient mesh */
+    /* Ambient grid + subtle neon vignette */
     background-image:
-      radial-gradient(ellipse 80% 60% at 20% 10%, hsl(174 50% 75% / 0.10) 0%, transparent 60%),
-      radial-gradient(ellipse 60% 50% at 85% 80%, hsl(38 50% 75% / 0.10) 0%, transparent 55%),
-      radial-gradient(ellipse 50% 40% at 50% 50%, hsl(220 20% 85% / 0.08) 0%, transparent 50%);
+      radial-gradient(ellipse 60% 50% at 80% 10%, hsl(var(--neon-ultra) / 0.10) 0%, transparent 60%),
+      radial-gradient(ellipse 70% 40% at 10% 90%, hsl(var(--neon-toxic) / 0.06) 0%, transparent 55%);
     background-attachment: fixed;
+  }
+
+  /* Scanline overlay — applied globally, very subtle */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 100;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      hsl(var(--neon-toxic) / 0.025) 3px,
+      hsl(var(--neon-toxic) / 0.025) 3px
+    );
   }
 
   /* Prevent text selection on interactive elements */
@@ -365,7 +392,6 @@
 /* Page layout containers - normalized spacing */
 .page-container {
   @apply min-h-screen pb-24 md:pb-8;
-  /* Inherit body ambient bg, add subtle top fade for depth */
   background: transparent;
   position: relative;
 }
@@ -377,8 +403,8 @@
   pointer-events: none;
   z-index: 0;
   background:
-    linear-gradient(180deg, hsl(35 22% 93% / 0.5) 0%, transparent 40%),
-    linear-gradient(0deg, hsl(35 20% 91% / 0.3) 0%, transparent 30%);
+    linear-gradient(180deg, hsl(0 0% 0% / 0.4) 0%, transparent 40%),
+    linear-gradient(0deg, hsl(0 0% 0% / 0.3) 0%, transparent 30%);
 }
 
 .page-container > * {
@@ -526,20 +552,17 @@
 
 /* ========================================
    TRACKER MODULE — High-Tech / HUD Theme
-   Intentional visual exception for immersive
-   observational/monitoring experience
+   Unified with Arcade Overdrive: toxic/ultra neon
    ======================================== */
 
-/* Dark HUD background for tracker pages — overrides global ambient */
 .tracker-hud {
-  background: linear-gradient(180deg, hsl(220 30% 8%) 0%, hsl(220 25% 12%) 100%) !important;
-  color: hsl(210 20% 90%);
+  background: hsl(var(--neon-void)) !important;
+  color: hsl(var(--foreground));
   min-height: 100vh;
   position: relative;
   overflow: hidden;
 }
 
-/* Disable page-container ambient overlay inside tracker-hud */
 .tracker-hud.page-container::before,
 .tracker-hud .page-container::before {
   display: none;
@@ -549,26 +572,19 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: 
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      hsl(174 65% 42% / 0.015) 2px,
-      hsl(174 65% 42% / 0.015) 4px
-    );
+  background:
+    repeating-linear-gradient(0deg, transparent, transparent 2px, hsl(var(--neon-toxic) / 0.025) 2px, hsl(var(--neon-toxic) / 0.025) 4px);
   pointer-events: none;
   z-index: 0;
 }
 
-/* Subtle grid overlay */
 .tracker-hud::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: 
-    linear-gradient(90deg, hsl(174 65% 42% / 0.03) 1px, transparent 1px),
-    linear-gradient(180deg, hsl(174 65% 42% / 0.03) 1px, transparent 1px);
+  background:
+    linear-gradient(90deg, hsl(var(--neon-ultra) / 0.04) 1px, transparent 1px),
+    linear-gradient(180deg, hsl(var(--neon-ultra) / 0.04) 1px, transparent 1px);
   background-size: 40px 40px;
   pointer-events: none;
   z-index: 0;
@@ -579,119 +595,82 @@
   z-index: 1;
 }
 
-/* HUD card — glass-dark with neon border */
 .hud-card {
-  background: hsl(220 25% 12% / 0.8);
+  background: hsl(0 0% 4% / 0.85);
   backdrop-filter: blur(20px);
-  border: 1px solid hsl(174 65% 42% / 0.15);
-  border-radius: 1rem;
-  box-shadow: 
-    0 0 20px hsl(174 65% 42% / 0.05),
-    inset 0 1px 0 hsl(174 65% 42% / 0.08);
-  transition: all 0.3s ease;
+  border: 1px solid hsl(var(--neon-toxic) / 0.2);
+  border-radius: 0;
+  box-shadow: 0 0 20px hsl(var(--neon-toxic) / 0.05), inset 0 1px 0 hsl(var(--neon-toxic) / 0.06);
+  transition: all 0.2s ease;
 }
 
 .hud-card:hover {
-  border-color: hsl(174 65% 42% / 0.3);
-  box-shadow: 
-    0 0 30px hsl(174 65% 42% / 0.08),
-    inset 0 1px 0 hsl(174 65% 42% / 0.12);
+  border-color: hsl(var(--neon-toxic) / 0.5);
+  box-shadow: 0 0 30px hsl(var(--neon-toxic) / 0.12), inset 0 1px 0 hsl(var(--neon-toxic) / 0.1);
 }
 
 .hud-card-active {
-  border-color: hsl(174 65% 42% / 0.5);
-  box-shadow: 
-    0 0 40px hsl(174 65% 42% / 0.12),
-    inset 0 1px 0 hsl(174 65% 42% / 0.15);
+  border-color: hsl(var(--neon-toxic) / 0.7);
+  box-shadow: 0 0 40px hsl(var(--neon-toxic) / 0.18), inset 0 1px 0 hsl(var(--neon-toxic) / 0.15);
 }
 
-/* Neon text utilities */
-.text-neon {
-  color: hsl(174 80% 55%);
-  text-shadow: 0 0 10px hsl(174 80% 55% / 0.4);
-}
+.text-neon { color: hsl(var(--neon-toxic)); text-shadow: 0 0 10px hsl(var(--neon-toxic) / 0.5); }
+.text-neon-warning { color: hsl(var(--warning)); text-shadow: 0 0 10px hsl(var(--warning) / 0.5); }
+.text-neon-danger { color: hsl(var(--destructive)); text-shadow: 0 0 10px hsl(var(--destructive) / 0.5); }
+.text-neon-success { color: hsl(var(--neon-toxic)); text-shadow: 0 0 10px hsl(var(--neon-toxic) / 0.5); }
+.text-neon-ultra { color: hsl(var(--neon-ultra)); text-shadow: 0 0 10px hsl(var(--neon-ultra) / 0.5); }
 
-.text-neon-warning {
-  color: hsl(38 90% 60%);
-  text-shadow: 0 0 10px hsl(38 90% 60% / 0.4);
-}
-
-.text-neon-danger {
-  color: hsl(0 70% 60%);
-  text-shadow: 0 0 10px hsl(0 70% 60% / 0.4);
-}
-
-.text-neon-success {
-  color: hsl(155 70% 50%);
-  text-shadow: 0 0 10px hsl(155 70% 50% / 0.4);
-}
-
-/* HUD badge */
 .hud-badge {
-  background: hsl(174 65% 42% / 0.12);
-  border: 1px solid hsl(174 65% 42% / 0.25);
-  color: hsl(174 80% 60%);
+  background: hsl(var(--neon-toxic) / 0.12);
+  border: 1px solid hsl(var(--neon-toxic) / 0.3);
+  color: hsl(var(--neon-toxic));
   font-size: 0.65rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
+  font-weight: 700;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   padding: 0.15rem 0.5rem;
-  border-radius: 0.5rem;
+  border-radius: 0;
 }
 
-/* HUD progress bar */
 .hud-progress {
-  height: 3px;
-  background: hsl(220 25% 20%);
-  border-radius: 2px;
+  height: 4px;
+  background: hsl(0 0% 100% / 0.06);
   overflow: hidden;
   position: relative;
 }
 
 .hud-progress-bar {
   height: 100%;
-  border-radius: 2px;
   transition: width 0.5s ease;
-  position: relative;
+  background: hsl(var(--neon-toxic));
+  box-shadow: 0 0 8px hsl(var(--neon-toxic) / 0.6);
 }
 
-.hud-progress-bar::after {
-  content: '';
-  position: absolute;
-  right: 0;
-  top: -1px;
-  bottom: -1px;
-  width: 6px;
-  border-radius: 3px;
-  background: inherit;
-  box-shadow: 0 0 8px currentColor;
-}
-
-/* HUD stat box */
 .hud-stat {
-  background: hsl(220 25% 10% / 0.6);
-  border: 1px solid hsl(174 65% 42% / 0.1);
-  border-radius: 0.75rem;
+  background: hsl(0 0% 4% / 0.7);
+  border: 1px solid hsl(var(--neon-toxic) / 0.15);
   padding: 0.75rem;
   text-align: center;
 }
 
 .hud-stat-value {
   font-size: 1.25rem;
-  font-weight: 700;
+  font-weight: 900;
+  font-style: italic;
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
+  letter-spacing: -0.02em;
 }
 
 .hud-stat-label {
+  font-family: 'Space Mono', monospace;
   font-size: 0.6rem;
-  color: hsl(210 15% 50%);
+  color: hsl(var(--muted-foreground));
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.12em;
   margin-top: 0.25rem;
 }
 
-/* Scan-line animation overlay */
 @keyframes hud-scan {
   0% { transform: translateY(-100%); }
   100% { transform: translateY(100vh); }
@@ -703,13 +682,12 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent, hsl(174 65% 42% / 0.15), transparent);
+  background: linear-gradient(90deg, transparent, hsl(var(--neon-toxic) / 0.3), transparent);
   animation: hud-scan 8s linear infinite;
   pointer-events: none;
   z-index: 2;
 }
 
-/* Neon pulse animation */
 @keyframes neon-pulse {
   0%, 100% { opacity: 0.7; }
   50% { opacity: 1; }
@@ -719,68 +697,64 @@
   animation: neon-pulse 2s ease-in-out infinite;
 }
 
-/* HUD header */
 .hud-header {
-  border-bottom: 1px solid hsl(174 65% 42% / 0.12);
+  border-bottom: 1px solid hsl(var(--neon-toxic) / 0.2);
   padding-bottom: 1rem;
 }
 
 .hud-header h1 {
-  color: hsl(210 20% 92%);
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  color: hsl(var(--foreground));
+  font-weight: 900;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
 }
 
 .hud-header p {
-  color: hsl(210 15% 50%);
+  color: hsl(var(--muted-foreground));
+  font-family: 'Space Mono', monospace;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
 }
 
-/* HUD button */
 .hud-btn {
-  background: hsl(174 65% 42% / 0.15);
-  border: 1px solid hsl(174 65% 42% / 0.3);
-  color: hsl(174 80% 60%);
-  transition: all 0.2s ease;
+  background: hsl(var(--neon-toxic) / 0.15);
+  border: 1px solid hsl(var(--neon-toxic) / 0.4);
+  color: hsl(var(--neon-toxic));
+  text-transform: uppercase;
+  font-weight: 700;
+  font-style: italic;
+  letter-spacing: 0.05em;
+  transition: all 0.15s ease;
 }
 
 .hud-btn:hover {
-  background: hsl(174 65% 42% / 0.25);
-  border-color: hsl(174 65% 42% / 0.5);
-  box-shadow: 0 0 15px hsl(174 65% 42% / 0.15);
+  background: hsl(var(--neon-toxic) / 0.25);
+  border-color: hsl(var(--neon-toxic));
+  box-shadow: 0 0 15px hsl(var(--neon-toxic) / 0.3);
 }
 
-/* HUD section label */
 .hud-section-label {
-  font-size: 0.6rem;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.65rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: hsl(174 65% 42% / 0.6);
+  color: hsl(var(--neon-toxic) / 0.7);
   padding-left: 0.25rem;
 }
 
-/* HUD chart container */
 .hud-chart-container {
-  background: hsl(220 25% 10% / 0.5);
-  border: 1px solid hsl(174 65% 42% / 0.1);
-  border-radius: 1rem;
+  background: hsl(0 0% 4% / 0.6);
+  border: 1px solid hsl(var(--neon-toxic) / 0.15);
   padding: 1rem;
 }
 
-/* Override scrollbar for HUD */
-.tracker-hud ::-webkit-scrollbar-track {
-  background: hsl(220 25% 15% / 0.5);
-}
+.tracker-hud ::-webkit-scrollbar-track { background: hsl(0 0% 8% / 0.5); }
+.tracker-hud ::-webkit-scrollbar-thumb { background: hsl(var(--neon-toxic) / 0.4); }
+.tracker-hud ::-webkit-scrollbar-thumb:hover { background: hsl(var(--neon-toxic) / 0.6); }
 
-.tracker-hud ::-webkit-scrollbar-thumb {
-  background: hsl(174 65% 42% / 0.3);
-}
-
-.tracker-hud ::-webkit-scrollbar-thumb:hover {
-  background: hsl(174 65% 42% / 0.5);
-}
-
-/* HUD empty state */
 .hud-empty-state {
   display: flex;
   flex-direction: column;
@@ -788,10 +762,57 @@
   justify-content: center;
   text-align: center;
   padding: 4rem 1.5rem;
-  color: hsl(210 15% 50%);
+  color: hsl(var(--muted-foreground));
 }
 
 .hud-empty-state svg {
-  color: hsl(174 65% 42% / 0.3);
+  color: hsl(var(--neon-toxic) / 0.4);
   margin-bottom: 1rem;
 }
+
+/* ========================================
+   ARCADE OVERDRIVE — Reusable utilities
+   ======================================== */
+
+.tactile {
+  box-shadow: 4px 4px 0 0 hsl(var(--neon-ultra));
+  transition: box-shadow 0.1s ease, transform 0.1s ease;
+}
+.tactile:hover { box-shadow: 2px 2px 0 0 hsl(var(--neon-ultra)); transform: translate(2px, 2px); }
+.tactile:active { box-shadow: 0 0 0 0 hsl(var(--neon-ultra)); transform: translate(4px, 4px); }
+
+.tactile-toxic {
+  box-shadow: 4px 4px 0 0 hsl(var(--neon-toxic));
+  transition: box-shadow 0.1s ease, transform 0.1s ease;
+}
+.tactile-toxic:hover { box-shadow: 2px 2px 0 0 hsl(var(--neon-toxic)); transform: translate(2px, 2px); }
+
+.mono-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.display-headline {
+  font-family: 'Inter Tight', sans-serif;
+  font-weight: 900;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+}
+
+.glow-toxic { text-shadow: 0 0 16px hsl(var(--neon-toxic) / 0.6); }
+.glow-ultra { text-shadow: 0 0 16px hsl(var(--neon-ultra) / 0.6); }
+
+.directive-box {
+  border: 2px solid hsl(var(--neon-toxic));
+  background: hsl(0 0% 4%);
+  box-shadow: 0 0 30px hsl(var(--neon-toxic) / 0.2);
+}
+
+/* Scanline can be disabled by adding .no-scanline to body */
+body.no-scanline::before { display: none !important; }
+

@@ -23,7 +23,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['"Inter Tight"', 'Inter', 'system-ui', 'sans-serif'],
+        display: ['"Inter Tight"', 'Inter', 'system-ui', 'sans-serif'],
+        mono: ['"Space Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -67,6 +69,13 @@ export default {
           DEFAULT: "hsl(var(--warning))",
           foreground: "hsl(var(--warning-foreground))",
         },
+        // Neon palette (Arcade Overdrive)
+        neon: {
+          toxic: "hsl(var(--neon-toxic))",
+          ultra: "hsl(var(--neon-ultra))",
+          void: "hsl(var(--neon-void))",
+          dim: "hsl(var(--neon-dim))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
@@ -106,7 +115,11 @@ export default {
         },
         "pulse-glow": {
           "0%, 100%": { boxShadow: "0 0 20px hsl(var(--primary) / 0.3)" },
-          "50%": { boxShadow: "0 0 40px hsl(var(--primary) / 0.5)" },
+          "50%": { boxShadow: "0 0 40px hsl(var(--primary) / 0.6)" },
+        },
+        "flicker": {
+          "0%, 19.999%, 22%, 62.999%, 64%, 64.999%, 70%, 100%": { opacity: "1" },
+          "20%, 21.999%, 63%, 63.999%, 65%, 69.999%": { opacity: "0.85" },
         },
       },
       animation: {
@@ -116,6 +129,7 @@ export default {
         "scale-in": "scale-in 0.3s ease-out",
         "slide-in-right": "slide-in-right 0.4s ease-out",
         "pulse-glow": "pulse-glow 2s ease-in-out infinite",
+        "flicker": "flicker 3s infinite",
       },
     },
   },

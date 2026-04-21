@@ -2,8 +2,19 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
+/**
+ * Card — Arcade Overdrive
+ * Sharp corners, hairline border, near-black surface, ultraviolet hover.
+ */
 const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("rounded-xl border border-border bg-card text-card-foreground shadow-sm", className)} {...props} />
+  <div
+    ref={ref}
+    className={cn(
+      "border border-foreground/10 bg-card text-card-foreground transition-colors hover:border-accent/40",
+      className,
+    )}
+    {...props}
+  />
 ));
 Card.displayName = "Card";
 
@@ -16,7 +27,11 @@ CardHeader.displayName = "CardHeader";
 
 const CardTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLHeadingElement>>(
   ({ className, ...props }, ref) => (
-    <h3 ref={ref} className={cn("text-2xl font-semibold leading-none tracking-tight", className)} {...props} />
+    <h3
+      ref={ref}
+      className={cn("text-2xl font-black uppercase italic leading-none tracking-tighter", className)}
+      {...props}
+    />
   ),
 );
 CardTitle.displayName = "CardTitle";
