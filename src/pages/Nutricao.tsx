@@ -37,6 +37,14 @@ const WEEKDAYS_EN = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Sa
 
 const STORAGE_KEY_PROFILE = "become_nutrition_profile";
 const STORAGE_KEY_PLAN = "become_meal_plan";
+const LEGACY_NUTRITION_STORAGE_KEYS = [
+  STORAGE_KEY_PROFILE,
+  STORAGE_KEY_PLAN,
+  "nutritionProfile",
+  "mealPlan",
+  "become:nutrition:profile",
+  "become:nutrition:plan",
+];
 
 // ─── Profile Setup Modal ───
 const ProfileSetupModal = ({
@@ -459,11 +467,15 @@ const Nutricao = () => {
   const hasPro = subscription.plan === "pro" || trialStatus.isActive;
 
   const [profile, setProfile] = useState<NutritionProfile>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY_PROFILE);
+    const saved = localStorage.getItem(STORAGE_KEY_PROFILE)
+      ?? localStorage.getItem("nutritionProfile")
+      ?? localStorage.getItem("become:nutrition:profile");
     return saved ? JSON.parse(saved) : DEFAULT_NUTRITION_PROFILE;
   });
   const [plan, setPlan] = useState<WeeklyMealPlan | null>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY_PLAN);
+    const saved = localStorage.getItem(STORAGE_KEY_PLAN)
+      ?? localStorage.getItem("mealPlan")
+      ?? localStorage.getItem("become:nutrition:plan");
     return saved ? JSON.parse(saved) : null;
   });
   const [showProfile, setShowProfile] = useState(false);
@@ -475,8 +487,7 @@ const Nutricao = () => {
   const [selectedDay, setSelectedDay] = useState(0);
 
   const clearNutritionStorage = useCallback(() => {
-    localStorage.removeItem(STORAGE_KEY_PROFILE);
-    localStorage.removeItem(STORAGE_KEY_PLAN);
+    LEGACY_NUTRITION_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
   }, []);
 
   const weekdays = lang === "pt" ? WEEKDAYS_PT : WEEKDAYS_EN;

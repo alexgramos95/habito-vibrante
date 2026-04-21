@@ -694,6 +694,10 @@ export const clearAllData = (): void => {
   // Nutrition module keys (meal plan + profile)
   localStorage.removeItem("become_nutrition_profile");
   localStorage.removeItem("become_meal_plan");
+  localStorage.removeItem("nutritionProfile");
+  localStorage.removeItem("mealPlan");
+  localStorage.removeItem("become:nutrition:profile");
+  localStorage.removeItem("become:nutrition:plan");
   // Note: Locale/currency/theme are stored with different keys and are preserved
 
   // Notify any mounted modules with isolated localStorage state (e.g. Nutrition)

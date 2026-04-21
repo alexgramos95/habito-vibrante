@@ -3,12 +3,14 @@
  * Changes must be reviewed and tested locally.
  */
 // becoMe Service Worker - PWA Support with Push Notifications
-const CACHE_NAME = 'become-v4';
+const CACHE_NAME = 'become-v5';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
   '/favicon.ico',
 ];
+
+const NETWORK_FIRST_DESTINATIONS = new Set(['document', 'script', 'style', 'font', 'image']);
 
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
@@ -38,50 +40,46 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch event - network-first strategy
+// Fetch event - prefer the network for app shell/assets to avoid stale UI after updates.
 self.addEventListener('fetch', (event) => {
-  // Skip non-GET requests
   if (event.request.method !== 'GET') return;
-  
-  // Skip cross-origin requests
   if (!event.request.url.startsWith(self.location.origin)) return;
 
-  // Network-first for navigation requests
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request)
-        .catch(() => caches.match('/'))
-    );
-    return;
-  }
+  const requestUrl = new URL(event.request.url);
+  const isNavigation = event.request.mode === 'navigate';
+  const isAssetRequest = NETWORK_FIRST_DESTINATIONS.has(event.request.destination) || requestUrl.pathname.startsWith('/assets/');
 
-  // Cache-first for static assets
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        // Return cached version and update in background
-        fetch(event.request).then((response) => {
-          if (response.ok) {
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, response);
-            });
-          }
-        });
-        return cachedResponse;
-      }
-      
-      // Fetch and cache new requests
-      return fetch(event.request).then((response) => {
-        if (response.ok) {
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseClone);
-          });
+  event.respondWith((async () => {
+    const cache = await caches.open(CACHE_NAME);
+
+    if (isNavigation || isAssetRequest) {
+      try {
+        const freshResponse = await fetch(event.request);
+        if (freshResponse.ok) {
+          cache.put(event.request, freshResponse.clone());
         }
-        return response;
-      });
-    })
-  );
+        return freshResponse;
+      } catch (error) {
+        const cachedResponse = await cache.match(event.request);
+        if (cachedResponse) return cachedResponse;
+        if (isNavigation) {
+          return (await caches.match('/')) || Response.error();
+        }
+        throw error;
+      }
+    }
+
+    const cachedResponse = await cache.match(event.request);
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+
+    const response = await fetch(event.request);
+    if (response.ok) {
+      cache.put(event.request, response.clone());
+    }
+    return response;
+  })());
 });
 
 // Push event - handle incoming push notifications
