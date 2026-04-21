@@ -553,20 +553,17 @@
 
 /* ========================================
    TRACKER MODULE — High-Tech / HUD Theme
-   Intentional visual exception for immersive
-   observational/monitoring experience
+   Unified with Arcade Overdrive: toxic/ultra neon
    ======================================== */
 
-/* Dark HUD background for tracker pages — overrides global ambient */
 .tracker-hud {
-  background: linear-gradient(180deg, hsl(220 30% 8%) 0%, hsl(220 25% 12%) 100%) !important;
-  color: hsl(210 20% 90%);
+  background: hsl(var(--neon-void)) !important;
+  color: hsl(var(--foreground));
   min-height: 100vh;
   position: relative;
   overflow: hidden;
 }
 
-/* Disable page-container ambient overlay inside tracker-hud */
 .tracker-hud.page-container::before,
 .tracker-hud .page-container::before {
   display: none;
@@ -576,26 +573,19 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: 
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      hsl(174 65% 42% / 0.015) 2px,
-      hsl(174 65% 42% / 0.015) 4px
-    );
+  background:
+    repeating-linear-gradient(0deg, transparent, transparent 2px, hsl(var(--neon-toxic) / 0.025) 2px, hsl(var(--neon-toxic) / 0.025) 4px);
   pointer-events: none;
   z-index: 0;
 }
 
-/* Subtle grid overlay */
 .tracker-hud::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: 
-    linear-gradient(90deg, hsl(174 65% 42% / 0.03) 1px, transparent 1px),
-    linear-gradient(180deg, hsl(174 65% 42% / 0.03) 1px, transparent 1px);
+  background:
+    linear-gradient(90deg, hsl(var(--neon-ultra) / 0.04) 1px, transparent 1px),
+    linear-gradient(180deg, hsl(var(--neon-ultra) / 0.04) 1px, transparent 1px);
   background-size: 40px 40px;
   pointer-events: none;
   z-index: 0;
@@ -606,119 +596,82 @@
   z-index: 1;
 }
 
-/* HUD card — glass-dark with neon border */
 .hud-card {
-  background: hsl(220 25% 12% / 0.8);
+  background: hsl(0 0% 4% / 0.85);
   backdrop-filter: blur(20px);
-  border: 1px solid hsl(174 65% 42% / 0.15);
-  border-radius: 1rem;
-  box-shadow: 
-    0 0 20px hsl(174 65% 42% / 0.05),
-    inset 0 1px 0 hsl(174 65% 42% / 0.08);
-  transition: all 0.3s ease;
+  border: 1px solid hsl(var(--neon-toxic) / 0.2);
+  border-radius: 0;
+  box-shadow: 0 0 20px hsl(var(--neon-toxic) / 0.05), inset 0 1px 0 hsl(var(--neon-toxic) / 0.06);
+  transition: all 0.2s ease;
 }
 
 .hud-card:hover {
-  border-color: hsl(174 65% 42% / 0.3);
-  box-shadow: 
-    0 0 30px hsl(174 65% 42% / 0.08),
-    inset 0 1px 0 hsl(174 65% 42% / 0.12);
+  border-color: hsl(var(--neon-toxic) / 0.5);
+  box-shadow: 0 0 30px hsl(var(--neon-toxic) / 0.12), inset 0 1px 0 hsl(var(--neon-toxic) / 0.1);
 }
 
 .hud-card-active {
-  border-color: hsl(174 65% 42% / 0.5);
-  box-shadow: 
-    0 0 40px hsl(174 65% 42% / 0.12),
-    inset 0 1px 0 hsl(174 65% 42% / 0.15);
+  border-color: hsl(var(--neon-toxic) / 0.7);
+  box-shadow: 0 0 40px hsl(var(--neon-toxic) / 0.18), inset 0 1px 0 hsl(var(--neon-toxic) / 0.15);
 }
 
-/* Neon text utilities */
-.text-neon {
-  color: hsl(174 80% 55%);
-  text-shadow: 0 0 10px hsl(174 80% 55% / 0.4);
-}
+.text-neon { color: hsl(var(--neon-toxic)); text-shadow: 0 0 10px hsl(var(--neon-toxic) / 0.5); }
+.text-neon-warning { color: hsl(var(--warning)); text-shadow: 0 0 10px hsl(var(--warning) / 0.5); }
+.text-neon-danger { color: hsl(var(--destructive)); text-shadow: 0 0 10px hsl(var(--destructive) / 0.5); }
+.text-neon-success { color: hsl(var(--neon-toxic)); text-shadow: 0 0 10px hsl(var(--neon-toxic) / 0.5); }
+.text-neon-ultra { color: hsl(var(--neon-ultra)); text-shadow: 0 0 10px hsl(var(--neon-ultra) / 0.5); }
 
-.text-neon-warning {
-  color: hsl(38 90% 60%);
-  text-shadow: 0 0 10px hsl(38 90% 60% / 0.4);
-}
-
-.text-neon-danger {
-  color: hsl(0 70% 60%);
-  text-shadow: 0 0 10px hsl(0 70% 60% / 0.4);
-}
-
-.text-neon-success {
-  color: hsl(155 70% 50%);
-  text-shadow: 0 0 10px hsl(155 70% 50% / 0.4);
-}
-
-/* HUD badge */
 .hud-badge {
-  background: hsl(174 65% 42% / 0.12);
-  border: 1px solid hsl(174 65% 42% / 0.25);
-  color: hsl(174 80% 60%);
+  background: hsl(var(--neon-toxic) / 0.12);
+  border: 1px solid hsl(var(--neon-toxic) / 0.3);
+  color: hsl(var(--neon-toxic));
   font-size: 0.65rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
+  font-weight: 700;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   padding: 0.15rem 0.5rem;
-  border-radius: 0.5rem;
+  border-radius: 0;
 }
 
-/* HUD progress bar */
 .hud-progress {
-  height: 3px;
-  background: hsl(220 25% 20%);
-  border-radius: 2px;
+  height: 4px;
+  background: hsl(0 0% 100% / 0.06);
   overflow: hidden;
   position: relative;
 }
 
 .hud-progress-bar {
   height: 100%;
-  border-radius: 2px;
   transition: width 0.5s ease;
-  position: relative;
+  background: hsl(var(--neon-toxic));
+  box-shadow: 0 0 8px hsl(var(--neon-toxic) / 0.6);
 }
 
-.hud-progress-bar::after {
-  content: '';
-  position: absolute;
-  right: 0;
-  top: -1px;
-  bottom: -1px;
-  width: 6px;
-  border-radius: 3px;
-  background: inherit;
-  box-shadow: 0 0 8px currentColor;
-}
-
-/* HUD stat box */
 .hud-stat {
-  background: hsl(220 25% 10% / 0.6);
-  border: 1px solid hsl(174 65% 42% / 0.1);
-  border-radius: 0.75rem;
+  background: hsl(0 0% 4% / 0.7);
+  border: 1px solid hsl(var(--neon-toxic) / 0.15);
   padding: 0.75rem;
   text-align: center;
 }
 
 .hud-stat-value {
   font-size: 1.25rem;
-  font-weight: 700;
+  font-weight: 900;
+  font-style: italic;
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
+  letter-spacing: -0.02em;
 }
 
 .hud-stat-label {
+  font-family: 'Space Mono', monospace;
   font-size: 0.6rem;
-  color: hsl(210 15% 50%);
+  color: hsl(var(--muted-foreground));
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.12em;
   margin-top: 0.25rem;
 }
 
-/* Scan-line animation overlay */
 @keyframes hud-scan {
   0% { transform: translateY(-100%); }
   100% { transform: translateY(100vh); }
@@ -730,13 +683,12 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent, hsl(174 65% 42% / 0.15), transparent);
+  background: linear-gradient(90deg, transparent, hsl(var(--neon-toxic) / 0.3), transparent);
   animation: hud-scan 8s linear infinite;
   pointer-events: none;
   z-index: 2;
 }
 
-/* Neon pulse animation */
 @keyframes neon-pulse {
   0%, 100% { opacity: 0.7; }
   50% { opacity: 1; }
@@ -746,68 +698,64 @@
   animation: neon-pulse 2s ease-in-out infinite;
 }
 
-/* HUD header */
 .hud-header {
-  border-bottom: 1px solid hsl(174 65% 42% / 0.12);
+  border-bottom: 1px solid hsl(var(--neon-toxic) / 0.2);
   padding-bottom: 1rem;
 }
 
 .hud-header h1 {
-  color: hsl(210 20% 92%);
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  color: hsl(var(--foreground));
+  font-weight: 900;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
 }
 
 .hud-header p {
-  color: hsl(210 15% 50%);
+  color: hsl(var(--muted-foreground));
+  font-family: 'Space Mono', monospace;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
 }
 
-/* HUD button */
 .hud-btn {
-  background: hsl(174 65% 42% / 0.15);
-  border: 1px solid hsl(174 65% 42% / 0.3);
-  color: hsl(174 80% 60%);
-  transition: all 0.2s ease;
+  background: hsl(var(--neon-toxic) / 0.15);
+  border: 1px solid hsl(var(--neon-toxic) / 0.4);
+  color: hsl(var(--neon-toxic));
+  text-transform: uppercase;
+  font-weight: 700;
+  font-style: italic;
+  letter-spacing: 0.05em;
+  transition: all 0.15s ease;
 }
 
 .hud-btn:hover {
-  background: hsl(174 65% 42% / 0.25);
-  border-color: hsl(174 65% 42% / 0.5);
-  box-shadow: 0 0 15px hsl(174 65% 42% / 0.15);
+  background: hsl(var(--neon-toxic) / 0.25);
+  border-color: hsl(var(--neon-toxic));
+  box-shadow: 0 0 15px hsl(var(--neon-toxic) / 0.3);
 }
 
-/* HUD section label */
 .hud-section-label {
-  font-size: 0.6rem;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.65rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: hsl(174 65% 42% / 0.6);
+  color: hsl(var(--neon-toxic) / 0.7);
   padding-left: 0.25rem;
 }
 
-/* HUD chart container */
 .hud-chart-container {
-  background: hsl(220 25% 10% / 0.5);
-  border: 1px solid hsl(174 65% 42% / 0.1);
-  border-radius: 1rem;
+  background: hsl(0 0% 4% / 0.6);
+  border: 1px solid hsl(var(--neon-toxic) / 0.15);
   padding: 1rem;
 }
 
-/* Override scrollbar for HUD */
-.tracker-hud ::-webkit-scrollbar-track {
-  background: hsl(220 25% 15% / 0.5);
-}
+.tracker-hud ::-webkit-scrollbar-track { background: hsl(0 0% 8% / 0.5); }
+.tracker-hud ::-webkit-scrollbar-thumb { background: hsl(var(--neon-toxic) / 0.4); }
+.tracker-hud ::-webkit-scrollbar-thumb:hover { background: hsl(var(--neon-toxic) / 0.6); }
 
-.tracker-hud ::-webkit-scrollbar-thumb {
-  background: hsl(174 65% 42% / 0.3);
-}
-
-.tracker-hud ::-webkit-scrollbar-thumb:hover {
-  background: hsl(174 65% 42% / 0.5);
-}
-
-/* HUD empty state */
 .hud-empty-state {
   display: flex;
   flex-direction: column;
@@ -815,10 +763,57 @@
   justify-content: center;
   text-align: center;
   padding: 4rem 1.5rem;
-  color: hsl(210 15% 50%);
+  color: hsl(var(--muted-foreground));
 }
 
 .hud-empty-state svg {
-  color: hsl(174 65% 42% / 0.3);
+  color: hsl(var(--neon-toxic) / 0.4);
   margin-bottom: 1rem;
 }
+
+/* ========================================
+   ARCADE OVERDRIVE — Reusable utilities
+   ======================================== */
+
+.tactile {
+  box-shadow: 4px 4px 0 0 hsl(var(--neon-ultra));
+  transition: box-shadow 0.1s ease, transform 0.1s ease;
+}
+.tactile:hover { box-shadow: 2px 2px 0 0 hsl(var(--neon-ultra)); transform: translate(2px, 2px); }
+.tactile:active { box-shadow: 0 0 0 0 hsl(var(--neon-ultra)); transform: translate(4px, 4px); }
+
+.tactile-toxic {
+  box-shadow: 4px 4px 0 0 hsl(var(--neon-toxic));
+  transition: box-shadow 0.1s ease, transform 0.1s ease;
+}
+.tactile-toxic:hover { box-shadow: 2px 2px 0 0 hsl(var(--neon-toxic)); transform: translate(2px, 2px); }
+
+.mono-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.display-headline {
+  font-family: 'Inter Tight', sans-serif;
+  font-weight: 900;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+}
+
+.glow-toxic { text-shadow: 0 0 16px hsl(var(--neon-toxic) / 0.6); }
+.glow-ultra { text-shadow: 0 0 16px hsl(var(--neon-ultra) / 0.6); }
+
+.directive-box {
+  border: 2px solid hsl(var(--neon-toxic));
+  background: hsl(0 0% 4%);
+  box-shadow: 0 0 30px hsl(var(--neon-toxic) / 0.2);
+}
+
+/* Scanline can be disabled by adding .no-scanline to body */
+body.no-scanline::before { display: none !important; }
+
