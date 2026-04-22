@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import { isPreviewHost, maybeForcePublishedPwaRefresh } from "@/lib/pwaRefresh";
 
 const isInIframe = (() => {
   try {
@@ -11,8 +12,8 @@ const isInIframe = (() => {
   }
 })();
 
-const isPreviewHost = window.location.hostname.includes("id-preview--") || window.location.hostname.includes("lovableproject.com");
-const shouldDisableServiceWorker = isInIframe || isPreviewHost;
+const previewHost = isPreviewHost();
+const shouldDisableServiceWorker = isInIframe || previewHost;
 
 if (shouldDisableServiceWorker && "serviceWorker" in navigator) {
   const originalRegister = navigator.serviceWorker.register.bind(navigator.serviceWorker);
@@ -32,6 +33,8 @@ if (shouldDisableServiceWorker && "serviceWorker" in navigator) {
       window.location.reload();
     }
   });
+} else {
+  void maybeForcePublishedPwaRefresh();
 }
 
 createRoot(document.getElementById("root")!).render(

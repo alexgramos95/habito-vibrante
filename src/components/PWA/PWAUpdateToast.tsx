@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n/I18nContext";
 import { PWA_COPY } from "@/config/copy";
 import { cn } from "@/lib/utils";
+import { forceRefreshToLatest } from "@/lib/pwaRefresh";
 
 interface PWAUpdateToastProps {
   onUpdate: () => void;
@@ -125,19 +126,7 @@ export const usePWAUpdate = () => {
   }, []);
 
   const applyUpdate = () => {
-    if (waitingWorker) {
-      // Send skip waiting message to the waiting service worker
-      waitingWorker.postMessage({ type: "SKIP_WAITING" });
-      
-      // Force reload after a short delay to ensure the new SW takes over
-      // This is a fallback in case controllerchange doesn't fire properly
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
-    } else {
-      // No waiting worker, just reload to get the latest version
-      window.location.reload();
-    }
+    void forceRefreshToLatest(waitingWorker);
   };
 
   const dismissUpdate = () => {
