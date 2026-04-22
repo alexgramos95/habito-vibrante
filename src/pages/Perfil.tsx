@@ -4,7 +4,8 @@ import { useNavigate } from "react-router-dom";
 import {
   Globe, Sun, Moon, Trophy, Target, Star, TrendingUp,
   PiggyBank, Trash2, AlertTriangle, User, Crown, Copy,
-  LogOut, FileText, Shield, Mail, HelpCircle, UserPlus, Camera, ExternalLink, Download
+  LogOut, FileText, Shield, Mail, HelpCircle, UserPlus, Camera, ExternalLink, Download,
+  Bell, BellRing, KeyRound
 } from "lucide-react";
 import { Navigation } from "@/components/Layout/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,6 +33,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { OperatorHero } from "@/components/Profile/OperatorHero";
 import { getHabitFeedbackEnabled, setHabitFeedbackEnabled } from "@/logic/habitFeedback";
 import { Sparkles } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { supabase } from "@/integrations/supabase/client";
 
 const Perfil = () => {
   const { toast } = useToast();
@@ -50,6 +54,53 @@ const Perfil = () => {
     catch { return 'moderate'; }
   });
   const [habitFeedback, setHabitFeedback] = useState<boolean>(() => getHabitFeedbackEnabled());
+
+  // Notifications
+  const {
+    isSupported: isNotifSupported,
+    isPushSupported,
+    permission: notifPermission,
+    mode: notifMode,
+    requestPermission: requestNotifPermission,
+    subscribeToPush,
+    getStatusText: getNotifStatusText,
+  } = usePushNotifications(user?.id);
+  const [isEnablingNotif, setIsEnablingNotif] = useState(false);
+
+  const handleEnableNotifications = async () => {
+    setIsEnablingNotif(true);
+    try {
+      const perm = await requestNotifPermission();
+      if (perm === 'granted' && isPushSupported && user?.id) {
+        await subscribeToPush();
+      }
+    } finally {
+      setIsEnablingNotif(false);
+    }
+  };
+
+  // Password change
+  const [newPassword, setNewPassword] = useState("");
+  const [isChangingPwd, setIsChangingPwd] = useState(false);
+
+  const handleChangePassword = async () => {
+    if (newPassword.length < 8) return;
+    setIsChangingPwd(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      toast({ title: locale === 'pt-PT' ? 'Palavra-passe atualizada' : 'Password updated' });
+      setNewPassword("");
+    } catch (e: any) {
+      toast({
+        title: locale === 'pt-PT' ? 'Erro ao atualizar' : 'Update failed',
+        description: e?.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsChangingPwd(false);
+    }
+  };
 
   const getDisplayName = () => {
     if (!user) return locale === 'pt-PT' ? 'Visitante' : 'Guest';
@@ -198,28 +249,93 @@ const Perfil = () => {
         </div>
 
         {/* ═══ Settings ═══ */}
-        <div className="rounded-2xl border border-border/30 bg-card/50 p-4 space-y-3">
+        <div className="rounded-2xl border border-border/30 bg-card/50 p-4 space-y-4">
           <Label className="text-sm font-semibold">{t.settings.title}</Label>
-          <div className="space-y-3">
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">{t.profile.language}</Label>
-              <Select value={locale} onValueChange={v => setLocale(v as Locale)}>
-                <SelectTrigger className="max-w-xs"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {Object.entries(localeNames).map(([code, name]) => <SelectItem key={code} value={code}>{name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">{t.profile.currency}</Label>
-              <Select value={currency} onValueChange={v => setCurrency(v as Currency)}>
-                <SelectTrigger className="max-w-xs"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {Object.entries(currencyNames).map(([code, names]) => <SelectItem key={code} value={code}>{names[locale]}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">{t.profile.language}</Label>
+            <Select value={locale} onValueChange={v => setLocale(v as Locale)}>
+              <SelectTrigger className="max-w-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {Object.entries(localeNames).map(([code, name]) => <SelectItem key={code} value={code}>{name}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">{t.profile.currency}</Label>
+            <Select value={currency} onValueChange={v => setCurrency(v as Currency)}>
+              <SelectTrigger className="max-w-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {Object.entries(currencyNames).map(([code, names]) => <SelectItem key={code} value={code}>{names[locale]}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Notifications */}
+          <div className="space-y-2 pt-3 border-t border-border/20">
+            <div className="flex items-center gap-2">
+              <Bell className="h-3.5 w-3.5 text-primary" />
+              <Label className="text-xs text-muted-foreground">
+                {locale === 'pt-PT' ? 'Notificações' : 'Notifications'}
+              </Label>
+            </div>
+            {notifPermission === 'granted' && (notifMode === 'background' || notifMode === 'in-app') ? (
+              <div className="flex items-center gap-2 text-xs text-success">
+                <BellRing className="h-3.5 w-3.5" />
+                <span>{getNotifStatusText()}</span>
+              </div>
+            ) : notifPermission === 'denied' ? (
+              <p className="text-xs text-destructive">
+                {locale === 'pt-PT'
+                  ? 'Notificações bloqueadas. Ativa nas definições do navegador.'
+                  : 'Notifications blocked. Enable in your browser settings.'}
+              </p>
+            ) : (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleEnableNotifications}
+                disabled={isEnablingNotif || !isNotifSupported}
+                className="w-full gap-2 h-9"
+              >
+                <Bell className="h-3.5 w-3.5" />
+                {isEnablingNotif
+                  ? (locale === 'pt-PT' ? 'A ativar...' : 'Enabling...')
+                  : (locale === 'pt-PT' ? 'Ativar notificações' : 'Enable notifications')}
+              </Button>
+            )}
+          </div>
+
+          {/* Password change */}
+          {isAuthenticated && (
+            <div className="space-y-2 pt-3 border-t border-border/20">
+              <div className="flex items-center gap-2">
+                <KeyRound className="h-3.5 w-3.5 text-primary" />
+                <Label className="text-xs text-muted-foreground">
+                  {locale === 'pt-PT' ? 'Alterar palavra-passe' : 'Change password'}
+                </Label>
+              </div>
+              <Input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder={locale === 'pt-PT' ? 'Nova palavra-passe (mín. 8)' : 'New password (min. 8)'}
+                className="h-9"
+                autoComplete="new-password"
+              />
+              <Button
+                size="sm"
+                onClick={handleChangePassword}
+                disabled={isChangingPwd || newPassword.length < 8}
+                className="w-full h-9"
+              >
+                {isChangingPwd
+                  ? (locale === 'pt-PT' ? 'A guardar...' : 'Saving...')
+                  : (locale === 'pt-PT' ? 'Atualizar palavra-passe' : 'Update password')}
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* ═══ Invite ═══ */}
