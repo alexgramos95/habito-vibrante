@@ -4,8 +4,7 @@ import { useNavigate } from "react-router-dom";
 import {
   Globe, Sun, Moon, Trophy, Target, Star, TrendingUp,
   PiggyBank, Trash2, AlertTriangle, User, Crown, Copy,
-  LogOut, FileText, Shield, Mail, HelpCircle, UserPlus, Settings,
-  Camera, ExternalLink, Download
+  LogOut, FileText, Shield, Mail, HelpCircle, UserPlus, Camera, ExternalLink, Download
 } from "lucide-react";
 import { Navigation } from "@/components/Layout/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -116,11 +115,6 @@ const Perfil = () => {
         <OperatorHero locale={locale} level={levelProgress.current} activeHabits={activeHabits} />
 
 
-        <div className="flex justify-end">
-          <Button size="sm" variant="outline" className="gap-1.5 rounded-xl h-9" onClick={() => navigate('/app/settings')}>
-            <Settings className="h-3.5 w-3.5" /> {locale === 'pt-PT' ? 'Definições' : 'Settings'}
-          </Button>
-        </div>
 
         {!isAuthenticated && (
           <Button className="w-full gap-2" onClick={() => navigate('/auth')}>
