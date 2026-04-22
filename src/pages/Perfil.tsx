@@ -467,7 +467,7 @@ const Perfil = () => {
         </div>
       </main>
 
-      <ResetAppDialog open={showResetDialog} onOpenChange={setShowResetDialog} onConfirm={handleResetAllData} isLoading={isResetting} />
+      <ResetAppDialog open={showResetDialog} onOpenChange={setShowResetDialog} onConfirm={handleResetAllData} isLoading={isResetting} locale={locale} />
       <PaywallModal open={showPaywall} onClose={() => setShowPaywall(false)} onUpgrade={upgradeToPro} trialDaysLeft={trialStatus.daysRemaining} />
       <ExportDialog open={showExport} onClose={() => setShowExport(false)} isPro={isPro} onShowPaywall={() => setShowPaywall(true)} />
     </div>
