@@ -459,9 +459,9 @@ const Perfil = () => {
             </div>
           )}
           <div className="flex items-center justify-between">
-            <span className="text-sm">{locale === 'pt-PT' ? 'Apagar tudo' : 'Delete all data'}</span>
+            <span className="text-sm">{locale === 'pt-PT' ? 'Reiniciar dados' : 'Reset data'}</span>
             <Button variant="destructive" size="sm" onClick={() => setShowResetDialog(true)} className="gap-1.5 h-8">
-              <Trash2 className="h-3.5 w-3.5" /> {t.actions.reset}
+              <Trash2 className="h-3.5 w-3.5" /> {locale === 'pt-PT' ? 'Selecionar' : 'Select'}
             </Button>
           </div>
         </div>
