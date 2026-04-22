@@ -243,16 +243,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) {
         console.error('[AUTH] Error checking subscription:', error);
-        
-        // Handle invalid/expired token by signing out
+
+        // Handle invalid/expired/revoked token by signing out locally.
+        // Use scope:'local' because the server-side session no longer exists
+        // (a global signOut would 403 and leave the bad token in localStorage).
         const errorBody = await error.context?.json?.().catch(() => null);
         const errorMessage = errorBody?.error || error.message || '';
-        
-        if (errorMessage.includes('Invalid credentials') || 
+
+        if (errorMessage.includes('Invalid credentials') ||
             errorMessage.includes('Authentication required') ||
-            errorMessage.includes('JWT expired')) {
-          console.log('[AUTH] Token invalid/expired, signing out...');
-          await supabase.auth.signOut();
+            errorMessage.includes('JWT expired') ||
+            errorMessage.includes('session_not_found')) {
+          console.log('[AUTH] Token invalid/expired/revoked, signing out locally...');
+          await supabase.auth.signOut({ scope: 'local' });
         }
         return;
       }
