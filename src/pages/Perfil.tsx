@@ -31,6 +31,7 @@ import { TrialBanner } from "@/components/Paywall/TrialBanner";
 import { ExportDialog } from "@/components/Export/ExportDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { ProfileEditor } from "@/components/Profile/ProfileEditor";
+import { OperatorHero } from "@/components/Profile/OperatorHero";
 import { getHabitFeedbackEnabled, setHabitFeedbackEnabled } from "@/logic/habitFeedback";
 import { Sparkles } from "lucide-react";
 
