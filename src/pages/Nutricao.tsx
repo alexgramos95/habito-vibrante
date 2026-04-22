@@ -531,21 +531,16 @@ const Nutricao = () => {
     if (!saved) return null;
     try {
       const parsed = JSON.parse(saved) as WeeklyMealPlan;
-      // Defensive migration: ensure all 7 days (Mon-Sun) are present
-      if (parsed?.days && parsed.days.length < 7 && parsed.weekStart) {
-        const baseStart = new Date(parsed.weekStart);
-        const filled = Array.from({ length: 7 }, (_, i) => {
-          const date = format(addDays(baseStart, i), "yyyy-MM-dd");
-          const existing = parsed.days.find(d => d.date === date);
-          return existing || {
-            date,
-            meals: [],
-            totalMacros: { calories: 0, protein: 0, carbs: 0, fat: 0 },
-          };
-        });
-        return { ...parsed, days: filled };
+      const normalized = normalizeWeeklyPlan(parsed);
+      // Re-persist immediately if normalization changed anything
+      if (normalized) {
+        const before = JSON.stringify(parsed);
+        const after = JSON.stringify(normalized);
+        if (before !== after) {
+          try { localStorage.setItem(STORAGE_KEY_PLAN, after); } catch {}
+        }
       }
-      return parsed;
+      return normalized;
     } catch {
       return null;
     }
