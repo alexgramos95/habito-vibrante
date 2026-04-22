@@ -654,14 +654,14 @@ const Nutricao = () => {
         await new Promise(r => setTimeout(r, 120));
       }
 
-      setPlan({
+      setPlan(normalizeWeeklyPlan({
         id: `plan_${Date.now()}`,
         weekStart: format(weekStart, "yyyy-MM-dd"),
         days,
         profile,
         generatedAt: new Date().toISOString(),
         isCustomized: false,
-      });
+      }));
       setIsGenerating(false);
       setGeneratingProgress("");
       setGeneratingPercent(0);
