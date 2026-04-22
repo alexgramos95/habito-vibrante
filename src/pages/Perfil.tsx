@@ -33,6 +33,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { OperatorHero } from "@/components/Profile/OperatorHero";
 import { getHabitFeedbackEnabled, setHabitFeedbackEnabled } from "@/logic/habitFeedback";
 import { Sparkles } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { supabase } from "@/integrations/supabase/client";
 
 const Perfil = () => {
   const { toast } = useToast();
@@ -51,6 +54,53 @@ const Perfil = () => {
     catch { return 'moderate'; }
   });
   const [habitFeedback, setHabitFeedback] = useState<boolean>(() => getHabitFeedbackEnabled());
+
+  // Notifications
+  const {
+    isSupported: isNotifSupported,
+    isPushSupported,
+    permission: notifPermission,
+    mode: notifMode,
+    requestPermission: requestNotifPermission,
+    subscribeToPush,
+    getStatusText: getNotifStatusText,
+  } = usePushNotifications(user?.id);
+  const [isEnablingNotif, setIsEnablingNotif] = useState(false);
+
+  const handleEnableNotifications = async () => {
+    setIsEnablingNotif(true);
+    try {
+      const perm = await requestNotifPermission();
+      if (perm === 'granted' && isPushSupported && user?.id) {
+        await subscribeToPush();
+      }
+    } finally {
+      setIsEnablingNotif(false);
+    }
+  };
+
+  // Password change
+  const [newPassword, setNewPassword] = useState("");
+  const [isChangingPwd, setIsChangingPwd] = useState(false);
+
+  const handleChangePassword = async () => {
+    if (newPassword.length < 8) return;
+    setIsChangingPwd(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      toast({ title: locale === 'pt-PT' ? 'Palavra-passe atualizada' : 'Password updated' });
+      setNewPassword("");
+    } catch (e: any) {
+      toast({
+        title: locale === 'pt-PT' ? 'Erro ao atualizar' : 'Update failed',
+        description: e?.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsChangingPwd(false);
+    }
+  };
 
   const getDisplayName = () => {
     if (!user) return locale === 'pt-PT' ? 'Visitante' : 'Guest';
