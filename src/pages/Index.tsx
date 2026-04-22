@@ -78,6 +78,7 @@ const Index = () => {
   const [showPaywall, setShowPaywall] = useState(false);
   const [showModeSelector, setShowModeSelector] = useState(false);
   const [selectedMetricId, setSelectedMetricId] = useState<string | null>(null);
+  const [showAllHabits, setShowAllHabits] = useState(false);
 
   // Auth guard
   useEffect(() => {
