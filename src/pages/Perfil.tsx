@@ -43,7 +43,7 @@ const Perfil = () => {
   const navigate = useNavigate();
   const { t, locale, setLocale, currency, setCurrency, formatCurrency } = useI18n();
   const { isAuthenticated, user, signOut } = useAuth();
-  const { state, setState, resetAppData } = useData();
+  const { state, setState, resetAppData, isSyncing } = useData();
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
@@ -132,57 +132,72 @@ const Perfil = () => {
 
   const handleResetAllData = async (scopes: ResetScope[]) => {
     setIsResetting(true);
+    const isPt = locale === 'pt-PT';
     try {
-      const isPt = locale === 'pt-PT';
       const all = scopes.length === 6;
 
       if (all) {
+        // Full reset: clears localStorage + state + uploads empty cloud snapshot.
         await resetAppData();
       } else {
-        // Scoped reset: update in-memory state (auto-persists to localStorage + cloud for PRO).
+        // Scoped reset — atomic sequence:
+        // 1. Clear out-of-AppState localStorage (nutrition).
+        // 2. Update in-memory state (DataContext auto-persists localStorage + cloud).
+        // 3. Wait one microtask so React flushes the new state to all consumers
+        //    (KPIs, habits list, calendar) before we close the dialog.
         if (scopes.includes('nutrition')) {
-          // Nutrition lives outside AppState — clear all known keys (current + legacy).
           NUTRITION_STORAGE_KEYS.forEach((k) => localStorage.removeItem(k));
         }
 
-        setState((prev) => {
-          const next = { ...prev };
-          if (scopes.includes('habits')) {
-            next.habits = [];
-            next.dailyLogs = [];
-          }
-          if (scopes.includes('calendar')) {
-            next.dailyLogs = [];
-            next.trackerEntries = [];
-            next.sleepEntries = [];
-          }
-          if (scopes.includes('shopping')) {
-            next.shoppingItems = [];
-          }
-          if (scopes.includes('reflections')) {
-            next.reflections = [];
-            next.futureSelf = [];
-          }
-          if (scopes.includes('achievements')) {
-            next.gamification = {
-              pontos: 0,
-              nivel: 1,
-              conquistas: [],
-              consistencyScore: 0,
-              currentStreak: 0,
-              bestStreak: 0,
-            };
-          }
-          return next;
+        await new Promise<void>((resolve) => {
+          setState((prev) => {
+            const next = { ...prev };
+            if (scopes.includes('habits')) {
+              next.habits = [];
+              next.dailyLogs = [];
+            }
+            if (scopes.includes('calendar')) {
+              next.dailyLogs = [];
+              next.trackerEntries = [];
+              next.sleepEntries = [];
+            }
+            if (scopes.includes('shopping')) {
+              next.shoppingItems = [];
+            }
+            if (scopes.includes('reflections')) {
+              next.reflections = [];
+              next.futureSelf = [];
+            }
+            if (scopes.includes('achievements')) {
+              next.gamification = {
+                pontos: 0,
+                nivel: 1,
+                conquistas: [],
+                consistencyScore: 0,
+                currentStreak: 0,
+                bestStreak: 0,
+              };
+            }
+            return next;
+          });
+          // Defer until after React commits the state update.
+          queueMicrotask(resolve);
         });
 
         try { window.dispatchEvent(new CustomEvent('become:app-reset')); } catch { /* noop */ }
       }
 
+      // Wait for any pending cloud sync (PRO users) to settle before re-enabling.
+      // Poll isSyncing for up to 5s — non-blocking for FREE users (already false).
+      const start = Date.now();
+      while (isSyncing && Date.now() - start < 5000) {
+        await new Promise((r) => setTimeout(r, 100));
+      }
+
       toast({ title: isPt ? "Dados reiniciados" : "Data reset" });
       setShowResetDialog(false);
     } catch {
-      toast({ title: locale === 'pt-PT' ? "Reinício falhou" : "Reset failed", variant: "destructive" });
+      toast({ title: isPt ? "Reinício falhou" : "Reset failed", variant: "destructive" });
     } finally {
       setIsResetting(false);
     }
@@ -493,10 +508,12 @@ const Perfil = () => {
         counts={{
           habits: state.habits.length + state.dailyLogs.length,
           calendar: state.dailyLogs.length + state.trackerEntries.length + state.sleepEntries.length,
-          nutrition: NUTRITION_STORAGE_KEYS.reduce(
-            (n, k) => n + (localStorage.getItem(k) ? 1 : 0),
-            0,
-          ),
+          nutrition: (() => {
+            let n = 0;
+            ['become_nutrition_profile','become_meal_plan','nutritionProfile','mealPlan','become:nutrition:profile','become:nutrition:plan']
+              .forEach(k => { if (localStorage.getItem(k)) n++; });
+            return n;
+          })(),
           shopping: state.shoppingItems.length,
           reflections: state.reflections.length + state.futureSelf.length,
           achievements: state.gamification.conquistas.length + (state.gamification.pontos > 0 ? 1 : 0),
