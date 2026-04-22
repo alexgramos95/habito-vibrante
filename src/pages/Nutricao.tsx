@@ -35,16 +35,11 @@ import {
 const WEEKDAYS_PT = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
 const WEEKDAYS_EN = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
+import { NUTRITION_STORAGE_KEYS } from "@/data/nutritionStorageKeys";
+
 const STORAGE_KEY_PROFILE = "become_nutrition_profile";
 const STORAGE_KEY_PLAN = "become_meal_plan";
-const LEGACY_NUTRITION_STORAGE_KEYS = [
-  STORAGE_KEY_PROFILE,
-  STORAGE_KEY_PLAN,
-  "nutritionProfile",
-  "mealPlan",
-  "become:nutrition:profile",
-  "become:nutrition:plan",
-];
+const LEGACY_NUTRITION_STORAGE_KEYS = NUTRITION_STORAGE_KEYS;
 
 // ─── Profile Setup Modal ───
 const ProfileSetupModal = ({
