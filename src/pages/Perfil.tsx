@@ -42,7 +42,7 @@ const Perfil = () => {
   const navigate = useNavigate();
   const { t, locale, setLocale, currency, setCurrency, formatCurrency } = useI18n();
   const { isAuthenticated, user, signOut } = useAuth();
-  const { state, resetAppData } = useData();
+  const { state, setState, resetAppData } = useData();
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
@@ -138,37 +138,58 @@ const Perfil = () => {
       if (all) {
         await resetAppData();
       } else {
-        // Scoped reset: mutate localStorage directly, then reload to re-hydrate state.
-        const raw = localStorage.getItem('become-app-data');
-        if (raw) {
-          try {
-            const parsed = JSON.parse(raw);
-            if (scopes.includes('habits')) { parsed.habits = []; parsed.dailyLogs = []; }
-            if (scopes.includes('calendar')) { parsed.dailyLogs = []; parsed.trackerEntries = []; parsed.sleepEntries = []; }
-            if (scopes.includes('nutrition')) {
-              localStorage.removeItem('become_nutrition_profile');
-              localStorage.removeItem('become_meal_plan');
-              localStorage.removeItem('nutritionProfile');
-              localStorage.removeItem('mealPlan');
-              localStorage.removeItem('become:nutrition:profile');
-              localStorage.removeItem('become:nutrition:plan');
-            }
-            if (scopes.includes('shopping')) { parsed.shoppingItems = []; }
-            if (scopes.includes('reflections')) { parsed.reflections = []; parsed.futureSelf = []; }
-            if (scopes.includes('achievements')) {
-              parsed.gamification = { pontos: 0, nivel: 1, conquistas: [], consistencyScore: 0, currentStreak: 0, bestStreak: 0 };
-            }
-            localStorage.setItem('become-app-data', JSON.stringify(parsed));
-          } catch { /* noop */ }
+        // Scoped reset: update in-memory state (auto-persists to localStorage + cloud for PRO).
+        if (scopes.includes('nutrition')) {
+          // Nutrition lives outside AppState — clear its localStorage keys directly.
+          localStorage.removeItem('become_nutrition_profile');
+          localStorage.removeItem('become_meal_plan');
+          localStorage.removeItem('nutritionProfile');
+          localStorage.removeItem('mealPlan');
+          localStorage.removeItem('become:nutrition:profile');
+          localStorage.removeItem('become:nutrition:plan');
         }
+
+        setState((prev) => {
+          const next = { ...prev };
+          if (scopes.includes('habits')) {
+            next.habits = [];
+            next.dailyLogs = [];
+          }
+          if (scopes.includes('calendar')) {
+            next.dailyLogs = [];
+            next.trackerEntries = [];
+            next.sleepEntries = [];
+          }
+          if (scopes.includes('shopping')) {
+            next.shoppingItems = [];
+          }
+          if (scopes.includes('reflections')) {
+            next.reflections = [];
+            next.futureSelf = [];
+          }
+          if (scopes.includes('achievements')) {
+            next.gamification = {
+              pontos: 0,
+              nivel: 1,
+              conquistas: [],
+              consistencyScore: 0,
+              currentStreak: 0,
+              bestStreak: 0,
+            };
+          }
+          return next;
+        });
+
         try { window.dispatchEvent(new CustomEvent('become:app-reset')); } catch { /* noop */ }
       }
 
       toast({ title: isPt ? "Dados reiniciados" : "Data reset" });
-      window.location.reload();
+      setShowResetDialog(false);
     } catch {
       toast({ title: locale === 'pt-PT' ? "Reinício falhou" : "Reset failed", variant: "destructive" });
-    } finally { setIsResetting(false); setShowResetDialog(false); }
+    } finally {
+      setIsResetting(false);
+    }
   };
 
   const levelProgress = getLevelProgress(state.gamification.pontos);
