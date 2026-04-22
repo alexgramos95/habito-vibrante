@@ -50,6 +50,19 @@ export const ResetAppDialog = ({
 }: ResetAppDialogProps) => {
   const isPt = locale === "pt-PT";
   const [selected, setSelected] = useState<Set<ResetScope>>(new Set());
+  const [step, setStep] = useState<"select" | "confirm">("select");
+  const [confirmText, setConfirmText] = useState("");
+
+  const confirmKeyword = isPt ? "REINICIAR" : "RESET";
+
+  // Reset internal state whenever the dialog is closed.
+  useEffect(() => {
+    if (!open) {
+      setSelected(new Set());
+      setStep("select");
+      setConfirmText("");
+    }
+  }, [open]);
 
   const toggle = (id: ResetScope) => {
     setSelected((prev) => {
@@ -67,14 +80,22 @@ export const ResetAppDialog = ({
     else setSelected(new Set(allIds));
   };
 
-  const handleConfirm = () => {
+  const goToConfirm = () => {
     if (selected.size === 0) return;
+    setStep("confirm");
+  };
+
+  const handleFinalConfirm = () => {
+    if (selected.size === 0) return;
+    if (confirmText.trim().toUpperCase() !== confirmKeyword) return;
     onConfirm(Array.from(selected));
   };
 
   const totalToDelete = counts
     ? Array.from(selected).reduce((sum, id) => sum + (counts[id] ?? 0), 0)
     : 0;
+
+  const selectedScopes = SCOPES.filter((s) => selected.has(s.id));
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
