@@ -31,6 +31,7 @@ import { TrialBanner } from "@/components/Paywall/TrialBanner";
 import { ExportDialog } from "@/components/Export/ExportDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { ProfileEditor } from "@/components/Profile/ProfileEditor";
+import { OperatorHero } from "@/components/Profile/OperatorHero";
 import { getHabitFeedbackEnabled, setHabitFeedbackEnabled } from "@/logic/habitFeedback";
 import { Sparkles } from "lucide-react";
 
@@ -113,28 +114,8 @@ const Perfil = () => {
         )}
 
         {/* ═══ Operator Hero ═══ */}
-        <div className="border-2 border-primary/40 bg-card shadow-[4px_4px_0_0_hsl(var(--neon-ultra)/0.4)] p-5">
-          <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mb-3">
-            // OPERADOR
-          </p>
-          <div className="flex items-center gap-4">
-            <div className="h-14 w-14 bg-primary/15 border-2 border-primary flex items-center justify-center font-black italic uppercase tracking-tighter text-2xl text-primary shrink-0 shadow-[2px_2px_0_0_hsl(var(--neon-ultra))]">
-              {displayName[0]?.toUpperCase() || 'G'}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-black italic uppercase tracking-tighter text-xl text-foreground truncate">{displayName}</p>
-              <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground/70 truncate">{displayEmail}</p>
-              <div className="flex items-center gap-3 mt-2">
-                <span className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider text-primary">
-                  <Star className="h-3 w-3" /> LV.{levelProgress.current}
-                </span>
-                <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                  {activeHabits} ATIVOS
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
+        <OperatorHero locale={locale} level={levelProgress.current} activeHabits={activeHabits} />
+
 
         {/* ═══ Page Header ═══ */}
         <div className="flex items-center justify-between">
