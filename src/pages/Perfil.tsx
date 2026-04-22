@@ -137,17 +137,17 @@ const Perfil = () => {
         </div>
 
         {/* ═══ Page Header ═══ */}
-        <div>
-          <h1 className="text-xl font-bold text-foreground">{t.profile.title}</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">{t.app.tagline}</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-foreground">{t.profile.title}</h1>
+            <p className="text-xs text-muted-foreground mt-0.5">{t.app.tagline}</p>
+          </div>
+          <Button size="sm" variant="outline" className="gap-1.5 rounded-xl h-9" onClick={() => navigate('/app/settings')}>
+            <Settings className="h-3.5 w-3.5" /> {locale === 'pt-PT' ? 'Definições' : 'Settings'}
+          </Button>
         </div>
 
-        {/* ═══ Account Card ═══ */}
-        {isAuthenticated ? (
-          <div className="rounded-2xl border border-border/30 bg-card/50 p-4">
-            <ProfileEditor locale={locale} />
-          </div>
-        ) : (
+        {!isAuthenticated && (
           <Button className="w-full gap-2" onClick={() => navigate('/auth')}>
             <User className="h-4 w-4" /> {locale === 'pt-PT' ? 'Entrar / Criar conta' : 'Sign in / Create account'}
           </Button>
