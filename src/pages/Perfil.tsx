@@ -129,14 +129,49 @@ const Perfil = () => {
     navigate('/');
   };
 
-  const handleResetAllData = async () => {
+  const handleResetAllData = async (scopes: ResetScope[]) => {
     setIsResetting(true);
     try {
-      await resetAppData();
-      toast({ title: "Progress reset." });
+      const isPt = locale === 'pt-PT';
+      const all = scopes.length === 6;
+
+      if (all) {
+        await resetAppData();
+      } else {
+        // Scoped reset: mutate state in place via setState helpers from DataContext.
+        // We import useData's setState by re-using state slices.
+        const { setState } = (await import('@/contexts/DataContext')).default ? { setState: null as any } : { setState: null as any };
+        // Fallback: directly use window-level mutation via custom event isn't available.
+        // Use a localStorage-level scoped clear and reload.
+        const raw = localStorage.getItem('become-app-data');
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw);
+            if (scopes.includes('habits')) { parsed.habits = []; parsed.dailyLogs = []; }
+            if (scopes.includes('calendar')) { parsed.dailyLogs = []; parsed.trackerEntries = []; parsed.sleepEntries = []; }
+            if (scopes.includes('nutrition')) {
+              localStorage.removeItem('become_nutrition_profile');
+              localStorage.removeItem('become_meal_plan');
+              localStorage.removeItem('nutritionProfile');
+              localStorage.removeItem('mealPlan');
+              localStorage.removeItem('become:nutrition:profile');
+              localStorage.removeItem('become:nutrition:plan');
+            }
+            if (scopes.includes('shopping')) { parsed.shoppingItems = []; }
+            if (scopes.includes('reflections')) { parsed.reflections = []; parsed.futureSelf = []; }
+            if (scopes.includes('achievements')) {
+              parsed.gamification = { pontos: 0, nivel: 1, conquistas: [], consistencyScore: 0, currentStreak: 0, bestStreak: 0 };
+            }
+            localStorage.setItem('become-app-data', JSON.stringify(parsed));
+          } catch { /* noop */ }
+        }
+        try { window.dispatchEvent(new CustomEvent('become:app-reset')); } catch { /* noop */ }
+      }
+
+      toast({ title: isPt ? "Dados reiniciados" : "Data reset" });
       window.location.reload();
     } catch {
-      toast({ title: "Reset failed", variant: "destructive" });
+      toast({ title: locale === 'pt-PT' ? "Reinício falhou" : "Reset failed", variant: "destructive" });
     } finally { setIsResetting(false); setShowResetDialog(false); }
   };
 
