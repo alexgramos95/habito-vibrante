@@ -2,6 +2,7 @@ import { useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { loadState, saveState } from '@/data/storage';
 import type { AppState } from '@/data/types';
+import { isRecoverableAuthError, recoverInvalidSession } from '@/lib/authSessionRecovery';
 
 const SYNC_KEY = 'become-last-sync';
 
@@ -38,18 +39,9 @@ export const useDataSync = () => {
         // out globally on another tab/origin and this client kept the JWT).
         const errBody = await error.context?.json?.().catch(() => null);
         const errMsg = (errBody?.error || error.message || '').toString();
-        if (
-          errMsg.includes('Invalid credentials') ||
-          errMsg.includes('Authentication required') ||
-          errMsg.includes('JWT expired') ||
-          errMsg.includes('session_not_found')
-        ) {
+        if (isRecoverableAuthError(errMsg)) {
           console.warn('[SYNC] Stale/revoked session detected — signing out locally');
-          try {
-            await supabase.auth.signOut({ scope: 'local' });
-          } catch (signOutErr) {
-            console.error('[SYNC] Local sign-out failed:', signOutErr);
-          }
+          await recoverInvalidSession('sync-download');
         }
         return false;
       }
@@ -123,6 +115,12 @@ export const useDataSync = () => {
 
       if (error) {
         console.error('[SYNC] Upload error:', error);
+        const errBody = await error.context?.json?.().catch(() => null);
+        const errMsg = (errBody?.error || error.message || '').toString();
+        if (isRecoverableAuthError(errMsg)) {
+          console.warn('[SYNC] Invalid session detected during upload — clearing local auth state');
+          await recoverInvalidSession('sync-upload');
+        }
         return false;
       }
 
