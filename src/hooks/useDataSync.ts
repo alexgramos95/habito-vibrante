@@ -33,6 +33,24 @@ export const useDataSync = () => {
 
       if (error) {
         console.error('[SYNC] Download error:', error);
+        // Detect revoked/invalid session and force local sign-out so the
+        // app stops looping with a stale token (typical when the user signed
+        // out globally on another tab/origin and this client kept the JWT).
+        const errBody = await error.context?.json?.().catch(() => null);
+        const errMsg = (errBody?.error || error.message || '').toString();
+        if (
+          errMsg.includes('Invalid credentials') ||
+          errMsg.includes('Authentication required') ||
+          errMsg.includes('JWT expired') ||
+          errMsg.includes('session_not_found')
+        ) {
+          console.warn('[SYNC] Stale/revoked session detected — signing out locally');
+          try {
+            await supabase.auth.signOut({ scope: 'local' });
+          } catch (signOutErr) {
+            console.error('[SYNC] Local sign-out failed:', signOutErr);
+          }
+        }
         return false;
       }
 
