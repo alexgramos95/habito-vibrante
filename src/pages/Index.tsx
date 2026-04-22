@@ -106,6 +106,15 @@ const Index = () => {
   const sortedTodaySimple = useMemo(() => getHabitsSortedForDay(todaySimple, dayOfWeek), [todaySimple, dayOfWeek]);
   const activeMetrics = useMemo(() => metricHabits.filter(h => h.active), [metricHabits]);
 
+  // Habits that exist but are NOT scheduled for today (so they are invisible above)
+  const otherHabits = useMemo(() => {
+    const todayIds = new Set([
+      ...sortedTodaySimple.map(h => h.id),
+      ...activeMetrics.map(h => h.id),
+    ]);
+    return state.habits.filter(h => !todayIds.has(h.id));
+  }, [state.habits, sortedTodaySimple, activeMetrics]);
+
   const FREE_LIMIT = 3;
   const canAddSimple = isPro || simpleHabits.length < FREE_LIMIT;
   const canAddMetric = isPro;
