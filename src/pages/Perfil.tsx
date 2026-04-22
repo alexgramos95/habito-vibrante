@@ -4,7 +4,8 @@ import { useNavigate } from "react-router-dom";
 import {
   Globe, Sun, Moon, Trophy, Target, Star, TrendingUp,
   PiggyBank, Trash2, AlertTriangle, User, Crown, Copy,
-  LogOut, FileText, Shield, Mail, HelpCircle, UserPlus, Camera, ExternalLink, Download
+  LogOut, FileText, Shield, Mail, HelpCircle, UserPlus, Camera, ExternalLink, Download,
+  Bell, BellRing, KeyRound
 } from "lucide-react";
 import { Navigation } from "@/components/Layout/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -198,28 +199,93 @@ const Perfil = () => {
         </div>
 
         {/* ═══ Settings ═══ */}
-        <div className="rounded-2xl border border-border/30 bg-card/50 p-4 space-y-3">
+        <div className="rounded-2xl border border-border/30 bg-card/50 p-4 space-y-4">
           <Label className="text-sm font-semibold">{t.settings.title}</Label>
-          <div className="space-y-3">
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">{t.profile.language}</Label>
-              <Select value={locale} onValueChange={v => setLocale(v as Locale)}>
-                <SelectTrigger className="max-w-xs"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {Object.entries(localeNames).map(([code, name]) => <SelectItem key={code} value={code}>{name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">{t.profile.currency}</Label>
-              <Select value={currency} onValueChange={v => setCurrency(v as Currency)}>
-                <SelectTrigger className="max-w-xs"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {Object.entries(currencyNames).map(([code, names]) => <SelectItem key={code} value={code}>{names[locale]}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">{t.profile.language}</Label>
+            <Select value={locale} onValueChange={v => setLocale(v as Locale)}>
+              <SelectTrigger className="max-w-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {Object.entries(localeNames).map(([code, name]) => <SelectItem key={code} value={code}>{name}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">{t.profile.currency}</Label>
+            <Select value={currency} onValueChange={v => setCurrency(v as Currency)}>
+              <SelectTrigger className="max-w-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {Object.entries(currencyNames).map(([code, names]) => <SelectItem key={code} value={code}>{names[locale]}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Notifications */}
+          <div className="space-y-2 pt-3 border-t border-border/20">
+            <div className="flex items-center gap-2">
+              <Bell className="h-3.5 w-3.5 text-primary" />
+              <Label className="text-xs text-muted-foreground">
+                {locale === 'pt-PT' ? 'Notificações' : 'Notifications'}
+              </Label>
+            </div>
+            {notifPermission === 'granted' && (notifMode === 'background' || notifMode === 'in-app') ? (
+              <div className="flex items-center gap-2 text-xs text-success">
+                <BellRing className="h-3.5 w-3.5" />
+                <span>{getNotifStatusText()}</span>
+              </div>
+            ) : notifPermission === 'denied' ? (
+              <p className="text-xs text-destructive">
+                {locale === 'pt-PT'
+                  ? 'Notificações bloqueadas. Ativa nas definições do navegador.'
+                  : 'Notifications blocked. Enable in your browser settings.'}
+              </p>
+            ) : (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleEnableNotifications}
+                disabled={isEnablingNotif || !isNotifSupported}
+                className="w-full gap-2 h-9"
+              >
+                <Bell className="h-3.5 w-3.5" />
+                {isEnablingNotif
+                  ? (locale === 'pt-PT' ? 'A ativar...' : 'Enabling...')
+                  : (locale === 'pt-PT' ? 'Ativar notificações' : 'Enable notifications')}
+              </Button>
+            )}
+          </div>
+
+          {/* Password change */}
+          {isAuthenticated && (
+            <div className="space-y-2 pt-3 border-t border-border/20">
+              <div className="flex items-center gap-2">
+                <KeyRound className="h-3.5 w-3.5 text-primary" />
+                <Label className="text-xs text-muted-foreground">
+                  {locale === 'pt-PT' ? 'Alterar palavra-passe' : 'Change password'}
+                </Label>
+              </div>
+              <Input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder={locale === 'pt-PT' ? 'Nova palavra-passe (mín. 8)' : 'New password (min. 8)'}
+                className="h-9"
+                autoComplete="new-password"
+              />
+              <Button
+                size="sm"
+                onClick={handleChangePassword}
+                disabled={isChangingPwd || newPassword.length < 8}
+                className="w-full h-9"
+              >
+                {isChangingPwd
+                  ? (locale === 'pt-PT' ? 'A guardar...' : 'Saving...')
+                  : (locale === 'pt-PT' ? 'Atualizar palavra-passe' : 'Update password')}
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* ═══ Invite ═══ */}
