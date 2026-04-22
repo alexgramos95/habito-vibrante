@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Globe, RotateCcw, Trash2, Coins, ArrowLeft } from "lucide-react";
+import { Globe, RotateCcw, Trash2, Coins, ArrowLeft, Bell } from "lucide-react";
+import { NotificationSetup } from "@/components/Habits/NotificationSetup";
 import { useI18n } from "@/i18n/I18nContext";
 import { localeNames, currencyNames, type Locale, type Currency } from "@/i18n";
 import { resetMonth } from "@/data/storage";
@@ -90,6 +91,22 @@ const Definicoes = () => {
               ))}
             </SelectContent>
           </Select>
+        </div>
+
+        {/* Notifications */}
+        <div className="rounded-2xl border border-border/30 bg-card/50 p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <Bell className="h-4 w-4 text-primary" />
+            <Label className="text-sm font-semibold">
+              {locale === 'pt-PT' ? 'Notificações' : 'Notifications'}
+            </Label>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {locale === 'pt-PT'
+              ? 'Recebe lembretes para os teus hábitos à hora agendada.'
+              : 'Get reminders for your habits at their scheduled time.'}
+          </p>
+          <NotificationSetup />
         </div>
 
         {/* Reset Data */}
