@@ -27,6 +27,7 @@ interface ResetAppDialogProps {
   onConfirm: (scopes: ResetScope[]) => void;
   isLoading?: boolean;
   locale?: string;
+  counts?: Record<ResetScope, number>;
 }
 
 const SCOPES: { id: ResetScope; pt: string; en: string; descPt: string; descEn: string }[] = [
@@ -44,6 +45,7 @@ export const ResetAppDialog = ({
   onConfirm,
   isLoading = false,
   locale = "pt-PT",
+  counts,
 }: ResetAppDialogProps) => {
   const isPt = locale === "pt-PT";
   const [selected, setSelected] = useState<Set<ResetScope>>(new Set());
@@ -68,6 +70,10 @@ export const ResetAppDialog = ({
     if (selected.size === 0) return;
     onConfirm(Array.from(selected));
   };
+
+  const totalToDelete = counts
+    ? Array.from(selected).reduce((sum, id) => sum + (counts[id] ?? 0), 0)
+    : 0;
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -97,6 +103,7 @@ export const ResetAppDialog = ({
 
           {SCOPES.map((scope) => {
             const checked = selected.has(scope.id);
+            const count = counts?.[scope.id] ?? 0;
             return (
               <label
                 key={scope.id}
@@ -111,7 +118,14 @@ export const ResetAppDialog = ({
                   className="mt-0.5"
                 />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium">{isPt ? scope.pt : scope.en}</p>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-medium">{isPt ? scope.pt : scope.en}</p>
+                    {counts && (
+                      <span className={`text-xs font-medium tabular-nums ${count > 0 ? "text-destructive" : "text-muted-foreground/60"}`}>
+                        {count} {isPt ? (count === 1 ? "registo" : "registos") : (count === 1 ? "record" : "records")}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {isPt ? scope.descPt : scope.descEn}
                   </p>
@@ -120,6 +134,14 @@ export const ResetAppDialog = ({
             );
           })}
         </div>
+
+        {counts && selected.size > 0 && (
+          <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive">
+            {isPt
+              ? `Vais eliminar ${totalToDelete} ${totalToDelete === 1 ? "registo" : "registos"} de ${selected.size} ${selected.size === 1 ? "área" : "áreas"}.`
+              : `You will delete ${totalToDelete} ${totalToDelete === 1 ? "record" : "records"} across ${selected.size} ${selected.size === 1 ? "area" : "areas"}.`}
+          </div>
+        )}
 
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isLoading}>
