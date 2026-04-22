@@ -138,11 +138,7 @@ const Perfil = () => {
       if (all) {
         await resetAppData();
       } else {
-        // Scoped reset: mutate state in place via setState helpers from DataContext.
-        // We import useData's setState by re-using state slices.
-        const { setState } = (await import('@/contexts/DataContext')).default ? { setState: null as any } : { setState: null as any };
-        // Fallback: directly use window-level mutation via custom event isn't available.
-        // Use a localStorage-level scoped clear and reload.
+        // Scoped reset: mutate localStorage directly, then reload to re-hydrate state.
         const raw = localStorage.getItem('become-app-data');
         if (raw) {
           try {
