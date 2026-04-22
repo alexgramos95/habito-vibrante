@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { format, startOfWeek, addDays } from "date-fns";
+import { format, startOfWeek, addDays, parseISO, isValid } from "date-fns";
 import { pt } from "date-fns/locale";
 import { 
   UtensilsCrossed, Leaf, ChefHat, ShoppingBasket, Sparkles, 
@@ -39,6 +39,64 @@ const WEEKDAYS_EN = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Sa
 const STORAGE_KEY_PROFILE = "become_nutrition_profile";
 const STORAGE_KEY_PLAN = "become_meal_plan";
 const LEGACY_NUTRITION_STORAGE_KEYS = NUTRITION_STORAGE_KEYS;
+
+// ─── Plan normalization helper ───
+// Guarantees a weekly plan always has exactly 7 consecutive days (Mon → Sun),
+// regardless of whether the saved plan is malformed (missing Sunday, wrong order,
+// duplicate dates, missing/invalid weekStart, etc).
+const normalizeWeeklyPlan = (plan: WeeklyMealPlan | null): WeeklyMealPlan | null => {
+  if (!plan) return null;
+
+  const safeDays = Array.isArray(plan.days) ? plan.days : [];
+
+  // Determine the canonical weekStart (Monday)
+  let baseStart: Date | null = null;
+  if (plan.weekStart) {
+    const parsed = parseISO(plan.weekStart);
+    if (isValid(parsed)) baseStart = startOfWeek(parsed, { weekStartsOn: 1 });
+  }
+  if (!baseStart) {
+    // Try to derive from the first valid day date
+    for (const d of safeDays) {
+      if (d?.date) {
+        const parsed = parseISO(d.date);
+        if (isValid(parsed)) {
+          baseStart = startOfWeek(parsed, { weekStartsOn: 1 });
+          break;
+        }
+      }
+    }
+  }
+  if (!baseStart) {
+    // Fallback to current week
+    baseStart = startOfWeek(new Date(), { weekStartsOn: 1 });
+  }
+
+  // Map existing days by date string for quick lookup
+  const byDate = new Map<string, DayMealPlan>();
+  for (const d of safeDays) {
+    if (d?.date && !byDate.has(d.date)) {
+      byDate.set(d.date, d);
+    }
+  }
+
+  // Build canonical 7-day grid Mon → Sun
+  const normalizedDays: DayMealPlan[] = Array.from({ length: 7 }, (_, i) => {
+    const date = format(addDays(baseStart!, i), "yyyy-MM-dd");
+    const existing = byDate.get(date);
+    return existing ?? {
+      date,
+      meals: [],
+      totalMacros: { calories: 0, protein: 0, carbs: 0, fat: 0 },
+    };
+  });
+
+  return {
+    ...plan,
+    weekStart: format(baseStart, "yyyy-MM-dd"),
+    days: normalizedDays,
+  };
+};
 
 // ─── Profile Setup Modal ───
 const ProfileSetupModal = ({
@@ -473,21 +531,16 @@ const Nutricao = () => {
     if (!saved) return null;
     try {
       const parsed = JSON.parse(saved) as WeeklyMealPlan;
-      // Defensive migration: ensure all 7 days (Mon-Sun) are present
-      if (parsed?.days && parsed.days.length < 7 && parsed.weekStart) {
-        const baseStart = new Date(parsed.weekStart);
-        const filled = Array.from({ length: 7 }, (_, i) => {
-          const date = format(addDays(baseStart, i), "yyyy-MM-dd");
-          const existing = parsed.days.find(d => d.date === date);
-          return existing || {
-            date,
-            meals: [],
-            totalMacros: { calories: 0, protein: 0, carbs: 0, fat: 0 },
-          };
-        });
-        return { ...parsed, days: filled };
+      const normalized = normalizeWeeklyPlan(parsed);
+      // Re-persist immediately if normalization changed anything
+      if (normalized) {
+        const before = JSON.stringify(parsed);
+        const after = JSON.stringify(normalized);
+        if (before !== after) {
+          try { localStorage.setItem(STORAGE_KEY_PLAN, after); } catch {}
+        }
       }
-      return parsed;
+      return normalized;
     } catch {
       return null;
     }
@@ -601,14 +654,14 @@ const Nutricao = () => {
         await new Promise(r => setTimeout(r, 120));
       }
 
-      setPlan({
+      setPlan(normalizeWeeklyPlan({
         id: `plan_${Date.now()}`,
         weekStart: format(weekStart, "yyyy-MM-dd"),
         days,
         profile,
         generatedAt: new Date().toISOString(),
         isCustomized: false,
-      });
+      }));
       setIsGenerating(false);
       setGeneratingProgress("");
       setGeneratingPercent(0);
@@ -704,14 +757,14 @@ const Nutricao = () => {
         totalMacros: { calories: 0, protein: 0, carbs: 0, fat: 0 },
       });
 
-      setPlan({
+      setPlan(normalizeWeeklyPlan({
         id: `plan_${Date.now()}`,
         weekStart: format(weekStart, "yyyy-MM-dd"),
         days: finalDays,
         profile,
         generatedAt: new Date().toISOString(),
         isCustomized: dayIndex !== undefined,
-      });
+      }));
 
       if (successCount < daysToGenerate.length) {
         toast({
@@ -749,12 +802,13 @@ const Nutricao = () => {
       fat: meals.reduce((s, m) => s + m.recipe.macros.fat, 0),
     };
     newDays[dayIdx] = day;
-    const updated = { ...plan, days: newDays, isCustomized: true };
+    const updated = normalizeWeeklyPlan({ ...plan, days: newDays, isCustomized: true });
     setPlan(updated);
-    localStorage.setItem(STORAGE_KEY_PLAN, JSON.stringify(updated));
+    if (updated) localStorage.setItem(STORAGE_KEY_PLAN, JSON.stringify(updated));
   }, [plan]);
 
-  const currentDay = plan?.days?.[selectedDay];
+  const safeSelectedDay = Math.min(Math.max(selectedDay, 0), 6);
+  const currentDay = plan?.days?.[safeSelectedDay];
 
   // Daily total macros
   const dailyTotals = currentDay?.totalMacros || { calories: 0, protein: 0, carbs: 0, fat: 0 };
@@ -863,7 +917,7 @@ const Nutricao = () => {
                       onClick={() => setSelectedDay(i)}
                       className={cn(
                         "shrink-0 rounded-lg px-3 py-2 text-xs font-medium transition-all min-w-[60px]",
-                        selectedDay === i
+                        safeSelectedDay === i
                           ? "bg-primary text-primary-foreground shadow-sm"
                           : "bg-secondary text-muted-foreground hover:text-foreground"
                       )}
@@ -926,8 +980,8 @@ const Nutricao = () => {
                     recipe={meal.recipe}
                     mealType={meal.type}
                     locale={locale}
-                    onSwap={hasPro ? () => generatePlan(selectedDay) : undefined}
-                    onUpdateRecipe={(updated) => updateRecipeInPlan(selectedDay, i, updated)}
+                    onSwap={hasPro ? () => generatePlan(safeSelectedDay) : undefined}
+                    onUpdateRecipe={(updated) => updateRecipeInPlan(safeSelectedDay, i, updated)}
                   />
                 ))
               ) : (
@@ -1028,8 +1082,9 @@ const Nutricao = () => {
           plan={plan}
           locale={locale}
           onUpdatePlan={(updated) => {
-            setPlan(updated);
-            localStorage.setItem(STORAGE_KEY_PLAN, JSON.stringify(updated));
+            const normalized = normalizeWeeklyPlan(updated);
+            setPlan(normalized);
+            if (normalized) localStorage.setItem(STORAGE_KEY_PLAN, JSON.stringify(normalized));
           }}
         />
       )}
