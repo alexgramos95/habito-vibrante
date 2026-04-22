@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { format, startOfWeek, addDays } from "date-fns";
+import { format, startOfWeek, addDays, parseISO, isValid } from "date-fns";
 import { pt } from "date-fns/locale";
 import { 
   UtensilsCrossed, Leaf, ChefHat, ShoppingBasket, Sparkles, 
