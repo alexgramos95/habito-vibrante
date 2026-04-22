@@ -93,6 +93,22 @@ const Definicoes = () => {
           </Select>
         </div>
 
+        {/* Notifications */}
+        <div className="rounded-2xl border border-border/30 bg-card/50 p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <Bell className="h-4 w-4 text-primary" />
+            <Label className="text-sm font-semibold">
+              {locale === 'pt-PT' ? 'Notificações' : 'Notifications'}
+            </Label>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {locale === 'pt-PT'
+              ? 'Recebe lembretes para os teus hábitos à hora agendada.'
+              : 'Get reminders for your habits at their scheduled time.'}
+          </p>
+          <NotificationSetup />
+        </div>
+
         {/* Reset Data */}
         <div className="rounded-2xl border border-destructive/20 bg-destructive/3 p-4 space-y-3">
           <div className="flex items-center gap-2">
