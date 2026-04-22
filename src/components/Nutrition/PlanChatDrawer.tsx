@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { MessageCircle, Send, Loader2, Check } from "lucide-react";
+import { MessageCircle, Send, Loader2, Check, Plus, ArrowRightLeft } from "lucide-react";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,19 +7,28 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import type { WeeklyMealPlan, Recipe, Ingredient } from "@/data/nutritionTypes";
+import type { WeeklyMealPlan, Recipe, Ingredient, MealType } from "@/data/nutritionTypes";
 
 interface GlobalSubstitution {
   original: string;
   replacement: string;
   quantity: string;
   unit: string;
+  mealTypes?: MealType[];
+}
+
+interface GlobalAddition {
+  name: string;
+  quantity: string;
+  unit: string;
+  mealTypes?: MealType[];
 }
 
 interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   substitutions?: GlobalSubstitution[] | null;
+  additions?: GlobalAddition[] | null;
   applied?: boolean;
   matchCount?: number;
 }
@@ -33,16 +42,32 @@ interface PlanChatDrawerProps {
 }
 
 const SUGGESTIONS_PT = [
-  "Quero trocar aveia em flocos por farinha de aveia em todas as receitas",
-  "Substitui o leite por bebida de aveia em todo o plano",
-  "Posso trocar o azeite por óleo de coco?",
+  "Adiciona uma banana a todos os pequenos-almoços",
+  "Trocar aveia em flocos por farinha de aveia em todas as receitas",
+  "Adiciona sementes de chia aos pequenos-almoços e snacks",
 ];
 
 const SUGGESTIONS_EN = [
+  "Add a banana to all breakfasts",
   "Replace oats with oat flour in all recipes",
-  "Swap milk for oat milk across the entire plan",
-  "Can I replace olive oil with coconut oil?",
+  "Add chia seeds to breakfasts and snacks",
 ];
+
+const MEAL_TYPE_LABELS_PT: Record<MealType, string> = {
+  breakfast: "pequeno-almoço",
+  morning_snack: "snack manhã",
+  lunch: "almoço",
+  afternoon_snack: "snack tarde",
+  dinner: "jantar",
+};
+
+const MEAL_TYPE_LABELS_EN: Record<MealType, string> = {
+  breakfast: "breakfast",
+  morning_snack: "morning snack",
+  lunch: "lunch",
+  afternoon_snack: "afternoon snack",
+  dinner: "dinner",
+};
 
 export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan }: PlanChatDrawerProps) {
   const lang = locale.startsWith("pt") ? "pt" : "en";
@@ -53,6 +78,7 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
   const { toast } = useToast();
 
   const suggestions = lang === "pt" ? SUGGESTIONS_PT : SUGGESTIONS_EN;
+  const mealLabels = lang === "pt" ? MEAL_TYPE_LABELS_PT : MEAL_TYPE_LABELS_EN;
 
   // Collect all unique ingredients across the plan
   const allIngredients = (() => {
@@ -86,13 +112,39 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
     }
   }, [messages]);
 
-  const countMatches = (subs: GlobalSubstitution[]) => {
+  const matchesMealType = (mealType: MealType, filter?: MealType[]) => {
+    if (!filter || filter.length === 0) return true;
+    return filter.includes(mealType);
+  };
+
+  const countMatches = (
+    subs: GlobalSubstitution[] | null,
+    adds: GlobalAddition[] | null,
+  ) => {
     let count = 0;
     for (const day of plan.days) {
       for (const meal of day.meals) {
-        for (const ing of meal.recipe.ingredients) {
-          if (subs.some(s => s.original.toLowerCase() === ing.name.toLowerCase())) {
-            count++;
+        const mealType = meal.type;
+        // Substitutions: count ingredient occurrences within filtered meals
+        if (subs) {
+          for (const ing of meal.recipe.ingredients) {
+            if (
+              subs.some(
+                s =>
+                  s.original.toLowerCase() === ing.name.toLowerCase() &&
+                  matchesMealType(mealType, s.mealTypes),
+              )
+            ) {
+              count++;
+            }
+          }
+        }
+        // Additions: count meals that match the filter for each addition
+        if (adds) {
+          for (const a of adds) {
+            if (matchesMealType(mealType, a.mealTypes)) {
+              count++;
+            }
           }
         }
       }
@@ -100,15 +152,23 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
     return count;
   };
 
-  const applySubstitutions = (msgIndex: number) => {
+  const applyChanges = (msgIndex: number) => {
     const msg = messages[msgIndex];
-    if (!msg.substitutions || !onUpdatePlan) return;
+    if ((!msg.substitutions && !msg.additions) || !onUpdatePlan) return;
+
+    const subs = msg.substitutions || [];
+    const adds = msg.additions || [];
 
     const newDays = plan.days.map(day => {
       const newMeals = day.meals.map(meal => {
-        const newIngredients = meal.recipe.ingredients.map(ing => {
-          const sub = msg.substitutions!.find(
-            s => s.original.toLowerCase() === ing.name.toLowerCase()
+        const mealType = meal.type;
+
+        // Step 1: substitutions
+        let newIngredients: Ingredient[] = meal.recipe.ingredients.map(ing => {
+          const sub = subs.find(
+            s =>
+              s.original.toLowerCase() === ing.name.toLowerCase() &&
+              matchesMealType(mealType, s.mealTypes),
           );
           if (sub) {
             return {
@@ -120,6 +180,20 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
           }
           return ing;
         });
+
+        // Step 2: additions (skip if already present by name)
+        const existingNames = new Set(newIngredients.map(i => i.name.toLowerCase()));
+        for (const a of adds) {
+          if (!matchesMealType(mealType, a.mealTypes)) continue;
+          if (existingNames.has(a.name.toLowerCase())) continue;
+          newIngredients.push({
+            name: a.name,
+            quantity: a.quantity || "1",
+            unit: a.unit || "un",
+          } as Ingredient);
+          existingNames.add(a.name.toLowerCase());
+        }
+
         const updatedRecipe: Recipe = { ...meal.recipe, ingredients: newIngredients };
         return { ...meal, recipe: updatedRecipe };
       });
@@ -145,8 +219,8 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
       title: lang === "pt" ? "Plano atualizado" : "Plan updated",
       description:
         lang === "pt"
-          ? "Os ingredientes foram substituídos em todas as receitas."
-          : "Ingredients were substituted across all recipes.",
+          ? "As alterações foram aplicadas ao plano."
+          : "Changes were applied to the plan.",
     });
   };
 
@@ -164,10 +238,15 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
         .map(i => `${i.name} (${i.count}x)`)
         .join(", ");
 
+      const mealTypesPresent = Array.from(
+        new Set(plan.days.flatMap(d => d.meals.map(m => m.type))),
+      );
+
       const { data, error } = await supabase.functions.invoke("recipe-chat", {
         body: {
           planMode: true,
           ingredientsSummary,
+          mealTypes: mealTypesPresent,
           messages: newMessages.map(m => ({ role: m.role, content: m.content })),
           locale: lang,
         },
@@ -184,8 +263,9 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
         return;
       }
 
-      const subs = data.substitutions || null;
-      const matchCount = subs ? countMatches(subs) : 0;
+      const subs: GlobalSubstitution[] | null = data.substitutions || null;
+      const adds: GlobalAddition[] | null = data.additions || null;
+      const matchCount = subs || adds ? countMatches(subs, adds) : 0;
 
       setMessages(prev => [
         ...prev,
@@ -193,6 +273,7 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
           role: "assistant",
           content: data.reply,
           substitutions: subs,
+          additions: adds,
           matchCount,
         },
       ]);
@@ -210,6 +291,31 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
     }
   };
 
+  const renderChangeSummary = (msg: ChatMessage) => {
+    const parts: string[] = [];
+    if (msg.substitutions && msg.substitutions.length > 0) {
+      for (const s of msg.substitutions) {
+        const scope = s.mealTypes && s.mealTypes.length > 0
+          ? ` (${s.mealTypes.map(mt => mealLabels[mt]).join(", ")})`
+          : "";
+        parts.push(
+          lang === "pt"
+            ? `↔ ${s.original} → ${s.replacement}${scope}`
+            : `↔ ${s.original} → ${s.replacement}${scope}`,
+        );
+      }
+    }
+    if (msg.additions && msg.additions.length > 0) {
+      for (const a of msg.additions) {
+        const scope = a.mealTypes && a.mealTypes.length > 0
+          ? ` (${a.mealTypes.map(mt => mealLabels[mt]).join(", ")})`
+          : "";
+        parts.push(`+ ${a.quantity} ${a.unit} ${a.name}${scope}`);
+      }
+    }
+    return parts;
+  };
+
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent className="max-h-[85vh]">
@@ -220,8 +326,8 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
           </DrawerTitle>
           <p className="text-[11px] text-muted-foreground">
             {lang === "pt"
-              ? "Altera ingredientes em todas as receitas do plano de uma só vez"
-              : "Change ingredients across all recipes in your plan at once"}
+              ? "Substitui ou adiciona ingredientes em todas as receitas (ou só num tipo de refeição)"
+              : "Replace or add ingredients across all recipes (or just a meal type)"}
           </p>
         </DrawerHeader>
 
@@ -245,24 +351,42 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
                 </div>
               )}
 
-              {messages.map((msg, i) => (
-                <div key={i}>
-                  <div
-                    className={cn(
-                      "text-xs rounded-xl px-3 py-2 max-w-[85%] whitespace-pre-wrap",
-                      msg.role === "user"
-                        ? "ml-auto bg-primary text-primary-foreground"
-                        : "bg-muted"
-                    )}
-                  >
-                    {msg.content}
-                  </div>
+              {messages.map((msg, i) => {
+                const summary = msg.role === "assistant" ? renderChangeSummary(msg) : [];
+                const hasChanges =
+                  msg.role === "assistant" &&
+                  ((msg.substitutions && msg.substitutions.length > 0) ||
+                    (msg.additions && msg.additions.length > 0));
 
-                  {msg.role === "assistant" &&
-                    msg.substitutions &&
-                    msg.substitutions.length > 0 &&
-                    onUpdatePlan && (
-                      <div className="mt-1.5 max-w-[85%]">
+                return (
+                  <div key={i}>
+                    <div
+                      className={cn(
+                        "text-xs rounded-xl px-3 py-2 max-w-[85%] whitespace-pre-wrap",
+                        msg.role === "user"
+                          ? "ml-auto bg-primary text-primary-foreground"
+                          : "bg-muted"
+                      )}
+                    >
+                      {msg.content}
+                    </div>
+
+                    {hasChanges && onUpdatePlan && (
+                      <div className="mt-1.5 max-w-[85%] space-y-1.5">
+                        {summary.length > 0 && (
+                          <div className="text-[11px] text-muted-foreground space-y-0.5 px-1">
+                            {summary.map((line, idx) => (
+                              <div key={idx} className="flex items-start gap-1">
+                                {line.startsWith("+") ? (
+                                  <Plus className="h-3 w-3 mt-0.5 shrink-0 text-primary" />
+                                ) : (
+                                  <ArrowRightLeft className="h-3 w-3 mt-0.5 shrink-0 text-primary" />
+                                )}
+                                <span>{line.replace(/^[+↔]\s*/, "")}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                         {msg.applied ? (
                           <div className="flex items-center gap-1.5 text-[11px] text-primary font-medium px-1">
                             <Check className="h-3 w-3" />
@@ -273,18 +397,19 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
                             size="sm"
                             variant="default"
                             className="text-[11px] h-7 gap-1.5"
-                            onClick={() => applySubstitutions(i)}
+                            onClick={() => applyChanges(i)}
                           >
                             <Check className="h-3 w-3" />
                             {lang === "pt"
-                              ? `Aplicar em ${msg.matchCount} ocorrência(s)`
-                              : `Apply to ${msg.matchCount} occurrence(s)`}
+                              ? `Aplicar a ${msg.matchCount} refeição(ões)`
+                              : `Apply to ${msg.matchCount} meal(s)`}
                           </Button>
                         )}
                       </div>
                     )}
-                </div>
-              ))}
+                  </div>
+                );
+              })}
 
               {loading && (
                 <div className="bg-muted rounded-xl px-3 py-2 max-w-[85%] flex items-center gap-2 text-xs text-muted-foreground">
@@ -302,8 +427,8 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
               onKeyDown={(e) => e.key === "Enter" && sendMessage(input)}
               placeholder={
                 lang === "pt"
-                  ? "Ex: trocar aveia em flocos por farinha de aveia..."
-                  : "E.g. replace oats with oat flour..."
+                  ? "Ex: adiciona banana aos pequenos-almoços..."
+                  : "E.g. add banana to all breakfasts..."
               }
               className="text-xs h-9"
               disabled={loading}
