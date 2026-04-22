@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { loadState, saveState, addHabit, addTracker } from '@/data/storage';
 import type { Tracker } from '@/data/types';
 import { useDataSync } from '@/hooks/useDataSync';
+import { AUTH_RECOVERY_EVENT, isRecoverableAuthError, recoverInvalidSession } from '@/lib/authSessionRecovery';
 
 interface SubscriptionStatus {
   subscribed: boolean;
@@ -250,12 +251,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const errorBody = await error.context?.json?.().catch(() => null);
         const errorMessage = errorBody?.error || error.message || '';
 
-        if (errorMessage.includes('Invalid credentials') ||
-            errorMessage.includes('Authentication required') ||
-            errorMessage.includes('JWT expired') ||
-            errorMessage.includes('session_not_found')) {
+        if (isRecoverableAuthError(errorMessage)) {
           console.log('[AUTH] Token invalid/expired/revoked, signing out locally...');
-          await supabase.auth.signOut({ scope: 'local' });
+          await recoverInvalidSession('subscription-refresh');
         }
         return;
       }
@@ -305,6 +303,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     console.log('[AUTH] startTrial called - triggering subscription refresh');
     await refreshSubscription(true);
   }, [refreshSubscription]);
+
+  useEffect(() => {
+    const handleAuthRecovery = () => {
+      setUser(null);
+      setSession(null);
+      setSubscriptionStatus(defaultSubscriptionStatus);
+      sessionRef.current = null;
+      lastCheckRef.current = 0;
+      isCheckingRef.current = false;
+      setLoading(false);
+    };
+
+    window.addEventListener(AUTH_RECOVERY_EVENT, handleAuthRecovery);
+
+    return () => {
+      window.removeEventListener(AUTH_RECOVERY_EVENT, handleAuthRecovery);
+    };
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -464,6 +480,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       if (error) {
         console.error('[AUTH] Error during sign out:', error);
+        if (isRecoverableAuthError(error.message)) {
+          await recoverInvalidSession('manual-signout');
+          return;
+        }
       }
       
       console.log('[AUTH] Sign out completed successfully');
@@ -476,7 +496,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (checkSession) {
       console.warn('[AUTH] Session still exists after signOut, forcing clear...');
       // Force another signOut attempt
-      await supabase.auth.signOut({ scope: 'global' });
+      const { error } = await supabase.auth.signOut({ scope: 'global' });
+      if (error && isRecoverableAuthError(error.message)) {
+        await recoverInvalidSession('manual-signout-verify');
+      }
     } else {
       console.log('[AUTH] Session verified as null after signOut');
     }
