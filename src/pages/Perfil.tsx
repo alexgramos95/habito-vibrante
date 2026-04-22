@@ -21,7 +21,7 @@ import { ACHIEVEMENTS } from "@/data/types";
 import { getLatestFutureSelf, getReflectionForDate } from "@/data/storage";
 import { getLevelProgress } from "@/logic/computations";
 import { cn } from "@/lib/utils";
-import { ResetAppDialog } from "@/components/Profile/ResetAppDialog";
+import { ResetAppDialog, type ResetScope } from "@/components/Profile/ResetAppDialog";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useDemoMode } from "@/hooks/useDemoMode";
@@ -129,14 +129,45 @@ const Perfil = () => {
     navigate('/');
   };
 
-  const handleResetAllData = async () => {
+  const handleResetAllData = async (scopes: ResetScope[]) => {
     setIsResetting(true);
     try {
-      await resetAppData();
-      toast({ title: "Progress reset." });
+      const isPt = locale === 'pt-PT';
+      const all = scopes.length === 6;
+
+      if (all) {
+        await resetAppData();
+      } else {
+        // Scoped reset: mutate localStorage directly, then reload to re-hydrate state.
+        const raw = localStorage.getItem('become-app-data');
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw);
+            if (scopes.includes('habits')) { parsed.habits = []; parsed.dailyLogs = []; }
+            if (scopes.includes('calendar')) { parsed.dailyLogs = []; parsed.trackerEntries = []; parsed.sleepEntries = []; }
+            if (scopes.includes('nutrition')) {
+              localStorage.removeItem('become_nutrition_profile');
+              localStorage.removeItem('become_meal_plan');
+              localStorage.removeItem('nutritionProfile');
+              localStorage.removeItem('mealPlan');
+              localStorage.removeItem('become:nutrition:profile');
+              localStorage.removeItem('become:nutrition:plan');
+            }
+            if (scopes.includes('shopping')) { parsed.shoppingItems = []; }
+            if (scopes.includes('reflections')) { parsed.reflections = []; parsed.futureSelf = []; }
+            if (scopes.includes('achievements')) {
+              parsed.gamification = { pontos: 0, nivel: 1, conquistas: [], consistencyScore: 0, currentStreak: 0, bestStreak: 0 };
+            }
+            localStorage.setItem('become-app-data', JSON.stringify(parsed));
+          } catch { /* noop */ }
+        }
+        try { window.dispatchEvent(new CustomEvent('become:app-reset')); } catch { /* noop */ }
+      }
+
+      toast({ title: isPt ? "Dados reiniciados" : "Data reset" });
       window.location.reload();
     } catch {
-      toast({ title: "Reset failed", variant: "destructive" });
+      toast({ title: locale === 'pt-PT' ? "Reinício falhou" : "Reset failed", variant: "destructive" });
     } finally { setIsResetting(false); setShowResetDialog(false); }
   };
 
@@ -428,15 +459,15 @@ const Perfil = () => {
             </div>
           )}
           <div className="flex items-center justify-between">
-            <span className="text-sm">{locale === 'pt-PT' ? 'Apagar tudo' : 'Delete all data'}</span>
+            <span className="text-sm">{locale === 'pt-PT' ? 'Reiniciar dados' : 'Reset data'}</span>
             <Button variant="destructive" size="sm" onClick={() => setShowResetDialog(true)} className="gap-1.5 h-8">
-              <Trash2 className="h-3.5 w-3.5" /> {t.actions.reset}
+              <Trash2 className="h-3.5 w-3.5" /> {locale === 'pt-PT' ? 'Selecionar' : 'Select'}
             </Button>
           </div>
         </div>
       </main>
 
-      <ResetAppDialog open={showResetDialog} onOpenChange={setShowResetDialog} onConfirm={handleResetAllData} isLoading={isResetting} />
+      <ResetAppDialog open={showResetDialog} onOpenChange={setShowResetDialog} onConfirm={handleResetAllData} isLoading={isResetting} locale={locale} />
       <PaywallModal open={showPaywall} onClose={() => setShowPaywall(false)} onUpgrade={upgradeToPro} trialDaysLeft={trialStatus.daysRemaining} />
       <ExportDialog open={showExport} onClose={() => setShowExport(false)} isPro={isPro} onShowPaywall={() => setShowPaywall(true)} />
     </div>
