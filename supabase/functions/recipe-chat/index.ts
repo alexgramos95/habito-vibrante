@@ -22,34 +22,65 @@ serve(async (req) => {
     let systemPrompt: string;
 
     if (planMode) {
-      // Global plan mode — all ingredients summary
-      const { ingredientsSummary } = body;
+      // Global plan mode — supports both substitutions and additions, optionally filtered by meal type
+      const { ingredientsSummary, mealTypes } = body;
+      const mealTypesList = Array.isArray(mealTypes) && mealTypes.length > 0
+        ? mealTypes.join(", ")
+        : "breakfast, morning_snack, lunch, afternoon_snack, dinner";
 
-      systemPrompt = `You are a friendly nutritionist assistant helping with ingredient changes across an entire weekly meal plan.
+      systemPrompt = `You are a friendly nutritionist assistant helping users modify ingredients across an entire weekly meal plan.
 Language: ${lang}.
 
-All ingredients in the plan (with occurrence count): ${ingredientsSummary}
+Available meal types in the plan: breakfast, morning_snack, lunch, afternoon_snack, dinner.
+All ingredients currently in the plan (with occurrence count): ${ingredientsSummary}
 
-Help the user with:
-- Replacing a specific ingredient across ALL recipes (e.g. swap oat flakes for oat flour everywhere)
-- Healthier alternatives for commonly used ingredients
-- Allergy-based global substitutions
-- Nutritional impact of the change
+You can help the user with TWO types of operations:
 
-IMPORTANT: When suggesting a substitution, ALWAYS include a JSON block at the END of your response with the proposed changes in this exact format:
-\`\`\`substitutions
-[{"original": "ingredient name", "replacement": "new ingredient name", "quantity": "new quantity or empty string to keep original", "unit": "new unit or empty string to keep original"}]
+1) SUBSTITUTIONS — replace an existing ingredient with another one across recipes.
+2) ADDITIONS — add a NEW ingredient to recipes (e.g. "add banana to all breakfasts").
+
+Both operations can optionally target ONLY specific meal types (e.g. only breakfasts, only lunches).
+Valid meal type values: "breakfast", "morning_snack", "lunch", "afternoon_snack", "dinner".
+If the user does not specify a meal type, apply to all meals.
+
+IMPORTANT: When proposing changes, ALWAYS include a JSON block at the END of your response in this EXACT format:
+\`\`\`changes
+{
+  "substitutions": [
+    {"original": "ingredient name", "replacement": "new name", "quantity": "new qty or empty", "unit": "new unit or empty", "mealTypes": ["breakfast"]}
+  ],
+  "additions": [
+    {"name": "ingredient name", "quantity": "amount", "unit": "unit (g, ml, un...)", "mealTypes": ["breakfast"]}
+  ]
+}
 \`\`\`
 
-For example, if replacing "Aveia em flocos" with "Farinha de aveia":
-\`\`\`substitutions
-[{"original": "Aveia em flocos", "replacement": "Farinha de aveia", "quantity": "", "unit": ""}]
+Rules:
+- "mealTypes" is OPTIONAL. Omit it or use [] to apply to ALL meals.
+- For substitutions: empty "quantity" or "unit" means keep the original.
+- For additions: "quantity" and "unit" are REQUIRED (sensible default portion).
+- Use only the valid meal type values listed above.
+- If the user only asks a general question without requesting changes, OMIT the \`\`\`changes block entirely.
+- You can include only substitutions, only additions, or both.
+
+Examples:
+
+User: "Add banana to all breakfasts"
+\`\`\`changes
+{"additions": [{"name": "Banana", "quantity": "1", "unit": "un", "mealTypes": ["breakfast"]}]}
 \`\`\`
 
-If the quantity/unit should stay the same, use empty strings.
-If the user is just asking a general question without requesting a specific substitution, do NOT include the substitutions block.
+User: "Replace oats with oat flour everywhere"
+\`\`\`changes
+{"substitutions": [{"original": "Aveia em flocos", "replacement": "Farinha de aveia", "quantity": "", "unit": ""}]}
+\`\`\`
 
-Keep answers concise, practical and friendly. Always mention the approximate nutritional impact when suggesting substitutions.`;
+User: "Add chia seeds to breakfasts and snacks"
+\`\`\`changes
+{"additions": [{"name": "Sementes de chia", "quantity": "10", "unit": "g", "mealTypes": ["breakfast", "morning_snack", "afternoon_snack"]}]}
+\`\`\`
+
+Keep answers concise, practical and friendly. Briefly mention nutritional impact when relevant.`;
     } else {
       // Single recipe mode
       const { recipe } = body;
@@ -133,23 +164,44 @@ Keep answers concise, practical and friendly. Always mention the approximate nut
     const aiResult = await response.json();
     const content = aiResult.choices?.[0]?.message?.content || "";
 
-    // Parse substitutions block if present
-    let substitutions = null;
-    const subMatch = content.match(/```substitutions\s*\n([\s\S]*?)\n```/);
-    if (subMatch) {
+    // Parse blocks
+    let substitutions: any = null;
+    let additions: any = null;
+
+    // New unified ```changes block (plan mode)
+    const changesMatch = content.match(/```changes\s*\n([\s\S]*?)\n```/);
+    if (changesMatch) {
       try {
-        substitutions = JSON.parse(subMatch[1]);
+        const parsed = JSON.parse(changesMatch[1]);
+        substitutions = Array.isArray(parsed.substitutions) ? parsed.substitutions : null;
+        additions = Array.isArray(parsed.additions) ? parsed.additions : null;
       } catch (_) {
-        // ignore parse errors
+        // ignore
       }
     }
 
-    // Clean content: remove the substitutions code block from the visible text
-    const cleanContent = content.replace(/```substitutions\s*\n[\s\S]*?\n```/, "").trim();
+    // Backwards compat: legacy ```substitutions block (single recipe + old plan)
+    if (!substitutions) {
+      const subMatch = content.match(/```substitutions\s*\n([\s\S]*?)\n```/);
+      if (subMatch) {
+        try {
+          substitutions = JSON.parse(subMatch[1]);
+        } catch (_) {
+          // ignore
+        }
+      }
+    }
 
-    return new Response(JSON.stringify({ reply: cleanContent, substitutions }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    // Clean visible content
+    const cleanContent = content
+      .replace(/```changes\s*\n[\s\S]*?\n```/, "")
+      .replace(/```substitutions\s*\n[\s\S]*?\n```/, "")
+      .trim();
+
+    return new Response(
+      JSON.stringify({ reply: cleanContent, substitutions, additions }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   } catch (error) {
     console.error("recipe-chat error:", error);
     return new Response(
