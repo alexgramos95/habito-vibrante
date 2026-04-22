@@ -470,7 +470,27 @@ const Nutricao = () => {
     const saved = localStorage.getItem(STORAGE_KEY_PLAN)
       ?? localStorage.getItem("mealPlan")
       ?? localStorage.getItem("become:nutrition:plan");
-    return saved ? JSON.parse(saved) : null;
+    if (!saved) return null;
+    try {
+      const parsed = JSON.parse(saved) as WeeklyMealPlan;
+      // Defensive migration: ensure all 7 days (Mon-Sun) are present
+      if (parsed?.days && parsed.days.length < 7 && parsed.weekStart) {
+        const baseStart = new Date(parsed.weekStart);
+        const filled = Array.from({ length: 7 }, (_, i) => {
+          const date = format(addDays(baseStart, i), "yyyy-MM-dd");
+          const existing = parsed.days.find(d => d.date === date);
+          return existing || {
+            date,
+            meals: [],
+            totalMacros: { calories: 0, protein: 0, carbs: 0, fat: 0 },
+          };
+        });
+        return { ...parsed, days: filled };
+      }
+      return parsed;
+    } catch {
+      return null;
+    }
   });
   const [showProfile, setShowProfile] = useState(false);
   const [showShopping, setShowShopping] = useState(false);
