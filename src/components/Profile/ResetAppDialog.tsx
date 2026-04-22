@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { AlertTriangle, RotateCcw } from "lucide-react";
+import { useEffect, useState } from "react";
+import { AlertTriangle, RotateCcw, ArrowLeft } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,7 +11,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 export type ResetScope =
   | "habits"
