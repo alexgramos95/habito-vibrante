@@ -917,7 +917,7 @@ const Nutricao = () => {
                       onClick={() => setSelectedDay(i)}
                       className={cn(
                         "shrink-0 rounded-lg px-3 py-2 text-xs font-medium transition-all min-w-[60px]",
-                        selectedDay === i
+                        safeSelectedDay === i
                           ? "bg-primary text-primary-foreground shadow-sm"
                           : "bg-secondary text-muted-foreground hover:text-foreground"
                       )}
@@ -980,8 +980,8 @@ const Nutricao = () => {
                     recipe={meal.recipe}
                     mealType={meal.type}
                     locale={locale}
-                    onSwap={hasPro ? () => generatePlan(selectedDay) : undefined}
-                    onUpdateRecipe={(updated) => updateRecipeInPlan(selectedDay, i, updated)}
+                    onSwap={hasPro ? () => generatePlan(safeSelectedDay) : undefined}
+                    onUpdateRecipe={(updated) => updateRecipeInPlan(safeSelectedDay, i, updated)}
                   />
                 ))
               ) : (
@@ -1082,8 +1082,9 @@ const Nutricao = () => {
           plan={plan}
           locale={locale}
           onUpdatePlan={(updated) => {
-            setPlan(updated);
-            localStorage.setItem(STORAGE_KEY_PLAN, JSON.stringify(updated));
+            const normalized = normalizeWeeklyPlan(updated);
+            setPlan(normalized);
+            if (normalized) localStorage.setItem(STORAGE_KEY_PLAN, JSON.stringify(normalized));
           }}
         />
       )}
