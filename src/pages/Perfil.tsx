@@ -36,6 +36,7 @@ import { Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { supabase } from "@/integrations/supabase/client";
+import { NUTRITION_STORAGE_KEYS } from "@/data/nutritionStorageKeys";
 
 const Perfil = () => {
   const { toast } = useToast();
