@@ -757,14 +757,14 @@ const Nutricao = () => {
         totalMacros: { calories: 0, protein: 0, carbs: 0, fat: 0 },
       });
 
-      setPlan({
+      setPlan(normalizeWeeklyPlan({
         id: `plan_${Date.now()}`,
         weekStart: format(weekStart, "yyyy-MM-dd"),
         days: finalDays,
         profile,
         generatedAt: new Date().toISOString(),
         isCustomized: dayIndex !== undefined,
-      });
+      }));
 
       if (successCount < daysToGenerate.length) {
         toast({
