@@ -493,12 +493,10 @@ const Perfil = () => {
         counts={{
           habits: state.habits.length + state.dailyLogs.length,
           calendar: state.dailyLogs.length + state.trackerEntries.length + state.sleepEntries.length,
-          nutrition: (() => {
-            let n = 0;
-            ['become_nutrition_profile','become_meal_plan','nutritionProfile','mealPlan','become:nutrition:profile','become:nutrition:plan']
-              .forEach(k => { if (localStorage.getItem(k)) n++; });
-            return n;
-          })(),
+          nutrition: NUTRITION_STORAGE_KEYS.reduce(
+            (n, k) => n + (localStorage.getItem(k) ? 1 : 0),
+            0,
+          ),
           shopping: state.shoppingItems.length,
           reflections: state.reflections.length + state.futureSelf.length,
           achievements: state.gamification.conquistas.length + (state.gamification.pontos > 0 ? 1 : 0),
