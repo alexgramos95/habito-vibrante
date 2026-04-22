@@ -116,12 +116,7 @@ const Perfil = () => {
         <OperatorHero locale={locale} level={levelProgress.current} activeHabits={activeHabits} />
 
 
-        {/* ═══ Page Header ═══ */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-foreground">{t.profile.title}</h1>
-            <p className="text-xs text-muted-foreground mt-0.5">{t.app.tagline}</p>
-          </div>
+        <div className="flex justify-end">
           <Button size="sm" variant="outline" className="gap-1.5 rounded-xl h-9" onClick={() => navigate('/app/settings')}>
             <Settings className="h-3.5 w-3.5" /> {locale === 'pt-PT' ? 'Definições' : 'Settings'}
           </Button>
