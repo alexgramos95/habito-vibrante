@@ -802,12 +802,13 @@ const Nutricao = () => {
       fat: meals.reduce((s, m) => s + m.recipe.macros.fat, 0),
     };
     newDays[dayIdx] = day;
-    const updated = { ...plan, days: newDays, isCustomized: true };
+    const updated = normalizeWeeklyPlan({ ...plan, days: newDays, isCustomized: true });
     setPlan(updated);
-    localStorage.setItem(STORAGE_KEY_PLAN, JSON.stringify(updated));
+    if (updated) localStorage.setItem(STORAGE_KEY_PLAN, JSON.stringify(updated));
   }, [plan]);
 
-  const currentDay = plan?.days?.[selectedDay];
+  const safeSelectedDay = Math.min(Math.max(selectedDay, 0), 6);
+  const currentDay = plan?.days?.[safeSelectedDay];
 
   // Daily total macros
   const dailyTotals = currentDay?.totalMacros || { calories: 0, protein: 0, carbs: 0, fat: 0 };
