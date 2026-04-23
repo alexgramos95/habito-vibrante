@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { format, getDay, subDays } from "date-fns";
-import { Plus, CheckCircle2, Flame, Sparkles, TrendingUp, TrendingDown, Check, ChevronRight, ChevronDown, Pencil } from "lucide-react";
+import { Plus, CheckCircle2, Flame, Sparkles, TrendingUp, TrendingDown, Check, ChevronRight, ChevronDown, Pencil, ListChecks } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { useI18n } from "@/i18n/I18nContext";
 import { Habit, Tracker, TrackerEntry } from "@/data/types";
@@ -367,10 +367,23 @@ const Index = () => {
               {!isPro && simpleHabits.length < FREE_LIMIT && ` · ${FREE_LIMIT - simpleHabits.length} disponíveis`}
             </p>
           </div>
-          <Button size="sm" className="gap-1.5 rounded-xl h-9 px-3" onClick={() => setShowModeSelector(true)}>
-            <Plus className="h-4 w-4" />
-            <span className="hidden sm:inline">Novo</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="gap-1.5 rounded-xl h-9 px-3"
+            >
+              <Link to="/app/habits">
+                <ListChecks className="h-4 w-4" />
+                <span className="hidden sm:inline">Meus hábitos</span>
+              </Link>
+            </Button>
+            <Button size="sm" className="gap-1.5 rounded-xl h-9 px-3" onClick={() => setShowModeSelector(true)}>
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline">Novo</span>
+            </Button>
+          </div>
         </div>
 
         {/* ═══ Empty state ═══ */}
