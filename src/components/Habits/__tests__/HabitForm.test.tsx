@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { HabitForm } from "@/components/Habits/HabitForm";
-import { DEFAULT_CATEGORIES } from "@/data/types";
+import { DEFAULT_CATEGORIES, DEFAULT_COLORS } from "@/data/types";
 
 // --- Mocks for hooks used by HabitForm ---
 
