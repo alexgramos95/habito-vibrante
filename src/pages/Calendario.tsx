@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday, isFuture, getDay, startOfWeek, addDays, subDays, addWeeks, subWeeks } from "date-fns";
 import { pt, enUS as enUSLocale } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, Flame, Check, X, Clock, PenLine, ShoppingCart, Lock, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight, Flame, Check, X, Clock, PenLine, ShoppingCart, Lock, Sparkles, Calendar as CalendarIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Habit, DailyReflection } from "@/data/types";
 import { toggleDailyLog, getReflectionForDate } from "@/data/storage";

@@ -262,7 +262,7 @@ const Account = () => {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <h1 className="text-xl font-semibold flex items-center gap-2">
-            <UserCircle className="h-5 w-5 text-primary" />
+            <User className="h-5 w-5 text-primary" />
             Conta
           </h1>
         </div>

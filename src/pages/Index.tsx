@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { format, getDay, subDays } from "date-fns";
-import { Plus, CheckCircle2, Flame, Sparkles, TrendingUp, TrendingDown, Check, ChevronRight, ListChecks } from "lucide-react";
+import { Plus, CheckCircle2, Flame, Sparkles, TrendingUp, TrendingDown, Check, ChevronRight, ListChecks, LayoutDashboard } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { useI18n } from "@/i18n/I18nContext";
 import { Habit, Tracker, TrackerEntry } from "@/data/types";
