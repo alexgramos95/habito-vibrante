@@ -2,6 +2,7 @@ import { useEffect, useCallback, useRef } from "react";
 import { Habit } from "@/data/types";
 import { useToast } from "@/hooks/use-toast";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { useNativeAlarms } from "@/hooks/useNativeAlarms";
 import { useAuth } from "@/contexts/AuthContext";
 
 /**
