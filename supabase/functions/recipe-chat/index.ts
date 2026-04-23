@@ -49,14 +49,16 @@ Language: ${lang}.
 Available meal types in the plan: breakfast, morning_snack, lunch, afternoon_snack, dinner.
 All ingredients currently in the plan (with occurrence count): ${ingredientsSummary}
 
-You can help the user with TWO types of operations:
+You can help the user with THREE types of operations:
 
 1) SUBSTITUTIONS — replace an existing ingredient with another one across recipes.
 2) ADDITIONS — add a NEW ingredient to recipes (e.g. "add banana to all breakfasts").
+3) MEAL REPLACEMENTS — replace ALL recipes of a given meal type with a NEW recipe (e.g. "replace all breakfasts with a protein shake", "trocar jantares por sopa de legumes").
 
-Both operations can optionally target ONLY specific meal types (e.g. only breakfasts, only lunches).
+All operations can optionally target ONLY specific meal types.
 Valid meal type values: "breakfast", "morning_snack", "lunch", "afternoon_snack", "dinner".
-If the user does not specify a meal type, apply to all meals.
+If the user does not specify a meal type for substitutions/additions, apply to all meals.
+For meal replacements, "mealTypes" is REQUIRED (must specify which meal type(s) to replace).
 
 IMPORTANT: When proposing changes, ALWAYS include a JSON block at the END of your response in this EXACT format:
 \`\`\`changes
@@ -66,17 +68,40 @@ IMPORTANT: When proposing changes, ALWAYS include a JSON block at the END of you
   ],
   "additions": [
     {"name": "ingredient name", "quantity": "amount", "unit": "unit (g, ml, un...)", "mealTypes": ["breakfast"]}
+  ],
+  "mealReplacements": [
+    {
+      "mealTypes": ["breakfast"],
+      "recipe": {
+        "name": "Short generic name (e.g. 'Shake de proteína')",
+        "prepTime": 5,
+        "cookTime": 0,
+        "servings": 1,
+        "difficulty": "easy",
+        "ingredients": [
+          {"name": "leite", "quantity": "250", "unit": "ml"},
+          {"name": "banana", "quantity": "1", "unit": "un"},
+          {"name": "proteína em pó", "quantity": "30", "unit": "g"}
+        ],
+        "instructions": ["Coloca tudo no liquidificador.", "Bate 30 segundos.", "Serve frio."],
+        "macros": {"calories": 380, "protein": 35, "carbs": 40, "fat": 8, "fiber": 3},
+        "tags": ["rápido", "proteico"],
+        "imageEmoji": "🥤"
+      }
+    }
   ]
 }
 \`\`\`
 
 Rules:
-- "mealTypes" is OPTIONAL. Omit it or use [] to apply to ALL meals.
+- "mealTypes" is OPTIONAL for substitutions/additions. Omit or use [] to apply to ALL meals.
 - For substitutions: empty "quantity" or "unit" means keep the original.
 - For additions: "quantity" and "unit" are REQUIRED (sensible default portion).
+- For mealReplacements: ALL fields shown above are REQUIRED. Provide REAL macro estimates (not zeros). Instructions must be a clear array of short steps.
 - Use only the valid meal type values listed above.
 - If the user only asks a general question without requesting changes, OMIT the \`\`\`changes block entirely.
-- You can include only substitutions, only additions, or both.
+- You can include any combination of substitutions, additions, and mealReplacements.
+- Prefer mealReplacements when the user asks to "replace/swap/change ALL [meal type] with X" or "turn breakfasts into X".
 
 Examples:
 
@@ -90,9 +115,9 @@ User: "Replace oats with oat flour everywhere"
 {"substitutions": [{"original": "Aveia em flocos", "replacement": "Farinha de aveia", "quantity": "", "unit": ""}]}
 \`\`\`
 
-User: "Add chia seeds to breakfasts and snacks"
+User: "Substitui os pequenos-almoços por shakes de proteína"
 \`\`\`changes
-{"additions": [{"name": "Sementes de chia", "quantity": "10", "unit": "g", "mealTypes": ["breakfast", "morning_snack", "afternoon_snack"]}]}
+{"mealReplacements": [{"mealTypes": ["breakfast"], "recipe": {"name": "Shake de proteína", "prepTime": 5, "cookTime": 0, "servings": 1, "difficulty": "easy", "ingredients": [{"name": "leite", "quantity": "250", "unit": "ml"}, {"name": "banana", "quantity": "1", "unit": "un"}, {"name": "proteína em pó", "quantity": "30", "unit": "g"}, {"name": "aveia", "quantity": "30", "unit": "g"}], "instructions": ["Coloca todos os ingredientes no liquidificador.", "Bate cerca de 30 segundos até ficar homogéneo.", "Serve imediatamente."], "macros": {"calories": 450, "protein": 38, "carbs": 50, "fat": 9, "fiber": 5}, "tags": ["rápido", "proteico"], "imageEmoji": "🥤"}}]}
 \`\`\`
 
 Keep answers concise, practical and friendly. Briefly mention nutritional impact when relevant.
@@ -184,6 +209,7 @@ ${NAMING_RULES}`;
     // Parse blocks
     let substitutions: any = null;
     let additions: any = null;
+    let mealReplacements: any = null;
 
     // New unified ```changes block (plan mode)
     const changesMatch = content.match(/```changes\s*\n([\s\S]*?)\n```/);
@@ -192,6 +218,7 @@ ${NAMING_RULES}`;
         const parsed = JSON.parse(changesMatch[1]);
         substitutions = Array.isArray(parsed.substitutions) ? parsed.substitutions : null;
         additions = Array.isArray(parsed.additions) ? parsed.additions : null;
+        mealReplacements = Array.isArray(parsed.mealReplacements) ? parsed.mealReplacements : null;
       } catch (_) {
         // ignore
       }
@@ -216,7 +243,7 @@ ${NAMING_RULES}`;
       .trim();
 
     return new Response(
-      JSON.stringify({ reply: cleanContent, substitutions, additions }),
+      JSON.stringify({ reply: cleanContent, substitutions, additions, mealReplacements }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {

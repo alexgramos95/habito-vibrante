@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { MessageCircle, Send, Loader2, Check, Plus, ArrowRightLeft } from "lucide-react";
+import { MessageCircle, Send, Loader2, Check, Plus, ArrowRightLeft, Replace } from "lucide-react";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import type { WeeklyMealPlan, Recipe, Ingredient, MealType } from "@/data/nutritionTypes";
+import type { WeeklyMealPlan, Recipe, Ingredient, MealType, MacroInfo } from "@/data/nutritionTypes";
 
 interface GlobalSubstitution {
   original: string;
@@ -24,11 +24,28 @@ interface GlobalAddition {
   mealTypes?: MealType[];
 }
 
+interface MealReplacement {
+  mealTypes: MealType[];
+  recipe: {
+    name: string;
+    prepTime?: number;
+    cookTime?: number;
+    servings?: number;
+    difficulty?: "easy" | "medium" | "hard";
+    ingredients: Ingredient[];
+    instructions: string[];
+    macros: MacroInfo;
+    tags?: string[];
+    imageEmoji?: string;
+  };
+}
+
 interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   substitutions?: GlobalSubstitution[] | null;
   additions?: GlobalAddition[] | null;
+  mealReplacements?: MealReplacement[] | null;
   applied?: boolean;
   matchCount?: number;
 }
@@ -42,15 +59,15 @@ interface PlanChatDrawerProps {
 }
 
 const SUGGESTIONS_PT = [
+  "Substitui os pequenos-almoços por shakes de proteína",
   "Adiciona uma banana a todos os pequenos-almoços",
-  "Trocar aveia em flocos por farinha de aveia em todas as receitas",
-  "Adiciona sementes de chia aos pequenos-almoços e snacks",
+  "Trocar aveia por farinha de aveia em todas as receitas",
 ];
 
 const SUGGESTIONS_EN = [
+  "Replace all breakfasts with protein shakes",
   "Add a banana to all breakfasts",
   "Replace oats with oat flour in all recipes",
-  "Add chia seeds to breakfasts and snacks",
 ];
 
 const MEAL_TYPE_LABELS_PT: Record<MealType, string> = {
@@ -120,11 +137,17 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
   const countMatches = (
     subs: GlobalSubstitution[] | null,
     adds: GlobalAddition[] | null,
+    replacements?: MealReplacement[] | null,
   ) => {
     let count = 0;
     for (const day of plan.days) {
       for (const meal of day.meals) {
         const mealType = meal.type;
+        // Meal replacements take priority and replace the whole meal
+        if (replacements && replacements.some(r => matchesMealType(mealType, r.mealTypes))) {
+          count++;
+          continue;
+        }
         // Substitutions: count ingredient occurrences within filtered meals
         if (subs) {
           for (const ing of meal.recipe.ingredients) {
@@ -154,10 +177,12 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
 
   const applyChanges = async (msgIndex: number) => {
     const msg = messages[msgIndex];
-    if ((!msg.substitutions && !msg.additions) || !onUpdatePlan) return;
+    const hasReplacements = msg.mealReplacements && msg.mealReplacements.length > 0;
+    if ((!msg.substitutions && !msg.additions && !hasReplacements) || !onUpdatePlan) return;
 
     const subs = msg.substitutions || [];
     const adds = msg.additions || [];
+    const replacements = msg.mealReplacements || [];
 
     // Track which recipes are affected so we can regenerate their instructions
     const affectedRecipeIds = new Set<string>();
@@ -165,6 +190,29 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
     const newDays = plan.days.map(day => {
       const newMeals = day.meals.map(meal => {
         const mealType = meal.type;
+
+        // Step 0: full meal replacement (overrides everything else for this meal)
+        const replacement = replacements.find(r => matchesMealType(mealType, r.mealTypes));
+        if (replacement) {
+          const r = replacement.recipe;
+          const newRecipe: Recipe = {
+            id: `chat_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+            name: r.name,
+            mealType,
+            prepTime: r.prepTime ?? 5,
+            cookTime: r.cookTime ?? 0,
+            servings: r.servings ?? 1,
+            difficulty: r.difficulty ?? "easy",
+            ingredients: r.ingredients,
+            instructions: r.instructions,
+            macros: r.macros,
+            tags: r.tags ?? [],
+            imageEmoji: r.imageEmoji,
+            isAIGenerated: true,
+          };
+          return { ...meal, recipe: newRecipe };
+        }
+
         let mealAffected = false;
 
         // Step 1: substitutions
@@ -364,7 +412,8 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
 
       const subs: GlobalSubstitution[] | null = data.substitutions || null;
       const adds: GlobalAddition[] | null = data.additions || null;
-      const matchCount = subs || adds ? countMatches(subs, adds) : 0;
+      const reps: MealReplacement[] | null = data.mealReplacements || null;
+      const matchCount = subs || adds || reps ? countMatches(subs, adds, reps) : 0;
 
       setMessages(prev => [
         ...prev,
@@ -373,6 +422,7 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
           content: data.reply,
           substitutions: subs,
           additions: adds,
+          mealReplacements: reps,
           matchCount,
         },
       ]);
@@ -391,17 +441,26 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
   };
 
   const renderChangeSummary = (msg: ChatMessage) => {
-    const parts: string[] = [];
+    const parts: { kind: "sub" | "add" | "replace"; text: string }[] = [];
+    if (msg.mealReplacements && msg.mealReplacements.length > 0) {
+      for (const r of msg.mealReplacements) {
+        const scope = r.mealTypes && r.mealTypes.length > 0
+          ? r.mealTypes.map(mt => mealLabels[mt]).join(", ")
+          : (lang === "pt" ? "todas as refeições" : "all meals");
+        parts.push({
+          kind: "replace",
+          text: lang === "pt"
+            ? `Substituir ${scope} por "${r.recipe.name}"`
+            : `Replace ${scope} with "${r.recipe.name}"`,
+        });
+      }
+    }
     if (msg.substitutions && msg.substitutions.length > 0) {
       for (const s of msg.substitutions) {
         const scope = s.mealTypes && s.mealTypes.length > 0
           ? ` (${s.mealTypes.map(mt => mealLabels[mt]).join(", ")})`
           : "";
-        parts.push(
-          lang === "pt"
-            ? `↔ ${s.original} → ${s.replacement}${scope}`
-            : `↔ ${s.original} → ${s.replacement}${scope}`,
-        );
+        parts.push({ kind: "sub", text: `${s.original} → ${s.replacement}${scope}` });
       }
     }
     if (msg.additions && msg.additions.length > 0) {
@@ -409,7 +468,7 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
         const scope = a.mealTypes && a.mealTypes.length > 0
           ? ` (${a.mealTypes.map(mt => mealLabels[mt]).join(", ")})`
           : "";
-        parts.push(`+ ${a.quantity} ${a.unit} ${a.name}${scope}`);
+        parts.push({ kind: "add", text: `${a.quantity} ${a.unit} ${a.name}${scope}` });
       }
     }
     return parts;
@@ -425,8 +484,8 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
           </DrawerTitle>
           <p className="text-[11px] text-muted-foreground">
             {lang === "pt"
-              ? "Substitui ou adiciona ingredientes em todas as receitas (ou só num tipo de refeição)"
-              : "Replace or add ingredients across all recipes (or just a meal type)"}
+              ? "Substitui ingredientes, adiciona novos ou troca refeições inteiras (ex: pequenos-almoços por shakes)"
+              : "Substitute ingredients, add new ones, or replace whole meals (e.g. breakfasts with shakes)"}
           </p>
         </DrawerHeader>
 
@@ -455,7 +514,8 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
                 const hasChanges =
                   msg.role === "assistant" &&
                   ((msg.substitutions && msg.substitutions.length > 0) ||
-                    (msg.additions && msg.additions.length > 0));
+                    (msg.additions && msg.additions.length > 0) ||
+                    (msg.mealReplacements && msg.mealReplacements.length > 0));
 
                 return (
                   <div key={i}>
@@ -474,14 +534,16 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
                       <div className="mt-1.5 max-w-[85%] space-y-1.5">
                         {summary.length > 0 && (
                           <div className="text-[11px] text-muted-foreground space-y-0.5 px-1">
-                            {summary.map((line, idx) => (
+                            {summary.map((item, idx) => (
                               <div key={idx} className="flex items-start gap-1">
-                                {line.startsWith("+") ? (
+                                {item.kind === "add" ? (
                                   <Plus className="h-3 w-3 mt-0.5 shrink-0 text-primary" />
+                                ) : item.kind === "replace" ? (
+                                  <Replace className="h-3 w-3 mt-0.5 shrink-0 text-primary" />
                                 ) : (
                                   <ArrowRightLeft className="h-3 w-3 mt-0.5 shrink-0 text-primary" />
                                 )}
-                                <span>{line.replace(/^[+↔]\s*/, "")}</span>
+                                <span>{item.text}</span>
                               </div>
                             ))}
                           </div>
