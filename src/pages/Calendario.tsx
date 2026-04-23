@@ -339,6 +339,36 @@ const Calendario = () => {
       <Navigation />
 
       <main className="page-content max-w-xl mx-auto space-y-5">
+        {/* ═══ Page Header ═══ */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
+              <CalendarIcon className="h-5 w-5 text-primary" />
+              {t.calendar.title}
+            </h1>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {locale === 'pt-PT' ? 'Visualiza o teu progresso' : 'View your progress'}
+            </p>
+          </div>
+          {/* View mode tabs */}
+          <div className="flex items-center gap-2 p-1 bg-secondary/50 rounded-xl">
+            {viewTabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setViewMode(tab.id)}
+                className={cn(
+                  "px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-tight italic transition-all duration-150 touch-target",
+                  viewMode === tab.id
+                    ? "bg-primary text-primary-foreground border-2 border-primary shadow-[4px_4px_0_0_hsl(var(--neon-ultra))]"
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary border-2 border-transparent"
+                )}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Trial banner */}
         {trialStatus.isActive && (
           <div className="flex justify-center">
@@ -373,36 +403,6 @@ const Calendario = () => {
                 )}
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* ═══ Page Header ═══ */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
-              <CalendarIcon className="h-5 w-5 text-primary" />
-              {t.calendar.title}
-            </h1>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {locale === 'pt-PT' ? 'Visualiza o teu progresso' : 'View your progress'}
-            </p>
-          </div>
-          {/* View mode tabs */}
-          <div className="flex items-center gap-2 p-1 bg-secondary/50 rounded-xl">
-            {viewTabs.map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setViewMode(tab.id)}
-                className={cn(
-                  "px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-tight italic transition-all duration-150 touch-target",
-                  viewMode === tab.id
-                    ? "bg-primary text-primary-foreground border-2 border-primary shadow-[4px_4px_0_0_hsl(var(--neon-ultra))]"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary border-2 border-transparent"
-                )}
-              >
-                {tab.label}
-              </button>
-            ))}
           </div>
         </div>
 
