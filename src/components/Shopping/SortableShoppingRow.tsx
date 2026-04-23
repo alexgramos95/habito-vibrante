@@ -56,18 +56,6 @@ export const SortableShoppingRow = ({
           : "bg-card/50 border-border/30 hover:bg-secondary/40",
       )}
     >
-      {/* Dedicated drag handle — only this element initiates drag */}
-      <button
-        ref={setActivatorNodeRef}
-        type="button"
-        {...attributes}
-        {...listeners}
-        aria-label={reorderHandleAriaLabel}
-        onClick={(e) => e.stopPropagation()}
-        className="h-9 w-7 -ml-1 flex items-center justify-center text-muted-foreground/50 hover:text-foreground touch-none cursor-grab active:cursor-grabbing shrink-0"
-      >
-        <GripVertical className="h-5 w-5" />
-      </button>
       {/* Tap area for check / long-press selection */}
       <div
         role="button"
@@ -112,7 +100,9 @@ export const SortableShoppingRow = ({
           )}
         </div>
       </div>
-      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+
+      {/* Action buttons - always visible on mobile, hover on desktop */}
+      <div className="flex gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
         <button
           type="button"
           onPointerDown={(e) => e.stopPropagation()}
@@ -136,6 +126,19 @@ export const SortableShoppingRow = ({
           <Trash2 className="h-3 w-3" />
         </button>
       </div>
+
+      {/* Dedicated drag handle on the RIGHT side */}
+      <button
+        ref={setActivatorNodeRef}
+        type="button"
+        {...attributes}
+        {...listeners}
+        aria-label={reorderHandleAriaLabel}
+        onClick={(e) => e.stopPropagation()}
+        className="h-9 w-7 -mr-1 flex items-center justify-center text-muted-foreground/50 hover:text-foreground touch-none cursor-grab active:cursor-grabbing shrink-0"
+      >
+        <GripVertical className="h-5 w-5" />
+      </button>
     </div>
   );
 };
