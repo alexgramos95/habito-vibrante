@@ -174,6 +174,69 @@ describe("HabitForm — Categoria (validação + feedback + Select dentro de Dia
     expect(screen.getByRole("status")).toHaveTextContent("Categoria registada.");
   });
 
+  it("pré-preenche categoria e cor ao editar um hábito existente", () => {
+    const existing = {
+      id: "h-1",
+      nome: "Meditar",
+      categoria: "Saúde",
+      cor: "#FF0000",
+      active: true,
+      createdAt: new Date().toISOString(),
+    };
+    renderForm({ habit: existing });
+
+    // Trigger mostra o valor selecionado, não o placeholder
+    const trigger = screen.getByRole("combobox");
+    expect(trigger).toHaveTextContent("Saúde");
+    expect(
+      screen.queryByText("Toca para escolher uma categoria"),
+    ).not.toBeInTheDocument();
+
+    // Estado pristine desligado: sem borda tracejada
+    expect(trigger.className).not.toMatch(/border-dashed/);
+
+    // Hint de confirmação
+    expect(screen.getByRole("status")).toHaveTextContent("Categoria registada.");
+
+    // Cor pré-selecionada: o swatch correspondente está marcado com ring
+    const swatches = document.querySelectorAll<HTMLButtonElement>(
+      'button[style*="background-color"]',
+    );
+    const selected = Array.from(swatches).find((b) =>
+      b.className.includes("ring-foreground"),
+    );
+    expect(selected).toBeDefined();
+    expect(selected!.getAttribute("style")?.toLowerCase()).toContain(
+      "rgb(255, 0, 0)",
+    );
+  });
+
+  it("onSave recebe categoria e cor inalteradas quando se edita só o nome", async () => {
+    const user = userEvent.setup();
+    const existing = {
+      id: "h-2",
+      nome: "Ler",
+      categoria: "Saúde",
+      cor: "#FF0000",
+      active: true,
+      createdAt: new Date().toISOString(),
+    };
+    const { onSave } = renderForm({ habit: existing });
+
+    const nome = screen.getByLabelText("Nome");
+    await user.clear(nome);
+    await user.type(nome, "Ler 30 minutos");
+
+    await user.click(screen.getByRole("button", { name: "Guardar" }));
+
+    expect(onSave).toHaveBeenCalledTimes(1);
+    expect(onSave.mock.calls[0][0]).toMatchObject({
+      nome: "Ler 30 minutos",
+      categoria: "Saúde",
+      cor: "#FF0000",
+    });
+  });
+
   it("hierarquia de z-index: Select abre acima do overlay do Dialog", async () => {
     const user = userEvent.setup();
     renderForm();

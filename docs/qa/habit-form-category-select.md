@@ -83,6 +83,38 @@ Repetir cada passo em **retrato** e **paisagem**.
 - [ ] Sem regressão no fecho do `Dialog` (ESC, clique fora do Dialog continua a funcionar).
 - [ ] Mensagens PT-PT correctas (asterisco, hint, erro, confirmação).
 
+## Persistência (categoria + cor)
+
+Validar que as escolhas sobrevivem a reload e edição:
+
+10. **Criar e recarregar (FREE — localStorage)**
+    Criar um hábito com:
+    - Categoria: *Saúde*
+    - Cor: 3.º swatch da palete (não o default).
+    Guardar, fechar o `Dialog` e fazer **F5**.
+    ✅ Hábito continua na lista.
+    ✅ Reabrir em modo edição → trigger da Categoria mostra *"Saúde"* (sem `border-dashed`).
+    ✅ Hint mostra *"Categoria registada."*.
+    ✅ O swatch escolhido aparece com `ring` (selecionado).
+
+11. **Editar só a categoria/cor**
+    Em edição, mudar Categoria para outra opção e escolher cor diferente. Guardar.
+    Reabrir em edição.
+    ✅ Os novos valores estão refletidos no trigger e no swatch.
+    ✅ `nome`, `scheduledTime` e `scheduledDays` permanecem inalterados.
+
+12. **Validar payload em DevTools (FREE)**
+    Em `Application → Local Storage → become-app-data`, procurar o hábito recém-criado.
+    ✅ Campos `categoria` e `cor` estão presentes com os valores esperados.
+
+13. **PRO — sync cloud (verificação leve)**
+    Repetir passos 10–11 numa sessão PRO.
+    ✅ Após reload, os valores aparecem pré-preenchidos (cloud-first).
+    ⚠️ Verificação cloud-side (Edge Function `sync-data`) está fora deste roteiro.
+
+> Cobertura automatizada complementar: `src/data/__tests__/storage.test.ts`
+> valida `addHabit`, `updateHabit`, `saveState` e `loadState` para `categoria`/`cor`.
+
 ## Notas de regressão
 - Se o popover aparecer por trás do `Dialog`, verificar `src/components/ui/select.tsx` — o `SelectContent` deve manter a classe `z-[300]`.
 - Se o scroll do Dialog "saltar" durante o scroll do Select, validar que o Radix Portal continua a montar fora do `DialogContent`.
