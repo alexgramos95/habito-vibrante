@@ -4,7 +4,8 @@ import { pt } from "date-fns/locale";
 import { 
   UtensilsCrossed, Leaf, ChefHat, ShoppingBasket, Sparkles, 
   ChevronLeft, ChevronRight, Settings2, Loader2, RefreshCw,
-  Clock, Flame, Dumbbell, Wheat, Droplets, Check, X, Plus, MessageCircle
+  Clock, Flame, Dumbbell, Wheat, Droplets, Check, X, Plus, MessageCircle,
+  ChevronUp, ChevronDown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n/I18nContext";
@@ -500,6 +501,25 @@ const ShoppingListModal = ({
     setItems(prev => prev.map(item => ({ ...item, checked })));
   };
 
+  const moveItem = (fromIdx: number, direction: -1 | 1) => {
+    setItems(prev => {
+      const item = prev[fromIdx];
+      if (!item) return prev;
+      // Find neighbors within the same category
+      const sameCatIndices = prev
+        .map((it, i) => ({ it, i }))
+        .filter(({ it }) => it.category === item.category)
+        .map(({ i }) => i);
+      const posInCat = sameCatIndices.indexOf(fromIdx);
+      const targetPosInCat = posInCat + direction;
+      if (targetPosInCat < 0 || targetPosInCat >= sameCatIndices.length) return prev;
+      const toIdx = sameCatIndices[targetPosInCat];
+      const next = [...prev];
+      [next[fromIdx], next[toIdx]] = [next[toIdx], next[fromIdx]];
+      return next;
+    });
+  };
+
   const grouped = useMemo(() => {
     const groups: Record<string, ShoppingListItem[]> = {};
     items.forEach(item => {
@@ -576,24 +596,51 @@ const ShoppingListModal = ({
                 <div className="space-y-1">
                   {catItems.map((item, idx) => {
                     const globalIdx = items.indexOf(item);
+                    const isFirst = idx === 0;
+                    const isLast = idx === catItems.length - 1;
                     return (
-                      <button
+                      <div
                         key={idx}
-                        onClick={() => toggleItem(globalIdx)}
                         className={cn(
-                          "flex items-center gap-2.5 w-full rounded-lg px-3 py-2 text-sm transition-all",
+                          "group flex items-center gap-1 w-full rounded-lg pr-1 transition-all",
                           item.checked ? "bg-primary/5" : "hover:bg-secondary"
                         )}
                       >
-                        <div className={cn(
-                          "flex h-4 w-4 items-center justify-center rounded border transition-colors shrink-0",
-                          item.checked ? "bg-primary border-primary" : "border-border"
-                        )}>
-                          {item.checked && <Check className="h-3 w-3 text-primary-foreground" />}
+                        <button
+                          type="button"
+                          onClick={() => toggleItem(globalIdx)}
+                          className="flex items-center gap-2.5 flex-1 min-w-0 px-3 py-2 text-sm text-left"
+                        >
+                          <div className={cn(
+                            "flex h-4 w-4 items-center justify-center rounded border transition-colors shrink-0",
+                            item.checked ? "bg-primary border-primary" : "border-border"
+                          )}>
+                            {item.checked && <Check className="h-3 w-3 text-primary-foreground" />}
+                          </div>
+                          <span className="flex-1 truncate">{item.ingredient}</span>
+                          <span className="text-xs text-muted-foreground shrink-0">{item.quantity} {item.unit}</span>
+                        </button>
+                        <div className="flex flex-col shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => moveItem(globalIdx, -1)}
+                            disabled={isFirst}
+                            aria-label={lang === "pt" ? "Mover para cima" : "Move up"}
+                            className="flex h-5 w-6 items-center justify-center rounded text-muted-foreground hover:text-primary hover:bg-primary/10 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-muted-foreground transition-colors"
+                          >
+                            <ChevronUp className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => moveItem(globalIdx, 1)}
+                            disabled={isLast}
+                            aria-label={lang === "pt" ? "Mover para baixo" : "Move down"}
+                            className="flex h-5 w-6 items-center justify-center rounded text-muted-foreground hover:text-primary hover:bg-primary/10 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-muted-foreground transition-colors"
+                          >
+                            <ChevronDown className="h-3.5 w-3.5" />
+                          </button>
                         </div>
-                        <span className="flex-1 text-left">{item.ingredient}</span>
-                        <span className="text-xs text-muted-foreground">{item.quantity} {item.unit}</span>
-                      </button>
+                      </div>
                     );
                   })}
                 </div>
