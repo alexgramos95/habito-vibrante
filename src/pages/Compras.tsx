@@ -100,7 +100,18 @@ const Compras = () => {
     setPendingReceiptItems([]);
   };
 
-  const weekLabel = locale === 'pt-PT'
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+  const selectAllVisible = () => setSelectedIds(items.map(i => i.id));
+  const clearSelection = () => setSelectedIds([]);
+  const handleBulkDelete = () => {
+    setState(prev => selectedIds.reduce((acc, id) => deleteShoppingItem(acc, id), prev));
+    toast({ title: locale === 'pt-PT' ? `${selectedIds.length} itens eliminados` : `${selectedIds.length} items deleted` });
+    setSelectedIds([]);
+    setShowBulkDeleteConfirm(false);
+  };
+  const allVisibleSelected = items.length > 0 && selectedIds.length === items.length;
     ? format(selectedWeek, "'Semana de' d 'de' MMMM", { locale: dateLocale })
     : format(selectedWeek, "'Week of' MMMM d", { locale: dateLocale });
 
