@@ -306,6 +306,28 @@ const Compras = () => {
       </Dialog>
 
       <ReceiptReviewModal open={showReceiptReview} onOpenChange={setShowReceiptReview} items={pendingReceiptItems} onConfirm={handleConfirmReceiptItems} />
+
+      {/* Bulk delete confirmation */}
+      <Dialog open={showBulkDeleteConfirm} onOpenChange={setShowBulkDeleteConfirm}>
+        <DialogContent className="w-[90vw] max-w-sm">
+          <DialogHeader>
+            <DialogTitle>
+              {locale === 'pt-PT' ? 'Eliminar selecionados?' : 'Delete selected?'}
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground py-2">
+            {locale === 'pt-PT'
+              ? `Vais eliminar ${selectedIds.length} ${selectedIds.length === 1 ? 'item' : 'itens'}. Esta ação não pode ser revertida.`
+              : `You'll delete ${selectedIds.length} ${selectedIds.length === 1 ? 'item' : 'items'}. This cannot be undone.`}
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowBulkDeleteConfirm(false)}>{t.actions.cancel}</Button>
+            <Button variant="destructive" onClick={handleBulkDelete}>
+              {locale === 'pt-PT' ? 'Eliminar' : 'Delete'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
