@@ -1,6 +1,7 @@
-const PWA_RESET_VERSION = "2026-04-23-frontend-refresh-7";
+const BUILD_VERSION = (typeof __APP_BUILD_ID__ !== "undefined" ? __APP_BUILD_ID__ : "dev-build");
+const PWA_RESET_VERSION = `frontend-refresh-${BUILD_VERSION}`;
 const PWA_RESET_KEY = `become-pwa-reset:${PWA_RESET_VERSION}`;
-const PWA_SCRIPT_VERSION = "2026-04-23-frontend-refresh-7";
+const PWA_SCRIPT_VERSION = BUILD_VERSION;
 
 const CURRENT_SW_MARKER = `v=${PWA_SCRIPT_VERSION}`;
 
