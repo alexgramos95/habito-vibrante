@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { format, getDay, subDays } from "date-fns";
-import { Plus, CheckCircle2, Flame, Sparkles, TrendingUp, TrendingDown, Check, ChevronRight, ChevronDown, Pencil, ListChecks } from "lucide-react";
+import { Plus, CheckCircle2, Flame, Sparkles, TrendingUp, TrendingDown, Check, ChevronRight, ListChecks } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { useI18n } from "@/i18n/I18nContext";
 import { Habit, Tracker, TrackerEntry } from "@/data/types";
@@ -78,7 +78,6 @@ const Index = () => {
   const [showPaywall, setShowPaywall] = useState(false);
   const [showModeSelector, setShowModeSelector] = useState(false);
   const [selectedMetricId, setSelectedMetricId] = useState<string | null>(null);
-  const [showAllHabits, setShowAllHabits] = useState(false);
 
   // Auth guard
   useEffect(() => {
@@ -105,15 +104,6 @@ const Index = () => {
 
   const sortedTodaySimple = useMemo(() => getHabitsSortedForDay(todaySimple, dayOfWeek), [todaySimple, dayOfWeek]);
   const activeMetrics = useMemo(() => metricHabits.filter(h => h.active), [metricHabits]);
-
-  // Habits that exist but are NOT scheduled for today (so they are invisible above)
-  const otherHabits = useMemo(() => {
-    const todayIds = new Set([
-      ...sortedTodaySimple.map(h => h.id),
-      ...activeMetrics.map(h => h.id),
-    ]);
-    return state.habits.filter(h => !todayIds.has(h.id));
-  }, [state.habits, sortedTodaySimple, activeMetrics]);
 
   const FREE_LIMIT = 3;
   const canAddSimple = isPro || simpleHabits.length < FREE_LIMIT;
@@ -530,58 +520,7 @@ const Index = () => {
         )}
 
         {/* ═══ Outros hábitos (não agendados para hoje / inativos) ═══ */}
-        {otherHabits.length > 0 && (
-          <div className="space-y-2 pt-2">
-            <button
-              onClick={() => setShowAllHabits(v => !v)}
-              className="w-full flex items-center justify-between px-1 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <span>Outros hábitos · {otherHabits.length}</span>
-              <ChevronDown className={cn("h-4 w-4 transition-transform", showAllHabits && "rotate-180")} />
-            </button>
-            {showAllHabits && (
-              <div className="space-y-1.5">
-                {otherHabits.map(habit => {
-                  const scheduledLabel = (() => {
-                    if (!habit.active) return "Inativo";
-                    const days = habit.scheduledDays;
-                    if (!days || days.length === 0) return "Todos os dias";
-                    if (days.length === 7) return "Todos os dias";
-                    const names = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-                    return days.map(d => names[d]).join(", ");
-                  })();
-                  return (
-                    <button
-                      key={habit.id}
-                      onClick={() => {
-                        if (habit.mode === "metric") {
-                          setEditingHabit(habit);
-                          setShowMetricForm(true);
-                        } else {
-                          navigate(`/app/habit/${habit.id}`);
-                        }
-                      }}
-                      className={cn(
-                        "w-full flex items-center gap-3 p-3 rounded-xl border border-border/40 bg-card/40 text-left transition-all",
-                        "hover:border-primary/30 hover:bg-card/80 active:scale-[0.99]",
-                        !habit.active && "opacity-60"
-                      )}
-                    >
-                      <div className="h-9 w-9 rounded-lg flex items-center justify-center text-base shrink-0 border border-border/40 bg-muted/40">
-                        {habit.icon || (habit.mode === "metric" ? "📊" : "✨")}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate text-foreground">{habit.nome}</p>
-                        <p className="text-xs text-muted-foreground truncate">{scheduledLabel}</p>
-                      </div>
-                      <Pencil className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0" />
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
+        {/* "Outros hábitos" removido — agora acessível via botão "Meus hábitos" → /app/habits */}
 
         {/* PRO upsell */}
         {!isPro && simpleHabits.length >= FREE_LIMIT && (
