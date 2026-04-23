@@ -464,7 +464,7 @@ const ShoppingListModal = ({
   locale: string;
 }) => {
   const lang = locale.startsWith("pt") ? "pt" : "en";
-  const [items, setItems] = useState<ShoppingListItem[]>([]);
+  const [items, setItems] = useState<(ShoppingListItem & { _uid: string })[]>([]);
   const [draggingIdx, setDraggingIdx] = useState<number | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
   const [dragOverCategory, setDragOverCategory] = useState<string | null>(null);
@@ -473,16 +473,14 @@ const ShoppingListModal = ({
 
   useEffect(() => {
     if (!plan) return;
-    const ingredientMap = new Map<string, ShoppingListItem>();
+    const ingredientMap = new Map<string, ShoppingListItem & { _uid: string }>();
     plan.days.forEach(day =>
       day.meals.forEach(meal =>
         meal.recipe.ingredients.forEach(ing => {
           const key = ing.name.toLowerCase();
-          if (ingredientMap.has(key)) {
-            const existing = ingredientMap.get(key)!;
-            ingredientMap.set(key, existing);
-          } else {
+          if (!ingredientMap.has(key)) {
             ingredientMap.set(key, {
+              _uid: `ing-${key}`,
               ingredient: ing.name,
               quantity: ing.quantity,
               unit: ing.unit,
@@ -567,7 +565,7 @@ const ShoppingListModal = ({
   };
 
   const grouped = useMemo(() => {
-    const groups: Record<string, ShoppingListItem[]> = {};
+    const groups: Record<string, (ShoppingListItem & { _uid: string })[]> = {};
     items.forEach(item => {
       if (!groups[item.category]) groups[item.category] = [];
       groups[item.category].push(item);
@@ -651,12 +649,12 @@ const ShoppingListModal = ({
                 <h4 className="text-xs font-semibold text-primary mb-1.5 uppercase tracking-wider px-1">{cat}</h4>
                 <div className="space-y-1">
                   {catItems.map((item) => {
-                    const globalIdx = items.indexOf(item);
+                    const globalIdx = items.findIndex(it => it._uid === item._uid);
                     const isDragging = draggingIdx === globalIdx;
                     const isDropTarget = dragOverIdx === globalIdx && draggingIdx !== null && draggingIdx !== globalIdx;
                     return (
                       <div
-                        key={globalIdx}
+                        key={item._uid}
                         draggable
                         onDragStart={handleDragStart(globalIdx)}
                         onDragOver={handleDragOverItem(globalIdx)}
