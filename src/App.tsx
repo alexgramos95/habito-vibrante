@@ -14,6 +14,7 @@ import { PWAUpdateToast, usePWAUpdate } from "@/components/PWA/PWAUpdateToast";
 // Lazy load pages (except Onboarding, que importamos diretamente)
 const Index = lazy(() => import("./pages/Index"));
 const HabitDetail = lazy(() => import("./pages/HabitDetail"));
+const MyHabits = lazy(() => import("./pages/MyHabits"));
 const Calendario = lazy(() => import("./pages/Calendario"));
 const Compras = lazy(() => import("./pages/Compras"));
 const Nutricao = lazy(() => import("./pages/Nutricao"));
