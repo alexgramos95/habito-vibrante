@@ -200,17 +200,57 @@ const Compras = () => {
           </div>
         ) : (
           <div className="space-y-3">
+            {/* Bulk selection toolbar */}
+            <div className="flex items-center justify-between gap-2 px-1">
+              <button
+                onClick={allVisibleSelected ? clearSelection : selectAllVisible}
+                className="flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Checkbox checked={allVisibleSelected} className="h-4 w-4 pointer-events-none" />
+                <span>
+                  {allVisibleSelected
+                    ? (locale === 'pt-PT' ? 'Desmarcar todos' : 'Unselect all')
+                    : (locale === 'pt-PT' ? 'Selecionar todos' : 'Select all')}
+                </span>
+              </button>
+              {selectedIds.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground tabular-nums">
+                    {selectedIds.length} {locale === 'pt-PT' ? 'selecionados' : 'selected'}
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    className="h-8 px-3 gap-1.5 rounded-xl"
+                    onClick={() => setShowBulkDeleteConfirm(true)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    {locale === 'pt-PT' ? 'Eliminar' : 'Delete'}
+                  </Button>
+                </div>
+              )}
+            </div>
+
             {Object.entries(itemsByCategory).map(([category, categoryItems]) => (
               <div key={category} className="space-y-1.5">
                 <div className="flex items-center justify-between px-1">
                   <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{category}</h3>
                   <span className="text-[10px] text-muted-foreground">{formatCurrency(categoryItems.reduce((s, i) => s + (i.price || 0), 0))}</span>
                 </div>
-                {categoryItems.map(item => (
+                {categoryItems.map(item => {
+                  const isSelected = selectedIds.includes(item.id);
+                  return (
                   <div key={item.id} className={cn(
                     "flex items-center gap-3 p-3 rounded-xl border transition-all group",
+                    isSelected ? "bg-primary/5 border-primary/40" :
                     item.done ? "bg-success/5 border-success/15" : "bg-card/50 border-border/30 hover:bg-secondary/40"
                   )}>
+                    <Checkbox
+                      checked={isSelected}
+                      onCheckedChange={() => toggleSelect(item.id)}
+                      className="h-4 w-4"
+                      aria-label={locale === 'pt-PT' ? 'Selecionar item' : 'Select item'}
+                    />
                     <Checkbox checked={item.done} onCheckedChange={() => setState(prev => toggleShoppingItem(prev, item.id))} className="h-4 w-4" />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
@@ -227,7 +267,8 @@ const Compras = () => {
                         className="h-7 w-7 rounded-lg flex items-center justify-center text-destructive/60 hover:text-destructive"><Trash2 className="h-3 w-3" /></button>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             ))}
           </div>
