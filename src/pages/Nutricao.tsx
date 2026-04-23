@@ -984,8 +984,9 @@ const Nutricao = () => {
               <span className="hidden sm:inline">{lang === "pt" ? "Perfil" : "Profile"}</span>
             </Button>
             {plan && (
-              <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => setShowShopping(true)}>
+              <Button variant="outline" size="sm" className="gap-1.5 rounded-xl h-9 px-3" onClick={() => setShowShopping(true)}>
                 <ShoppingBasket className="h-4 w-4" />
+                <span className="hidden sm:inline">{lang === "pt" ? "Compras" : "Shopping"}</span>
               </Button>
             )}
           </div>
