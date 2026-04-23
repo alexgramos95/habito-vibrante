@@ -91,10 +91,22 @@ export const HabitForm = ({ habit, onSave, onCancel }: HabitFormProps) => {
     e.preventDefault();
     if (!nome.trim()) return;
 
+    // Categoria obrigatória ao nível do formulário
+    if (!categoria) {
+      setCategoriaError(
+        isPT
+          ? "Escolhe uma categoria para guardar."
+          : "Choose a category to save."
+      );
+      categoriaWrapperRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      setTimeout(() => categoriaTriggerRef.current?.focus(), 250);
+      return;
+    }
+
     // Final guard: block save if it would leave 0 active habits
     if (!active && otherActiveCount === 0) {
       setError(
-        locale === 'pt-PT'
+        isPT
           ? "Não podes guardar — pelo menos 1 hábito tem de estar ativo."
           : "Cannot save — at least one habit must remain active."
       );
