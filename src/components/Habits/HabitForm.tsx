@@ -199,7 +199,7 @@ export const HabitForm = ({ habit, onSave, onCancel }: HabitFormProps) => {
                   />
                   <SelectValue
                     placeholder={
-                      isPT ? "Toca para escolher uma categoria" : "Tap to choose a category"
+                      isPT ? "Seleciona uma categoria" : "Select a category"
                     }
                   />
                 </span>
