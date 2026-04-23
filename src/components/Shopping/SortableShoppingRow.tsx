@@ -87,8 +87,8 @@ export const SortableShoppingRow = ({
           {item.price > 0 && (
             <span
               className={cn(
-                "text-xs font-medium shrink-0",
-                item.done ? "text-muted-foreground" : "text-warning",
+                "text-xs font-medium shrink-0 transition-colors",
+                item.done ? "text-primary/60" : "text-warning",
               )}
             >
               {formatCurrency(item.price)}
