@@ -114,11 +114,13 @@ export function RecipeChatDrawer({ open, onOpenChange, recipe, locale, onUpdateR
         },
       );
       if (!error) {
+        const newName = typeof data?.name === "string" && data.name.trim().length > 0 ? data.name.trim() : null;
         const newInstr = Array.isArray(data?.instructions) ? data.instructions : [];
         const newMacros = data?.macros && typeof data.macros === "object" ? data.macros : null;
-        if (newInstr.length > 0 || newMacros) {
+        if (newName || newInstr.length > 0 || newMacros) {
           updatedRecipe = {
             ...updatedRecipe,
+            name: newName ?? updatedRecipe.name,
             instructions: newInstr.length > 0 ? newInstr : updatedRecipe.instructions,
             macros: newMacros ? { ...updatedRecipe.macros, ...newMacros } : updatedRecipe.macros,
           };
@@ -127,8 +129,8 @@ export function RecipeChatDrawer({ open, onOpenChange, recipe, locale, onUpdateR
             title: lang === "pt" ? "Receita atualizada" : "Recipe updated",
             description:
               lang === "pt"
-                ? "Preparação e valores nutricionais ajustados."
-                : "Steps and nutrition adjusted.",
+                ? "Nome, preparação e valores nutricionais ajustados."
+                : "Name, steps and nutrition adjusted.",
           });
         }
       }
