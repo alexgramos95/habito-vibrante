@@ -85,7 +85,10 @@ const Definicoes = () => {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-xl font-bold text-foreground">{t.settings.title}</h1>
+            <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
+              <Settings className="h-5 w-5 text-primary" />
+              {t.settings.title}
+            </h1>
             <p className="text-xs text-muted-foreground mt-0.5">
               {locale === 'pt-PT' ? 'Preferências da aplicação' : 'App preferences'}
             </p>

@@ -261,7 +261,10 @@ const Account = () => {
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-xl font-semibold">Conta</h1>
+          <h1 className="text-xl font-semibold flex items-center gap-2">
+            <UserCircle className="h-5 w-5 text-primary" />
+            Conta
+          </h1>
         </div>
       </div>
 

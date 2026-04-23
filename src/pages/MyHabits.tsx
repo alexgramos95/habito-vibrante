@@ -66,7 +66,8 @@ const MyHabits = () => {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-xl font-bold text-foreground">
+            <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
+              <ListChecks className="h-5 w-5 text-primary" />
               {isPT ? "Meus hábitos" : "My habits"}
             </h1>
             <p className="text-xs text-muted-foreground mt-0.5">
