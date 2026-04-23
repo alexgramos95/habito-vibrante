@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { Clock, Bell, AlertTriangle } from "lucide-react";
+import { useState, useMemo, useRef } from "react";
+import { Clock, Bell, AlertTriangle, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -61,6 +61,10 @@ export const HabitForm = ({ habit, onSave, onCancel }: HabitFormProps) => {
   const [scheduledDays, setScheduledDays] = useState<number[]>(habit?.scheduledDays || []);
   const [reminderEnabled, setReminderEnabled] = useState(habit?.reminderEnabled ?? true);
   const [error, setError] = useState<string | null>(null);
+  const [categoriaError, setCategoriaError] = useState<string | null>(null);
+  const categoriaWrapperRef = useRef<HTMLDivElement | null>(null);
+  const categoriaTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const isPT = locale === 'pt-PT';
 
   // Count of active habits excluding the one being edited (if editing)
   const otherActiveCount = useMemo(() => {
@@ -87,10 +91,22 @@ export const HabitForm = ({ habit, onSave, onCancel }: HabitFormProps) => {
     e.preventDefault();
     if (!nome.trim()) return;
 
+    // Categoria obrigatória ao nível do formulário
+    if (!categoria) {
+      setCategoriaError(
+        isPT
+          ? "Escolhe uma categoria para guardar."
+          : "Choose a category to save."
+      );
+      categoriaWrapperRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      setTimeout(() => categoriaTriggerRef.current?.focus(), 250);
+      return;
+    }
+
     // Final guard: block save if it would leave 0 active habits
     if (!active && otherActiveCount === 0) {
       setError(
-        locale === 'pt-PT'
+        isPT
           ? "Não podes guardar — pelo menos 1 hábito tem de estar ativo."
           : "Cannot save — at least one habit must remain active."
       );
@@ -140,11 +156,32 @@ export const HabitForm = ({ habit, onSave, onCancel }: HabitFormProps) => {
           </div>
 
           {/* Categoria */}
-          <div className="space-y-2">
-            <Label htmlFor="categoria">{t.habits.category}</Label>
-            <Select value={categoria} onValueChange={setCategoria}>
-              <SelectTrigger className="bg-secondary/50">
-                <SelectValue placeholder={locale === 'pt-PT' ? "Selecionar categoria" : "Select category"} />
+          <div className="space-y-2" ref={categoriaWrapperRef}>
+            <Label htmlFor="categoria">
+              {t.habits.category}
+              <span className="ml-1 text-muted-foreground" aria-hidden="true">*</span>
+              <span className="sr-only">
+                {isPT ? "(obrigatório)" : "(required)"}
+              </span>
+            </Label>
+            <Select
+              value={categoria}
+              onValueChange={(value) => {
+                setCategoria(value);
+                if (categoriaError) setCategoriaError(null);
+              }}
+            >
+              <SelectTrigger
+                ref={categoriaTriggerRef}
+                id="categoria"
+                aria-invalid={!!categoriaError}
+                aria-describedby="categoria-feedback"
+                className={cn(
+                  "bg-secondary/50",
+                  categoriaError && "border-destructive/60 focus:ring-destructive"
+                )}
+              >
+                <SelectValue placeholder={isPT ? "Escolhe uma categoria" : "Choose a category"} />
               </SelectTrigger>
               <SelectContent>
                 {DEFAULT_CATEGORIES.map((cat) => (
@@ -154,6 +191,31 @@ export const HabitForm = ({ habit, onSave, onCancel }: HabitFormProps) => {
                 ))}
               </SelectContent>
             </Select>
+            {categoriaError ? (
+              <p
+                id="categoria-feedback"
+                role="alert"
+                className="flex items-center gap-1.5 text-xs text-destructive"
+              >
+                <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                {categoriaError}
+              </p>
+            ) : categoria ? (
+              <p
+                id="categoria-feedback"
+                role="status"
+                className="flex items-center gap-1.5 text-xs text-muted-foreground"
+              >
+                <Check className="h-3.5 w-3.5 shrink-0" />
+                {isPT ? "Categoria registada." : "Category set."}
+              </p>
+            ) : (
+              <p id="categoria-feedback" className="text-xs text-muted-foreground">
+                {isPT
+                  ? "Ajuda a organizar e visualizar progresso."
+                  : "Helps organise and visualise progress."}
+              </p>
+            )}
           </div>
 
           {/* Cor */}
