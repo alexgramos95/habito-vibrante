@@ -148,20 +148,29 @@ describe("HabitForm — Categoria (validação + feedback + Select dentro de Dia
 
     await user.click(screen.getByRole("combobox"));
 
-    // Localiza o overlay do Dialog (tem classe z-50 no shadcn dialog)
     const overlay = document.querySelector('[data-state="open"][class*="fixed inset-0"]');
-    // Localiza o conteúdo do SelectContent
     const listbox = await screen.findByRole("listbox");
     const selectContent =
       listbox.closest('[class*="z-["]') ?? listbox.parentElement!;
 
     expect(selectContent.className).toMatch(/z-\[300\]/);
 
-    // Se o overlay tiver z-index numérico legível, garante que o Select é >=
+    // Extrai z-index numérico de classes Tailwind (z-50, z-[200], z-[300]…)
+    const extractZ = (cls: string): number | null => {
+      const bracket = cls.match(/z-\[(\d+)\]/);
+      if (bracket) return Number(bracket[1]);
+      const plain = cls.match(/(?:^|\s)z-(\d+)(?:\s|$)/);
+      return plain ? Number(plain[1]) : null;
+    };
+
+    const selectZ = extractZ(selectContent.className);
+    expect(selectZ).not.toBeNull();
+    expect(selectZ!).toBeGreaterThanOrEqual(300);
+
     if (overlay) {
-      const overlayClass = (overlay as HTMLElement).className;
-      // overlay shadcn usa z-50; o SelectContent z-[300] vence sempre.
-      expect(overlayClass).toMatch(/z-\d+/);
+      const overlayZ = extractZ((overlay as HTMLElement).className);
+      expect(overlayZ).not.toBeNull();
+      expect(selectZ!).toBeGreaterThan(overlayZ!);
     }
   });
 });
