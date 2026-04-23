@@ -38,35 +38,54 @@ interface PushSubscription {
 
 /**
  * Get the current time in a given IANA timezone.
- * Returns { hour, minute, dayOfWeek } in that timezone.
+ * Returns { hour, minute, dayOfWeek, dateISO } in that timezone.
  */
-function getTimeInTimezone(tz: string): { hour: number; minute: number; dayOfWeek: number } {
+function getTimeInTimezone(tz: string): { hour: number; minute: number; dayOfWeek: number; dateISO: string } {
   try {
     const now = new Date();
-    // Use Intl to get components in the target timezone
     const formatter = new Intl.DateTimeFormat('en-US', {
       timeZone: tz,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
       hour: 'numeric',
       minute: 'numeric',
       weekday: 'short',
       hour12: false,
     });
     const parts = formatter.formatToParts(now);
-    const hour = parseInt(parts.find(p => p.type === 'hour')?.value ?? '0', 10);
-    const minute = parseInt(parts.find(p => p.type === 'minute')?.value ?? '0', 10);
-    const weekdayStr = parts.find(p => p.type === 'weekday')?.value ?? 'Mon';
-    
+    const get = (type: string) => parts.find(p => p.type === type)?.value ?? '';
+    const hour = parseInt(get('hour') || '0', 10);
+    const minute = parseInt(get('minute') || '0', 10);
+    const weekdayStr = get('weekday') || 'Mon';
+    const year = get('year');
+    const month = get('month');
+    const day = get('day');
+    const dateISO = `${year}-${month}-${day}`;
+
     const dayMap: Record<string, number> = {
       'Sun': 0, 'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6,
     };
     const dayOfWeek = dayMap[weekdayStr] ?? 0;
-    
-    return { hour, minute, dayOfWeek };
+
+    return { hour, minute, dayOfWeek, dateISO };
   } catch {
-    // Fallback to UTC if timezone is invalid
     const now = new Date();
-    return { hour: now.getUTCHours(), minute: now.getUTCMinutes(), dayOfWeek: now.getUTCDay() };
+    const dateISO = now.toISOString().slice(0, 10);
+    return { hour: now.getUTCHours(), minute: now.getUTCMinutes(), dayOfWeek: now.getUTCDay(), dateISO };
   }
+}
+
+/**
+ * Returns the offset (minutes) matching "now" against the scheduled HH:MM,
+ * or null if none. E.g. scheduled 07:00 and now 07:02 → 2.
+ */
+function matchingOffset(scheduledHour: number, scheduledMinute: number, nowHour: number, nowMinute: number): number | null {
+  const scheduledTotal = scheduledHour * 60 + scheduledMinute;
+  const nowTotal = nowHour * 60 + nowMinute;
+  const diff = nowTotal - scheduledTotal;
+  if (diff < 0) return null;
+  return REMINDER_OFFSETS_MIN.includes(diff) ? diff : null;
 }
 
 async function sendPushNotification(
