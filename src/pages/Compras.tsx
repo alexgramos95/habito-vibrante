@@ -119,7 +119,7 @@ const Compras = () => {
     setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   };
 
-  const LONG_PRESS_MS = 1000;
+  const LONG_PRESS_MS = 500;
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longPressTriggeredRef = useRef(false);
 
