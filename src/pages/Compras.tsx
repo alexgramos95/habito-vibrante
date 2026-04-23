@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { format, startOfWeek, addWeeks, subWeeks, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
 import { pt, enUS as enUSLocale } from "date-fns/locale";
-import { ShoppingCart, Plus, Trash2, Pencil, ChevronLeft, ChevronRight, Receipt, TrendingUp, X, CheckSquare } from "lucide-react";
+import { ShoppingCart, Plus, Trash2, Pencil, ChevronLeft, ChevronRight, Receipt, TrendingUp, X, CheckSquare, Circle, CheckCircle2 } from "lucide-react";
 import { useI18n } from "@/i18n/I18nContext";
 import { Navigation } from "@/components/Layout/Navigation";
 import { Card, CardContent } from "@/components/ui/card";
