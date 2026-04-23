@@ -262,17 +262,8 @@ const Compras = () => {
                     </button>
                     <button
                       onClick={() => setState(prev => toggleShoppingItem(prev, item.id))}
-                      className={cn(
-                        "h-5 w-5 rounded border flex items-center justify-center transition-colors",
-                        item.done
-                          ? "bg-success border-success text-success-foreground"
-                          : "border-muted-foreground/30 hover:border-success/50 bg-transparent"
-                      )}
-                      aria-label={locale === 'pt-PT' ? 'Marcar como comprado' : 'Mark as purchased'}
+                      className="flex-1 min-w-0 text-left"
                     >
-                      {item.done && <CheckSquare className="h-3.5 w-3.5" />}
-                    </button>
-                    <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
                         <p className={cn("text-sm font-medium truncate", item.done && "line-through text-muted-foreground")}>{item.nome}</p>
                         {item.price > 0 && (
@@ -280,10 +271,10 @@ const Compras = () => {
                         )}
                       </div>
                       {item.quantidade && <p className="text-xs text-muted-foreground truncate">{item.quantidade}</p>}
-                    </div>
+                    </button>
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => openEditForm(item)} className="h-7 w-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground"><Pencil className="h-3 w-3" /></button>
-                      <button onClick={() => { setState(prev => deleteShoppingItem(prev, item.id)); toast({ title: t.shopping.itemDeleted }); }}
+                      <button onClick={(e) => { e.stopPropagation(); openEditForm(item); }} className="h-7 w-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground"><Pencil className="h-3 w-3" /></button>
+                      <button onClick={(e) => { e.stopPropagation(); setState(prev => deleteShoppingItem(prev, item.id)); toast({ title: t.shopping.itemDeleted }); }}
                         className="h-7 w-7 rounded-lg flex items-center justify-center text-destructive/60 hover:text-destructive"><Trash2 className="h-3 w-3" /></button>
                     </div>
                   </div>
