@@ -175,10 +175,11 @@ describe("HabitForm — Categoria (validação + feedback + Select dentro de Dia
   });
 
   it("pré-preenche categoria e cor ao editar um hábito existente", () => {
+    const existingCategory = DEFAULT_CATEGORIES[0]; // "Health"
     const existing = {
       id: "h-1",
       nome: "Meditar",
-      categoria: "Saúde",
+      categoria: existingCategory,
       cor: "#FF0000",
       active: true,
       createdAt: new Date().toISOString(),
@@ -187,8 +188,7 @@ describe("HabitForm — Categoria (validação + feedback + Select dentro de Dia
 
     // Trigger mostra o valor selecionado, não o placeholder
     const trigger = screen.getByRole("combobox");
-    // Radix renderiza o valor selecionado dentro do SelectValue
-    expect(screen.getByText("Saúde")).toBeInTheDocument();
+    expect(within(trigger).getByText(existingCategory)).toBeInTheDocument();
     expect(
       screen.queryByText("Toca para escolher uma categoria"),
     ).not.toBeInTheDocument();
@@ -214,10 +214,11 @@ describe("HabitForm — Categoria (validação + feedback + Select dentro de Dia
 
   it("onSave recebe categoria e cor inalteradas quando se edita só o nome", async () => {
     const user = userEvent.setup();
+    const existingCategory = DEFAULT_CATEGORIES[0];
     const existing = {
       id: "h-2",
       nome: "Ler",
-      categoria: "Saúde",
+      categoria: existingCategory,
       cor: "#FF0000",
       active: true,
       createdAt: new Date().toISOString(),
@@ -233,7 +234,7 @@ describe("HabitForm — Categoria (validação + feedback + Select dentro de Dia
     expect(onSave).toHaveBeenCalledTimes(1);
     expect(onSave.mock.calls[0][0]).toMatchObject({
       nome: "Ler 30 minutos",
-      categoria: "Saúde",
+      categoria: existingCategory,
       cor: "#FF0000",
     });
   });
