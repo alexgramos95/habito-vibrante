@@ -187,5 +187,6 @@ export function useHabitNotifications(habits: Habit[]) {
     ...pushNotifications,
     isLocalSupported: isSupported,
     scheduleLocalNotifications,
+    nativeAlarms,
   };
 }
