@@ -5,7 +5,7 @@ import {
   UtensilsCrossed, Leaf, ChefHat, ShoppingBasket, Sparkles, 
   ChevronLeft, ChevronRight, Settings2, Loader2, RefreshCw,
   Clock, Flame, Dumbbell, Wheat, Droplets, Check, X, Plus, MessageCircle,
-  ChevronUp, ChevronDown
+  GripVertical
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n/I18nContext";
@@ -465,6 +465,9 @@ const ShoppingListModal = ({
 }) => {
   const lang = locale.startsWith("pt") ? "pt" : "en";
   const [items, setItems] = useState<ShoppingListItem[]>([]);
+  const [draggingIdx, setDraggingIdx] = useState<number | null>(null);
+  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
+  const [dragOverCategory, setDragOverCategory] = useState<string | null>(null);
   const { setState } = useData();
   const { toast } = useToast();
 
@@ -501,21 +504,64 @@ const ShoppingListModal = ({
     setItems(prev => prev.map(item => ({ ...item, checked })));
   };
 
-  const moveItem = (fromIdx: number, direction: -1 | 1) => {
+  const handleDragStart = (idx: number) => (e: React.DragEvent) => {
+    setDraggingIdx(idx);
+    e.dataTransfer.effectAllowed = "move";
+    // Required for Firefox
+    try { e.dataTransfer.setData("text/plain", String(idx)); } catch { /* noop */ }
+  };
+
+  const handleDragOverItem = (idx: number) => (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (idx !== dragOverIdx) setDragOverIdx(idx);
+    const cat = items[idx]?.category ?? null;
+    if (cat !== dragOverCategory) setDragOverCategory(cat);
+  };
+
+  const handleDragOverCategory = (cat: string) => (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (cat !== dragOverCategory) setDragOverCategory(cat);
+  };
+
+  const handleDragEnd = () => {
+    setDraggingIdx(null);
+    setDragOverIdx(null);
+    setDragOverCategory(null);
+  };
+
+  const handleDropOnItem = (targetIdx: number) => (e: React.DragEvent) => {
+    e.preventDefault();
+    const fromIdx = draggingIdx;
+    handleDragEnd();
+    if (fromIdx === null || fromIdx === targetIdx) return;
     setItems(prev => {
-      const item = prev[fromIdx];
-      if (!item) return prev;
-      // Find neighbors within the same category
-      const sameCatIndices = prev
-        .map((it, i) => ({ it, i }))
-        .filter(({ it }) => it.category === item.category)
-        .map(({ i }) => i);
-      const posInCat = sameCatIndices.indexOf(fromIdx);
-      const targetPosInCat = posInCat + direction;
-      if (targetPosInCat < 0 || targetPosInCat >= sameCatIndices.length) return prev;
-      const toIdx = sameCatIndices[targetPosInCat];
+      if (!prev[fromIdx] || !prev[targetIdx]) return prev;
       const next = [...prev];
-      [next[fromIdx], next[toIdx]] = [next[toIdx], next[fromIdx]];
+      const [moved] = next.splice(fromIdx, 1);
+      // Adopt target's category (allows cross-category move)
+      moved.category = prev[targetIdx].category;
+      const insertAt = fromIdx < targetIdx ? targetIdx - 1 : targetIdx;
+      next.splice(insertAt, 0, moved);
+      return next;
+    });
+  };
+
+  const handleDropOnCategory = (cat: string) => (e: React.DragEvent) => {
+    e.preventDefault();
+    const fromIdx = draggingIdx;
+    handleDragEnd();
+    if (fromIdx === null) return;
+    setItems(prev => {
+      if (!prev[fromIdx]) return prev;
+      const next = [...prev];
+      const [moved] = next.splice(fromIdx, 1);
+      moved.category = cat;
+      // Find last index of this category in remaining list, append after it
+      let lastCatIdx = -1;
+      next.forEach((it, i) => { if (it.category === cat) lastCatIdx = i; });
+      next.splice(lastCatIdx + 1, 0, moved);
       return next;
     });
   };
