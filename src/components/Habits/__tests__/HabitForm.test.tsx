@@ -176,11 +176,12 @@ describe("HabitForm — Categoria (validação + feedback + Select dentro de Dia
 
   it("pré-preenche categoria e cor ao editar um hábito existente", () => {
     const existingCategory = DEFAULT_CATEGORIES[0]; // "Health"
+    const existingColor = DEFAULT_COLORS[1]; // "#22c55e"
     const existing = {
       id: "h-1",
       nome: "Meditar",
       categoria: existingCategory,
-      cor: "#FF0000",
+      cor: existingColor,
       active: true,
       createdAt: new Date().toISOString(),
     };
@@ -200,26 +201,30 @@ describe("HabitForm — Categoria (validação + feedback + Select dentro de Dia
     expect(screen.getByRole("status")).toHaveTextContent("Categoria registada.");
 
     // Cor pré-selecionada: o swatch correspondente está marcado com ring
-    const swatches = document.querySelectorAll<HTMLButtonElement>(
-      'button[style*="background-color"]',
+    const swatches = Array.from(
+      document.querySelectorAll<HTMLButtonElement>(
+        'button[style*="background-color"]',
+      ),
     );
-    const selected = Array.from(swatches).find((b) =>
+    const selected = swatches.find((b) =>
       b.className.includes("ring-foreground"),
     );
     expect(selected).toBeDefined();
+    // Hex → rgb (jsdom normaliza para rgb): #22c55e → rgb(34, 197, 94)
     expect(selected!.getAttribute("style")?.toLowerCase()).toContain(
-      "rgb(255, 0, 0)",
+      "rgb(34, 197, 94)",
     );
   });
 
   it("onSave recebe categoria e cor inalteradas quando se edita só o nome", async () => {
     const user = userEvent.setup();
     const existingCategory = DEFAULT_CATEGORIES[0];
+    const existingColor = DEFAULT_COLORS[1];
     const existing = {
       id: "h-2",
       nome: "Ler",
       categoria: existingCategory,
-      cor: "#FF0000",
+      cor: existingColor,
       active: true,
       createdAt: new Date().toISOString(),
     };
@@ -235,7 +240,7 @@ describe("HabitForm — Categoria (validação + feedback + Select dentro de Dia
     expect(onSave.mock.calls[0][0]).toMatchObject({
       nome: "Ler 30 minutos",
       categoria: existingCategory,
-      cor: "#FF0000",
+      cor: existingColor,
     });
   });
 
