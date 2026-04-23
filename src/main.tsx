@@ -39,7 +39,8 @@ if (shouldDisableServiceWorker && "serviceWorker" in navigator) {
   });
 } else {
   void (async () => {
-    await maybeForcePublishedPwaRefresh();
+    const isResettingRuntime = await maybeForcePublishedPwaRefresh();
+    if (isResettingRuntime) return;
     await registerPublishedServiceWorker();
   })();
 }
