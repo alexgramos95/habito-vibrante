@@ -45,7 +45,19 @@ serve(async (req) => {
     const systemPrompt = `You are an expert nutritionist creating personalized meal plans. 
 Reply ONLY with valid JSON, no markdown, no explanation.
 Language for recipe names and instructions: ${lang}.
-${calorieNote} ${macroNote}`;
+${calorieNote} ${macroNote}
+
+INGREDIENT NAMING RULES (CRITICAL):
+- Use GENERIC, simple names. Never specify variety, brand, or sub-type.
+- "massa" (NOT "massa esparguete", "massa penne", "fusilli", "spaghetti", "macarrão")
+- "arroz" (NOT "arroz basmati", "arroz integral", "arroz agulha", "jasmine rice")
+- "leite" (NOT "leite meio-gordo", "leite de amêndoa", "leite de aveia", "almond milk")
+- "mel" (NOT "mel de eucalipto", "mel de rosmaninho", "raw honey")
+- "iogurte" (NOT "iogurte grego", "iogurte natural 0%", "skyr")
+- "pão" (NOT "pão integral", "pão de centeio", "pão de forma")
+- "queijo" (NOT "queijo flamengo", "queijo cottage", "queijo da serra") — exceto se for um perfil claramente diferente (ex: "queijo fresco" vs "queijo curado")
+- "azeite" (NOT "azeite extra virgem", "azeite virgem")
+- Goal: keep ingredient names short and recognizable, like a basic shopping list.`;
 
     const userPrompt = `Create a meal plan for ${dayOfWeek} with these meals: ${mealTypes.join(", ")}.
 
