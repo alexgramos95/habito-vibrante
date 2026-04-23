@@ -412,7 +412,8 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
 
       const subs: GlobalSubstitution[] | null = data.substitutions || null;
       const adds: GlobalAddition[] | null = data.additions || null;
-      const matchCount = subs || adds ? countMatches(subs, adds) : 0;
+      const reps: MealReplacement[] | null = data.mealReplacements || null;
+      const matchCount = subs || adds || reps ? countMatches(subs, adds, reps) : 0;
 
       setMessages(prev => [
         ...prev,
@@ -421,6 +422,7 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
           content: data.reply,
           substitutions: subs,
           additions: adds,
+          mealReplacements: reps,
           matchCount,
         },
       ]);
