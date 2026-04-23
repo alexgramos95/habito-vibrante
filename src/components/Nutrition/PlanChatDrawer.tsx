@@ -208,7 +208,7 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
             macros: r.macros,
             tags: r.tags ?? [],
             imageEmoji: r.imageEmoji,
-            isAIGgenerated: true,
+            isAIGenerated: true,
           };
           return { ...meal, recipe: newRecipe };
         }
