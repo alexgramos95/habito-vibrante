@@ -16,6 +16,17 @@ interface Habit {
   reminderEnabled?: boolean;
 }
 
+interface DailyLog {
+  habitId: string;
+  date: string; // YYYY-MM-DD
+  done: boolean;
+}
+
+// Re-send reminders at these minute offsets after the scheduled time.
+// The cron runs every minute, so we check whether "now" matches scheduled+offset.
+// 0 = original; 2 & 5 = follow-ups if the habit is still not completed.
+const REMINDER_OFFSETS_MIN = [0, 2, 5];
+
 interface PushSubscription {
   id: string;
   user_id: string;
