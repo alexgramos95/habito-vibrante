@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef } from "react";
-import { Clock, Bell, AlertTriangle, Check, Tag } from "lucide-react";
+import { Clock, Bell, AlertTriangle, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
