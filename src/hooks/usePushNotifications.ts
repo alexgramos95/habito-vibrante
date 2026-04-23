@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { getVapidPublicKey, VAPID_PUBLIC_KEY } from "@/config/push";
+import { registerPublishedServiceWorker } from "@/lib/pwaRefresh";
 
 export type NotificationMode = 'background' | 'in-app' | 'unsupported' | 'denied';
 
@@ -121,7 +122,10 @@ export function usePushNotifications(userId: string | undefined) {
       if (!userId || !state.isPushSupported) return;
 
       try {
-        const registration = await navigator.serviceWorker.ready;
+        const registration =
+          (await navigator.serviceWorker.getRegistration()) ||
+          (await registerPublishedServiceWorker()) ||
+          (await navigator.serviceWorker.ready); 
         const subscription = await (registration as any).pushManager.getSubscription();
         
       if (subscription) {
@@ -234,7 +238,10 @@ export function usePushNotifications(userId: string | undefined) {
         if (permission !== 'granted') return false;
       }
 
-      const registration = await navigator.serviceWorker.ready;
+      const registration =
+        (await navigator.serviceWorker.getRegistration()) ||
+        (await registerPublishedServiceWorker()) ||
+        (await navigator.serviceWorker.ready);
       const pm = (registration as any).pushManager;
       
       // Check for existing subscription
@@ -325,7 +332,10 @@ export function usePushNotifications(userId: string | undefined) {
     if (!userId) return false;
 
     try {
-      const registration = await navigator.serviceWorker.ready;
+      const registration =
+        (await navigator.serviceWorker.getRegistration()) ||
+        (await registerPublishedServiceWorker()) ||
+        (await navigator.serviceWorker.ready);
       const subscription = await (registration as any).pushManager.getSubscription();
 
       if (subscription) {
