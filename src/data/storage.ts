@@ -592,10 +592,90 @@ export const getWeekStartDate = (date: Date = new Date()): string => {
   return format(weekStart, "yyyy-MM-dd");
 };
 
+// Parse a quantity string like "2", "0.5", "1/2", "1 1/2" into a number.
+// Returns null when the string isn't numeric (e.g. "a gosto").
+const parseQuantityValue = (q?: string): number | null => {
+  if (!q) return null;
+  const trimmed = String(q).trim().replace(",", ".");
+  if (!trimmed) return null;
+  if (/^\d+\s*\/\s*\d+$/.test(trimmed)) {
+    const [a, b] = trimmed.split("/").map((n) => parseFloat(n));
+    return b ? a / b : null;
+  }
+  const mixed = trimmed.match(/^(\d+)\s+(\d+)\s*\/\s*(\d+)$/);
+  if (mixed) {
+    const [, w, a, b] = mixed;
+    const denom = parseFloat(b);
+    return denom ? parseFloat(w) + parseFloat(a) / denom : null;
+  }
+  const n = parseFloat(trimmed);
+  return Number.isFinite(n) && /^-?\d/.test(trimmed) ? n : null;
+};
+
+const formatQuantityValue = (n: number): string => {
+  if (Number.isInteger(n)) return String(n);
+  return parseFloat(n.toFixed(2)).toString();
+};
+
+// Split "150 g" → { value: "150", unit: "g" }. Falls back to value-only when no unit.
+const splitQuantityAndUnit = (raw?: string): { value: string; unit: string } => {
+  if (!raw) return { value: "", unit: "" };
+  const trimmed = raw.trim();
+  // Match leading number (incl. fraction/decimal), then the rest as unit
+  const m = trimmed.match(/^([\d.,/\s]+?)(?:\s+(.+))?$/);
+  if (!m) return { value: trimmed, unit: "" };
+  return { value: (m[1] || "").trim(), unit: (m[2] || "").trim() };
+};
+
 export const addShoppingItem = (
   state: AppState,
   item: Omit<ShoppingItem, "id" | "done">
 ): AppState => {
+  // Upsert: if an item with the same week + name (case-insensitive) + unit
+  // already exists, merge quantities instead of duplicating.
+  const incomingName = item.nome.trim().toLowerCase();
+  const incoming = splitQuantityAndUnit(item.quantidade);
+  const incomingUnit = incoming.unit.toLowerCase();
+
+  const existingIdx = state.shoppingItems.findIndex((s) => {
+    if (s.weekStartDate !== item.weekStartDate) return false;
+    if (s.nome.trim().toLowerCase() !== incomingName) return false;
+    const existingParts = splitQuantityAndUnit(s.quantidade);
+    return existingParts.unit.toLowerCase() === incomingUnit;
+  });
+
+  if (existingIdx >= 0) {
+    const existing = state.shoppingItems[existingIdx];
+    const existingParts = splitQuantityAndUnit(existing.quantidade);
+    const existingNum = parseQuantityValue(existingParts.value);
+    const incomingNum = parseQuantityValue(incoming.value);
+
+    let mergedQuantity = existing.quantidade;
+    if (existingNum !== null && incomingNum !== null) {
+      const total = formatQuantityValue(existingNum + incomingNum);
+      mergedQuantity = incomingUnit ? `${total} ${incoming.unit}`.trim() : total;
+    } else if (incoming.value || incoming.unit) {
+      // Non-numeric: keep existing and append the new token if different
+      const incomingFull = item.quantidade?.trim() || "";
+      if (incomingFull && existing.quantidade !== incomingFull) {
+        mergedQuantity = existing.quantidade
+          ? `${existing.quantidade} + ${incomingFull}`
+          : incomingFull;
+      }
+    }
+
+    const updated: ShoppingItem = {
+      ...existing,
+      quantidade: mergedQuantity,
+      // Keep existing price/category/done; only fill blanks from incoming
+      categoria: existing.categoria || item.categoria,
+      price: existing.price || item.price,
+    };
+    const nextItems = [...state.shoppingItems];
+    nextItems[existingIdx] = updated;
+    return { ...state, shoppingItems: nextItems };
+  }
+
   const newItem: ShoppingItem = {
     ...item,
     id: generateId(),
