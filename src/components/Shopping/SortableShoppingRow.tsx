@@ -45,8 +45,18 @@ export const SortableShoppingRow = ({
     <div
       ref={setNodeRef}
       style={style}
+      {...attributes}
+      {...listeners}
+      role="button"
+      aria-label={reorderHandleAriaLabel}
+      onClick={() => onItemClick(item)}
+      onPointerDown={() => onLongPressStart(item.id)}
+      onPointerUp={onLongPressCancel}
+      onPointerLeave={onLongPressCancel}
+      onPointerCancel={onLongPressCancel}
+      onContextMenu={(e) => e.preventDefault()}
       className={cn(
-        "flex items-center gap-2 p-3 rounded-xl border-2 transition-all group select-none",
+        "flex items-center gap-2 p-3 rounded-xl border-2 transition-all group select-none touch-none cursor-grab active:cursor-grabbing",
         isDragging && "opacity-60 shadow-lg z-10 relative",
         isSelected
           ? "bg-primary/5 border-primary/40"
@@ -55,26 +65,13 @@ export const SortableShoppingRow = ({
           : "bg-card/50 border-border/30 hover:bg-secondary/40",
       )}
     >
-      <button
-        type="button"
-        {...attributes}
-        {...listeners}
-        aria-label={reorderHandleAriaLabel}
-        className="h-7 w-5 -ml-1 flex items-center justify-center text-muted-foreground/50 hover:text-foreground touch-none cursor-grab active:cursor-grabbing"
-        onClick={(e) => e.stopPropagation()}
+      <span
+        aria-hidden="true"
+        className="h-7 w-5 -ml-1 flex items-center justify-center text-muted-foreground/40"
       >
         <GripVertical className="h-4 w-4" />
-      </button>
-      <button
-        type="button"
-        onClick={() => onItemClick(item)}
-        onPointerDown={() => onLongPressStart(item.id)}
-        onPointerUp={onLongPressCancel}
-        onPointerLeave={onLongPressCancel}
-        onPointerCancel={onLongPressCancel}
-        onContextMenu={(e) => e.preventDefault()}
-        className="flex-1 min-w-0 text-left"
-      >
+      </span>
+      <div className="flex-1 min-w-0 text-left">
         <div className="flex items-center justify-between gap-2">
           <p
             className={cn(
@@ -100,10 +97,11 @@ export const SortableShoppingRow = ({
             {item.quantidade}
           </p>
         )}
-      </button>
+      </div>
       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         <button
           type="button"
+          onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => {
             e.stopPropagation();
             onEdit(item);
@@ -114,6 +112,7 @@ export const SortableShoppingRow = ({
         </button>
         <button
           type="button"
+          onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => {
             e.stopPropagation();
             onDelete(item);
