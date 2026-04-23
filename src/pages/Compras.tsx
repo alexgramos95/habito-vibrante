@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { format, startOfWeek, addWeeks, subWeeks, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
 import { pt, enUS as enUSLocale } from "date-fns/locale";
-import { ShoppingCart, Plus, Trash2, Pencil, ChevronLeft, ChevronRight, Receipt, TrendingUp } from "lucide-react";
+import { ShoppingCart, Plus, Trash2, Pencil, ChevronLeft, ChevronRight, Receipt, TrendingUp, X, CheckSquare } from "lucide-react";
 import { useI18n } from "@/i18n/I18nContext";
 import { Navigation } from "@/components/Layout/Navigation";
 import { Card, CardContent } from "@/components/ui/card";
@@ -33,6 +33,8 @@ const Compras = () => {
   const [formData, setFormData] = useState({ nome: "", quantidade: "", categoria: "", price: "" });
   const [pendingReceiptItems, setPendingReceiptItems] = useState<ReviewItem[]>([]);
   const [showReceiptReview, setShowReceiptReview] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
 
   const weekStartDate = format(selectedWeek, "yyyy-MM-dd");
   const { items, doneCount, totalCount } = getShoppingItemsForWeek(state, weekStartDate);
@@ -97,6 +99,19 @@ const Compras = () => {
     toast({ title: `${confirmedItems.length} itens adicionados` });
     setPendingReceiptItems([]);
   };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+  const selectAllVisible = () => setSelectedIds(items.map(i => i.id));
+  const clearSelection = () => setSelectedIds([]);
+  const handleBulkDelete = () => {
+    setState(prev => selectedIds.reduce((acc, id) => deleteShoppingItem(acc, id), prev));
+    toast({ title: locale === 'pt-PT' ? `${selectedIds.length} itens eliminados` : `${selectedIds.length} items deleted` });
+    setSelectedIds([]);
+    setShowBulkDeleteConfirm(false);
+  };
+  const allVisibleSelected = items.length > 0 && selectedIds.length === items.length;
 
   const weekLabel = locale === 'pt-PT'
     ? format(selectedWeek, "'Semana de' d 'de' MMMM", { locale: dateLocale })
@@ -185,17 +200,57 @@ const Compras = () => {
           </div>
         ) : (
           <div className="space-y-3">
+            {/* Bulk selection toolbar */}
+            <div className="flex items-center justify-between gap-2 px-1">
+              <button
+                onClick={allVisibleSelected ? clearSelection : selectAllVisible}
+                className="flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Checkbox checked={allVisibleSelected} className="h-4 w-4 pointer-events-none" />
+                <span>
+                  {allVisibleSelected
+                    ? (locale === 'pt-PT' ? 'Desmarcar todos' : 'Unselect all')
+                    : (locale === 'pt-PT' ? 'Selecionar todos' : 'Select all')}
+                </span>
+              </button>
+              {selectedIds.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground tabular-nums">
+                    {selectedIds.length} {locale === 'pt-PT' ? 'selecionados' : 'selected'}
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    className="h-8 px-3 gap-1.5 rounded-xl"
+                    onClick={() => setShowBulkDeleteConfirm(true)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    {locale === 'pt-PT' ? 'Eliminar' : 'Delete'}
+                  </Button>
+                </div>
+              )}
+            </div>
+
             {Object.entries(itemsByCategory).map(([category, categoryItems]) => (
               <div key={category} className="space-y-1.5">
                 <div className="flex items-center justify-between px-1">
                   <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{category}</h3>
                   <span className="text-[10px] text-muted-foreground">{formatCurrency(categoryItems.reduce((s, i) => s + (i.price || 0), 0))}</span>
                 </div>
-                {categoryItems.map(item => (
+                {categoryItems.map(item => {
+                  const isSelected = selectedIds.includes(item.id);
+                  return (
                   <div key={item.id} className={cn(
                     "flex items-center gap-3 p-3 rounded-xl border transition-all group",
+                    isSelected ? "bg-primary/5 border-primary/40" :
                     item.done ? "bg-success/5 border-success/15" : "bg-card/50 border-border/30 hover:bg-secondary/40"
                   )}>
+                    <Checkbox
+                      checked={isSelected}
+                      onCheckedChange={() => toggleSelect(item.id)}
+                      className="h-4 w-4"
+                      aria-label={locale === 'pt-PT' ? 'Selecionar item' : 'Select item'}
+                    />
                     <Checkbox checked={item.done} onCheckedChange={() => setState(prev => toggleShoppingItem(prev, item.id))} className="h-4 w-4" />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
@@ -212,7 +267,8 @@ const Compras = () => {
                         className="h-7 w-7 rounded-lg flex items-center justify-center text-destructive/60 hover:text-destructive"><Trash2 className="h-3 w-3" /></button>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             ))}
           </div>
@@ -250,6 +306,28 @@ const Compras = () => {
       </Dialog>
 
       <ReceiptReviewModal open={showReceiptReview} onOpenChange={setShowReceiptReview} items={pendingReceiptItems} onConfirm={handleConfirmReceiptItems} />
+
+      {/* Bulk delete confirmation */}
+      <Dialog open={showBulkDeleteConfirm} onOpenChange={setShowBulkDeleteConfirm}>
+        <DialogContent className="w-[90vw] max-w-sm">
+          <DialogHeader>
+            <DialogTitle>
+              {locale === 'pt-PT' ? 'Eliminar selecionados?' : 'Delete selected?'}
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground py-2">
+            {locale === 'pt-PT'
+              ? `Vais eliminar ${selectedIds.length} ${selectedIds.length === 1 ? 'item' : 'itens'}. Esta ação não pode ser revertida.`
+              : `You'll delete ${selectedIds.length} ${selectedIds.length === 1 ? 'item' : 'items'}. This cannot be undone.`}
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowBulkDeleteConfirm(false)}>{t.actions.cancel}</Button>
+            <Button variant="destructive" onClick={handleBulkDelete}>
+              {locale === 'pt-PT' ? 'Eliminar' : 'Delete'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
