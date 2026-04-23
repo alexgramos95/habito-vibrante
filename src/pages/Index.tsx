@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { format, getDay, subDays } from "date-fns";
-import { Plus, CheckCircle2, Flame, Sparkles, TrendingUp, TrendingDown, Check, ChevronRight, ChevronDown, Pencil, ListChecks } from "lucide-react";
+import { Plus, CheckCircle2, Flame, Sparkles, TrendingUp, TrendingDown, Check, ChevronRight, ListChecks } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { useI18n } from "@/i18n/I18nContext";
 import { Habit, Tracker, TrackerEntry } from "@/data/types";
@@ -78,7 +78,6 @@ const Index = () => {
   const [showPaywall, setShowPaywall] = useState(false);
   const [showModeSelector, setShowModeSelector] = useState(false);
   const [selectedMetricId, setSelectedMetricId] = useState<string | null>(null);
-  const [showAllHabits, setShowAllHabits] = useState(false);
 
   // Auth guard
   useEffect(() => {
@@ -105,15 +104,6 @@ const Index = () => {
 
   const sortedTodaySimple = useMemo(() => getHabitsSortedForDay(todaySimple, dayOfWeek), [todaySimple, dayOfWeek]);
   const activeMetrics = useMemo(() => metricHabits.filter(h => h.active), [metricHabits]);
-
-  // Habits that exist but are NOT scheduled for today (so they are invisible above)
-  const otherHabits = useMemo(() => {
-    const todayIds = new Set([
-      ...sortedTodaySimple.map(h => h.id),
-      ...activeMetrics.map(h => h.id),
-    ]);
-    return state.habits.filter(h => !todayIds.has(h.id));
-  }, [state.habits, sortedTodaySimple, activeMetrics]);
 
   const FREE_LIMIT = 3;
   const canAddSimple = isPro || simpleHabits.length < FREE_LIMIT;
