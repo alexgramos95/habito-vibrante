@@ -22,6 +22,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useData } from "@/contexts/DataContext";
+import { addShoppingItem } from "@/data/storage";
 import { GatedOverlay } from "@/components/Premium/GatedOverlay";
 import { RecipeChatDrawer } from "@/components/Nutrition/RecipeChatDrawer";
 import { PlanChatDrawer } from "@/components/Nutrition/PlanChatDrawer";
