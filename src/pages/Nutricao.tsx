@@ -539,8 +539,8 @@ const ShoppingListModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[85vh] flex flex-col">
-        <DialogHeader>
+      <DialogContent className="max-w-lg h-[90vh] sm:h-auto sm:max-h-[85vh] flex flex-col p-0 gap-0">
+        <DialogHeader className="p-6 pb-4 shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <ShoppingBasket className="h-5 w-5 text-primary" />
             {lang === "pt" ? "Lista de Compras" : "Shopping List"}
@@ -553,7 +553,7 @@ const ShoppingListModal = ({
         </DialogHeader>
 
         {items.length > 0 && (
-          <div className="flex items-center justify-between border-b border-border pb-2">
+          <div className="flex items-center justify-between border-b border-border px-6 pb-2 shrink-0">
             <button
               onClick={() => toggleAll(selectedCount !== items.length)}
               className="text-xs font-medium text-primary hover:underline"
@@ -568,8 +568,8 @@ const ShoppingListModal = ({
           </div>
         )}
 
-        <ScrollArea className="flex-1 max-h-[50vh]">
-          <div className="space-y-4 pr-2">
+        <div className="flex-1 min-h-0 overflow-y-auto px-6 py-3">
+          <div className="space-y-4">
             {Object.entries(grouped).map(([cat, catItems]) => (
               <div key={cat}>
                 <h4 className="text-xs font-semibold text-primary mb-1.5 uppercase tracking-wider">{cat}</h4>
@@ -600,18 +600,20 @@ const ShoppingListModal = ({
               </div>
             ))}
           </div>
-        </ScrollArea>
+        </div>
 
-        <Button
-          className="w-full gap-2"
-          disabled={selectedCount === 0}
-          onClick={handleAddToShopping}
-        >
-          <ShoppingBasket className="h-4 w-4" />
-          {lang === "pt"
-            ? `Adicionar a Compras${selectedCount > 0 ? ` (${selectedCount})` : ""}`
-            : `Add to Shopping${selectedCount > 0 ? ` (${selectedCount})` : ""}`}
-        </Button>
+        <div className="p-6 pt-4 border-t border-border shrink-0">
+          <Button
+            className="w-full gap-2"
+            disabled={selectedCount === 0}
+            onClick={handleAddToShopping}
+          >
+            <ShoppingBasket className="h-4 w-4" />
+            {lang === "pt"
+              ? `Adicionar a Compras${selectedCount > 0 ? ` (${selectedCount})` : ""}`
+              : `Add to Shopping${selectedCount > 0 ? ` (${selectedCount})` : ""}`}
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
