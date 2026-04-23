@@ -260,7 +260,18 @@ const Compras = () => {
                     >
                       {isSelected && <CheckCircle2 className="h-3.5 w-3.5" />}
                     </button>
-                    <Checkbox checked={item.done} onCheckedChange={() => setState(prev => toggleShoppingItem(prev, item.id))} className="h-4 w-4" />
+                    <button
+                      onClick={() => setState(prev => toggleShoppingItem(prev, item.id))}
+                      className={cn(
+                        "h-5 w-5 rounded border flex items-center justify-center transition-colors",
+                        item.done
+                          ? "bg-success border-success text-success-foreground"
+                          : "border-muted-foreground/30 hover:border-success/50 bg-transparent"
+                      )}
+                      aria-label={locale === 'pt-PT' ? 'Marcar como comprado' : 'Mark as purchased'}
+                    >
+                      {item.done && <CheckSquare className="h-3.5 w-3.5" />}
+                    </button>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
                         <p className={cn("text-sm font-medium truncate", item.done && "line-through text-muted-foreground")}>{item.nome}</p>
