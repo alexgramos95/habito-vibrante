@@ -264,29 +264,51 @@ const ProfileSetupModal = ({
 
 // ─── Recipe Card ───
 const RecipeCard = ({
-  recipe, mealType, locale, onSwap, onUpdateRecipe,
+  recipe, mealType, locale, onSwap, onUpdateRecipe, completed, onToggleComplete,
 }: {
   recipe: Recipe;
   mealType: MealType;
   locale: string;
   onSwap?: () => void;
   onUpdateRecipe?: (updated: Recipe) => void;
+  completed?: boolean;
+  onToggleComplete?: () => void;
 }) => {
   const lang = locale.startsWith("pt") ? "pt" : "en";
   const [expanded, setExpanded] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
 
   return (
-    <Card className="overflow-hidden transition-all">
+    <Card className={cn("overflow-hidden transition-all", completed && "bg-primary/5 border-primary/30")}>
       <button
         className="w-full text-left"
         onClick={() => setExpanded(!expanded)}
       >
         <CardContent className="p-3.5">
           <div className="flex items-start gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-xl shrink-0">
-              {recipe.imageEmoji || "🍽️"}
-            </div>
+            {onToggleComplete ? (
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); onToggleComplete(); }}
+                aria-label={
+                  completed
+                    ? (lang === "pt" ? "Desmarcar refeição" : "Uncheck meal")
+                    : (lang === "pt" ? "Marcar refeição como feita" : "Mark meal as done")
+                }
+                className={cn(
+                  "flex h-11 w-11 items-center justify-center rounded-xl shrink-0 transition-all touch-target",
+                  completed
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-primary/10 text-xl hover:bg-primary/20"
+                )}
+              >
+                {completed ? <Check className="h-5 w-5" /> : (recipe.imageEmoji || "🍽️")}
+              </button>
+            ) : (
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-xl shrink-0">
+                {recipe.imageEmoji || "🍽️"}
+              </div>
+            )}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5 mb-0.5">
                 <span className="text-[10px] font-medium uppercase tracking-wider text-primary">
@@ -295,8 +317,15 @@ const RecipeCard = ({
                 {recipe.isAIGenerated && (
                   <Sparkles className="h-3 w-3 text-primary/60" />
                 )}
+                {completed && (
+                  <span className="text-[10px] font-medium text-primary">
+                    · {lang === "pt" ? "feita" : "done"}
+                  </span>
+                )}
               </div>
-              <h4 className="text-sm font-semibold leading-tight truncate">{recipe.name}</h4>
+              <h4 className={cn("text-sm font-semibold leading-tight truncate", completed && "line-through opacity-70")}>
+                {recipe.name}
+              </h4>
               <div className="flex items-center gap-3 mt-1.5 text-[11px] text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <Clock className="h-3 w-3" />
@@ -385,16 +414,31 @@ const RecipeCard = ({
             </div>
           )}
 
-          {/* Chat button */}
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full mt-3 text-xs gap-1.5"
-            onClick={() => setChatOpen(true)}
-          >
-            <MessageCircle className="h-3.5 w-3.5" />
-            {lang === "pt" ? "Substituir ingredientes" : "Substitute ingredients"}
-          </Button>
+          {/* Action buttons */}
+          <div className="flex gap-2 mt-3">
+            {onToggleComplete && (
+              <Button
+                variant={completed ? "secondary" : "default"}
+                size="sm"
+                className="flex-1 text-xs gap-1.5"
+                onClick={onToggleComplete}
+              >
+                <Check className="h-3.5 w-3.5" />
+                {completed
+                  ? (lang === "pt" ? "Desmarcar" : "Uncheck")
+                  : (lang === "pt" ? "Marcar como feita" : "Mark as done")}
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 text-xs gap-1.5"
+              onClick={() => setChatOpen(true)}
+            >
+              <MessageCircle className="h-3.5 w-3.5" />
+              {lang === "pt" ? "Substituir" : "Substitute"}
+            </Button>
+          </div>
         </div>
       )}
 
@@ -615,6 +659,31 @@ const Nutricao = () => {
   const [generatingProgress, setGeneratingProgress] = useState("");
   const [generatingPercent, setGeneratingPercent] = useState(0);
   const [selectedDay, setSelectedDay] = useState(0);
+  const [completedMeals, setCompletedMeals] = useState<Record<string, true>>(() => {
+    try {
+      const raw = localStorage.getItem("become_meal_completed");
+      if (!raw) return {};
+      const parsed = JSON.parse(raw);
+      return parsed && typeof parsed === "object" ? parsed : {};
+    } catch {
+      return {};
+    }
+  });
+
+  const mealKey = useCallback((date: string, type: MealType) => `${date}__${type}`, []);
+
+  const toggleMealCompleted = useCallback((date: string, type: MealType) => {
+    setCompletedMeals(prev => {
+      const key = `${date}__${type}`;
+      const next = { ...prev };
+      if (next[key]) delete next[key];
+      else next[key] = true;
+      try {
+        localStorage.setItem("become_meal_completed", JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  }, []);
 
   const clearNutritionStorage = useCallback(() => {
     LEGACY_NUTRITION_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
@@ -651,6 +720,7 @@ const Nutricao = () => {
       setPlan(null);
       setProfile(DEFAULT_NUTRITION_PROFILE);
       setSelectedDay(0);
+      setCompletedMeals({});
     };
     window.addEventListener("become:app-reset", handleReset);
     return () => window.removeEventListener("become:app-reset", handleReset);
@@ -873,8 +943,25 @@ const Nutricao = () => {
   const safeSelectedDay = Math.min(Math.max(selectedDay, 0), 6);
   const currentDay = plan?.days?.[safeSelectedDay];
 
-  // Daily total macros
-  const dailyTotals = currentDay?.totalMacros || { calories: 0, protein: 0, carbs: 0, fat: 0 };
+  // Daily totals: only count meals the user marked as completed
+  const dailyTotals = useMemo(() => {
+    const totals = { calories: 0, protein: 0, carbs: 0, fat: 0 };
+    if (!currentDay?.meals?.length) return totals;
+    for (const meal of currentDay.meals) {
+      if (completedMeals[mealKey(currentDay.date, meal.type)]) {
+        totals.calories += meal.recipe.macros.calories || 0;
+        totals.protein += meal.recipe.macros.protein || 0;
+        totals.carbs += meal.recipe.macros.carbs || 0;
+        totals.fat += meal.recipe.macros.fat || 0;
+      }
+    }
+    return totals;
+  }, [currentDay, completedMeals, mealKey]);
+
+  // Planned totals (whole day) — useful for the "of X kcal planned" hint
+  const plannedDailyKcal = currentDay?.totalMacros?.calories || 0;
+  const completedMealsCount = currentDay?.meals?.filter(m => completedMeals[mealKey(currentDay.date, m.type)]).length || 0;
+  const totalMealsCount = currentDay?.meals?.length || 0;
 
   return (
     <div className="page-container">
@@ -1018,18 +1105,54 @@ const Nutricao = () => {
                     <div className="text-[10px] text-muted-foreground">{lang === "pt" ? "Gord" : "Fat"}</div>
                   </div>
                 </div>
-                {profile.calorieTarget && (
-                  <div className="mt-2">
-                    <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
-                      <span>{dailyTotals.calories} / {profile.calorieTarget} kcal</span>
-                      <span>{Math.round((dailyTotals.calories / profile.calorieTarget) * 100)}%</span>
-                    </div>
-                    <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
-                      <div
-                        className="h-full rounded-full bg-primary transition-all"
-                        style={{ width: `${Math.min(100, (dailyTotals.calories / profile.calorieTarget) * 100)}%` }}
-                      />
-                    </div>
+                {(profile.calorieTarget || totalMealsCount > 0) && (
+                  <div className="mt-2 space-y-2">
+                    {/* Meals progress */}
+                    {totalMealsCount > 0 && (
+                      <div>
+                        <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
+                          <span>
+                            {completedMealsCount} / {totalMealsCount}{" "}
+                            {lang === "pt" ? "refeições" : "meals"}
+                          </span>
+                          <span>
+                            {Math.round((completedMealsCount / totalMealsCount) * 100)}%
+                          </span>
+                        </div>
+                        <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-primary transition-all"
+                            style={{ width: `${(completedMealsCount / totalMealsCount) * 100}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                    {/* Calorie progress (only if target set) */}
+                    {profile.calorieTarget && (
+                      <div>
+                        <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
+                          <span>
+                            {dailyTotals.calories} / {profile.calorieTarget} kcal
+                            {plannedDailyKcal > 0 && (
+                              <span className="opacity-60">
+                                {" "}· {lang === "pt" ? "plano" : "planned"} {plannedDailyKcal}
+                              </span>
+                            )}
+                          </span>
+                          <span>
+                            {Math.round((dailyTotals.calories / profile.calorieTarget) * 100)}%
+                          </span>
+                        </div>
+                        <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-primary transition-all"
+                            style={{
+                              width: `${Math.min(100, (dailyTotals.calories / profile.calorieTarget) * 100)}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>
@@ -1046,6 +1169,8 @@ const Nutricao = () => {
                     locale={locale}
                     onSwap={hasPro ? () => generatePlan(safeSelectedDay) : undefined}
                     onUpdateRecipe={(updated) => updateRecipeInPlan(safeSelectedDay, i, updated)}
+                    completed={!!completedMeals[mealKey(currentDay.date, meal.type)]}
+                    onToggleComplete={() => toggleMealCompleted(currentDay.date, meal.type)}
                   />
                 ))
               ) : (
