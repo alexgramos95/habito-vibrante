@@ -177,10 +177,12 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
 
   const applyChanges = async (msgIndex: number) => {
     const msg = messages[msgIndex];
-    if ((!msg.substitutions && !msg.additions) || !onUpdatePlan) return;
+    const hasReplacements = msg.mealReplacements && msg.mealReplacements.length > 0;
+    if ((!msg.substitutions && !msg.additions && !hasReplacements) || !onUpdatePlan) return;
 
     const subs = msg.substitutions || [];
     const adds = msg.additions || [];
+    const replacements = msg.mealReplacements || [];
 
     // Track which recipes are affected so we can regenerate their instructions
     const affectedRecipeIds = new Set<string>();
@@ -188,6 +190,29 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
     const newDays = plan.days.map(day => {
       const newMeals = day.meals.map(meal => {
         const mealType = meal.type;
+
+        // Step 0: full meal replacement (overrides everything else for this meal)
+        const replacement = replacements.find(r => matchesMealType(mealType, r.mealTypes));
+        if (replacement) {
+          const r = replacement.recipe;
+          const newRecipe: Recipe = {
+            id: `chat_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+            name: r.name,
+            mealType,
+            prepTime: r.prepTime ?? 5,
+            cookTime: r.cookTime ?? 0,
+            servings: r.servings ?? 1,
+            difficulty: r.difficulty ?? "easy",
+            ingredients: r.ingredients,
+            instructions: r.instructions,
+            macros: r.macros,
+            tags: r.tags ?? [],
+            imageEmoji: r.imageEmoji,
+            isAIGgenerated: true,
+          };
+          return { ...meal, recipe: newRecipe };
+        }
+
         let mealAffected = false;
 
         // Step 1: substitutions
