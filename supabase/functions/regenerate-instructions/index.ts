@@ -35,7 +35,16 @@ Do NOT reuse generic templates. Do NOT mention ingredients that are not in the l
 Every ingredient in the list MUST be referenced (by name) in at least one step.
 Macros MUST be realistic and non-zero for any non-trivial ingredient list — never return all zeros.
 Reply ONLY with valid JSON, no markdown fences, no commentary.
-Language for name + instructions: ${lang}.`;
+Language for name + instructions: ${lang}.
+
+INGREDIENT NAMING RULES (CRITICAL — apply when generating the recipe NAME and when referencing ingredients in steps):
+- Use GENERIC, simple words for staples. Never specify variety / brand / sub-type unless the user provided it.
+- Refer to pasta as "massa" (NOT "esparguete", "penne", "macarrão", "spaghetti").
+- Refer to rice as "arroz" (NOT "arroz basmati", "arroz integral").
+- Refer to milk as "leite" (NOT "leite meio-gordo", "leite de amêndoa").
+- Refer to honey as "mel" (NOT "mel de eucalipto", "raw honey").
+- Same principle for "pão", "queijo", "iogurte", "azeite".
+- The recipe NAME must use these generic words too (e.g. "Massa com tomate", NOT "Esparguete à bolonhesa").`;
 
     const userPrompt = `Previous recipe name (for reference only, you SHOULD update it if ingredients changed meaningfully): "${recipeName}" (meal type: ${mealType}).
 
