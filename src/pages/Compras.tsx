@@ -170,6 +170,7 @@ const Compras = () => {
     setState(prev => reorderShoppingItems(prev, newOrder));
   };
 
+  const selectAllVisible = () => setSelectedIds(items.map(i => i.id));
   const clearSelection = () => setSelectedIds([]);
   const handleBulkDelete = () => {
     setState(prev => selectedIds.reduce((acc, id) => deleteShoppingItem(acc, id), prev));
