@@ -39,7 +39,7 @@ export const SortableShoppingRow = ({
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
+    transition: isDragging ? 'none' : transition,
   };
 
   return (
