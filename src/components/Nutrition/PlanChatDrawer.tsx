@@ -237,6 +237,7 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
       const seen = new Set<string>();
       type RegenResult = {
         id: string;
+        name: string | null;
         instructions: string[];
         macros: { calories: number; protein: number; carbs: number; fat: number; fiber?: number } | null;
       };
@@ -263,10 +264,11 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
                   },
                 );
                 if (error) return null;
+                const name = typeof data?.name === "string" && data.name.trim().length > 0 ? data.name.trim() : null;
                 const instructions = Array.isArray(data?.instructions) ? data.instructions : [];
                 const macros = data?.macros && typeof data.macros === "object" ? data.macros : null;
-                if (instructions.length === 0 && !macros) return null;
-                return { id: rid, instructions, macros };
+                if (!name && instructions.length === 0 && !macros) return null;
+                return { id: rid, name, instructions, macros };
               } catch {
                 return null;
               }
@@ -288,6 +290,7 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
             if (!r) return meal;
             const updated: Recipe = {
               ...meal.recipe,
+              name: r.name ?? meal.recipe.name,
               instructions: r.instructions.length > 0 ? r.instructions : meal.recipe.instructions,
               macros: r.macros
                 ? { ...meal.recipe.macros, ...r.macros }
