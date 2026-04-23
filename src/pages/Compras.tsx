@@ -307,39 +307,38 @@ const Compras = () => {
                   <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{category}</h3>
                   <span className="text-[10px] text-muted-foreground">{formatCurrency(categoryItems.reduce((s, i) => s + (i.price || 0), 0))}</span>
                 </div>
-{categoryItems.map(item => {
-                  const isSelected = selectedIds.includes(item.id);
+                {(() => {
+                  const categoryItemIds = categoryItems.map(i => i.id);
                   return (
-                  <div key={item.id} className={cn(
-                    "flex items-center gap-3 p-3 rounded-xl border transition-all group select-none",
-                    isSelected ? "bg-primary/5 border-primary/40" :
-                    item.done ? "bg-success/5 border-success/15" : "bg-card/50 border-border/30 hover:bg-secondary/40"
-                  )}>
-                    <button
-                      onClick={() => handleItemClick(item)}
-                      onPointerDown={() => startLongPress(item.id)}
-                      onPointerUp={cancelLongPress}
-                      onPointerLeave={cancelLongPress}
-                      onPointerCancel={cancelLongPress}
-                      onContextMenu={(e) => e.preventDefault()}
-                      className="flex-1 min-w-0 text-left touch-none"
+                    <DndContext
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={(event) => handleDragEnd(event, categoryItemIds)}
                     >
-                      <div className="flex items-center justify-between gap-2">
-                        <p className={cn("text-sm font-medium truncate", item.done && "line-through text-muted-foreground")}>{item.nome}</p>
-                        {item.price > 0 && (
-                          <span className={cn("text-xs font-medium shrink-0", item.done ? "text-muted-foreground" : "text-warning")}>{formatCurrency(item.price)}</span>
-                        )}
-                      </div>
-                      {item.quantidade && <p className="text-xs text-muted-foreground truncate">{item.quantidade}</p>}
-                    </button>
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={(e) => { e.stopPropagation(); openEditForm(item); }} className="h-7 w-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground"><Pencil className="h-3 w-3" /></button>
-                      <button onClick={(e) => { e.stopPropagation(); setState(prev => deleteShoppingItem(prev, item.id)); toast({ title: t.shopping.itemDeleted }); }}
-                        className="h-7 w-7 rounded-lg flex items-center justify-center text-destructive/60 hover:text-destructive"><Trash2 className="h-3 w-3" /></button>
-                    </div>
-                  </div>
+                      <SortableContext items={categoryItemIds} strategy={verticalListSortingStrategy}>
+                        <div className="space-y-1.5">
+                          {categoryItems.map(item => (
+                            <SortableShoppingRow
+                              key={item.id}
+                              item={item}
+                              isSelected={selectedIds.includes(item.id)}
+                              formatCurrency={formatCurrency}
+                              onItemClick={handleItemClick}
+                              onLongPressStart={startLongPress}
+                              onLongPressCancel={cancelLongPress}
+                              onEdit={openEditForm}
+                              onDelete={(it) => {
+                                setState(prev => deleteShoppingItem(prev, it.id));
+                                toast({ title: t.shopping.itemDeleted });
+                              }}
+                              reorderHandleAriaLabel={locale === 'pt-PT' ? 'Reordenar item' : 'Reorder item'}
+                            />
+                          ))}
+                        </div>
+                      </SortableContext>
+                    </DndContext>
                   );
-                })}
+                })()}
               </div>
             ))}
           </div>
