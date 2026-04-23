@@ -973,19 +973,19 @@ const Nutricao = () => {
             {/* Day tabs */}
             <div className="mb-4">
               <ScrollArea className="w-full">
-                <div className="flex gap-1.5 pb-1">
+                <div className="flex items-center gap-2 p-1 bg-secondary/50 rounded-xl w-fit">
                   {weekdays.map((day, i) => (
                     <button
                       key={i}
                       onClick={() => setSelectedDay(i)}
                       className={cn(
-                        "shrink-0 rounded-lg px-3 py-2 text-xs font-medium transition-all min-w-[60px]",
+                        "shrink-0 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-tight italic transition-all duration-150 touch-target",
                         safeSelectedDay === i
-                          ? "bg-primary text-primary-foreground shadow-sm"
-                          : "bg-secondary text-muted-foreground hover:text-foreground"
+                          ? "bg-primary text-primary-foreground border-2 border-primary shadow-[4px_4px_0_0_hsl(var(--neon-ultra))]"
+                          : "text-muted-foreground hover:text-foreground hover:bg-secondary border-2 border-transparent"
                       )}
                     >
-                      <div>{day.slice(0, 3)}</div>
+                      {day.slice(0, 3)}
                     </button>
                   ))}
                 </div>
