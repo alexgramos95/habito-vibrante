@@ -78,8 +78,8 @@ export const SortableShoppingRow = ({
         <div className="flex items-center justify-between gap-2">
           <p
             className={cn(
-              "text-sm font-medium truncate",
-              item.done && "line-through text-muted-foreground",
+              "text-sm font-medium truncate transition-colors",
+              item.done && "line-through text-primary/70 font-semibold",
             )}
           >
             {item.nome}
