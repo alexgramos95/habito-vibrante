@@ -191,7 +191,7 @@ describe("HabitForm — Categoria (validação + feedback + Select dentro de Dia
     const trigger = screen.getByRole("combobox");
     expect(within(trigger).getByText(existingCategory)).toBeInTheDocument();
     expect(
-      screen.queryByText("Seleciona uma categoria"),
+      screen.queryByText("Selecionar categoria"),
     ).not.toBeInTheDocument();
 
     // Estado pristine desligado: sem borda tracejada
