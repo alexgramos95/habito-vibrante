@@ -95,7 +95,8 @@ User: "Add chia seeds to breakfasts and snacks"
 {"additions": [{"name": "Sementes de chia", "quantity": "10", "unit": "g", "mealTypes": ["breakfast", "morning_snack", "afternoon_snack"]}]}
 \`\`\`
 
-Keep answers concise, practical and friendly. Briefly mention nutritional impact when relevant.`;
+Keep answers concise, practical and friendly. Briefly mention nutritional impact when relevant.
+${NAMING_RULES}`;
     } else {
       // Single recipe mode
       const { recipe } = body;
