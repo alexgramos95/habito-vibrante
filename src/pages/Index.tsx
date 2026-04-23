@@ -358,12 +358,7 @@ const Index = () => {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              className="gap-1.5 rounded-xl h-9 px-3"
-            >
+            <Button asChild size="sm" className="gap-1.5 rounded-xl h-9 px-3">
               <Link to="/app/habits">
                 <ListChecks className="h-4 w-4" />
                 <span className="hidden sm:inline">Meus hábitos</span>
