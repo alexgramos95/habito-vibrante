@@ -24,16 +24,16 @@ export const TemporalTabs = ({ active, onChange }: TemporalTabsProps) => {
   ];
 
   return (
-    <div className="flex items-center gap-1 p-1 bg-secondary/50 rounded-xl w-fit mx-auto">
+    <div className="flex items-center gap-2 p-1 bg-secondary/50 rounded-xl w-fit mx-auto">
       {tabs.map((tab) => (
         <button
           key={tab.id}
           onClick={() => onChange(tab.id)}
           className={cn(
-            "px-5 py-2 rounded-lg text-sm font-medium transition-all duration-200 touch-target",
+            "px-5 py-2.5 rounded-lg text-sm font-bold uppercase tracking-tight italic transition-all duration-150 touch-target",
             active === tab.id
-              ? "bg-primary text-primary-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+              ? "bg-primary text-primary-foreground border-2 border-primary shadow-[4px_4px_0_0_hsl(var(--neon-ultra))]"
+              : "text-muted-foreground hover:text-foreground hover:bg-secondary border-2 border-transparent"
           )}
         >
           {tab.label}
