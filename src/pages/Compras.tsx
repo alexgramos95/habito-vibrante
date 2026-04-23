@@ -157,8 +157,8 @@ const Compras = () => {
   // Drag-and-drop sensors: drag is initiated only via the dedicated handle (setActivatorNodeRef),
   // so we can use immediate activation without conflicting with scroll/tap on the rest of the row.
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 3 } }),
-    useSensor(TouchSensor, { activationConstraint: { distance: 3 } }),
+    useSensor(PointerSensor, { activationConstraint: { distance: 1 } }),
+    useSensor(TouchSensor, { activationConstraint: { distance: 1 } }),
   );
 
   const handleDragEnd = (event: DragEndEvent) => {
