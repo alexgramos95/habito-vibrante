@@ -25,20 +25,34 @@ serve(async (req) => {
 
     const lang = locale === "pt" ? "português de Portugal" : "English";
     const ingredientsList = ingredients
-      .map((i: any) => `${i.quantity} ${i.unit} ${i.name}`)
-      .join(", ");
+      .map((i: any, idx: number) => `${idx + 1}. ${i.quantity} ${i.unit} ${i.name}`)
+      .join("\n");
 
-    const systemPrompt = `You are a precise nutritionist and cooking assistant. Reply ONLY with valid JSON, no markdown fences, no commentary.
-Language for instructions: ${lang}.`;
+    const systemPrompt = `You are a precise nutritionist and cooking assistant.
+You MUST write FRESH preparation steps based ONLY on the exact ingredient list provided in this message.
+Do NOT reuse generic templates. Do NOT mention ingredients that are not in the list.
+Every ingredient in the list MUST be referenced (by name) in at least one step.
+Reply ONLY with valid JSON, no markdown fences, no commentary, no prose outside JSON.
+Language for the instruction text: ${lang}.`;
 
-    const userPrompt = `Recipe: "${recipeName}" (${mealType}).
-Ingredients (updated, with quantities): ${ingredientsList}.
+    const userPrompt = `Recipe name: "${recipeName}" (meal type: ${mealType}).
+
+EXACT and COMPLETE ingredient list (this is the ONLY ground truth — ignore any prior knowledge of this recipe):
+${ingredientsList}
 
 Tasks:
-1) Write 3 to 6 short, clear preparation steps that USE ALL the ingredients above coherently. Each step under 140 chars.
-2) Recalculate the TOTAL macros for the WHOLE recipe (sum of all ingredients combined, for the full recipe as written — NOT per 100g, NOT per serving unless the recipe is 1 serving). Be accurate: e.g. 30g of cluster dextrin ≈ 113 kcal / 28g carbs / 0g protein / 0g fat; 1 banana (~120g) ≈ 105 kcal / 27g carbs / 1g protein / 0g fat; 50g oats ≈ 190 kcal / 33g carbs / 7g protein / 3g fat.
+1) Write 3 to 6 short, clear preparation steps that USE ALL the ingredients above coherently and IN ORDER of typical cooking flow. Each step under 140 chars.
+   - Mention ingredient names explicitly (e.g. "junta a banana", "adiciona o cluster dextrin").
+   - Every ingredient in the list must appear by name in at least one step.
+   - Do NOT invent ingredients that are not in the list above.
+2) Recalculate the TOTAL macros for the WHOLE recipe (sum of all listed ingredients combined). Be accurate per gram:
+   - 30g cluster dextrin ≈ 113 kcal / 28g carbs / 0g protein / 0g fat
+   - 1 banana ~120g ≈ 105 kcal / 27g carbs / 1g protein / 0g fat
+   - 50g oats ≈ 190 kcal / 33g carbs / 7g protein / 3g fat
+   - 1 scoop whey ~30g ≈ 120 kcal / 3g carbs / 24g protein / 2g fat
+   - 200ml semi-skimmed milk ≈ 96 kcal / 10g carbs / 7g protein / 3g fat
 
-Return JSON exactly:
+Return JSON exactly in this shape (no extra fields, no markdown):
 {
   "instructions": ["step 1", "step 2", "step 3"],
   "macros": { "calories": number, "protein": number, "carbs": number, "fat": number, "fiber": number }
@@ -55,7 +69,9 @@ All macro numbers must be integers (rounded). Do not omit any macro field.`;
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
+          model: "google/gemini-2.5-flash",
+          temperature: 0.3,
+          response_format: { type: "json_object" },
           messages: [
             { role: "system", content: systemPrompt },
             { role: "user", content: userPrompt },
