@@ -112,6 +112,8 @@ const Compras = () => {
     setShowBulkDeleteConfirm(false);
   };
   const allVisibleSelected = items.length > 0 && selectedIds.length === items.length;
+
+  const weekLabel = locale === 'pt-PT'
     ? format(selectedWeek, "'Semana de' d 'de' MMMM", { locale: dateLocale })
     : format(selectedWeek, "'Week of' MMMM d", { locale: dateLocale });
 
