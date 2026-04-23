@@ -5,6 +5,7 @@
 export const NUTRITION_STORAGE_KEYS = [
   "become_nutrition_profile",
   "become_meal_plan",
+  "become_meal_completed",
   "nutritionProfile",
   "mealPlan",
   "become:nutrition:profile",
