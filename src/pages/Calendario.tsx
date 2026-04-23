@@ -129,8 +129,12 @@ const Calendario = () => {
       e.date === dateStr && metricHabits.some(h => h.id === e.trackerId)
     );
     const onTrackMetrics = metricHabits.filter(h => {
-      const qty = metricEntries.filter(e => e.trackerId === h.id).reduce((s, e) => s + e.quantity, 0);
+      const habitEntries = metricEntries.filter(e => e.trackerId === h.id);
+      // Require at least one entry for the day — otherwise the habit hasn't been engaged with
+      if (habitEntries.length === 0) return false;
+      const qty = habitEntries.reduce((s, e) => s + e.quantity, 0);
       const goal = h.dailyGoal ?? h.baseline ?? 0;
+      if (goal <= 0) return qty > 0;
       return h.type === "reduce" ? qty <= goal : qty >= goal;
     }).length;
 
