@@ -650,24 +650,29 @@ export const addShoppingItem = (
     const existingNum = parseQuantityValue(existingParts.value);
     const incomingNum = parseQuantityValue(incoming.value);
 
+    // Replace only when the incoming quantity is greater than the existing one.
+    // If existing quantity already covers (>=) the incoming, ignore the addition.
     let mergedQuantity = existing.quantidade;
     if (existingNum !== null && incomingNum !== null) {
-      const total = formatQuantityValue(existingNum + incomingNum);
-      mergedQuantity = incomingUnit ? `${total} ${incoming.unit}`.trim() : total;
-    } else if (incoming.value || incoming.unit) {
-      // Non-numeric: keep existing and append the new token if different
-      const incomingFull = item.quantidade?.trim() || "";
-      if (incomingFull && existing.quantidade !== incomingFull) {
-        mergedQuantity = existing.quantidade
-          ? `${existing.quantidade} + ${incomingFull}`
-          : incomingFull;
+      if (incomingNum > existingNum) {
+        mergedQuantity = incomingUnit
+          ? `${formatQuantityValue(incomingNum)} ${incoming.unit}`.trim()
+          : formatQuantityValue(incomingNum);
+      } else {
+        // Existing already sufficient — no change
+        return state;
       }
+    } else if (!existing.quantidade && item.quantidade) {
+      // Existing has no quantity, adopt the incoming one
+      mergedQuantity = item.quantidade;
+    } else {
+      // Non-numeric or already set: ignore duplicate addition
+      return state;
     }
 
     const updated: ShoppingItem = {
       ...existing,
       quantidade: mergedQuantity,
-      // Keep existing price/category/done; only fill blanks from incoming
       categoria: existing.categoria || item.categoria,
       price: existing.price || item.price,
     };
