@@ -659,6 +659,31 @@ const Nutricao = () => {
   const [generatingProgress, setGeneratingProgress] = useState("");
   const [generatingPercent, setGeneratingPercent] = useState(0);
   const [selectedDay, setSelectedDay] = useState(0);
+  const [completedMeals, setCompletedMeals] = useState<Record<string, true>>(() => {
+    try {
+      const raw = localStorage.getItem("become_meal_completed");
+      if (!raw) return {};
+      const parsed = JSON.parse(raw);
+      return parsed && typeof parsed === "object" ? parsed : {};
+    } catch {
+      return {};
+    }
+  });
+
+  const mealKey = useCallback((date: string, type: MealType) => `${date}__${type}`, []);
+
+  const toggleMealCompleted = useCallback((date: string, type: MealType) => {
+    setCompletedMeals(prev => {
+      const key = `${date}__${type}`;
+      const next = { ...prev };
+      if (next[key]) delete next[key];
+      else next[key] = true;
+      try {
+        localStorage.setItem("become_meal_completed", JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  }, []);
 
   const clearNutritionStorage = useCallback(() => {
     LEGACY_NUTRITION_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
