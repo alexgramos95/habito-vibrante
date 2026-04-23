@@ -142,6 +142,36 @@ const Definicoes = () => {
 
         {/* Reset Data */}
         <div className="rounded-2xl border border-destructive/20 bg-destructive/3 p-4 space-y-3">
+          {/* Reload App (placed above destructive actions visually via separate card) */}
+        </div>
+
+        {/* Reload App */}
+        <div className="rounded-2xl border border-border/30 bg-card/50 p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <RefreshCw className="h-4 w-4 text-primary" />
+            <Label className="text-sm font-semibold">
+              {locale === "pt-PT" ? "Recarregar app" : "Reload app"}
+            </Label>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {locale === "pt-PT"
+              ? "Força a obtenção da versão mais recente, limpando a cache local."
+              : "Force-fetch the latest version and clear local cache."}
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleHardReload}
+            disabled={isReloading}
+            className="gap-1.5"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${isReloading ? "animate-spin" : ""}`} />
+            {locale === "pt-PT" ? "Recarregar" : "Reload"}
+          </Button>
+        </div>
+
+        {/* Reset Data */}
+        <div className="rounded-2xl border border-destructive/20 bg-destructive/3 p-4 space-y-3">
           <div className="flex items-center gap-2">
             <RotateCcw className="h-4 w-4 text-destructive" />
             <Label className="text-sm font-semibold text-destructive">{t.settings.resetData}</Label>
