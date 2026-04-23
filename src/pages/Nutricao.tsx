@@ -264,29 +264,51 @@ const ProfileSetupModal = ({
 
 // ─── Recipe Card ───
 const RecipeCard = ({
-  recipe, mealType, locale, onSwap, onUpdateRecipe,
+  recipe, mealType, locale, onSwap, onUpdateRecipe, completed, onToggleComplete,
 }: {
   recipe: Recipe;
   mealType: MealType;
   locale: string;
   onSwap?: () => void;
   onUpdateRecipe?: (updated: Recipe) => void;
+  completed?: boolean;
+  onToggleComplete?: () => void;
 }) => {
   const lang = locale.startsWith("pt") ? "pt" : "en";
   const [expanded, setExpanded] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
 
   return (
-    <Card className="overflow-hidden transition-all">
+    <Card className={cn("overflow-hidden transition-all", completed && "bg-primary/5 border-primary/30")}>
       <button
         className="w-full text-left"
         onClick={() => setExpanded(!expanded)}
       >
         <CardContent className="p-3.5">
           <div className="flex items-start gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-xl shrink-0">
-              {recipe.imageEmoji || "🍽️"}
-            </div>
+            {onToggleComplete ? (
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); onToggleComplete(); }}
+                aria-label={
+                  completed
+                    ? (lang === "pt" ? "Desmarcar refeição" : "Uncheck meal")
+                    : (lang === "pt" ? "Marcar refeição como feita" : "Mark meal as done")
+                }
+                className={cn(
+                  "flex h-11 w-11 items-center justify-center rounded-xl shrink-0 transition-all touch-target",
+                  completed
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-primary/10 text-xl hover:bg-primary/20"
+                )}
+              >
+                {completed ? <Check className="h-5 w-5" /> : (recipe.imageEmoji || "🍽️")}
+              </button>
+            ) : (
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-xl shrink-0">
+                {recipe.imageEmoji || "🍽️"}
+              </div>
+            )}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5 mb-0.5">
                 <span className="text-[10px] font-medium uppercase tracking-wider text-primary">
@@ -295,8 +317,15 @@ const RecipeCard = ({
                 {recipe.isAIGenerated && (
                   <Sparkles className="h-3 w-3 text-primary/60" />
                 )}
+                {completed && (
+                  <span className="text-[10px] font-medium text-primary">
+                    · {lang === "pt" ? "feita" : "done"}
+                  </span>
+                )}
               </div>
-              <h4 className="text-sm font-semibold leading-tight truncate">{recipe.name}</h4>
+              <h4 className={cn("text-sm font-semibold leading-tight truncate", completed && "line-through opacity-70")}>
+                {recipe.name}
+              </h4>
               <div className="flex items-center gap-3 mt-1.5 text-[11px] text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <Clock className="h-3 w-3" />
@@ -385,16 +414,31 @@ const RecipeCard = ({
             </div>
           )}
 
-          {/* Chat button */}
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full mt-3 text-xs gap-1.5"
-            onClick={() => setChatOpen(true)}
-          >
-            <MessageCircle className="h-3.5 w-3.5" />
-            {lang === "pt" ? "Substituir ingredientes" : "Substitute ingredients"}
-          </Button>
+          {/* Action buttons */}
+          <div className="flex gap-2 mt-3">
+            {onToggleComplete && (
+              <Button
+                variant={completed ? "secondary" : "default"}
+                size="sm"
+                className="flex-1 text-xs gap-1.5"
+                onClick={onToggleComplete}
+              >
+                <Check className="h-3.5 w-3.5" />
+                {completed
+                  ? (lang === "pt" ? "Desmarcar" : "Uncheck")
+                  : (lang === "pt" ? "Marcar como feita" : "Mark as done")}
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 text-xs gap-1.5"
+              onClick={() => setChatOpen(true)}
+            >
+              <MessageCircle className="h-3.5 w-3.5" />
+              {lang === "pt" ? "Substituir" : "Substitute"}
+            </Button>
+          </div>
         </div>
       )}
 
