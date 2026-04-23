@@ -232,10 +232,15 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
           : "Regenerating preparation steps...",
     });
 
-    // Regenerate instructions for affected recipes (deduped by recipe id)
+    // Regenerate instructions + macros for affected recipes (deduped by recipe id)
     try {
       const seen = new Set<string>();
-      const tasks: Array<Promise<{ id: string; instructions: string[] } | null>> = [];
+      type RegenResult = {
+        id: string;
+        instructions: string[];
+        macros: { calories: number; protein: number; carbs: number; fat: number; fiber?: number } | null;
+      };
+      const tasks: Array<Promise<RegenResult | null>> = [];
 
       for (const day of updatedPlan.days) {
         for (const meal of day.meals) {
@@ -257,10 +262,11 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
                     },
                   },
                 );
-                if (error || !data?.instructions || !Array.isArray(data.instructions)) {
-                  return null;
-                }
-                return { id: rid, instructions: data.instructions as string[] };
+                if (error) return null;
+                const instructions = Array.isArray(data?.instructions) ? data.instructions : [];
+                const macros = data?.macros && typeof data.macros === "object" ? data.macros : null;
+                if (instructions.length === 0 && !macros) return null;
+                return { id: rid, instructions, macros };
               } catch {
                 return null;
               }
@@ -270,29 +276,42 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
       }
 
       const results = await Promise.all(tasks);
-      const instructionMap = new Map<string, string[]>();
+      const regenMap = new Map<string, RegenResult>();
       for (const r of results) {
-        if (r && r.instructions.length > 0) instructionMap.set(r.id, r.instructions);
+        if (r) regenMap.set(r.id, r);
       }
 
-      if (instructionMap.size > 0) {
-        const finalDays = updatedPlan.days.map(day => ({
-          ...day,
-          meals: day.meals.map(meal => {
-            const newInstr = instructionMap.get(meal.recipe.id);
-            if (!newInstr) return meal;
-            return { ...meal, recipe: { ...meal.recipe, instructions: newInstr } };
-          }),
-        }));
+      if (regenMap.size > 0) {
+        const finalDays = updatedPlan.days.map(day => {
+          const newMeals = day.meals.map(meal => {
+            const r = regenMap.get(meal.recipe.id);
+            if (!r) return meal;
+            const updated: Recipe = {
+              ...meal.recipe,
+              instructions: r.instructions.length > 0 ? r.instructions : meal.recipe.instructions,
+              macros: r.macros
+                ? { ...meal.recipe.macros, ...r.macros }
+                : meal.recipe.macros,
+            };
+            return { ...meal, recipe: updated };
+          });
+          const totalMacros = {
+            calories: newMeals.reduce((s, m) => s + m.recipe.macros.calories, 0),
+            protein: newMeals.reduce((s, m) => s + m.recipe.macros.protein, 0),
+            carbs: newMeals.reduce((s, m) => s + m.recipe.macros.carbs, 0),
+            fat: newMeals.reduce((s, m) => s + m.recipe.macros.fat, 0),
+          };
+          return { ...day, meals: newMeals, totalMacros };
+        });
         updatedPlan = { ...updatedPlan, days: finalDays };
         onUpdatePlan(updatedPlan);
 
         toast({
-          title: lang === "pt" ? "Instruções atualizadas" : "Instructions updated",
+          title: lang === "pt" ? "Receitas atualizadas" : "Recipes updated",
           description:
             lang === "pt"
-              ? `Preparação ajustada em ${instructionMap.size} receita(s).`
-              : `Steps adjusted in ${instructionMap.size} recipe(s).`,
+              ? `Preparação e valores nutricionais ajustados em ${regenMap.size} receita(s).`
+              : `Steps and nutrition adjusted in ${regenMap.size} recipe(s).`,
         });
       }
     } catch (err) {
