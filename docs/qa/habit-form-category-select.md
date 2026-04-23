@@ -26,7 +26,7 @@ Repetir cada passo em **retrato** e **paisagem**.
 2. **Estado inicial do campo (pristine)**
    ✅ Label "Categoria" tem asterisco discreto à direita.
    ✅ Trigger mostra ícone `Tag` à esquerda em tom `muted-foreground` com pulse subtil (≈2.5s).
-   ✅ Placeholder do trigger: *"Toca para escolher uma categoria"*.
+   ✅ Placeholder do trigger: *"Seleciona uma categoria"*.
    ✅ Borda do trigger é **tracejada** (`border-dashed`) e fundo `bg-secondary/30`.
    ✅ Hint abaixo: *"Por escolher — toca acima para abrir as opções."*.
 

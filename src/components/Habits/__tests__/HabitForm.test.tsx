@@ -56,13 +56,13 @@ describe("HabitForm — Categoria (validação + feedback + Select dentro de Dia
     // Indicação acessível
     expect(screen.getByText("(obrigatório)")).toBeInTheDocument();
     // Trigger do Select existe e tem placeholder PT atualizado
-    expect(screen.getByText("Toca para escolher uma categoria")).toBeInTheDocument();
+    expect(screen.getByText("Seleciona uma categoria")).toBeInTheDocument();
   });
 
   it("mostra placeholder e hint de estado pristine ao abrir o formulário", () => {
     renderForm();
     // Placeholder novo, mais directivo
-    expect(screen.getByText("Toca para escolher uma categoria")).toBeInTheDocument();
+    expect(screen.getByText("Seleciona uma categoria")).toBeInTheDocument();
     // Hint pristine reforçada
     expect(
       screen.getByText("Por escolher — toca acima para abrir as opções."),
@@ -191,7 +191,7 @@ describe("HabitForm — Categoria (validação + feedback + Select dentro de Dia
     const trigger = screen.getByRole("combobox");
     expect(within(trigger).getByText(existingCategory)).toBeInTheDocument();
     expect(
-      screen.queryByText("Toca para escolher uma categoria"),
+      screen.queryByText("Seleciona uma categoria"),
     ).not.toBeInTheDocument();
 
     // Estado pristine desligado: sem borda tracejada
