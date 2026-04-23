@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { format, startOfWeek, addWeeks, subWeeks, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
 import { pt, enUS as enUSLocale } from "date-fns/locale";
-import { ShoppingCart, Plus, Trash2, Pencil, ChevronLeft, ChevronRight, Receipt, TrendingUp, X, CheckSquare } from "lucide-react";
+import { ShoppingCart, Plus, Trash2, Pencil, ChevronLeft, ChevronRight, Receipt, TrendingUp, X, CheckSquare, Circle, CheckCircle2 } from "lucide-react";
 import { useI18n } from "@/i18n/I18nContext";
 import { Navigation } from "@/components/Layout/Navigation";
 import { Card, CardContent } from "@/components/ui/card";
@@ -240,7 +240,7 @@ const Compras = () => {
                   <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{category}</h3>
                   <span className="text-[10px] text-muted-foreground">{formatCurrency(categoryItems.reduce((s, i) => s + (i.price || 0), 0))}</span>
                 </div>
-                {categoryItems.map(item => {
+{categoryItems.map(item => {
                   const isSelected = selectedIds.includes(item.id);
                   return (
                   <div key={item.id} className={cn(
@@ -248,13 +248,30 @@ const Compras = () => {
                     isSelected ? "bg-primary/5 border-primary/40" :
                     item.done ? "bg-success/5 border-success/15" : "bg-card/50 border-border/30 hover:bg-secondary/40"
                   )}>
-                    <Checkbox
-                      checked={isSelected}
-                      onCheckedChange={() => toggleSelect(item.id)}
-                      className="h-4 w-4"
+                    <button
+                      onClick={() => toggleSelect(item.id)}
+                      className={cn(
+                        "h-5 w-5 rounded-full border-2 flex items-center justify-center transition-colors",
+                        isSelected
+                          ? "bg-primary border-primary text-primary-foreground"
+                          : "border-muted-foreground/30 hover:border-primary/50 bg-transparent"
+                      )}
                       aria-label={locale === 'pt-PT' ? 'Selecionar item' : 'Select item'}
-                    />
-                    <Checkbox checked={item.done} onCheckedChange={() => setState(prev => toggleShoppingItem(prev, item.id))} className="h-4 w-4" />
+                    >
+                      {isSelected && <CheckCircle2 className="h-3.5 w-3.5" />}
+                    </button>
+                    <button
+                      onClick={() => setState(prev => toggleShoppingItem(prev, item.id))}
+                      className={cn(
+                        "h-5 w-5 rounded border flex items-center justify-center transition-colors",
+                        item.done
+                          ? "bg-success border-success text-success-foreground"
+                          : "border-muted-foreground/30 hover:border-success/50 bg-transparent"
+                      )}
+                      aria-label={locale === 'pt-PT' ? 'Marcar como comprado' : 'Mark as purchased'}
+                    >
+                      {item.done && <CheckSquare className="h-3.5 w-3.5" />}
+                    </button>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
                         <p className={cn("text-sm font-medium truncate", item.done && "line-through text-muted-foreground")}>{item.nome}</p>
