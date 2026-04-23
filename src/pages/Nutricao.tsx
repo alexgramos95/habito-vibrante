@@ -943,8 +943,25 @@ const Nutricao = () => {
   const safeSelectedDay = Math.min(Math.max(selectedDay, 0), 6);
   const currentDay = plan?.days?.[safeSelectedDay];
 
-  // Daily total macros
-  const dailyTotals = currentDay?.totalMacros || { calories: 0, protein: 0, carbs: 0, fat: 0 };
+  // Daily totals: only count meals the user marked as completed
+  const dailyTotals = useMemo(() => {
+    const totals = { calories: 0, protein: 0, carbs: 0, fat: 0 };
+    if (!currentDay?.meals?.length) return totals;
+    for (const meal of currentDay.meals) {
+      if (completedMeals[mealKey(currentDay.date, meal.type)]) {
+        totals.calories += meal.recipe.macros.calories || 0;
+        totals.protein += meal.recipe.macros.protein || 0;
+        totals.carbs += meal.recipe.macros.carbs || 0;
+        totals.fat += meal.recipe.macros.fat || 0;
+      }
+    }
+    return totals;
+  }, [currentDay, completedMeals, mealKey]);
+
+  // Planned totals (whole day) — useful for the "of X kcal planned" hint
+  const plannedDailyKcal = currentDay?.totalMacros?.calories || 0;
+  const completedMealsCount = currentDay?.meals?.filter(m => completedMeals[mealKey(currentDay.date, m.type)]).length || 0;
+  const totalMealsCount = currentDay?.meals?.length || 0;
 
   return (
     <div className="page-container">
