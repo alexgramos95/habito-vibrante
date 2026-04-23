@@ -5,7 +5,7 @@ import {
   UtensilsCrossed, Leaf, ChefHat, ShoppingBasket, Sparkles, 
   ChevronLeft, ChevronRight, Settings2, Loader2, RefreshCw,
   Clock, Flame, Dumbbell, Wheat, Droplets, Check, X, Plus, MessageCircle,
-  ChevronUp, ChevronDown
+  GripVertical
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n/I18nContext";
@@ -465,6 +465,9 @@ const ShoppingListModal = ({
 }) => {
   const lang = locale.startsWith("pt") ? "pt" : "en";
   const [items, setItems] = useState<ShoppingListItem[]>([]);
+  const [draggingIdx, setDraggingIdx] = useState<number | null>(null);
+  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
+  const [dragOverCategory, setDragOverCategory] = useState<string | null>(null);
   const { setState } = useData();
   const { toast } = useToast();
 
@@ -501,21 +504,64 @@ const ShoppingListModal = ({
     setItems(prev => prev.map(item => ({ ...item, checked })));
   };
 
-  const moveItem = (fromIdx: number, direction: -1 | 1) => {
+  const handleDragStart = (idx: number) => (e: React.DragEvent) => {
+    setDraggingIdx(idx);
+    e.dataTransfer.effectAllowed = "move";
+    // Required for Firefox
+    try { e.dataTransfer.setData("text/plain", String(idx)); } catch { /* noop */ }
+  };
+
+  const handleDragOverItem = (idx: number) => (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (idx !== dragOverIdx) setDragOverIdx(idx);
+    const cat = items[idx]?.category ?? null;
+    if (cat !== dragOverCategory) setDragOverCategory(cat);
+  };
+
+  const handleDragOverCategory = (cat: string) => (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (cat !== dragOverCategory) setDragOverCategory(cat);
+  };
+
+  const handleDragEnd = () => {
+    setDraggingIdx(null);
+    setDragOverIdx(null);
+    setDragOverCategory(null);
+  };
+
+  const handleDropOnItem = (targetIdx: number) => (e: React.DragEvent) => {
+    e.preventDefault();
+    const fromIdx = draggingIdx;
+    handleDragEnd();
+    if (fromIdx === null || fromIdx === targetIdx) return;
     setItems(prev => {
-      const item = prev[fromIdx];
-      if (!item) return prev;
-      // Find neighbors within the same category
-      const sameCatIndices = prev
-        .map((it, i) => ({ it, i }))
-        .filter(({ it }) => it.category === item.category)
-        .map(({ i }) => i);
-      const posInCat = sameCatIndices.indexOf(fromIdx);
-      const targetPosInCat = posInCat + direction;
-      if (targetPosInCat < 0 || targetPosInCat >= sameCatIndices.length) return prev;
-      const toIdx = sameCatIndices[targetPosInCat];
+      if (!prev[fromIdx] || !prev[targetIdx]) return prev;
       const next = [...prev];
-      [next[fromIdx], next[toIdx]] = [next[toIdx], next[fromIdx]];
+      const [moved] = next.splice(fromIdx, 1);
+      // Adopt target's category (allows cross-category move)
+      moved.category = prev[targetIdx].category;
+      const insertAt = fromIdx < targetIdx ? targetIdx - 1 : targetIdx;
+      next.splice(insertAt, 0, moved);
+      return next;
+    });
+  };
+
+  const handleDropOnCategory = (cat: string) => (e: React.DragEvent) => {
+    e.preventDefault();
+    const fromIdx = draggingIdx;
+    handleDragEnd();
+    if (fromIdx === null) return;
+    setItems(prev => {
+      if (!prev[fromIdx]) return prev;
+      const next = [...prev];
+      const [moved] = next.splice(fromIdx, 1);
+      moved.category = cat;
+      // Find last index of this category in remaining list, append after it
+      let lastCatIdx = -1;
+      next.forEach((it, i) => { if (it.category === cat) lastCatIdx = i; });
+      next.splice(lastCatIdx + 1, 0, moved);
       return next;
     });
   };
@@ -590,26 +636,49 @@ const ShoppingListModal = ({
 
         <div className="flex-1 min-h-0 overflow-y-auto px-6 py-3">
           <div className="space-y-4">
-            {Object.entries(grouped).map(([cat, catItems]) => (
-              <div key={cat}>
-                <h4 className="text-xs font-semibold text-primary mb-1.5 uppercase tracking-wider">{cat}</h4>
+            {Object.entries(grouped).map(([cat, catItems]) => {
+              const isCatDropTarget = dragOverCategory === cat && draggingIdx !== null;
+              return (
+              <div
+                key={cat}
+                onDragOver={handleDragOverCategory(cat)}
+                onDrop={handleDropOnCategory(cat)}
+                className={cn(
+                  "rounded-lg transition-colors",
+                  isCatDropTarget && "bg-primary/5 ring-1 ring-primary/30"
+                )}
+              >
+                <h4 className="text-xs font-semibold text-primary mb-1.5 uppercase tracking-wider px-1">{cat}</h4>
                 <div className="space-y-1">
-                  {catItems.map((item, idx) => {
+                  {catItems.map((item) => {
                     const globalIdx = items.indexOf(item);
-                    const isFirst = idx === 0;
-                    const isLast = idx === catItems.length - 1;
+                    const isDragging = draggingIdx === globalIdx;
+                    const isDropTarget = dragOverIdx === globalIdx && draggingIdx !== null && draggingIdx !== globalIdx;
                     return (
                       <div
-                        key={idx}
+                        key={globalIdx}
+                        draggable
+                        onDragStart={handleDragStart(globalIdx)}
+                        onDragOver={handleDragOverItem(globalIdx)}
+                        onDrop={handleDropOnItem(globalIdx)}
+                        onDragEnd={handleDragEnd}
                         className={cn(
                           "group flex items-center gap-1 w-full rounded-lg pr-1 transition-all",
-                          item.checked ? "bg-primary/5" : "hover:bg-secondary"
+                          item.checked ? "bg-primary/5" : "hover:bg-secondary",
+                          isDragging && "opacity-40",
+                          isDropTarget && "ring-2 ring-primary/60"
                         )}
                       >
+                        <div
+                          aria-label={lang === "pt" ? "Arrastar" : "Drag"}
+                          className="flex h-9 w-6 items-center justify-center text-muted-foreground/60 hover:text-primary cursor-grab active:cursor-grabbing touch-none shrink-0"
+                        >
+                          <GripVertical className="h-4 w-4" />
+                        </div>
                         <button
                           type="button"
                           onClick={() => toggleItem(globalIdx)}
-                          className="flex items-center gap-2.5 flex-1 min-w-0 px-3 py-2 text-sm text-left"
+                          className="flex items-center gap-2.5 flex-1 min-w-0 px-1 py-2 text-sm text-left"
                         >
                           <div className={cn(
                             "flex h-4 w-4 items-center justify-center rounded border transition-colors shrink-0",
@@ -620,32 +689,13 @@ const ShoppingListModal = ({
                           <span className="flex-1 truncate">{item.ingredient}</span>
                           <span className="text-xs text-muted-foreground shrink-0">{item.quantity} {item.unit}</span>
                         </button>
-                        <div className="flex flex-col shrink-0">
-                          <button
-                            type="button"
-                            onClick={() => moveItem(globalIdx, -1)}
-                            disabled={isFirst}
-                            aria-label={lang === "pt" ? "Mover para cima" : "Move up"}
-                            className="flex h-5 w-6 items-center justify-center rounded text-muted-foreground hover:text-primary hover:bg-primary/10 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-muted-foreground transition-colors"
-                          >
-                            <ChevronUp className="h-3.5 w-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => moveItem(globalIdx, 1)}
-                            disabled={isLast}
-                            aria-label={lang === "pt" ? "Mover para baixo" : "Move down"}
-                            className="flex h-5 w-6 items-center justify-center rounded text-muted-foreground hover:text-primary hover:bg-primary/10 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-muted-foreground transition-colors"
-                          >
-                            <ChevronDown className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
                       </div>
                     );
                   })}
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
