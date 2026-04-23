@@ -473,16 +473,14 @@ const ShoppingListModal = ({
 
   useEffect(() => {
     if (!plan) return;
-    const ingredientMap = new Map<string, ShoppingListItem>();
+    const ingredientMap = new Map<string, ShoppingListItem & { _uid: string }>();
     plan.days.forEach(day =>
       day.meals.forEach(meal =>
         meal.recipe.ingredients.forEach(ing => {
           const key = ing.name.toLowerCase();
-          if (ingredientMap.has(key)) {
-            const existing = ingredientMap.get(key)!;
-            ingredientMap.set(key, existing);
-          } else {
+          if (!ingredientMap.has(key)) {
             ingredientMap.set(key, {
+              _uid: `ing-${key}`,
               ingredient: ing.name,
               quantity: ing.quantity,
               unit: ing.unit,
