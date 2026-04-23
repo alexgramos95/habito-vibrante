@@ -5,7 +5,7 @@ import {
   UtensilsCrossed, Leaf, ChefHat, ShoppingBasket, Sparkles, 
   ChevronLeft, ChevronRight, Settings2, Loader2, RefreshCw,
   Clock, Flame, Dumbbell, Wheat, Droplets, Check, X, Plus, MessageCircle,
-  GripVertical
+  GripVertical, Trash2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n/I18nContext";
