@@ -119,7 +119,7 @@ const Compras = () => {
     setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   };
 
-  const LONG_PRESS_MS = 300;
+  const LONG_PRESS_MS = 600;
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longPressTriggeredRef = useRef(false);
 
@@ -154,10 +154,10 @@ const Compras = () => {
     setState(prev => toggleShoppingItem(prev, item.id));
   };
 
-  // Drag-and-drop sensors: mouse starts after small movement; touch waits long enough to allow vertical scroll & taps
+  // Drag-and-drop sensors: mouse starts after small movement; touch starts after short hold (under long-press threshold)
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 3 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 8 } }),
   );
 
   const handleDragEnd = (event: DragEndEvent) => {
