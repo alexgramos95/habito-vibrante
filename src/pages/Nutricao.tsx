@@ -456,18 +456,21 @@ const RecipeCard = ({
 
 // ─── Shopping List Modal ───
 const ShoppingListModal = ({
-  open, onOpenChange, plan, locale,
+  open, onOpenChange, plan, locale, profile, onUpdatePlan,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   plan: WeeklyMealPlan | null;
   locale: string;
+  profile: NutritionProfile;
+  onUpdatePlan?: (updated: WeeklyMealPlan) => void;
 }) => {
   const lang = locale.startsWith("pt") ? "pt" : "en";
   const [items, setItems] = useState<(ShoppingListItem & { _uid: string })[]>([]);
   const [draggingIdx, setDraggingIdx] = useState<number | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
   const [dragOverCategory, setDragOverCategory] = useState<string | null>(null);
+  const [substitutingUid, setSubstitutingUid] = useState<string | null>(null);
   const { setState } = useData();
   const { toast } = useToast();
 
