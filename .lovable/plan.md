@@ -1,67 +1,47 @@
 
 
-## Placeholder e estado visual da Categoria por selecionar
+## Verificar persistência de categoria e cor do hábito
 
 ### Objetivo
-Tornar imediatamente óbvio, mesmo antes do utilizador interagir, que o campo Categoria precisa de uma escolha — através de placeholder mais explícito, ícone guia no trigger e um estado visual "por preencher" coerente com a estética Premium Clear.
+Garantir, com cobertura automatizada, que `categoria` e `cor` são guardados em `localStorage` ao criar/editar um hábito e que voltam pré-preenchidos ao reabrir o `HabitForm` em modo edição. Isto fecha o ciclo das alterações recentes ao campo Categoria.
+
+### Contexto técnico
+- Persistência: `src/data/storage.ts` (`saveState`/`loadState` em `localStorage`, chave `become-app-data`).
+- Mutações: `addHabit` / `updateHabit` em `storage.ts`, expostas via `DataContext.setState` (que faz `saveState` automaticamente).
+- Formulário: `src/components/Habits/HabitForm.tsx` recebe `habit?: Habit` e inicializa `categoria`/`cor` no `useState`.
+- Não existe IndexedDB próprio — apenas `localStorage` (e cloud sync para PRO, fora deste âmbito).
 
 ### Alterações
 
-**`src/components/Habits/HabitForm.tsx`**
+**1. Novo ficheiro de testes — `src/data/__tests__/storage.test.ts`**
+Cobertura de unit tests à camada de persistência:
+- `addHabit persiste categoria e cor no estado retornado` — cria hábito com `categoria: "Saúde"` e `cor: "#FF0000"`, verifica presença nos dados.
+- `saveState + loadState preserva categoria e cor` — guarda estado com hábito completo, lê de volta via `loadState()`, confirma igualdade dos campos.
+- `updateHabit altera categoria e cor mantendo restantes campos` — atualiza apenas `categoria`/`cor`, confirma que `nome`, `id`, `createdAt`, `diasSemana` permanecem intactos.
+- `loadState devolve defaults quando localStorage está vazio` — sanity check.
+- `loadState recupera dados após simulação de reload` — limpa estado em memória, lê novamente, valida hábito.
 
-1. **Placeholder mais directivo**
-   - Atual: *"Escolhe uma categoria"* / *"Choose a category"*.
-   - Novo: *"Toca para escolher uma categoria"* (PT) / *"Tap to choose a category"* (EN).
-   - Mantém tom editorial/observacional, sem imperativo agressivo.
+Setup: usar `beforeEach` para `localStorage.clear()`. Sem mocks de Supabase necessários (camada pura).
 
-2. **Ícone guia dentro do trigger**
-   - Adicionar ícone `Tag` (lucide-react) à esquerda do placeholder, em `text-muted-foreground`.
-   - Quando há categoria selecionada, o ícone permanece mas em `text-foreground` (subtil reforço visual).
+**2. Extensão de testes ao formulário — `src/components/Habits/__tests__/HabitForm.test.tsx`**
+Adicionar 2 testes de integração focados em edição:
+- `pré-preenche categoria e cor ao editar um hábito existente` — passa `habit` com `categoria: "Saúde"` e `cor: "#FF0000"` como prop, verifica que:
+  - O trigger do Select mostra "Saúde" (não o placeholder).
+  - Não tem `border-dashed` (estado pristine desliga).
+  - Hint mostra "Categoria registada.".
+  - O input de cor (color picker) tem `value="#FF0000"`.
+- `onSave recebe categoria e cor inalteradas quando se edita só o nome` — renderiza com hábito existente, altera apenas o nome, submete, confirma que o payload do `onSave` contém `categoria` e `cor` originais.
 
-3. **Estado visual "por preencher" (pristine)**
-   - Quando `categoria === ""` e ainda não houve erro: trigger ganha `border-dashed border-muted-foreground/40` e `bg-secondary/30` com leve animação `animate-pulse-slow` apenas no ícone (não no trigger inteiro, para não distrair).
-   - Quando selecionada: borda volta a sólida (`border-input`), fundo `bg-secondary/50`, ícone deixa de pulsar.
-   - Quando em erro: mantém `border-destructive/60` (já existente) e desliga o pulse.
-
-4. **Hint inicial reforçada**
-   - Atual: *"Ajuda a organizar e visualizar progresso."*
-   - Nova (apenas no estado pristine, antes da primeira interacção): *"Por escolher — toca acima para abrir as opções."* (PT) / *"Not chosen yet — tap above to open the options."* (EN).
-   - Após seleção, volta à mensagem *"Categoria registada."*.
-   - Após erro, mostra a mensagem de erro existente.
-
-5. **Microinteracção de foco**
-   - Garantir que o `SelectTrigger` em estado pristine tem `focus-visible:ring-2 focus-visible:ring-primary/40` (já vem do componente base, apenas confirmar que não é sobrescrito pelas novas classes).
-
-### Detalhes técnicos
-- Ícone `Tag` importado de `lucide-react` (já usado noutras partes do projeto).
-- Estados conjugados via `cn()`:
-  - `pristine = !categoria && !categoriaError`
-  - `selected = !!categoria && !categoriaError`
-  - `error = !!categoriaError`
-- Classe utilitária `animate-pulse-slow` reaproveitada de `tailwind.config.ts` se existir; caso não exista, usar `animate-pulse` com `[animation-duration:2.5s]` inline.
-- Sem alterações em `src/components/ui/select.tsx` — toda a lógica visual fica encapsulada no `HabitForm`.
-
-### Atualização do roteiro QA
-
-**`docs/qa/habit-form-category-select.md`** — adicionar passo 2.b:
-- Confirmar que, ao abrir o formulário, o trigger da Categoria mostra:
-  - Ícone `Tag` à esquerda.
-  - Placeholder *"Toca para escolher uma categoria"*.
-  - Borda tracejada subtil.
-  - Hint *"Por escolher — toca acima para abrir as opções."*.
-- Após seleção, confirmar transição para borda sólida + hint *"Categoria registada."*.
-
-### Atualização dos testes
-
-**`src/components/Habits/__tests__/HabitForm.test.tsx`** — adicionar 2 testes:
-- `mostra placeholder e hint de estado pristine ao abrir o formulário` — valida texto do placeholder novo e hint *"Por escolher — toca acima para abrir as opções."*.
-- `transita do estado pristine para selecionado removendo a borda tracejada` — após escolher categoria, confirma que `border-dashed` deixa de estar presente no trigger.
+**3. Roteiro QA — atualizar `docs/qa/habit-form-category-select.md`**
+Adicionar secção final "Persistência":
+- Criar hábito com categoria "Saúde" e cor personalizada → fechar dialog → recarregar página (F5) → reabrir hábito em modo edição → confirmar que categoria e cor aparecem pré-selecionadas.
+- Repetir para utilizador FREE (apenas localStorage) e PRO (cloud sync) — nota: a verificação cloud-side fica fora deste roteiro, focado em local.
 
 ### Fora do âmbito
-- Sem alterações de copy nas traduções centrais (`src/i18n/locales/*`), mantendo o padrão actual de strings inline.
-- Sem alterações no esquema de dados.
-- Sem ajustes ao `z-index` ou portal (já validados anteriormente).
+- Sincronização cloud (`sync-data` edge function) — coberta por outro fluxo.
+- IndexedDB — não é usado pela app.
+- Alterações ao `HabitForm.tsx` ou `storage.ts` — apenas adicionamos testes; se algum falhar, abrimos correção em plano separado.
 
 ### Resultado
-Mesmo um utilizador distraído percebe à primeira que o campo Categoria está por preencher e como interagir: ícone guia, placeholder explícito, borda tracejada e hint clara substituem qualquer ambiguidade visual.
+Suíte Vitest passa a falhar se uma regressão fizer com que `categoria` ou `cor` deixem de persistir ou de ser pré-carregados em edição, eliminando classe inteira de bugs silenciosos no formulário de hábitos.
 
