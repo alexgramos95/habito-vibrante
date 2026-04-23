@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Globe, RotateCcw, Trash2, Coins, ArrowLeft, Bell, RefreshCw } from "lucide-react";
+import { Globe, RotateCcw, Trash2, Coins, ArrowLeft, Bell, RefreshCw, Settings } from "lucide-react";
 import { NotificationSetup } from "@/components/Habits/NotificationSetup";
 import { useI18n } from "@/i18n/I18nContext";
 import { localeNames, currencyNames, type Locale, type Currency } from "@/i18n";
@@ -85,7 +85,10 @@ const Definicoes = () => {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-xl font-bold text-foreground">{t.settings.title}</h1>
+            <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
+              <Settings className="h-5 w-5 text-primary" />
+              {t.settings.title}
+            </h1>
             <p className="text-xs text-muted-foreground mt-0.5">
               {locale === 'pt-PT' ? 'Preferências da aplicação' : 'App preferences'}
             </p>

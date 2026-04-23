@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday, isFuture, getDay, startOfWeek, addDays, subDays, addWeeks, subWeeks } from "date-fns";
 import { pt, enUS as enUSLocale } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, Flame, Check, X, Clock, PenLine, ShoppingCart, Lock, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight, Flame, Check, X, Clock, PenLine, ShoppingCart, Lock, Sparkles, Calendar as CalendarIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Habit, DailyReflection } from "@/data/types";
 import { toggleDailyLog, getReflectionForDate } from "@/data/storage";
@@ -379,7 +379,10 @@ const Calendario = () => {
         {/* ═══ Page Header ═══ */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-foreground">{t.calendar.title}</h1>
+            <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
+              <CalendarIcon className="h-5 w-5 text-primary" />
+              {t.calendar.title}
+            </h1>
             <p className="text-xs text-muted-foreground mt-0.5">
               {locale === 'pt-PT' ? 'Visualiza o teu progresso' : 'View your progress'}
             </p>

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, ChevronRight, Pencil, Power, Search } from "lucide-react";
+import { ArrowLeft, ChevronRight, Pencil, Power, Search, ListChecks } from "lucide-react";
 import { Navigation } from "@/components/Layout/Navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -66,7 +66,8 @@ const MyHabits = () => {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-xl font-bold text-foreground">
+            <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
+              <ListChecks className="h-5 w-5 text-primary" />
               {isPT ? "Meus hábitos" : "My habits"}
             </h1>
             <p className="text-xs text-muted-foreground mt-0.5">

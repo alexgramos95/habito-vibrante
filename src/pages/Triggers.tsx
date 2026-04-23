@@ -259,7 +259,10 @@ const Triggers = () => {
         {/* Header */}
         <div className="page-header">
           <div>
-            <h1 className="page-title">{t.triggers.title}</h1>
+            <h1 className="page-title flex items-center gap-2">
+              <Bell className="h-5 w-5 text-primary" />
+              {t.triggers.title}
+            </h1>
             <p className="page-subtitle">
               {locale === 'pt-PT' 
                 ? 'Alarmes e lembretes' 
