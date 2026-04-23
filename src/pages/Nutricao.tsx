@@ -777,6 +777,20 @@ const ShoppingListModal = ({
                           <span className="flex-1 truncate">{item.ingredient}</span>
                           <span className="text-xs text-muted-foreground shrink-0">{item.quantity} {item.unit}</span>
                         </button>
+                        <button
+                          type="button"
+                          onClick={() => handleSubstitute(item)}
+                          disabled={substitutingUid !== null}
+                          aria-label={lang === "pt" ? "Eliminar e substituir por outro" : "Delete and substitute"}
+                          title={lang === "pt" ? "Eliminar e substituir por outro" : "Delete and substitute"}
+                          className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 transition-colors shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          {substitutingUid === item._uid ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-3.5 w-3.5" />
+                          )}
+                        </button>
                       </div>
                     );
                   })}
