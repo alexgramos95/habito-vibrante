@@ -140,11 +140,6 @@ const Definicoes = () => {
           <NotificationSetup />
         </div>
 
-        {/* Reset Data */}
-        <div className="rounded-2xl border border-destructive/20 bg-destructive/3 p-4 space-y-3">
-          {/* Reload App (placed above destructive actions visually via separate card) */}
-        </div>
-
         {/* Reload App */}
         <div className="rounded-2xl border border-border/30 bg-card/50 p-4 space-y-3">
           <div className="flex items-center gap-2">
