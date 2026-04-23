@@ -1,4 +1,4 @@
-const PWA_RESET_VERSION = "2026-04-22-frontend-refresh-1";
+const PWA_RESET_VERSION = "2026-04-23-frontend-refresh-2";
 const PWA_RESET_KEY = `become-pwa-reset:${PWA_RESET_VERSION}`;
 
 export const isPreviewHost = () => {
