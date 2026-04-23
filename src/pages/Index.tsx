@@ -308,6 +308,32 @@ const Index = () => {
       <Navigation />
 
       <main className="page-content max-w-xl mx-auto space-y-5">
+        {/* ═══ Page Header (top) ═══ */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
+              <LayoutDashboard className="h-5 w-5 text-primary" />
+              Hábitos
+            </h1>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {totalTracked} {totalTracked === 1 ? "hábito hoje" : "hábitos hoje"}
+              {!isPro && simpleHabits.length < FREE_LIMIT && ` · ${FREE_LIMIT - simpleHabits.length} disponíveis`}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button asChild size="sm" className="gap-1.5 rounded-xl h-9 px-3">
+              <Link to="/app/habits">
+                <ListChecks className="h-4 w-4" />
+                <span className="hidden sm:inline">Meus hábitos</span>
+              </Link>
+            </Button>
+            <Button size="sm" className="gap-1.5 rounded-xl h-9 px-3" onClick={() => setShowModeSelector(true)}>
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline">Novo</span>
+            </Button>
+          </div>
+        </div>
+
         {/* Trial banner */}
         {trialStatus.isActive && (
           <div className="flex justify-center">
@@ -346,33 +372,6 @@ const Index = () => {
 
         {/* ═══ Daily Motivation Card ═══ */}
         {state.habits.length > 0 && <MotivationCard card={motivationCard} />}
-
-        {/* Coach is now per-habit, no global card */}
-        {/* ═══ Page Header ═══ */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
-              <LayoutDashboard className="h-5 w-5 text-primary" />
-              Hábitos
-            </h1>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {totalTracked} {totalTracked === 1 ? "hábito hoje" : "hábitos hoje"}
-              {!isPro && simpleHabits.length < FREE_LIMIT && ` · ${FREE_LIMIT - simpleHabits.length} disponíveis`}
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button asChild size="sm" className="gap-1.5 rounded-xl h-9 px-3">
-              <Link to="/app/habits">
-                <ListChecks className="h-4 w-4" />
-                <span className="hidden sm:inline">Meus hábitos</span>
-              </Link>
-            </Button>
-            <Button size="sm" className="gap-1.5 rounded-xl h-9 px-3" onClick={() => setShowModeSelector(true)}>
-              <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">Novo</span>
-            </Button>
-          </div>
-        </div>
 
         {/* ═══ Empty state ═══ */}
         {state.habits.length === 0 && (
