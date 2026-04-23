@@ -105,9 +105,13 @@ export function useHabitNotifications(habits: Habit[]) {
 
   // Schedule local notifications (in-app fallback)
   const scheduleLocalNotifications = useCallback(() => {
-    // Only use local notifications if:
-    // 1. Push is not available/subscribed (fallback mode)
-    // 2. AND we have permission
+    // Skip local web notifications when:
+    // 1. Native alarms are active (Capacitor)
+    // 2. Background push is active and subscribed
+    if (nativeAlarms.isNative) {
+      console.log("[Notifications] Native alarms active, skipping local web scheduling");
+      return;
+    }
     if (pushNotifications.mode === 'background' && pushNotifications.isSubscribed) {
       console.log("[Notifications] Using background push, skipping local scheduling");
       return;
