@@ -61,6 +61,10 @@ export const HabitForm = ({ habit, onSave, onCancel }: HabitFormProps) => {
   const [scheduledDays, setScheduledDays] = useState<number[]>(habit?.scheduledDays || []);
   const [reminderEnabled, setReminderEnabled] = useState(habit?.reminderEnabled ?? true);
   const [error, setError] = useState<string | null>(null);
+  const [categoriaError, setCategoriaError] = useState<string | null>(null);
+  const categoriaWrapperRef = useRef<HTMLDivElement | null>(null);
+  const categoriaTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const isPT = locale === 'pt-PT';
 
   // Count of active habits excluding the one being edited (if editing)
   const otherActiveCount = useMemo(() => {
