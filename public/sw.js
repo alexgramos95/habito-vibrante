@@ -3,7 +3,8 @@
  * Changes must be reviewed and tested locally.
  */
 // becoMe Service Worker - PWA Support with Push Notifications
-const CACHE_NAME = 'become-v7-2026-04-23';
+const SERVICE_WORKER_VERSION = '2026-04-23-refresh-rescue-1';
+const CACHE_NAME = `become-v8-${SERVICE_WORKER_VERSION}`;
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
@@ -11,6 +12,22 @@ const STATIC_ASSETS = [
 ];
 
 const NETWORK_FIRST_DESTINATIONS = new Set(['document', 'script', 'style', 'font', 'image']);
+
+const reloadOpenClients = async () => {
+  const windowClients = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+
+  await Promise.all(
+    windowClients.map((client) => {
+      if (!('navigate' in client) || !client.url.startsWith(self.location.origin)) {
+        return Promise.resolve();
+      }
+
+      const url = new URL(client.url);
+      url.searchParams.set('_swv', SERVICE_WORKER_VERSION);
+      return client.navigate(url.toString()).catch(() => null);
+    })
+  );
+};
 
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
@@ -34,8 +51,9 @@ self.addEventListener('activate', (event) => {
           .filter((name) => name !== CACHE_NAME)
           .map((name) => caches.delete(name))
       );
-    }).then(() => {
-      return clients.claim();
+    }).then(async () => {
+      await clients.claim();
+      await reloadOpenClients();
     })
   );
 });
@@ -55,7 +73,7 @@ self.addEventListener('fetch', (event) => {
     if (isNavigation || isAssetRequest) {
       try {
         const freshResponse = await fetch(event.request);
-        if (freshResponse.ok) {
+        if (freshResponse.ok && !isNavigation) {
           cache.put(event.request, freshResponse.clone());
         }
         return freshResponse;
