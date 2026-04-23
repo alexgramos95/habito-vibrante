@@ -649,12 +649,12 @@ const ShoppingListModal = ({
                 <h4 className="text-xs font-semibold text-primary mb-1.5 uppercase tracking-wider px-1">{cat}</h4>
                 <div className="space-y-1">
                   {catItems.map((item) => {
-                    const globalIdx = items.indexOf(item);
+                    const globalIdx = items.findIndex(it => it._uid === item._uid);
                     const isDragging = draggingIdx === globalIdx;
                     const isDropTarget = dragOverIdx === globalIdx && draggingIdx !== null && draggingIdx !== globalIdx;
                     return (
                       <div
-                        key={globalIdx}
+                        key={item._uid}
                         draggable
                         onDragStart={handleDragStart(globalIdx)}
                         onDragOver={handleDragOverItem(globalIdx)}
