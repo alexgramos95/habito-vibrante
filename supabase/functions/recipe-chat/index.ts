@@ -209,6 +209,7 @@ ${NAMING_RULES}`;
     // Parse blocks
     let substitutions: any = null;
     let additions: any = null;
+    let mealReplacements: any = null;
 
     // New unified ```changes block (plan mode)
     const changesMatch = content.match(/```changes\s*\n([\s\S]*?)\n```/);
@@ -217,6 +218,7 @@ ${NAMING_RULES}`;
         const parsed = JSON.parse(changesMatch[1]);
         substitutions = Array.isArray(parsed.substitutions) ? parsed.substitutions : null;
         additions = Array.isArray(parsed.additions) ? parsed.additions : null;
+        mealReplacements = Array.isArray(parsed.mealReplacements) ? parsed.mealReplacements : null;
       } catch (_) {
         // ignore
       }
@@ -241,7 +243,7 @@ ${NAMING_RULES}`;
       .trim();
 
     return new Response(
-      JSON.stringify({ reply: cleanContent, substitutions, additions }),
+      JSON.stringify({ reply: cleanContent, substitutions, additions, mealReplacements }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
