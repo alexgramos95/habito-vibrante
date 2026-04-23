@@ -84,32 +84,33 @@ export const SortableShoppingRow = ({
         onContextMenu={(e) => e.preventDefault()}
         className="flex-1 min-w-0 flex items-center gap-2 cursor-pointer"
       >
-      <div className="flex-1 min-w-0 text-left">
-        <div className="flex items-center justify-between gap-2">
-          <p
-            className={cn(
-              "text-sm font-medium truncate transition-colors",
-              item.done && "line-through text-primary/70 font-semibold",
-            )}
-          >
-            {item.nome}
-          </p>
-          {item.price > 0 && (
-            <span
+        <div className="flex-1 min-w-0 text-left">
+          <div className="flex items-center justify-between gap-2">
+            <p
               className={cn(
-                "text-xs font-medium shrink-0 transition-colors",
-                item.done ? "text-primary/60" : "text-warning",
+                "text-sm font-medium truncate transition-colors",
+                item.done && "line-through text-primary/70 font-semibold",
               )}
             >
-              {formatCurrency(item.price)}
-            </span>
+              {item.nome}
+            </p>
+            {item.price > 0 && (
+              <span
+                className={cn(
+                  "text-xs font-medium shrink-0 transition-colors",
+                  item.done ? "text-primary/60" : "text-warning",
+                )}
+              >
+                {formatCurrency(item.price)}
+              </span>
+            )}
+          </div>
+          {item.quantidade && (
+            <p className="text-xs text-muted-foreground truncate">
+              {item.quantidade}
+            </p>
           )}
         </div>
-        {item.quantidade && (
-          <p className="text-xs text-muted-foreground truncate">
-            {item.quantidade}
-          </p>
-        )}
       </div>
       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         <button
