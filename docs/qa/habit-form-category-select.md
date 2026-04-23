@@ -23,10 +23,18 @@ Repetir cada passo em **retrato** e **paisagem**.
    Em `/app`, tocar em "Adicionar hábito" (ou abrir hábito existente → Editar).
    ✅ O `Dialog` abre, header "Adicionar hábito" / "Editar hábito" visível.
 
-2. **Estado inicial do campo**
+2. **Estado inicial do campo (pristine)**
    ✅ Label "Categoria" tem asterisco discreto à direita.
-   ✅ Hint neutra abaixo: *"Ajuda a organizar e visualizar progresso."*
-   ✅ Placeholder do trigger: *"Escolhe uma categoria"*.
+   ✅ Trigger mostra ícone `Tag` à esquerda em tom `muted-foreground` com pulse subtil (≈2.5s).
+   ✅ Placeholder do trigger: *"Toca para escolher uma categoria"*.
+   ✅ Borda do trigger é **tracejada** (`border-dashed`) e fundo `bg-secondary/30`.
+   ✅ Hint abaixo: *"Por escolher — toca acima para abrir as opções."*.
+
+2.b. **Transição pristine → selecionado**
+   Após escolher uma categoria:
+   ✅ Borda do trigger volta a sólida (`border-input` / `bg-secondary/50`).
+   ✅ Ícone `Tag` deixa de pulsar e passa a `text-foreground`.
+   ✅ Hint passa a *"Categoria registada."* (com check subtil).
 
 3. **Abrir o Select**
    Tocar no trigger da Categoria.
