@@ -633,6 +633,33 @@ export const deleteShoppingItem = (state: AppState, id: string): AppState => {
   };
 };
 
+/**
+ * Reorder shopping items by providing a fully ordered list of ids belonging to a single
+ * category+week scope. The provided order is applied while items outside the scope keep
+ * their relative position.
+ */
+export const reorderShoppingItems = (
+  state: AppState,
+  orderedIds: string[],
+): AppState => {
+  if (orderedIds.length === 0) return state;
+  const idSet = new Set(orderedIds);
+  const byId = new Map(state.shoppingItems.map((s) => [s.id, s] as const));
+  const reordered: ShoppingItem[] = [];
+  let cursor = 0;
+  for (const item of state.shoppingItems) {
+    if (idSet.has(item.id)) {
+      const nextId = orderedIds[cursor++];
+      const next = byId.get(nextId);
+      if (next) reordered.push(next);
+    } else {
+      reordered.push(item);
+    }
+  }
+  return { ...state, shoppingItems: reordered };
+};
+
+
 // ============= GAMIFICATION OPERATIONS =============
 
 export const addAchievement = (state: AppState, achievementId: string): AppState => {
