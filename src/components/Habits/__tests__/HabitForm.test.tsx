@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { HabitForm } from "@/components/Habits/HabitForm";
-import { DEFAULT_CATEGORIES } from "@/data/types";
+import { DEFAULT_CATEGORIES, DEFAULT_COLORS } from "@/data/types";
 
 // --- Mocks for hooks used by HabitForm ---
 
@@ -172,6 +172,76 @@ describe("HabitForm — Categoria (validação + feedback + Select dentro de Dia
     // Erro deve desaparecer
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent("Categoria registada.");
+  });
+
+  it("pré-preenche categoria e cor ao editar um hábito existente", () => {
+    const existingCategory = DEFAULT_CATEGORIES[0]; // "Health"
+    const existingColor = DEFAULT_COLORS[1]; // "#22c55e"
+    const existing = {
+      id: "h-1",
+      nome: "Meditar",
+      categoria: existingCategory,
+      cor: existingColor,
+      active: true,
+      createdAt: new Date().toISOString(),
+    };
+    renderForm({ habit: existing });
+
+    // Trigger mostra o valor selecionado, não o placeholder
+    const trigger = screen.getByRole("combobox");
+    expect(within(trigger).getByText(existingCategory)).toBeInTheDocument();
+    expect(
+      screen.queryByText("Toca para escolher uma categoria"),
+    ).not.toBeInTheDocument();
+
+    // Estado pristine desligado: sem borda tracejada
+    expect(trigger.className).not.toMatch(/border-dashed/);
+
+    // Hint de confirmação
+    expect(screen.getByRole("status")).toHaveTextContent("Categoria registada.");
+
+    // Cor pré-selecionada: o swatch correspondente está marcado com ring
+    const swatches = Array.from(
+      document.querySelectorAll<HTMLButtonElement>(
+        'button[style*="background-color"]',
+      ),
+    );
+    const selected = swatches.find((b) =>
+      b.className.includes("ring-foreground"),
+    );
+    expect(selected).toBeDefined();
+    // Hex → rgb (jsdom normaliza para rgb): #22c55e → rgb(34, 197, 94)
+    expect(selected!.getAttribute("style")?.toLowerCase()).toContain(
+      "rgb(34, 197, 94)",
+    );
+  });
+
+  it("onSave recebe categoria e cor inalteradas quando se edita só o nome", async () => {
+    const user = userEvent.setup();
+    const existingCategory = DEFAULT_CATEGORIES[0];
+    const existingColor = DEFAULT_COLORS[1];
+    const existing = {
+      id: "h-2",
+      nome: "Ler",
+      categoria: existingCategory,
+      cor: existingColor,
+      active: true,
+      createdAt: new Date().toISOString(),
+    };
+    const { onSave } = renderForm({ habit: existing });
+
+    const nome = screen.getByLabelText("Nome");
+    await user.clear(nome);
+    await user.type(nome, "Ler 30 minutos");
+
+    await user.click(screen.getByRole("button", { name: "Guardar" }));
+
+    expect(onSave).toHaveBeenCalledTimes(1);
+    expect(onSave.mock.calls[0][0]).toMatchObject({
+      nome: "Ler 30 minutos",
+      categoria: existingCategory,
+      cor: existingColor,
+    });
   });
 
   it("hierarquia de z-index: Select abre acima do overlay do Dialog", async () => {
