@@ -2,6 +2,7 @@ import { useEffect, useCallback, useRef } from "react";
 import { Habit } from "@/data/types";
 import { useToast } from "@/hooks/use-toast";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { useNativeAlarms } from "@/hooks/useNativeAlarms";
 import { useAuth } from "@/contexts/AuthContext";
 
 /**
@@ -15,6 +16,7 @@ export function useHabitNotifications(habits: Habit[]) {
   const userId = session?.user?.id;
   
   const pushNotifications = usePushNotifications(userId);
+  const nativeAlarms = useNativeAlarms(habits);
   
   const scheduledTimeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const lastFiredRef = useRef<Map<string, string>>(new Map());
@@ -103,9 +105,13 @@ export function useHabitNotifications(habits: Habit[]) {
 
   // Schedule local notifications (in-app fallback)
   const scheduleLocalNotifications = useCallback(() => {
-    // Only use local notifications if:
-    // 1. Push is not available/subscribed (fallback mode)
-    // 2. AND we have permission
+    // Skip local web notifications when:
+    // 1. Native alarms are active (Capacitor)
+    // 2. Background push is active and subscribed
+    if (nativeAlarms.isNative) {
+      console.log("[Notifications] Native alarms active, skipping local web scheduling");
+      return;
+    }
     if (pushNotifications.mode === 'background' && pushNotifications.isSubscribed) {
       console.log("[Notifications] Using background push, skipping local scheduling");
       return;
@@ -138,7 +144,7 @@ export function useHabitNotifications(habits: Habit[]) {
         console.log(`[Notifications] Scheduled local: ${habit.nome} at ${habit.scheduledTime} (in ${minutesUntil} minutes)`);
       }
     });
-  }, [habits, pushNotifications.mode, pushNotifications.isSubscribed, isSupported, shouldShowToday, getMsUntilTime, showLocalNotification, clearAllScheduled]);
+  }, [habits, pushNotifications.mode, pushNotifications.isSubscribed, nativeAlarms.isNative, isSupported, shouldShowToday, getMsUntilTime, showLocalNotification, clearAllScheduled]);
 
   // Re-schedule when habits change or when page becomes visible
   useEffect(() => {
@@ -181,5 +187,6 @@ export function useHabitNotifications(habits: Habit[]) {
     ...pushNotifications,
     isLocalSupported: isSupported,
     scheduleLocalNotifications,
+    nativeAlarms,
   };
 }
