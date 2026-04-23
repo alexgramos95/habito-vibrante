@@ -2,41 +2,14 @@
  * CORE FILE — DO NOT EDIT VIA LOVABLE.
  * Changes must be reviewed and tested locally.
  */
-// becoMe Service Worker - PWA Support with Push Notifications
-const SERVICE_WORKER_VERSION = '2026-04-23-refresh-rescue-1';
-const CACHE_NAME = `become-v8-${SERVICE_WORKER_VERSION}`;
-const STATIC_ASSETS = [
-  '/',
-  '/manifest.json',
-  '/favicon.ico',
-];
+// becoMe Service Worker - push only, no frontend asset caching
+const SERVICE_WORKER_VERSION = '2026-04-23-push-only-1';
+const CACHE_NAME = `become-runtime-${SERVICE_WORKER_VERSION}`;
 
-const NETWORK_FIRST_DESTINATIONS = new Set(['document', 'script', 'style', 'font', 'image']);
-
-const reloadOpenClients = async () => {
-  const windowClients = await clients.matchAll({ type: 'window', includeUncontrolled: true });
-
-  await Promise.all(
-    windowClients.map((client) => {
-      if (!('navigate' in client) || !client.url.startsWith(self.location.origin)) {
-        return Promise.resolve();
-      }
-
-      const url = new URL(client.url);
-      url.searchParams.set('_swv', SERVICE_WORKER_VERSION);
-      return client.navigate(url.toString()).catch(() => null);
-    })
-  );
-};
-
-// Install event - cache static assets
+// Install event - activate immediately without pre-caching frontend files
 self.addEventListener('install', (event) => {
   console.log('[SW] Installing service worker...');
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS);
-    })
-  );
+  event.waitUntil(Promise.resolve());
   // Activate immediately
   self.skipWaiting();
 });
@@ -51,53 +24,16 @@ self.addEventListener('activate', (event) => {
           .filter((name) => name !== CACHE_NAME)
           .map((name) => caches.delete(name))
       );
-    }).then(async () => {
-      await clients.claim();
-      await reloadOpenClients();
-    })
+    }).then(() => clients.claim())
   );
 });
 
-// Fetch event - prefer the network for app shell/assets to avoid stale UI after updates.
+// Fetch event - always use the network for the frontend so published updates appear immediately.
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   if (!event.request.url.startsWith(self.location.origin)) return;
 
-  const requestUrl = new URL(event.request.url);
-  const isNavigation = event.request.mode === 'navigate';
-  const isAssetRequest = NETWORK_FIRST_DESTINATIONS.has(event.request.destination) || requestUrl.pathname.startsWith('/assets/');
-
-  event.respondWith((async () => {
-    const cache = await caches.open(CACHE_NAME);
-
-    if (isNavigation || isAssetRequest) {
-      try {
-        const freshResponse = await fetch(event.request);
-        if (freshResponse.ok && !isNavigation) {
-          cache.put(event.request, freshResponse.clone());
-        }
-        return freshResponse;
-      } catch (error) {
-        const cachedResponse = await cache.match(event.request);
-        if (cachedResponse) return cachedResponse;
-        if (isNavigation) {
-          return (await caches.match('/')) || Response.error();
-        }
-        throw error;
-      }
-    }
-
-    const cachedResponse = await cache.match(event.request);
-    if (cachedResponse) {
-      return cachedResponse;
-    }
-
-    const response = await fetch(event.request);
-    if (response.ok) {
-      cache.put(event.request, response.clone());
-    }
-    return response;
-  })());
+  event.respondWith(fetch(event.request));
 });
 
 // Push event - handle incoming push notifications
