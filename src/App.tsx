@@ -65,7 +65,7 @@ const GatedSettings = () => (
   </GatedPage>
 );
 
-// PWA Update wrapper - must be inside BrowserRouter for hooks that use router
+// PWA update wrapper kept passive to avoid forced reload loops on published builds
 const PWAUpdateWrapper = ({ children }: { children: React.ReactNode }) => {
   const { showUpdateToast, applyUpdate, dismissUpdate } = usePWAUpdate();
 
