@@ -118,11 +118,15 @@ export function RecipeChatDrawer({ open, onOpenChange, recipe, locale, onUpdateR
         const newInstr = Array.isArray(data?.instructions) ? data.instructions : [];
         const newMacros = data?.macros && typeof data.macros === "object" ? data.macros : null;
         if (newName || newInstr.length > 0 || newMacros) {
+          const safeMacros =
+            newMacros && Number(newMacros.calories) > 0
+              ? { ...updatedRecipe.macros, ...newMacros }
+              : updatedRecipe.macros;
           updatedRecipe = {
             ...updatedRecipe,
             name: newName ?? updatedRecipe.name,
             instructions: newInstr.length > 0 ? newInstr : updatedRecipe.instructions,
-            macros: newMacros ? { ...updatedRecipe.macros, ...newMacros } : updatedRecipe.macros,
+            macros: safeMacros,
           };
           onUpdateRecipe(updatedRecipe);
           toast({
