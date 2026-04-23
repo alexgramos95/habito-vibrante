@@ -484,8 +484,8 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
           </DrawerTitle>
           <p className="text-[11px] text-muted-foreground">
             {lang === "pt"
-              ? "Substitui ou adiciona ingredientes em todas as receitas (ou só num tipo de refeição)"
-              : "Replace or add ingredients across all recipes (or just a meal type)"}
+              ? "Substitui ingredientes, adiciona novos ou troca refeições inteiras (ex: pequenos-almoços por shakes)"
+              : "Substitute ingredients, add new ones, or replace whole meals (e.g. breakfasts with shakes)"}
           </p>
         </DrawerHeader>
 
