@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { format, startOfWeek, addWeeks, subWeeks, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
 import { pt, enUS as enUSLocale } from "date-fns/locale";
-import { ShoppingCart, Plus, Trash2, Pencil, ChevronLeft, ChevronRight, Receipt, TrendingUp, X, CheckSquare, Circle, CheckCircle2 } from "lucide-react";
+import { ShoppingCart, Plus, Trash2, Pencil, ChevronLeft, ChevronRight } from "lucide-react";
 import { useI18n } from "@/i18n/I18nContext";
 import { Navigation } from "@/components/Layout/Navigation";
 import { Card, CardContent } from "@/components/ui/card";
@@ -102,6 +102,41 @@ const Compras = () => {
 
   const toggleSelect = (id: string) => {
     setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  const LONG_PRESS_MS = 1000;
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressTriggeredRef = useRef(false);
+
+  const startLongPress = (id: string) => {
+    longPressTriggeredRef.current = false;
+    if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
+    longPressTimerRef.current = setTimeout(() => {
+      longPressTriggeredRef.current = true;
+      toggleSelect(id);
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+        try { navigator.vibrate?.(30); } catch { /* noop */ }
+      }
+    }, LONG_PRESS_MS);
+  };
+
+  const cancelLongPress = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  };
+
+  const handleItemClick = (item: ShoppingItem) => {
+    if (longPressTriggeredRef.current) {
+      longPressTriggeredRef.current = false;
+      return;
+    }
+    if (selectedIds.length > 0) {
+      toggleSelect(item.id);
+      return;
+    }
+    setState(prev => toggleShoppingItem(prev, item.id));
   };
   const selectAllVisible = () => setSelectedIds(items.map(i => i.id));
   const clearSelection = () => setSelectedIds([]);
@@ -244,25 +279,18 @@ const Compras = () => {
                   const isSelected = selectedIds.includes(item.id);
                   return (
                   <div key={item.id} className={cn(
-                    "flex items-center gap-3 p-3 rounded-xl border transition-all group",
+                    "flex items-center gap-3 p-3 rounded-xl border transition-all group select-none",
                     isSelected ? "bg-primary/5 border-primary/40" :
                     item.done ? "bg-success/5 border-success/15" : "bg-card/50 border-border/30 hover:bg-secondary/40"
                   )}>
                     <button
-                      onClick={() => toggleSelect(item.id)}
-                      className={cn(
-                        "h-5 w-5 rounded-full border-2 flex items-center justify-center transition-colors",
-                        isSelected
-                          ? "bg-primary border-primary text-primary-foreground"
-                          : "border-muted-foreground/30 hover:border-primary/50 bg-transparent"
-                      )}
-                      aria-label={locale === 'pt-PT' ? 'Selecionar item' : 'Select item'}
-                    >
-                      {isSelected && <CheckCircle2 className="h-3.5 w-3.5" />}
-                    </button>
-                    <button
-                      onClick={() => setState(prev => toggleShoppingItem(prev, item.id))}
-                      className="flex-1 min-w-0 text-left"
+                      onClick={() => handleItemClick(item)}
+                      onPointerDown={() => startLongPress(item.id)}
+                      onPointerUp={cancelLongPress}
+                      onPointerLeave={cancelLongPress}
+                      onPointerCancel={cancelLongPress}
+                      onContextMenu={(e) => e.preventDefault()}
+                      className="flex-1 min-w-0 text-left touch-none"
                     >
                       <div className="flex items-center justify-between gap-2">
                         <p className={cn("text-sm font-medium truncate", item.done && "line-through text-muted-foreground")}>{item.nome}</p>
