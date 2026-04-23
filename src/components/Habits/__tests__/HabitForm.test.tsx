@@ -187,7 +187,8 @@ describe("HabitForm — Categoria (validação + feedback + Select dentro de Dia
 
     // Trigger mostra o valor selecionado, não o placeholder
     const trigger = screen.getByRole("combobox");
-    expect(trigger).toHaveTextContent("Saúde");
+    // Radix renderiza o valor selecionado dentro do SelectValue
+    expect(screen.getByText("Saúde")).toBeInTheDocument();
     expect(
       screen.queryByText("Toca para escolher uma categoria"),
     ).not.toBeInTheDocument();
