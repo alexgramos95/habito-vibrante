@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { MessageCircle, Send, Loader2, Check, Plus, ArrowRightLeft } from "lucide-react";
+import { MessageCircle, Send, Loader2, Check, Plus, ArrowRightLeft, Replace } from "lucide-react";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import type { WeeklyMealPlan, Recipe, Ingredient, MealType } from "@/data/nutritionTypes";
+import type { WeeklyMealPlan, Recipe, Ingredient, MealType, MacroInfo } from "@/data/nutritionTypes";
 
 interface GlobalSubstitution {
   original: string;
@@ -24,11 +24,28 @@ interface GlobalAddition {
   mealTypes?: MealType[];
 }
 
+interface MealReplacement {
+  mealTypes: MealType[];
+  recipe: {
+    name: string;
+    prepTime?: number;
+    cookTime?: number;
+    servings?: number;
+    difficulty?: "easy" | "medium" | "hard";
+    ingredients: Ingredient[];
+    instructions: string[];
+    macros: MacroInfo;
+    tags?: string[];
+    imageEmoji?: string;
+  };
+}
+
 interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   substitutions?: GlobalSubstitution[] | null;
   additions?: GlobalAddition[] | null;
+  mealReplacements?: MealReplacement[] | null;
   applied?: boolean;
   matchCount?: number;
 }
