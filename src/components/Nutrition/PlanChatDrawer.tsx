@@ -441,17 +441,26 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
   };
 
   const renderChangeSummary = (msg: ChatMessage) => {
-    const parts: string[] = [];
+    const parts: { kind: "sub" | "add" | "replace"; text: string }[] = [];
+    if (msg.mealReplacements && msg.mealReplacements.length > 0) {
+      for (const r of msg.mealReplacements) {
+        const scope = r.mealTypes && r.mealTypes.length > 0
+          ? r.mealTypes.map(mt => mealLabels[mt]).join(", ")
+          : (lang === "pt" ? "todas as refeições" : "all meals");
+        parts.push({
+          kind: "replace",
+          text: lang === "pt"
+            ? `Substituir ${scope} por "${r.recipe.name}"`
+            : `Replace ${scope} with "${r.recipe.name}"`,
+        });
+      }
+    }
     if (msg.substitutions && msg.substitutions.length > 0) {
       for (const s of msg.substitutions) {
         const scope = s.mealTypes && s.mealTypes.length > 0
           ? ` (${s.mealTypes.map(mt => mealLabels[mt]).join(", ")})`
           : "";
-        parts.push(
-          lang === "pt"
-            ? `↔ ${s.original} → ${s.replacement}${scope}`
-            : `↔ ${s.original} → ${s.replacement}${scope}`,
-        );
+        parts.push({ kind: "sub", text: `${s.original} → ${s.replacement}${scope}` });
       }
     }
     if (msg.additions && msg.additions.length > 0) {
@@ -459,7 +468,7 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
         const scope = a.mealTypes && a.mealTypes.length > 0
           ? ` (${a.mealTypes.map(mt => mealLabels[mt]).join(", ")})`
           : "";
-        parts.push(`+ ${a.quantity} ${a.unit} ${a.name}${scope}`);
+        parts.push({ kind: "add", text: `${a.quantity} ${a.unit} ${a.name}${scope}` });
       }
     }
     return parts;
