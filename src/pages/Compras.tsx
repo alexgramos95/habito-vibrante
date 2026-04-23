@@ -160,14 +160,29 @@ const Compras = () => {
     useSensor(TouchSensor, { activationConstraint: { delay: 120, tolerance: 6 } }),
   );
 
-  const handleDragEnd = (event: DragEndEvent, categoryItemIds: string[]) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-    const oldIndex = categoryItemIds.indexOf(String(active.id));
-    const newIndex = categoryItemIds.indexOf(String(over.id));
+    const activeId = String(active.id);
+    const overId = String(over.id);
+    const allIds = items.map(i => i.id);
+    const oldIndex = allIds.indexOf(activeId);
+    const newIndex = allIds.indexOf(overId);
     if (oldIndex === -1 || newIndex === -1) return;
-    const newOrder = arrayMove(categoryItemIds, oldIndex, newIndex);
-    setState(prev => reorderShoppingItems(prev, newOrder));
+
+    const overItem = items.find(i => i.id === overId);
+    const activeItem = items.find(i => i.id === activeId);
+    const targetCategory = overItem?.categoria;
+
+    setState(prev => {
+      let next = prev;
+      // If moving across categories, update the dragged item's category first
+      if (activeItem && overItem && activeItem.categoria !== targetCategory) {
+        next = updateShoppingItem(next, activeId, { categoria: targetCategory });
+      }
+      const newOrder = arrayMove(allIds, oldIndex, newIndex);
+      return reorderShoppingItems(next, newOrder);
+    });
   };
 
   const selectAllVisible = () => setSelectedIds(items.map(i => i.id));
@@ -301,46 +316,41 @@ const Compras = () => {
               )}
             </div>
 
-            {Object.entries(itemsByCategory).map(([category, categoryItems]) => (
-              <div key={category} className="space-y-1.5">
-                <div className="flex items-center justify-between px-1">
-                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{category}</h3>
-                  <span className="text-[10px] text-muted-foreground">{formatCurrency(categoryItems.reduce((s, i) => s + (i.price || 0), 0))}</span>
-                </div>
-                {(() => {
-                  const categoryItemIds = categoryItems.map(i => i.id);
-                  return (
-                    <DndContext
-                      sensors={sensors}
-                      collisionDetection={closestCenter}
-                      onDragEnd={(event) => handleDragEnd(event, categoryItemIds)}
-                    >
-                      <SortableContext items={categoryItemIds} strategy={verticalListSortingStrategy}>
-                        <div className="space-y-1.5">
-                          {categoryItems.map(item => (
-                            <SortableShoppingRow
-                              key={item.id}
-                              item={item}
-                              isSelected={selectedIds.includes(item.id)}
-                              formatCurrency={formatCurrency}
-                              onItemClick={handleItemClick}
-                              onLongPressStart={startLongPress}
-                              onLongPressCancel={cancelLongPress}
-                              onEdit={openEditForm}
-                              onDelete={(it) => {
-                                setState(prev => deleteShoppingItem(prev, it.id));
-                                toast({ title: t.shopping.itemDeleted });
-                              }}
-                              reorderHandleAriaLabel={locale === 'pt-PT' ? 'Reordenar item' : 'Reorder item'}
-                            />
-                          ))}
-                        </div>
-                      </SortableContext>
-                    </DndContext>
-                  );
-                })()}
-              </div>
-            ))}
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext items={items.map(i => i.id)} strategy={verticalListSortingStrategy}>
+                {Object.entries(itemsByCategory).map(([category, categoryItems]) => (
+                  <div key={category} className="space-y-1.5">
+                    <div className="flex items-center justify-between px-1">
+                      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{category}</h3>
+                      <span className="text-[10px] text-muted-foreground">{formatCurrency(categoryItems.reduce((s, i) => s + (i.price || 0), 0))}</span>
+                    </div>
+                    <div className="space-y-1.5">
+                      {categoryItems.map(item => (
+                        <SortableShoppingRow
+                          key={item.id}
+                          item={item}
+                          isSelected={selectedIds.includes(item.id)}
+                          formatCurrency={formatCurrency}
+                          onItemClick={handleItemClick}
+                          onLongPressStart={startLongPress}
+                          onLongPressCancel={cancelLongPress}
+                          onEdit={openEditForm}
+                          onDelete={(it) => {
+                            setState(prev => deleteShoppingItem(prev, it.id));
+                            toast({ title: t.shopping.itemDeleted });
+                          }}
+                          reorderHandleAriaLabel={locale === 'pt-PT' ? 'Reordenar item' : 'Reorder item'}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </SortableContext>
+            </DndContext>
           </div>
         )}
       </main>
