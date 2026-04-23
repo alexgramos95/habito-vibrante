@@ -1434,6 +1434,12 @@ const Nutricao = () => {
         onOpenChange={setShowShopping}
         plan={plan}
         locale={locale}
+        profile={profile}
+        onUpdatePlan={(updated) => {
+          const normalized = normalizeWeeklyPlan(updated);
+          setPlan(normalized);
+          if (normalized) localStorage.setItem(STORAGE_KEY_PLAN, JSON.stringify(normalized));
+        }}
       />
       {plan && (
         <PlanChatDrawer
