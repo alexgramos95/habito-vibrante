@@ -476,12 +476,46 @@ const ShoppingListModal = ({
 
   useEffect(() => {
     if (!plan) return;
-    const ingredientMap = new Map<string, ShoppingListItem & { _uid: string }>();
+    // Aggregate by ingredient name + unit so quantities sum across recipes/days.
+    // Numeric quantities (incl. "1/2", "0.5") are summed; non-numeric tokens
+    // (e.g. "a gosto") are concatenated with " + " as a fallback.
+    const parseQty = (q: string): number | null => {
+      if (!q) return null;
+      const trimmed = String(q).trim().replace(",", ".");
+      // Fraction like "1/2"
+      if (/^\d+\s*\/\s*\d+$/.test(trimmed)) {
+        const [a, b] = trimmed.split("/").map(n => parseFloat(n));
+        return b ? a / b : null;
+      }
+      // Mixed "1 1/2"
+      const mixed = trimmed.match(/^(\d+)\s+(\d+)\s*\/\s*(\d+)$/);
+      if (mixed) {
+        const [, w, a, b] = mixed;
+        const denom = parseFloat(b);
+        return denom ? parseFloat(w) + parseFloat(a) / denom : null;
+      }
+      const n = parseFloat(trimmed);
+      return Number.isFinite(n) && /^-?\d/.test(trimmed) ? n : null;
+    };
+
+    const formatQty = (n: number): string => {
+      if (Number.isInteger(n)) return String(n);
+      // Keep up to 2 decimals, trim trailing zeros
+      return parseFloat(n.toFixed(2)).toString();
+    };
+
+    type Agg = ShoppingListItem & { _uid: string; _numericTotal: number | null; _extras: string[] };
+    const ingredientMap = new Map<string, Agg>();
+
     plan.days.forEach(day =>
       day.meals.forEach(meal =>
         meal.recipe.ingredients.forEach(ing => {
-          const key = ing.name.toLowerCase();
-          if (!ingredientMap.has(key)) {
+          const unitKey = (ing.unit || "").trim().toLowerCase();
+          const nameKey = ing.name.trim().toLowerCase();
+          const key = `${nameKey}__${unitKey}`;
+          const numeric = parseQty(ing.quantity);
+          const existing = ingredientMap.get(key);
+          if (!existing) {
             ingredientMap.set(key, {
               _uid: `ing-${key}`,
               ingredient: ing.name,
@@ -489,12 +523,38 @@ const ShoppingListModal = ({
               unit: ing.unit,
               category: ing.category || "Outros",
               checked: false,
+              _numericTotal: numeric,
+              _extras: numeric === null ? [String(ing.quantity).trim()] : [],
             });
+          } else {
+            if (numeric !== null && existing._numericTotal !== null) {
+              existing._numericTotal += numeric;
+            } else if (numeric !== null && existing._numericTotal === null) {
+              existing._numericTotal = numeric;
+            } else if (numeric === null) {
+              const token = String(ing.quantity).trim();
+              if (token && !existing._extras.includes(token)) existing._extras.push(token);
+            }
           }
         })
       )
     );
-    setItems(Array.from(ingredientMap.values()).sort((a, b) => a.category.localeCompare(b.category)));
+
+    const aggregated = Array.from(ingredientMap.values()).map(agg => {
+      let qty = "";
+      if (agg._numericTotal !== null) qty = formatQty(agg._numericTotal);
+      if (agg._extras.length) qty = qty ? `${qty} + ${agg._extras.join(" + ")}` : agg._extras.join(" + ");
+      return {
+        _uid: agg._uid,
+        ingredient: agg.ingredient,
+        quantity: qty || agg.quantity,
+        unit: agg.unit,
+        category: agg.category,
+        checked: agg.checked,
+      } as ShoppingListItem & { _uid: string };
+    });
+
+    setItems(aggregated.sort((a, b) => a.category.localeCompare(b.category)));
   }, [plan]);
 
   const toggleItem = (idx: number) => {
