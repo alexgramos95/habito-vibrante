@@ -1105,18 +1105,54 @@ const Nutricao = () => {
                     <div className="text-[10px] text-muted-foreground">{lang === "pt" ? "Gord" : "Fat"}</div>
                   </div>
                 </div>
-                {profile.calorieTarget && (
-                  <div className="mt-2">
-                    <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
-                      <span>{dailyTotals.calories} / {profile.calorieTarget} kcal</span>
-                      <span>{Math.round((dailyTotals.calories / profile.calorieTarget) * 100)}%</span>
-                    </div>
-                    <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
-                      <div
-                        className="h-full rounded-full bg-primary transition-all"
-                        style={{ width: `${Math.min(100, (dailyTotals.calories / profile.calorieTarget) * 100)}%` }}
-                      />
-                    </div>
+                {(profile.calorieTarget || totalMealsCount > 0) && (
+                  <div className="mt-2 space-y-2">
+                    {/* Meals progress */}
+                    {totalMealsCount > 0 && (
+                      <div>
+                        <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
+                          <span>
+                            {completedMealsCount} / {totalMealsCount}{" "}
+                            {lang === "pt" ? "refeições" : "meals"}
+                          </span>
+                          <span>
+                            {Math.round((completedMealsCount / totalMealsCount) * 100)}%
+                          </span>
+                        </div>
+                        <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-primary transition-all"
+                            style={{ width: `${(completedMealsCount / totalMealsCount) * 100}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                    {/* Calorie progress (only if target set) */}
+                    {profile.calorieTarget && (
+                      <div>
+                        <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
+                          <span>
+                            {dailyTotals.calories} / {profile.calorieTarget} kcal
+                            {plannedDailyKcal > 0 && (
+                              <span className="opacity-60">
+                                {" "}· {lang === "pt" ? "plano" : "planned"} {plannedDailyKcal}
+                              </span>
+                            )}
+                          </span>
+                          <span>
+                            {Math.round((dailyTotals.calories / profile.calorieTarget) * 100)}%
+                          </span>
+                        </div>
+                        <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-primary transition-all"
+                            style={{
+                              width: `${Math.min(100, (dailyTotals.calories / profile.calorieTarget) * 100)}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>
@@ -1133,6 +1169,8 @@ const Nutricao = () => {
                     locale={locale}
                     onSwap={hasPro ? () => generatePlan(safeSelectedDay) : undefined}
                     onUpdateRecipe={(updated) => updateRecipeInPlan(safeSelectedDay, i, updated)}
+                    completed={!!completedMeals[mealKey(currentDay.date, meal.type)]}
+                    onToggleComplete={() => toggleMealCompleted(currentDay.date, meal.type)}
                   />
                 ))
               ) : (
