@@ -58,6 +58,7 @@ export const registerPublishedServiceWorker = async () => {
 
   const registration = await navigator.serviceWorker.register(getPwaScriptUrl(), {
     scope: "/",
+    updateViaCache: "none",
   });
 
   await registration.update().catch(() => null);
