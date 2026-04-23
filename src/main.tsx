@@ -2,7 +2,11 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
-import { isPreviewHost, maybeForcePublishedPwaRefresh } from "@/lib/pwaRefresh";
+import {
+  isPreviewHost,
+  maybeForcePublishedPwaRefresh,
+  registerPublishedServiceWorker,
+} from "@/lib/pwaRefresh";
 
 const isInIframe = (() => {
   try {
@@ -34,7 +38,10 @@ if (shouldDisableServiceWorker && "serviceWorker" in navigator) {
     }
   });
 } else {
-  void maybeForcePublishedPwaRefresh();
+  void (async () => {
+    await maybeForcePublishedPwaRefresh();
+    await registerPublishedServiceWorker();
+  })();
 }
 
 createRoot(document.getElementById("root")!).render(

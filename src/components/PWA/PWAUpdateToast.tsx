@@ -79,35 +79,44 @@ export const usePWAUpdate = () => {
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;
 
+    let hasReloaded = false;
+
     const handleControllerChange = () => {
-      // New service worker activated, reload the page
+      if (hasReloaded) return;
+      hasReloaded = true;
       window.location.reload();
+    };
+
+    const bindUpdateListener = (registration: ServiceWorkerRegistration) => {
+      registration.addEventListener("updatefound", () => {
+        const newWorker = registration.installing;
+        if (!newWorker) return;
+
+        newWorker.addEventListener("statechange", () => {
+          if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+            setWaitingWorker(newWorker);
+            setShowUpdateToast(true);
+          }
+        });
+      });
     };
 
     const checkForUpdates = async () => {
       try {
-        const registration = await navigator.serviceWorker.getRegistration();
+        const registration =
+          (await navigator.serviceWorker.getRegistration("/")) ||
+          (await navigator.serviceWorker.getRegistration()) ||
+          (await navigator.serviceWorker.ready.catch(() => undefined));
+
         if (!registration) return;
 
-        // Check if there's already a waiting worker
+        bindUpdateListener(registration);
+        await registration.update().catch(() => null);
+
         if (registration.waiting) {
           setWaitingWorker(registration.waiting);
           setShowUpdateToast(true);
-          return;
         }
-
-        // Listen for new updates
-        registration.addEventListener("updatefound", () => {
-          const newWorker = registration.installing;
-          if (!newWorker) return;
-
-          newWorker.addEventListener("statechange", () => {
-            if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
-              setWaitingWorker(newWorker);
-              setShowUpdateToast(true);
-            }
-          });
-        });
       } catch (error) {
         console.error("[PWA] Update check failed:", error);
       }
@@ -116,8 +125,7 @@ export const usePWAUpdate = () => {
     navigator.serviceWorker.addEventListener("controllerchange", handleControllerChange);
     checkForUpdates();
 
-    // Check for updates every 60 seconds
-    const interval = setInterval(checkForUpdates, 60000);
+    const interval = setInterval(checkForUpdates, 30000);
 
     return () => {
       navigator.serviceWorker.removeEventListener("controllerchange", handleControllerChange);
