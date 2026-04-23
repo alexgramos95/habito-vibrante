@@ -514,7 +514,8 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
                 const hasChanges =
                   msg.role === "assistant" &&
                   ((msg.substitutions && msg.substitutions.length > 0) ||
-                    (msg.additions && msg.additions.length > 0));
+                    (msg.additions && msg.additions.length > 0) ||
+                    (msg.mealReplacements && msg.mealReplacements.length > 0));
 
                 return (
                   <div key={i}>
@@ -533,14 +534,16 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
                       <div className="mt-1.5 max-w-[85%] space-y-1.5">
                         {summary.length > 0 && (
                           <div className="text-[11px] text-muted-foreground space-y-0.5 px-1">
-                            {summary.map((line, idx) => (
+                            {summary.map((item, idx) => (
                               <div key={idx} className="flex items-start gap-1">
-                                {line.startsWith("+") ? (
+                                {item.kind === "add" ? (
                                   <Plus className="h-3 w-3 mt-0.5 shrink-0 text-primary" />
+                                ) : item.kind === "replace" ? (
+                                  <Replace className="h-3 w-3 mt-0.5 shrink-0 text-primary" />
                                 ) : (
                                   <ArrowRightLeft className="h-3 w-3 mt-0.5 shrink-0 text-primary" />
                                 )}
-                                <span>{line.replace(/^[+↔]\s*/, "")}</span>
+                                <span>{item.text}</span>
                               </div>
                             ))}
                           </div>
