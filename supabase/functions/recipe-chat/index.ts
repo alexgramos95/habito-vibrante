@@ -135,7 +135,8 @@ For example, if replacing milk with oat milk:
 
 If the user is just asking a general question without requesting a specific substitution, do NOT include the substitutions block.
 
-Keep answers concise, practical and friendly. Always mention the approximate nutritional impact when suggesting substitutions.`;
+Keep answers concise, practical and friendly. Always mention the approximate nutritional impact when suggesting substitutions.
+${NAMING_RULES}`;
     }
 
     const aiMessages = [
