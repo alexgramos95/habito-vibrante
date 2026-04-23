@@ -292,9 +292,10 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
               ...meal.recipe,
               name: r.name ?? meal.recipe.name,
               instructions: r.instructions.length > 0 ? r.instructions : meal.recipe.instructions,
-              macros: r.macros
-                ? { ...meal.recipe.macros, ...r.macros }
-                : meal.recipe.macros,
+              macros:
+                r.macros && Number(r.macros.calories) > 0
+                  ? { ...meal.recipe.macros, ...r.macros }
+                  : meal.recipe.macros,
             };
             return { ...meal, recipe: updated };
           });
