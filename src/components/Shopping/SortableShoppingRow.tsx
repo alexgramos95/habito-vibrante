@@ -46,12 +46,12 @@ export const SortableShoppingRow = ({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "flex items-center gap-2 p-3 rounded-xl border transition-all group select-none",
+        "flex items-center gap-2 p-3 rounded-xl border-2 transition-all group select-none",
         isDragging && "opacity-60 shadow-lg z-10 relative",
         isSelected
           ? "bg-primary/5 border-primary/40"
           : item.done
-          ? "bg-success/5 border-success/15"
+          ? "bg-primary/10 border-primary/50 shadow-[0_0_12px_hsl(var(--primary)/0.15)]"
           : "bg-card/50 border-border/30 hover:bg-secondary/40",
       )}
     >
@@ -78,8 +78,8 @@ export const SortableShoppingRow = ({
         <div className="flex items-center justify-between gap-2">
           <p
             className={cn(
-              "text-sm font-medium truncate",
-              item.done && "line-through text-muted-foreground",
+              "text-sm font-medium truncate transition-colors",
+              item.done && "line-through text-primary/70 font-semibold",
             )}
           >
             {item.nome}
@@ -87,8 +87,8 @@ export const SortableShoppingRow = ({
           {item.price > 0 && (
             <span
               className={cn(
-                "text-xs font-medium shrink-0",
-                item.done ? "text-muted-foreground" : "text-warning",
+                "text-xs font-medium shrink-0 transition-colors",
+                item.done ? "text-primary/60" : "text-warning",
               )}
             >
               {formatCurrency(item.price)}
