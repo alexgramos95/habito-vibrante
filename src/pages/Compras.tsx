@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils";
 import { useData } from "@/contexts/DataContext";
 import { ReceiptScanner } from "@/components/Shopping/ReceiptScanner";
 import { ReceiptReviewModal, ReviewItem } from "@/components/Shopping/ReceiptReviewModal";
-import { GripVertical } from "lucide-react";
+import { SortableShoppingRow } from "@/components/Shopping/SortableShoppingRow";
 import {
   DndContext,
   closestCenter,
@@ -32,10 +32,8 @@ import {
 import {
   SortableContext,
   arrayMove,
-  useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 
 const Compras = () => {
   const { toast } = useToast();
