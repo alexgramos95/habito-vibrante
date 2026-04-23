@@ -653,6 +653,8 @@ const ShoppingListModal = ({
       setSubstitutingUid(null);
     }
   };
+
+  const grouped = useMemo(() => {
     const groups: Record<string, (ShoppingListItem & { _uid: string })[]> = {};
     items.forEach(item => {
       if (!groups[item.category]) groups[item.category] = [];
