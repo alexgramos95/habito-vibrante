@@ -12,13 +12,30 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ShoppingItem, SHOPPING_CATEGORIES } from "@/data/types";
-import { addShoppingItem, updateShoppingItem, toggleShoppingItem, deleteShoppingItem } from "@/data/storage";
+import { addShoppingItem, updateShoppingItem, toggleShoppingItem, deleteShoppingItem, reorderShoppingItems } from "@/data/storage";
 import { getShoppingItemsForWeek } from "@/logic/computations";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useData } from "@/contexts/DataContext";
 import { ReceiptScanner } from "@/components/Shopping/ReceiptScanner";
 import { ReceiptReviewModal, ReviewItem } from "@/components/Shopping/ReceiptReviewModal";
+import { GripVertical } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 const Compras = () => {
   const { toast } = useToast();
