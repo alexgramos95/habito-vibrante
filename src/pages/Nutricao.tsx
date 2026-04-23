@@ -892,8 +892,9 @@ const Nutricao = () => {
             </p>
           </div>
           <div className="flex gap-1.5">
-            <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => setShowProfile(true)}>
+            <Button size="sm" className="gap-1.5 rounded-xl h-9 px-3" onClick={() => setShowProfile(true)}>
               <Settings2 className="h-4 w-4" />
+              <span className="hidden sm:inline">{lang === "pt" ? "Perfil" : "Profile"}</span>
             </Button>
             {plan && (
               <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => setShowShopping(true)}>
