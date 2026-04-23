@@ -153,7 +153,23 @@ const Compras = () => {
     }
     setState(prev => toggleShoppingItem(prev, item.id));
   };
-  const selectAllVisible = () => setSelectedIds(items.map(i => i.id));
+
+  // Drag-and-drop sensors: pointer for mouse, touch with delay so long-press selection still works
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
+  );
+
+  const handleDragEnd = (event: DragEndEvent, categoryItemIds: string[]) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = categoryItemIds.indexOf(String(active.id));
+    const newIndex = categoryItemIds.indexOf(String(over.id));
+    if (oldIndex === -1 || newIndex === -1) return;
+    const newOrder = arrayMove(categoryItemIds, oldIndex, newIndex);
+    setState(prev => reorderShoppingItems(prev, newOrder));
+  };
+
   const clearSelection = () => setSelectedIds([]);
   const handleBulkDelete = () => {
     setState(prev => selectedIds.reduce((acc, id) => deleteShoppingItem(acc, id), prev));
