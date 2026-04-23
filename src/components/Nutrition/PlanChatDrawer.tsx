@@ -59,15 +59,15 @@ interface PlanChatDrawerProps {
 }
 
 const SUGGESTIONS_PT = [
+  "Substitui os pequenos-almoços por shakes de proteína",
   "Adiciona uma banana a todos os pequenos-almoços",
-  "Trocar aveia em flocos por farinha de aveia em todas as receitas",
-  "Adiciona sementes de chia aos pequenos-almoços e snacks",
+  "Trocar aveia por farinha de aveia em todas as receitas",
 ];
 
 const SUGGESTIONS_EN = [
+  "Replace all breakfasts with protein shakes",
   "Add a banana to all breakfasts",
   "Replace oats with oat flour in all recipes",
-  "Add chia seeds to breakfasts and snacks",
 ];
 
 const MEAL_TYPE_LABELS_PT: Record<MealType, string> = {
