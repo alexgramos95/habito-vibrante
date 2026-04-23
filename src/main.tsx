@@ -5,7 +5,6 @@ import "./index.css";
 import {
   isPreviewHost,
   maybeForcePublishedPwaRefresh,
-  registerPublishedServiceWorker,
 } from "@/lib/pwaRefresh";
 
 const isInIframe = (() => {
@@ -38,11 +37,7 @@ if (shouldDisableServiceWorker && "serviceWorker" in navigator) {
     }
   });
 } else {
-  void (async () => {
-    const isResettingRuntime = await maybeForcePublishedPwaRefresh();
-    if (isResettingRuntime) return;
-    await registerPublishedServiceWorker();
-  })();
+  void maybeForcePublishedPwaRefresh();
 }
 
 createRoot(document.getElementById("root")!).render(
