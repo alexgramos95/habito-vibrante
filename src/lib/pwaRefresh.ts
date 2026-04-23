@@ -1,6 +1,6 @@
-const PWA_RESET_VERSION = "2026-04-23-frontend-refresh-3";
+const PWA_RESET_VERSION = "2026-04-23-frontend-refresh-4";
 const PWA_RESET_KEY = `become-pwa-reset:${PWA_RESET_VERSION}`;
-const PWA_SCRIPT_VERSION = "2026-04-23-frontend-refresh-3";
+const PWA_SCRIPT_VERSION = "2026-04-23-frontend-refresh-4";
 
 export const getPwaScriptUrl = () => `/sw.js?v=${PWA_SCRIPT_VERSION}`;
 
