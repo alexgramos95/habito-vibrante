@@ -567,7 +567,92 @@ const ShoppingListModal = ({
     });
   };
 
-  const grouped = useMemo(() => {
+  const handleSubstitute = async (item: ShoppingListItem & { _uid: string }) => {
+    if (!plan || !onUpdatePlan) {
+      // Fallback: only remove from list
+      setItems(prev => prev.filter(it => it._uid !== item._uid));
+      toast({ title: lang === "pt" ? "Ingrediente removido" : "Ingredient removed" });
+      return;
+    }
+    setSubstitutingUid(item._uid);
+    try {
+      const { data, error } = await supabase.functions.invoke("substitute-ingredient", {
+        body: {
+          ingredientName: item.ingredient,
+          restrictions: profile.restrictions ?? [],
+          goal: profile.goal,
+          locale,
+        },
+      });
+      if (error) throw error;
+      if (!data || !data.name) throw new Error("Empty AI response");
+
+      const sub = data as { name: string; quantity: string; unit: string; category: string; reason: string };
+      const originalLower = item.ingredient.toLowerCase();
+
+      // Update ALL recipes in the plan that contain this ingredient
+      const updatedPlan: WeeklyMealPlan = {
+        ...plan,
+        days: plan.days.map(day => ({
+          ...day,
+          meals: day.meals.map(meal => {
+            const hasIt = meal.recipe.ingredients.some(
+              ing => ing.name.toLowerCase() === originalLower,
+            );
+            if (!hasIt) return meal;
+            return {
+              ...meal,
+              recipe: {
+                ...meal.recipe,
+                ingredients: meal.recipe.ingredients.map(ing =>
+                  ing.name.toLowerCase() === originalLower
+                    ? { name: sub.name, quantity: sub.quantity, unit: sub.unit, category: sub.category }
+                    : ing,
+                ),
+              },
+            };
+          }),
+        })),
+        isCustomized: true,
+      };
+
+      onUpdatePlan(updatedPlan);
+
+      // Update the local shopping list: replace the item in place
+      setItems(prev =>
+        prev.map(it =>
+          it._uid === item._uid
+            ? {
+                ...it,
+                _uid: `ing-${sub.name.toLowerCase()}`,
+                ingredient: sub.name,
+                quantity: sub.quantity,
+                unit: sub.unit,
+                category: sub.category,
+                checked: false,
+              }
+            : it,
+        ),
+      );
+
+      toast({
+        title: lang === "pt"
+          ? `Substituído por ${sub.name}`
+          : `Replaced with ${sub.name}`,
+        description: sub.reason,
+      });
+    } catch (e) {
+      console.error("substitute-ingredient failed:", e);
+      const msg = e instanceof Error ? e.message : String(e);
+      toast({
+        title: lang === "pt" ? "Não foi possível substituir" : "Could not substitute",
+        description: msg,
+        variant: "destructive",
+      });
+    } finally {
+      setSubstitutingUid(null);
+    }
+  };
     const groups: Record<string, (ShoppingListItem & { _uid: string })[]> = {};
     items.forEach(item => {
       if (!groups[item.category]) groups[item.category] = [];
