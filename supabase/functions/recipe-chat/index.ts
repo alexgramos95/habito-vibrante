@@ -19,6 +19,21 @@ serve(async (req) => {
 
     const lang = locale === "pt" ? "português" : "English";
 
+    const NAMING_RULES = `
+INGREDIENT NAMING RULES (CRITICAL — apply to every "name" / "replacement" you output):
+- Use GENERIC, simple names. Never specify variety, brand, or sub-type.
+- "massa" (NOT "massa esparguete", "esparguete", "penne", "fusilli", "macarrão", "spaghetti")
+- "arroz" (NOT "arroz basmati", "arroz integral", "arroz agulha", "jasmine")
+- "leite" (NOT "leite meio-gordo", "leite de amêndoa", "leite de aveia", "almond milk")
+- "mel" (NOT "mel de eucalipto", "mel de rosmaninho", "raw honey")
+- "iogurte" (NOT "iogurte grego", "iogurte natural 0%", "skyr") — exceto se o utilizador pedir explicitamente
+- "pão" (NOT "pão integral", "pão de centeio", "pão de forma")
+- "queijo" (NOT "queijo flamengo", "queijo cottage", "queijo da serra")
+- "azeite" (NOT "azeite extra virgem", "azeite virgem")
+- If the USER explicitly mentions a specific variety in their request, you may keep that exact word — but never invent sub-types on your own.
+- Goal: keep ingredient names short and recognizable, like a basic shopping list.
+`;
+
     let systemPrompt: string;
 
     if (planMode) {
