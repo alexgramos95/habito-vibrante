@@ -48,10 +48,7 @@ const MyHabits = () => {
   );
 
   const toggleActive = (id: string, active: boolean) => {
-    setState((prev) => ({
-      ...prev,
-      habits: updateHabit(prev.habits, id, { active: !active }),
-    }));
+    setState((prev) => updateHabit(prev, id, { active: !active }));
   };
 
   return (
