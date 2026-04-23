@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef } from "react";
-import { Clock, Bell, AlertTriangle, Check } from "lucide-react";
+import { Clock, Bell, AlertTriangle, Check, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -177,11 +177,32 @@ export const HabitForm = ({ habit, onSave, onCancel }: HabitFormProps) => {
                 aria-invalid={!!categoriaError}
                 aria-describedby="categoria-feedback"
                 className={cn(
-                  "bg-secondary/50",
-                  categoriaError && "border-destructive/60 focus:ring-destructive"
+                  "transition-colors",
+                  categoriaError
+                    ? "border-destructive/60 bg-secondary/50 focus:ring-destructive"
+                    : categoria
+                      ? "bg-secondary/50"
+                      : "border-dashed border-muted-foreground/40 bg-secondary/30"
                 )}
               >
-                <SelectValue placeholder={isPT ? "Escolhe uma categoria" : "Choose a category"} />
+                <span className="flex items-center gap-2 min-w-0 flex-1">
+                  <Tag
+                    className={cn(
+                      "h-4 w-4 shrink-0",
+                      categoriaError
+                        ? "text-destructive"
+                        : categoria
+                          ? "text-foreground"
+                          : "text-muted-foreground animate-pulse [animation-duration:2.5s]"
+                    )}
+                    aria-hidden="true"
+                  />
+                  <SelectValue
+                    placeholder={
+                      isPT ? "Toca para escolher uma categoria" : "Tap to choose a category"
+                    }
+                  />
+                </span>
               </SelectTrigger>
               <SelectContent>
                 {DEFAULT_CATEGORIES.map((cat) => (
@@ -212,8 +233,8 @@ export const HabitForm = ({ habit, onSave, onCancel }: HabitFormProps) => {
             ) : (
               <p id="categoria-feedback" className="text-xs text-muted-foreground">
                 {isPT
-                  ? "Ajuda a organizar e visualizar progresso."
-                  : "Helps organise and visualise progress."}
+                  ? "Por escolher — toca acima para abrir as opções."
+                  : "Not chosen yet — tap above to open the options."}
               </p>
             )}
           </div>

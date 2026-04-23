@@ -55,8 +55,40 @@ describe("HabitForm — Categoria (validação + feedback + Select dentro de Dia
     expect(label).toHaveTextContent("*");
     // Indicação acessível
     expect(screen.getByText("(obrigatório)")).toBeInTheDocument();
-    // Trigger do Select existe e tem placeholder PT
-    expect(screen.getByText("Escolhe uma categoria")).toBeInTheDocument();
+    // Trigger do Select existe e tem placeholder PT atualizado
+    expect(screen.getByText("Toca para escolher uma categoria")).toBeInTheDocument();
+  });
+
+  it("mostra placeholder e hint de estado pristine ao abrir o formulário", () => {
+    renderForm();
+    // Placeholder novo, mais directivo
+    expect(screen.getByText("Toca para escolher uma categoria")).toBeInTheDocument();
+    // Hint pristine reforçada
+    expect(
+      screen.getByText("Por escolher — toca acima para abrir as opções."),
+    ).toBeInTheDocument();
+    // Trigger em estado pristine tem borda tracejada
+    const trigger = screen.getByRole("combobox");
+    expect(trigger.className).toMatch(/border-dashed/);
+  });
+
+  it("transita do estado pristine para selecionado removendo a borda tracejada", async () => {
+    const user = userEvent.setup();
+    renderForm();
+
+    const trigger = screen.getByRole("combobox");
+    expect(trigger.className).toMatch(/border-dashed/);
+
+    await user.click(trigger);
+    await user.click(
+      await screen.findByRole("option", { name: DEFAULT_CATEGORIES[0] }),
+    );
+
+    // Borda tracejada deve desaparecer após seleção
+    const triggerAfter = screen.getByRole("combobox");
+    expect(triggerAfter.className).not.toMatch(/border-dashed/);
+    // E surge a confirmação
+    expect(screen.getByRole("status")).toHaveTextContent("Categoria registada.");
   });
 
   it("não submete quando a categoria está vazia e mostra mensagem de erro", async () => {
