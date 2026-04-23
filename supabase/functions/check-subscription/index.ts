@@ -78,14 +78,38 @@ serve(async (req) => {
     );
 
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("No authorization header provided");
+    if (!authHeader) {
+      logStep("No authorization header - returning free plan");
+      return new Response(JSON.stringify({
+        plan: 'free',
+        subscribed: false,
+        stripeStatus: null,
+        subscriptionEnd: null,
+        productId: null,
+        purchasePlan: null,
+        trialEndsAt: null,
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
     logStep("Authorization header found");
 
     const token = authHeader.replace("Bearer ", "");
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError) throw new Error(`Authentication error: ${userError.message}`);
+    if (userError || !userData.user?.email) {
+      // Token invalid/expired - return 401 cleanly so client can refresh session
+      // without triggering blank-screen recovery loop
+      logStep("Auth failed - returning 401", { error: userError?.message });
+      return new Response(JSON.stringify({
+        error: "Authentication required",
+        code: "auth_expired",
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
+    }
     const user = userData.user;
-    if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
