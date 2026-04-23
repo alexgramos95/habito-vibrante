@@ -137,11 +137,17 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
   const countMatches = (
     subs: GlobalSubstitution[] | null,
     adds: GlobalAddition[] | null,
+    replacements?: MealReplacement[] | null,
   ) => {
     let count = 0;
     for (const day of plan.days) {
       for (const meal of day.meals) {
         const mealType = meal.type;
+        // Meal replacements take priority and replace the whole meal
+        if (replacements && replacements.some(r => matchesMealType(mealType, r.mealTypes))) {
+          count++;
+          continue;
+        }
         // Substitutions: count ingredient occurrences within filtered meals
         if (subs) {
           for (const ing of meal.recipe.ingredients) {
