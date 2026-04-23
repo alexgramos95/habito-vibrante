@@ -24,6 +24,7 @@ import { PaywallModal } from "@/components/Paywall/PaywallModal";
 import { NotificationSetup } from "@/components/Habits/NotificationSetup";
 import { TrackerDetailDrawer } from "@/components/Trackers/TrackerDetailDrawer";
 import { TrackerEditDialog } from "@/components/Trackers/TrackerEditDialog";
+import { MyHabitsDialog } from "@/components/Habits/MyHabitsDialog";
 import { getContextualHabitFeedback, getHabitFeedbackEnabled } from "@/logic/habitFeedback";
 import { MotivationCard } from "@/components/Dashboard/MotivationCard";
 import { getDailyMotivation } from "@/logic/dailyMotivation";
@@ -77,6 +78,7 @@ const Index = () => {
   const [deletingHabitId, setDeletingHabitId] = useState<string | null>(null);
   const [showPaywall, setShowPaywall] = useState(false);
   const [showModeSelector, setShowModeSelector] = useState(false);
+  const [showMyHabits, setShowMyHabits] = useState(false);
   const [selectedMetricId, setSelectedMetricId] = useState<string | null>(null);
 
   // Auth guard
@@ -321,11 +323,9 @@ const Index = () => {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Button asChild size="sm" className="gap-1.5 rounded-xl h-9 px-3">
-              <Link to="/app/habits">
-                <ListChecks className="h-4 w-4" />
-                <span className="hidden sm:inline">Meus hábitos</span>
-              </Link>
+            <Button size="sm" className="gap-1.5 rounded-xl h-9 px-3" onClick={() => setShowMyHabits(true)}>
+              <ListChecks className="h-4 w-4" />
+              <span className="hidden sm:inline">Meus hábitos</span>
             </Button>
             <Button size="sm" className="gap-1.5 rounded-xl h-9 px-3" onClick={() => setShowModeSelector(true)}>
               <Plus className="h-4 w-4" />
@@ -623,6 +623,9 @@ const Index = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* ═══ My Habits Dialog ═══ */}
+      <MyHabitsDialog open={showMyHabits} onOpenChange={setShowMyHabits} />
 
       {/* ═══ Paywall ═══ */}
       <PaywallModal open={showPaywall} onClose={() => setShowPaywall(false)} onUpgrade={upgradeToPro} trialDaysLeft={trialStatus.daysRemaining} />
