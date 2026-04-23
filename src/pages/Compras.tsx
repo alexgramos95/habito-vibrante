@@ -154,10 +154,11 @@ const Compras = () => {
     setState(prev => toggleShoppingItem(prev, item.id));
   };
 
-  // Drag-and-drop sensors: mouse starts after small movement; touch starts after short hold (under long-press threshold)
+  // Drag-and-drop sensors: drag is initiated only via the dedicated handle (setActivatorNodeRef),
+  // so we can use immediate activation without conflicting with scroll/tap on the rest of the row.
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 3 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { distance: 3 } }),
   );
 
   const handleDragEnd = (event: DragEndEvent) => {
