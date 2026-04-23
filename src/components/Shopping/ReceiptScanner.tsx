@@ -146,17 +146,19 @@ export const ReceiptScanner = ({ onItemsExtracted }: ReceiptScannerProps) => {
 
       {/* Scan button */}
       <Button
-        variant="outline"
+        size="sm"
         onClick={() => setShowOptions(true)}
         disabled={isProcessing}
-        className="gap-2"
+        className="gap-1.5 rounded-xl h-9 px-3"
       >
         {isProcessing ? (
           <Loader2 className="h-4 w-4 animate-spin" />
         ) : (
           <Receipt className="h-4 w-4" />
         )}
-        {locale === "pt-PT" ? "Fotografar talão" : "Scan receipt"}
+        <span className="hidden sm:inline">
+          {locale === "pt-PT" ? "Fotografar talão" : "Scan receipt"}
+        </span>
       </Button>
 
       {/* Camera/Upload options dialog */}
