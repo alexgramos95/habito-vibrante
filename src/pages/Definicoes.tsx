@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Globe, RotateCcw, Trash2, Coins, ArrowLeft, Bell } from "lucide-react";
+import { Globe, RotateCcw, Trash2, Coins, ArrowLeft, Bell, RefreshCw } from "lucide-react";
 import { NotificationSetup } from "@/components/Habits/NotificationSetup";
 import { useI18n } from "@/i18n/I18nContext";
 import { localeNames, currencyNames, type Locale, type Currency } from "@/i18n";
@@ -16,6 +16,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useData } from "@/contexts/DataContext";
 import { ResetAppDialog } from "@/components/Profile/ResetAppDialog";
+import { clearPwaRuntime } from "@/lib/pwaRefresh";
 
 const Definicoes = () => {
   const { toast } = useToast();
@@ -25,6 +26,7 @@ const Definicoes = () => {
   const [showResetMonthConfirm, setShowResetMonthConfirm] = useState(false);
   const [showResetAllConfirm, setShowResetAllConfirm] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  const [isReloading, setIsReloading] = useState(false);
 
   const handleResetMonth = () => {
     setState(prev => resetMonth(prev, new Date().getFullYear(), new Date().getMonth()));
@@ -41,6 +43,35 @@ const Definicoes = () => {
     } catch {
       toast({ title: "Reset failed", variant: "destructive" });
     } finally { setIsResetting(false); setShowResetAllConfirm(false); }
+  };
+
+  const handleHardReload = async () => {
+    setIsReloading(true);
+    try {
+      // Trigger update check on any registered service worker
+      if ("serviceWorker" in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(registrations.map((r) => r.update().catch(() => null)));
+      }
+      await clearPwaRuntime();
+      toast({
+        title: locale === "pt-PT" ? "A recarregar..." : "Reloading...",
+        description:
+          locale === "pt-PT"
+            ? "A obter a versão mais recente."
+            : "Fetching the latest version.",
+      });
+      // Cache-busting reload
+      const url = new URL(window.location.href);
+      url.searchParams.set("_r", Date.now().toString());
+      window.location.replace(url.toString());
+    } catch {
+      setIsReloading(false);
+      toast({
+        title: locale === "pt-PT" ? "Falha ao recarregar" : "Reload failed",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -107,6 +138,31 @@ const Definicoes = () => {
               : 'Get reminders for your habits at their scheduled time.'}
           </p>
           <NotificationSetup />
+        </div>
+
+        {/* Reload App */}
+        <div className="rounded-2xl border border-border/30 bg-card/50 p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <RefreshCw className="h-4 w-4 text-primary" />
+            <Label className="text-sm font-semibold">
+              {locale === "pt-PT" ? "Recarregar app" : "Reload app"}
+            </Label>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {locale === "pt-PT"
+              ? "Força a obtenção da versão mais recente, limpando a cache local."
+              : "Force-fetch the latest version and clear local cache."}
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleHardReload}
+            disabled={isReloading}
+            className="gap-1.5"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${isReloading ? "animate-spin" : ""}`} />
+            {locale === "pt-PT" ? "Recarregar" : "Reload"}
+          </Button>
         </div>
 
         {/* Reset Data */}
