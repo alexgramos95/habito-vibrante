@@ -501,6 +501,25 @@ const ShoppingListModal = ({
     setItems(prev => prev.map(item => ({ ...item, checked })));
   };
 
+  const moveItem = (fromIdx: number, direction: -1 | 1) => {
+    setItems(prev => {
+      const item = prev[fromIdx];
+      if (!item) return prev;
+      // Find neighbors within the same category
+      const sameCatIndices = prev
+        .map((it, i) => ({ it, i }))
+        .filter(({ it }) => it.category === item.category)
+        .map(({ i }) => i);
+      const posInCat = sameCatIndices.indexOf(fromIdx);
+      const targetPosInCat = posInCat + direction;
+      if (targetPosInCat < 0 || targetPosInCat >= sameCatIndices.length) return prev;
+      const toIdx = sameCatIndices[targetPosInCat];
+      const next = [...prev];
+      [next[fromIdx], next[toIdx]] = [next[toIdx], next[fromIdx]];
+      return next;
+    });
+  };
+
   const grouped = useMemo(() => {
     const groups: Record<string, ShoppingListItem[]> = {};
     items.forEach(item => {
