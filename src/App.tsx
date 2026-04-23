@@ -89,6 +89,7 @@ const AppRoutes = () => (
         {/* FREE pages: Hábitos, Calendário, Perfil */}
         <Route path="/app" element={<Index />} />
         <Route path="/app/habit/:id" element={<HabitDetail />} />
+        <Route path="/app/habits" element={<MyHabits />} />
         <Route path="/app/calendar" element={<Calendario />} />
         <Route path="/app/profile" element={<Perfil />} />
 
