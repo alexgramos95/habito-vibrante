@@ -46,12 +46,12 @@ export const SortableShoppingRow = ({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "flex items-center gap-2 p-3 rounded-xl border transition-all group select-none",
+        "flex items-center gap-2 p-3 rounded-xl border-2 transition-all group select-none",
         isDragging && "opacity-60 shadow-lg z-10 relative",
         isSelected
           ? "bg-primary/5 border-primary/40"
           : item.done
-          ? "bg-success/5 border-success/15"
+          ? "bg-primary/10 border-primary/50 shadow-[0_0_12px_hsl(var(--primary)/0.15)]"
           : "bg-card/50 border-border/30 hover:bg-secondary/40",
       )}
     >
