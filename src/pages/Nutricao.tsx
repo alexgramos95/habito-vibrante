@@ -757,12 +757,6 @@ const ShoppingListModal = ({
                           isDropTarget && "ring-2 ring-primary/60"
                         )}
                       >
-                        <div
-                          aria-label={lang === "pt" ? "Arrastar" : "Drag"}
-                          className="flex h-9 w-6 items-center justify-center text-muted-foreground/60 hover:text-primary cursor-grab active:cursor-grabbing touch-none shrink-0"
-                        >
-                          <GripVertical className="h-4 w-4" />
-                        </div>
                         <button
                           type="button"
                           onClick={() => toggleItem(globalIdx)}
@@ -791,6 +785,12 @@ const ShoppingListModal = ({
                             <Trash2 className="h-3.5 w-3.5" />
                           )}
                         </button>
+                        <div
+                          aria-label={lang === "pt" ? "Arrastar" : "Drag"}
+                          className="flex h-9 w-6 items-center justify-center text-muted-foreground/60 hover:text-primary cursor-grab active:cursor-grabbing touch-none shrink-0"
+                        >
+                          <GripVertical className="h-4 w-4" />
+                        </div>
                       </div>
                     );
                   })}
