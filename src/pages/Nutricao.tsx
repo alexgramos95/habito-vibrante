@@ -4,7 +4,8 @@ import { pt } from "date-fns/locale";
 import { 
   UtensilsCrossed, Leaf, ChefHat, ShoppingBasket, Sparkles, 
   ChevronLeft, ChevronRight, Settings2, Loader2, RefreshCw,
-  Clock, Flame, Dumbbell, Wheat, Droplets, Check, X, Plus, MessageCircle
+  Clock, Flame, Dumbbell, Wheat, Droplets, Check, X, Plus, MessageCircle,
+  ChevronUp, ChevronDown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n/I18nContext";
