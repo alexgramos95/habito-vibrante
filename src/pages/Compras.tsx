@@ -154,10 +154,10 @@ const Compras = () => {
     setState(prev => toggleShoppingItem(prev, item.id));
   };
 
-  // Drag-and-drop sensors: mouse starts after small movement; touch waits briefly so tap/long-press still work
+  // Drag-and-drop sensors: mouse starts after small movement; touch waits long enough to allow vertical scroll & taps
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 3 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 120, tolerance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 8 } }),
   );
 
   const handleDragEnd = (event: DragEndEvent) => {

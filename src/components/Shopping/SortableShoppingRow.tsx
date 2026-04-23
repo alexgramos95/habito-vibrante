@@ -50,13 +50,18 @@ export const SortableShoppingRow = ({
       role="button"
       aria-label={reorderHandleAriaLabel}
       onClick={() => onItemClick(item)}
-      onPointerDown={() => onLongPressStart(item.id)}
+      onPointerDown={(e) => {
+        if (e.pointerType !== 'touch') onLongPressStart(item.id);
+      }}
       onPointerUp={onLongPressCancel}
       onPointerLeave={onLongPressCancel}
       onPointerCancel={onLongPressCancel}
+      onTouchStart={() => onLongPressStart(item.id)}
+      onTouchEnd={onLongPressCancel}
+      onTouchMove={onLongPressCancel}
       onContextMenu={(e) => e.preventDefault()}
       className={cn(
-        "flex items-center gap-2 p-3 rounded-xl border-2 transition-all group select-none touch-none cursor-grab active:cursor-grabbing",
+        "flex items-center gap-2 p-3 rounded-xl border-2 transition-all group select-none touch-pan-y cursor-grab active:cursor-grabbing",
         isDragging && "opacity-60 shadow-lg z-10 relative",
         isSelected
           ? "bg-primary/5 border-primary/40"
