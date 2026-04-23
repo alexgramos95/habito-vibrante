@@ -16,6 +16,17 @@ interface Habit {
   reminderEnabled?: boolean;
 }
 
+interface DailyLog {
+  habitId: string;
+  date: string; // YYYY-MM-DD
+  done: boolean;
+}
+
+// Re-send reminders at these minute offsets after the scheduled time.
+// The cron runs every minute, so we check whether "now" matches scheduled+offset.
+// 0 = original; 2 & 5 = follow-ups if the habit is still not completed.
+const REMINDER_OFFSETS_MIN = [0, 2, 5];
+
 interface PushSubscription {
   id: string;
   user_id: string;
@@ -27,35 +38,54 @@ interface PushSubscription {
 
 /**
  * Get the current time in a given IANA timezone.
- * Returns { hour, minute, dayOfWeek } in that timezone.
+ * Returns { hour, minute, dayOfWeek, dateISO } in that timezone.
  */
-function getTimeInTimezone(tz: string): { hour: number; minute: number; dayOfWeek: number } {
+function getTimeInTimezone(tz: string): { hour: number; minute: number; dayOfWeek: number; dateISO: string } {
   try {
     const now = new Date();
-    // Use Intl to get components in the target timezone
     const formatter = new Intl.DateTimeFormat('en-US', {
       timeZone: tz,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
       hour: 'numeric',
       minute: 'numeric',
       weekday: 'short',
       hour12: false,
     });
     const parts = formatter.formatToParts(now);
-    const hour = parseInt(parts.find(p => p.type === 'hour')?.value ?? '0', 10);
-    const minute = parseInt(parts.find(p => p.type === 'minute')?.value ?? '0', 10);
-    const weekdayStr = parts.find(p => p.type === 'weekday')?.value ?? 'Mon';
-    
+    const get = (type: string) => parts.find(p => p.type === type)?.value ?? '';
+    const hour = parseInt(get('hour') || '0', 10);
+    const minute = parseInt(get('minute') || '0', 10);
+    const weekdayStr = get('weekday') || 'Mon';
+    const year = get('year');
+    const month = get('month');
+    const day = get('day');
+    const dateISO = `${year}-${month}-${day}`;
+
     const dayMap: Record<string, number> = {
       'Sun': 0, 'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6,
     };
     const dayOfWeek = dayMap[weekdayStr] ?? 0;
-    
-    return { hour, minute, dayOfWeek };
+
+    return { hour, minute, dayOfWeek, dateISO };
   } catch {
-    // Fallback to UTC if timezone is invalid
     const now = new Date();
-    return { hour: now.getUTCHours(), minute: now.getUTCMinutes(), dayOfWeek: now.getUTCDay() };
+    const dateISO = now.toISOString().slice(0, 10);
+    return { hour: now.getUTCHours(), minute: now.getUTCMinutes(), dayOfWeek: now.getUTCDay(), dateISO };
   }
+}
+
+/**
+ * Returns the offset (minutes) matching "now" against the scheduled HH:MM,
+ * or null if none. E.g. scheduled 07:00 and now 07:02 → 2.
+ */
+function matchingOffset(scheduledHour: number, scheduledMinute: number, nowHour: number, nowMinute: number): number | null {
+  const scheduledTotal = scheduledHour * 60 + scheduledMinute;
+  const nowTotal = nowHour * 60 + nowMinute;
+  const diff = nowTotal - scheduledTotal;
+  if (diff < 0) return null;
+  return REMINDER_OFFSETS_MIN.includes(diff) ? diff : null;
 }
 
 async function sendPushNotification(
@@ -134,45 +164,61 @@ serve(async (req) => {
     const userIds = [...new Set(subscriptions.map((s: PushSubscription) => s.user_id))];
     console.log(`[REMINDERS] Found ${userIds.length} users with ${subscriptions.length} subscriptions`);
 
-    // Get user_data for these users
+    // Get user_data for these users (habits + dailyLogs to know what is already done)
     const { data: userData, error: dataError } = await supabase
       .from('user_data')
-      .select('user_id, habits')
+      .select('user_id, habits, daily_logs')
       .in('user_id', userIds);
 
     if (dataError) throw new Error(`Failed to fetch user data: ${dataError.message}`);
 
     let totalSent = 0;
-    const notifications: { userId: string; habitName: string; category?: string }[] = [];
+    const notifications: { userId: string; habitId: string; habitName: string; category?: string; offset: number }[] = [];
 
     for (const user of (userData || [])) {
       const habits: Habit[] = user.habits || [];
+      const dailyLogs: DailyLog[] = user.daily_logs || [];
       const tz = userTimezones.get(user.user_id) || 'UTC';
-      const { hour: localHour, minute: localMinute, dayOfWeek: localDay } = getTimeInTimezone(tz);
+      const { hour: localHour, minute: localMinute, dayOfWeek: localDay, dateISO: localDate } = getTimeInTimezone(tz);
 
-      console.log(`[REMINDERS] User ${user.user_id.substring(0, 8)}... tz=${tz} localTime=${localHour}:${String(localMinute).padStart(2, '0')} day=${localDay}, habits=${habits.length}`);
+      // Build a quick lookup: which habits are already done today?
+      const doneTodayHabitIds = new Set(
+        dailyLogs
+          .filter(log => log.date === localDate && log.done)
+          .map(log => log.habitId)
+      );
+
+      console.log(`[REMINDERS] User ${user.user_id.substring(0, 8)}... tz=${tz} localTime=${localHour}:${String(localMinute).padStart(2, '0')} day=${localDay} date=${localDate}, habits=${habits.length}, doneToday=${doneTodayHabitIds.size}`);
 
       for (const habit of habits) {
         if (!habit.active || !habit.scheduledTime || habit.reminderEnabled === false) continue;
 
         const [scheduledHour, scheduledMinute] = habit.scheduledTime.split(':').map(Number);
 
-        // Compare against user's LOCAL time
-        const timeMatches = scheduledHour === localHour && scheduledMinute === localMinute;
-        
-        console.log(`[REMINDERS]   Habit "${habit.nome}" scheduled=${habit.scheduledTime} vs local=${String(localHour).padStart(2,'0')}:${String(localMinute).padStart(2,'0')} match=${timeMatches}`);
-        
-        if (!timeMatches) continue;
+        const offset = matchingOffset(scheduledHour, scheduledMinute, localHour, localMinute);
+        if (offset === null) continue;
 
         const scheduledDays = habit.scheduledDays || [];
         const dayMatches = scheduledDays.length === 0 || scheduledDays.includes(localDay);
         if (!dayMatches) {
-          console.log(`[REMINDERS]   Day mismatch: today=${localDay} scheduled=${JSON.stringify(scheduledDays)}`);
+          console.log(`[REMINDERS]   "${habit.nome}" day mismatch: today=${localDay} scheduled=${JSON.stringify(scheduledDays)}`);
           continue;
         }
 
-        notifications.push({ userId: user.user_id, habitName: habit.nome, category: habit.categoria });
-        console.log(`[REMINDERS] ✅ Habit "${habit.nome}" due for user ${user.user_id.substring(0, 8)}...`);
+        // Skip follow-ups (offset > 0) if already completed today
+        if (offset > 0 && doneTodayHabitIds.has(habit.id)) {
+          console.log(`[REMINDERS]   "${habit.nome}" already done today, skip +${offset}min follow-up`);
+          continue;
+        }
+
+        notifications.push({
+          userId: user.user_id,
+          habitId: habit.id,
+          habitName: habit.nome,
+          category: habit.categoria,
+          offset,
+        });
+        console.log(`[REMINDERS] ✅ "${habit.nome}" due for user ${user.user_id.substring(0, 8)}... (offset +${offset}min)`);
       }
     }
 
@@ -183,15 +229,24 @@ serve(async (req) => {
         const userSubs = subscriptions.filter((s: PushSubscription) => s.user_id === notification.userId);
         if (!userSubs || userSubs.length === 0) continue;
 
+        const isFollowUp = notification.offset > 0;
+        const title = isFollowUp
+          ? `becoMe: ${notification.habitName} (lembrete)`
+          : `becoMe: ${notification.habitName}`;
+        const body = isFollowUp
+          ? `Ainda não marcaste — ${notification.offset} min depois da hora.`
+          : (notification.category
+              ? `Time for your ${notification.category.toLowerCase()} habit!`
+              : 'Time for your habit!');
+
         const payload = {
-          title: `becoMe: ${notification.habitName}`,
-          body: notification.category
-            ? `Time for your ${notification.category.toLowerCase()} habit!`
-            : 'Time for your habit!',
+          title,
+          body,
           icon: '/icons/icon-192.png',
           badge: '/icons/icon-192.png',
-          tag: `habit-reminder-${notification.habitName}`,
-          data: { type: 'habit-reminder', habitName: notification.habitName },
+          // Use unique tag per offset so the OS doesn't replace the previous one silently
+          tag: `habit-reminder-${notification.habitId}-${notification.offset}`,
+          data: { type: 'habit-reminder', habitId: notification.habitId, habitName: notification.habitName, offset: notification.offset },
         };
 
         for (const sub of userSubs) {
