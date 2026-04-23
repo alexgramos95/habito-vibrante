@@ -156,11 +156,32 @@ export const HabitForm = ({ habit, onSave, onCancel }: HabitFormProps) => {
           </div>
 
           {/* Categoria */}
-          <div className="space-y-2">
-            <Label htmlFor="categoria">{t.habits.category}</Label>
-            <Select value={categoria} onValueChange={setCategoria}>
-              <SelectTrigger className="bg-secondary/50">
-                <SelectValue placeholder={locale === 'pt-PT' ? "Selecionar categoria" : "Select category"} />
+          <div className="space-y-2" ref={categoriaWrapperRef}>
+            <Label htmlFor="categoria">
+              {t.habits.category}
+              <span className="ml-1 text-muted-foreground" aria-hidden="true">*</span>
+              <span className="sr-only">
+                {isPT ? "(obrigatório)" : "(required)"}
+              </span>
+            </Label>
+            <Select
+              value={categoria}
+              onValueChange={(value) => {
+                setCategoria(value);
+                if (categoriaError) setCategoriaError(null);
+              }}
+            >
+              <SelectTrigger
+                ref={categoriaTriggerRef}
+                id="categoria"
+                aria-invalid={!!categoriaError}
+                aria-describedby="categoria-feedback"
+                className={cn(
+                  "bg-secondary/50",
+                  categoriaError && "border-destructive/60 focus:ring-destructive"
+                )}
+              >
+                <SelectValue placeholder={isPT ? "Escolhe uma categoria" : "Choose a category"} />
               </SelectTrigger>
               <SelectContent>
                 {DEFAULT_CATEGORIES.map((cat) => (
@@ -170,6 +191,31 @@ export const HabitForm = ({ habit, onSave, onCancel }: HabitFormProps) => {
                 ))}
               </SelectContent>
             </Select>
+            {categoriaError ? (
+              <p
+                id="categoria-feedback"
+                role="alert"
+                className="flex items-center gap-1.5 text-xs text-destructive"
+              >
+                <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                {categoriaError}
+              </p>
+            ) : categoria ? (
+              <p
+                id="categoria-feedback"
+                role="status"
+                className="flex items-center gap-1.5 text-xs text-muted-foreground"
+              >
+                <Check className="h-3.5 w-3.5 shrink-0" />
+                {isPT ? "Categoria registada." : "Category set."}
+              </p>
+            ) : (
+              <p id="categoria-feedback" className="text-xs text-muted-foreground">
+                {isPT
+                  ? "Ajuda a organizar e visualizar progresso."
+                  : "Helps organise and visualise progress."}
+              </p>
+            )}
           </div>
 
           {/* Cor */}
