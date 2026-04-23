@@ -33,6 +33,8 @@ const Compras = () => {
   const [formData, setFormData] = useState({ nome: "", quantidade: "", categoria: "", price: "" });
   const [pendingReceiptItems, setPendingReceiptItems] = useState<ReviewItem[]>([]);
   const [showReceiptReview, setShowReceiptReview] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
 
   const weekStartDate = format(selectedWeek, "yyyy-MM-dd");
   const { items, doneCount, totalCount } = getShoppingItemsForWeek(state, weekStartDate);
