@@ -160,14 +160,29 @@ const Compras = () => {
     useSensor(TouchSensor, { activationConstraint: { delay: 120, tolerance: 6 } }),
   );
 
-  const handleDragEnd = (event: DragEndEvent, categoryItemIds: string[]) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-    const oldIndex = categoryItemIds.indexOf(String(active.id));
-    const newIndex = categoryItemIds.indexOf(String(over.id));
+    const activeId = String(active.id);
+    const overId = String(over.id);
+    const allIds = items.map(i => i.id);
+    const oldIndex = allIds.indexOf(activeId);
+    const newIndex = allIds.indexOf(overId);
     if (oldIndex === -1 || newIndex === -1) return;
-    const newOrder = arrayMove(categoryItemIds, oldIndex, newIndex);
-    setState(prev => reorderShoppingItems(prev, newOrder));
+
+    const overItem = items.find(i => i.id === overId);
+    const activeItem = items.find(i => i.id === activeId);
+    const targetCategory = overItem?.categoria;
+
+    setState(prev => {
+      let next = prev;
+      // If moving across categories, update the dragged item's category first
+      if (activeItem && overItem && activeItem.categoria !== targetCategory) {
+        next = updateShoppingItem(next, activeId, { categoria: targetCategory });
+      }
+      const newOrder = arrayMove(allIds, oldIndex, newIndex);
+      return reorderShoppingItems(next, newOrder);
+    });
   };
 
   const selectAllVisible = () => setSelectedIds(items.map(i => i.id));
