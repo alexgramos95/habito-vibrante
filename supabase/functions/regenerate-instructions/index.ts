@@ -29,36 +29,46 @@ serve(async (req) => {
       .join("\n");
 
     const systemPrompt = `You are a precise nutritionist and cooking assistant.
-You MUST write FRESH preparation steps based ONLY on the exact ingredient list provided in this message.
+You MUST regenerate the recipe holistically based ONLY on the EXACT ingredient list provided.
+This includes: a fresh recipe NAME that reflects the main ingredients, fresh PREPARATION STEPS, and accurate TOTAL MACROS.
 Do NOT reuse generic templates. Do NOT mention ingredients that are not in the list.
 Every ingredient in the list MUST be referenced (by name) in at least one step.
-Reply ONLY with valid JSON, no markdown fences, no commentary, no prose outside JSON.
-Language for the instruction text: ${lang}.`;
+Macros MUST be realistic and non-zero for any non-trivial ingredient list — never return all zeros.
+Reply ONLY with valid JSON, no markdown fences, no commentary.
+Language for name + instructions: ${lang}.`;
 
-    const userPrompt = `Recipe name: "${recipeName}" (meal type: ${mealType}).
+    const userPrompt = `Previous recipe name (for reference only, you SHOULD update it if ingredients changed meaningfully): "${recipeName}" (meal type: ${mealType}).
 
 EXACT and COMPLETE ingredient list (this is the ONLY ground truth — ignore any prior knowledge of this recipe):
 ${ingredientsList}
 
 Tasks:
-1) Write 3 to 6 short, clear preparation steps that USE ALL the ingredients above coherently and IN ORDER of typical cooking flow. Each step under 140 chars.
-   - Mention ingredient names explicitly (e.g. "junta a banana", "adiciona o cluster dextrin").
+1) Provide a SHORT recipe NAME (max 6 words) in ${lang} that accurately reflects the main ingredients above. If a key ingredient was swapped (e.g. "macarrão" → "esparguete", "frango" → "tofu"), the new name MUST reflect that change. Do NOT keep the old name if it no longer matches the ingredients.
+2) Write 3 to 6 short, clear preparation steps that USE ALL the ingredients above coherently and IN ORDER of typical cooking flow. Each step under 140 chars.
+   - Mention ingredient names explicitly.
    - Every ingredient in the list must appear by name in at least one step.
    - Do NOT invent ingredients that are not in the list above.
-2) Recalculate the TOTAL macros for the WHOLE recipe (sum of all listed ingredients combined). Be accurate per gram:
+3) Calculate the TOTAL macros for the WHOLE recipe (sum of all listed ingredients combined). Be accurate per gram. Reference values:
+   - 100g cooked spaghetti/pasta ≈ 158 kcal / 31g carbs / 6g protein / 1g fat / 2g fiber
+   - 100g dry pasta ≈ 371 kcal / 75g carbs / 13g protein / 1.5g fat / 3g fiber
    - 30g cluster dextrin ≈ 113 kcal / 28g carbs / 0g protein / 0g fat
    - 1 banana ~120g ≈ 105 kcal / 27g carbs / 1g protein / 0g fat
    - 50g oats ≈ 190 kcal / 33g carbs / 7g protein / 3g fat
    - 1 scoop whey ~30g ≈ 120 kcal / 3g carbs / 24g protein / 2g fat
    - 200ml semi-skimmed milk ≈ 96 kcal / 10g carbs / 7g protein / 3g fat
+   - 100g chicken breast ≈ 165 kcal / 0g carbs / 31g protein / 3.6g fat
+   - 100g tomato sauce ≈ 30 kcal / 7g carbs / 1g protein / 0g fat
+   - 1 garlic clove ≈ 4 kcal / 1g carbs / 0g protein / 0g fat
+   - 10g olive oil ≈ 88 kcal / 0g carbs / 0g protein / 10g fat
 
 Return JSON exactly in this shape (no extra fields, no markdown):
 {
+  "name": "Recipe Name",
   "instructions": ["step 1", "step 2", "step 3"],
   "macros": { "calories": number, "protein": number, "carbs": number, "fat": number, "fiber": number }
 }
 
-All macro numbers must be integers (rounded). Do not omit any macro field.`;
+All macro numbers must be positive integers (rounded). Calories MUST be > 0 if there is any caloric ingredient. Do not omit any macro field.`;
 
     const response = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
@@ -104,9 +114,12 @@ All macro numbers must be integers (rounded). Do not omit any macro field.`;
     content = content.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
 
     const parsed = JSON.parse(content);
+    const name = typeof parsed.name === "string" && parsed.name.trim().length > 0
+      ? parsed.name.trim()
+      : null;
     const instructions = Array.isArray(parsed.instructions) ? parsed.instructions : [];
     const m = parsed.macros && typeof parsed.macros === "object" ? parsed.macros : null;
-    const macros = m
+    let macros = m
       ? {
           calories: Math.round(Number(m.calories) || 0),
           protein: Math.round(Number(m.protein) || 0),
@@ -116,7 +129,19 @@ All macro numbers must be integers (rounded). Do not omit any macro field.`;
         }
       : null;
 
-    return new Response(JSON.stringify({ instructions, macros }), {
+    // Safety: if AI returned all zeros (unreliable), drop macros so caller keeps previous values
+    if (
+      macros &&
+      macros.calories === 0 &&
+      macros.protein === 0 &&
+      macros.carbs === 0 &&
+      macros.fat === 0
+    ) {
+      console.warn("regenerate-instructions: AI returned all-zero macros, discarding");
+      macros = null;
+    }
+
+    return new Response(JSON.stringify({ name, instructions, macros }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
