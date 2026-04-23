@@ -100,7 +100,7 @@ export function RecipeChatDrawer({ open, onOpenChange, recipe, locale, onUpdateR
           : "Regenerating preparation steps...",
     });
 
-    // Regenerate instructions to match new ingredients
+    // Regenerate instructions + macros to match new ingredients
     try {
       const { data, error } = await supabase.functions.invoke(
         "regenerate-instructions",
@@ -113,16 +113,24 @@ export function RecipeChatDrawer({ open, onOpenChange, recipe, locale, onUpdateR
           },
         },
       );
-      if (!error && Array.isArray(data?.instructions) && data.instructions.length > 0) {
-        updatedRecipe = { ...updatedRecipe, instructions: data.instructions };
-        onUpdateRecipe(updatedRecipe);
-        toast({
-          title: lang === "pt" ? "Instruções atualizadas" : "Instructions updated",
-          description:
-            lang === "pt"
-              ? "Preparação ajustada aos novos ingredientes."
-              : "Steps adjusted to the new ingredients.",
-        });
+      if (!error) {
+        const newInstr = Array.isArray(data?.instructions) ? data.instructions : [];
+        const newMacros = data?.macros && typeof data.macros === "object" ? data.macros : null;
+        if (newInstr.length > 0 || newMacros) {
+          updatedRecipe = {
+            ...updatedRecipe,
+            instructions: newInstr.length > 0 ? newInstr : updatedRecipe.instructions,
+            macros: newMacros ? { ...updatedRecipe.macros, ...newMacros } : updatedRecipe.macros,
+          };
+          onUpdateRecipe(updatedRecipe);
+          toast({
+            title: lang === "pt" ? "Receita atualizada" : "Recipe updated",
+            description:
+              lang === "pt"
+                ? "Preparação e valores nutricionais ajustados."
+                : "Steps and nutrition adjusted.",
+          });
+        }
       }
     } catch (err) {
       console.error("regenerate-instructions failed", err);
