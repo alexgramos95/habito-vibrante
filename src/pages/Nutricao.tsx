@@ -720,6 +720,7 @@ const Nutricao = () => {
       setPlan(null);
       setProfile(DEFAULT_NUTRITION_PROFILE);
       setSelectedDay(0);
+      setCompletedMeals({});
     };
     window.addEventListener("become:app-reset", handleReset);
     return () => window.removeEventListener("become:app-reset", handleReset);
