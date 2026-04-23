@@ -152,16 +152,20 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
     return count;
   };
 
-  const applyChanges = (msgIndex: number) => {
+  const applyChanges = async (msgIndex: number) => {
     const msg = messages[msgIndex];
     if ((!msg.substitutions && !msg.additions) || !onUpdatePlan) return;
 
     const subs = msg.substitutions || [];
     const adds = msg.additions || [];
 
+    // Track which recipes are affected so we can regenerate their instructions
+    const affectedRecipeIds = new Set<string>();
+
     const newDays = plan.days.map(day => {
       const newMeals = day.meals.map(meal => {
         const mealType = meal.type;
+        let mealAffected = false;
 
         // Step 1: substitutions
         let newIngredients: Ingredient[] = meal.recipe.ingredients.map(ing => {
@@ -171,6 +175,7 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
               matchesMealType(mealType, s.mealTypes),
           );
           if (sub) {
+            mealAffected = true;
             return {
               ...ing,
               name: sub.replacement,
@@ -192,7 +197,10 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
             unit: a.unit || "un",
           } as Ingredient);
           existingNames.add(a.name.toLowerCase());
+          mealAffected = true;
         }
+
+        if (mealAffected) affectedRecipeIds.add(meal.recipe.id);
 
         const updatedRecipe: Recipe = { ...meal.recipe, ingredients: newIngredients };
         return { ...meal, recipe: updatedRecipe };
@@ -208,7 +216,8 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
       return { ...day, meals: newMeals, totalMacros };
     });
 
-    const updatedPlan: WeeklyMealPlan = { ...plan, days: newDays, isCustomized: true };
+    let updatedPlan: WeeklyMealPlan = { ...plan, days: newDays, isCustomized: true };
+    // Apply ingredient changes immediately for instant feedback
     onUpdatePlan(updatedPlan);
 
     setMessages(prev =>
@@ -219,9 +228,76 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
       title: lang === "pt" ? "Plano atualizado" : "Plan updated",
       description:
         lang === "pt"
-          ? "As alterações foram aplicadas ao plano."
-          : "Changes were applied to the plan.",
+          ? "A regenerar instruções de preparação..."
+          : "Regenerating preparation steps...",
     });
+
+    // Regenerate instructions for affected recipes (deduped by recipe id)
+    try {
+      const seen = new Set<string>();
+      const tasks: Array<Promise<{ id: string; instructions: string[] } | null>> = [];
+
+      for (const day of updatedPlan.days) {
+        for (const meal of day.meals) {
+          const rid = meal.recipe.id;
+          if (!affectedRecipeIds.has(rid) || seen.has(rid)) continue;
+          seen.add(rid);
+          const recipeRef = meal.recipe;
+          tasks.push(
+            (async () => {
+              try {
+                const { data, error } = await supabase.functions.invoke(
+                  "regenerate-instructions",
+                  {
+                    body: {
+                      recipeName: recipeRef.name,
+                      mealType: recipeRef.mealType,
+                      ingredients: recipeRef.ingredients,
+                      locale: lang,
+                    },
+                  },
+                );
+                if (error || !data?.instructions || !Array.isArray(data.instructions)) {
+                  return null;
+                }
+                return { id: rid, instructions: data.instructions as string[] };
+              } catch {
+                return null;
+              }
+            })(),
+          );
+        }
+      }
+
+      const results = await Promise.all(tasks);
+      const instructionMap = new Map<string, string[]>();
+      for (const r of results) {
+        if (r && r.instructions.length > 0) instructionMap.set(r.id, r.instructions);
+      }
+
+      if (instructionMap.size > 0) {
+        const finalDays = updatedPlan.days.map(day => ({
+          ...day,
+          meals: day.meals.map(meal => {
+            const newInstr = instructionMap.get(meal.recipe.id);
+            if (!newInstr) return meal;
+            return { ...meal, recipe: { ...meal.recipe, instructions: newInstr } };
+          }),
+        }));
+        updatedPlan = { ...updatedPlan, days: finalDays };
+        onUpdatePlan(updatedPlan);
+
+        toast({
+          title: lang === "pt" ? "Instruções atualizadas" : "Instructions updated",
+          description:
+            lang === "pt"
+              ? `Preparação ajustada em ${instructionMap.size} receita(s).`
+              : `Steps adjusted in ${instructionMap.size} recipe(s).`,
+        });
+      }
+    } catch (err) {
+      console.error("regenerate-instructions failed", err);
+    }
   };
 
   const sendMessage = async (text: string) => {
