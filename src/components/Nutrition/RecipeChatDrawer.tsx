@@ -66,7 +66,7 @@ export function RecipeChatDrawer({ open, onOpenChange, recipe, locale, onUpdateR
     }
   }, [messages]);
 
-  const applySubstitutions = (msgIndex: number) => {
+  const applySubstitutions = async (msgIndex: number) => {
     const msg = messages[msgIndex];
     if (!msg.substitutions || !onUpdateRecipe) return;
 
@@ -85,7 +85,7 @@ export function RecipeChatDrawer({ open, onOpenChange, recipe, locale, onUpdateR
       return ing;
     });
 
-    const updatedRecipe: Recipe = { ...recipe, ingredients: newIngredients };
+    let updatedRecipe: Recipe = { ...recipe, ingredients: newIngredients };
     onUpdateRecipe(updatedRecipe);
 
     setMessages((prev) =>
@@ -96,9 +96,37 @@ export function RecipeChatDrawer({ open, onOpenChange, recipe, locale, onUpdateR
       title: lang === "pt" ? "Receita atualizada" : "Recipe updated",
       description:
         lang === "pt"
-          ? "Os ingredientes foram substituídos com sucesso."
-          : "Ingredients were successfully substituted.",
+          ? "A regenerar instruções de preparação..."
+          : "Regenerating preparation steps...",
     });
+
+    // Regenerate instructions to match new ingredients
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        "regenerate-instructions",
+        {
+          body: {
+            recipeName: updatedRecipe.name,
+            mealType: updatedRecipe.mealType,
+            ingredients: updatedRecipe.ingredients,
+            locale: lang,
+          },
+        },
+      );
+      if (!error && Array.isArray(data?.instructions) && data.instructions.length > 0) {
+        updatedRecipe = { ...updatedRecipe, instructions: data.instructions };
+        onUpdateRecipe(updatedRecipe);
+        toast({
+          title: lang === "pt" ? "Instruções atualizadas" : "Instructions updated",
+          description:
+            lang === "pt"
+              ? "Preparação ajustada aos novos ingredientes."
+              : "Steps adjusted to the new ingredients.",
+        });
+      }
+    } catch (err) {
+      console.error("regenerate-instructions failed", err);
+    }
   };
 
   const sendMessage = async (text: string) => {
