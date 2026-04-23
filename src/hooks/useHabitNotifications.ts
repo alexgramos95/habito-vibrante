@@ -144,7 +144,7 @@ export function useHabitNotifications(habits: Habit[]) {
         console.log(`[Notifications] Scheduled local: ${habit.nome} at ${habit.scheduledTime} (in ${minutesUntil} minutes)`);
       }
     });
-  }, [habits, pushNotifications.mode, pushNotifications.isSubscribed, isSupported, shouldShowToday, getMsUntilTime, showLocalNotification, clearAllScheduled]);
+  }, [habits, pushNotifications.mode, pushNotifications.isSubscribed, nativeAlarms.isNative, isSupported, shouldShowToday, getMsUntilTime, showLocalNotification, clearAllScheduled]);
 
   // Re-schedule when habits change or when page becomes visible
   useEffect(() => {
