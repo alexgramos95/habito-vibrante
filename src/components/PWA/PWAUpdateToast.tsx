@@ -81,10 +81,28 @@ export const usePWAUpdate = () => {
 
     let hasReloaded = false;
 
-    const handleControllerChange = () => {
+    const reloadOnce = (reason: string) => {
       if (hasReloaded) return;
       hasReloaded = true;
-      window.location.reload();
+      console.info("[PWA] Reloading after SW update:", reason);
+      const url = new URL(window.location.href);
+      url.searchParams.set("_swr", Date.now().toString());
+      window.location.replace(url.toString());
+    };
+
+    const handleControllerChange = () => {
+      reloadOnce("controllerchange");
+    };
+
+    const promoteWaiting = (registration: ServiceWorkerRegistration) => {
+      const waiting = registration.waiting;
+      if (!waiting) return;
+      // Apply silently — no need for the user to click anything.
+      try {
+        waiting.postMessage({ type: "SKIP_WAITING" });
+      } catch (error) {
+        console.error("[PWA] Failed to post SKIP_WAITING:", error);
+      }
     };
 
     const bindUpdateListener = (registration: ServiceWorkerRegistration) => {
@@ -94,8 +112,10 @@ export const usePWAUpdate = () => {
 
         newWorker.addEventListener("statechange", () => {
           if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+            // Show the toast as a hint, but also auto-apply.
             setWaitingWorker(newWorker);
             setShowUpdateToast(true);
+            promoteWaiting(registration);
           }
         });
       });
@@ -116,6 +136,7 @@ export const usePWAUpdate = () => {
         if (registration.waiting) {
           setWaitingWorker(registration.waiting);
           setShowUpdateToast(true);
+          promoteWaiting(registration);
         }
       } catch (error) {
         console.error("[PWA] Update check failed:", error);
