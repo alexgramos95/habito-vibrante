@@ -28,14 +28,23 @@ serve(async (req) => {
       .map((i: any) => `${i.quantity} ${i.unit} ${i.name}`)
       .join(", ");
 
-    const systemPrompt = `You are a concise cooking assistant. Reply ONLY with valid JSON, no markdown fences, no commentary.
+    const systemPrompt = `You are a precise nutritionist and cooking assistant. Reply ONLY with valid JSON, no markdown fences, no commentary.
 Language for instructions: ${lang}.`;
 
     const userPrompt = `Recipe: "${recipeName}" (${mealType}).
-Ingredients (updated): ${ingredientsList}.
+Ingredients (updated, with quantities): ${ingredientsList}.
 
-Write 3 to 6 short, clear preparation steps that USE ALL the ingredients above coherently. Keep each step under 140 chars. Return JSON:
-{"instructions": ["step 1", "step 2", "step 3"]}`;
+Tasks:
+1) Write 3 to 6 short, clear preparation steps that USE ALL the ingredients above coherently. Each step under 140 chars.
+2) Recalculate the TOTAL macros for the WHOLE recipe (sum of all ingredients combined, for the full recipe as written — NOT per 100g, NOT per serving unless the recipe is 1 serving). Be accurate: e.g. 30g of cluster dextrin ≈ 113 kcal / 28g carbs / 0g protein / 0g fat; 1 banana (~120g) ≈ 105 kcal / 27g carbs / 1g protein / 0g fat; 50g oats ≈ 190 kcal / 33g carbs / 7g protein / 3g fat.
+
+Return JSON exactly:
+{
+  "instructions": ["step 1", "step 2", "step 3"],
+  "macros": { "calories": number, "protein": number, "carbs": number, "fat": number, "fiber": number }
+}
+
+All macro numbers must be integers (rounded). Do not omit any macro field.`;
 
     const response = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
@@ -80,8 +89,18 @@ Write 3 to 6 short, clear preparation steps that USE ALL the ingredients above c
 
     const parsed = JSON.parse(content);
     const instructions = Array.isArray(parsed.instructions) ? parsed.instructions : [];
+    const m = parsed.macros && typeof parsed.macros === "object" ? parsed.macros : null;
+    const macros = m
+      ? {
+          calories: Math.round(Number(m.calories) || 0),
+          protein: Math.round(Number(m.protein) || 0),
+          carbs: Math.round(Number(m.carbs) || 0),
+          fat: Math.round(Number(m.fat) || 0),
+          fiber: Math.round(Number(m.fiber) || 0),
+        }
+      : null;
 
-    return new Response(JSON.stringify({ instructions }), {
+    return new Response(JSON.stringify({ instructions, macros }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
