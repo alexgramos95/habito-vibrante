@@ -1,50 +1,43 @@
 
-Objetivo: corrigir a Nutrição para que a semana tenha sempre 7 dias completos, incluindo Domingo, tanto em planos antigos guardados como em novos planos gerados/alterados.
 
-1. Corrigir a normalização do plano semanal em `src/pages/Nutricao.tsx`
-- Extrair uma função utilitária local para reconstruir o plano numa grelha fixa de Segunda a Domingo.
-- Essa função vai:
-  - usar `weekStart` quando existir;
-  - se o plano legado estiver mal formado, derivar a semana a partir da primeira data válida ou da semana atual;
-  - criar exatamente 7 slots consecutivos;
-  - mapear os dias existentes por `date`;
-  - preencher dias em falta com placeholders vazios;
-  - ordenar e devolver sempre `days.length === 7`.
+## Mensagens de feedback no formulário de hábitos
 
-2. Tornar a migração defensiva mais robusta
-- Substituir a lógica atual que só corrige quando `parsed.days.length < 7`.
-- Passar a corrigir também estes casos:
-  - plano com 7 entradas mas sem Domingo;
-  - datas duplicadas;
-  - datas fora da semana esperada;
-  - ordem incorreta dos dias;
-  - `weekStart` ausente ou inconsistente.
-- Após carregar um plano legado e o normalizar, regravar imediatamente a versão corrigida no storage principal.
+### Objetivo
+Tornar claro o estado do campo Categoria no formulário de criação/edição de hábitos, com microcopy editorial PT-PT (e equivalente EN), evitando confusão quando o dropdown não abre ou quando o utilizador esquece a seleção.
 
-3. Garantir consistência em todos os pontos de escrita
-- Aplicar a mesma normalização:
-  - após gerar o plano FREE;
-  - após gerar o plano PRO;
-  - após regenerar apenas um dia;
-  - após alterações vindas do `PlanChatDrawer`.
-- Isto evita que o plano volte a ficar com 6 dias ou com Domingo em falta após updates parciais.
+### Alterações
 
-4. Proteger o estado da UI
-- Garantir que `selectedDay` fica sempre entre `0` e `6`.
-- Fazer com que a navegação dos tabs use sempre o array normalizado de 7 dias.
-- Se o plano carregado vier inválido, a interface continua a mostrar Segunda–Domingo sem “buracos”.
+**`src/components/Habits/HabitForm.tsx`**
 
-5. Validação manual após implementação
-- Confirmar estes cenários:
-  - plano antigo com 6 dias;
-  - plano com 7 entradas mas sem Domingo real;
-  - geração completa de semana;
-  - regeneração de um único dia;
-  - alteração global de ingredientes sem perder o Domingo;
-  - persistência após refresh.
+1. Marcar Categoria como obrigatória
+   - Adicionar asterisco discreto no `Label` ("Categoria *").
+   - Atualizar o placeholder do `SelectTrigger` para "Escolhe uma categoria" (PT) / "Choose a category" (EN), em vez do atual "Selecionar categoria".
 
-Detalhes técnicos
-- Causa provável identificada: a correção atual só atua quando `days.length < 7`, por isso planos legados “formalmente” com 7 entradas mas semanticamente errados passam sem migração e continuam a falhar no Domingo.
-- Não são necessárias alterações de backend; o problema está na normalização e persistência do estado no frontend.
-- Ficheiro principal a alterar: `src/pages/Nutricao.tsx`.
-- Ajuste adicional provável: normalizar também o `onUpdatePlan` passado para `PlanChatDrawer`, para preservar o formato semanal correto depois de alterações ao plano.
+2. Estado de feedback dinâmico abaixo do Select
+   - Novo estado `categoriaError: string | null`.
+   - Mensagens (PT-PT / EN), tom observacional e neutro:
+     - Vazio + tentou submeter: "Escolhe uma categoria para guardar." / "Choose a category to save."
+     - Selecionada: "Categoria registada." / "Category set." (texto subtil em `text-muted-foreground`, aparece após seleção válida).
+     - Estado neutro inicial: manter a hint atual ("Ajuda a organizar e visualizar progresso." / "Helps organise and visualise progress.").
+
+3. Validação no `handleSubmit`
+   - Se `categoria` estiver vazia: bloquear submissão, definir `categoriaError`, fazer `scrollIntoView` no campo e devolver foco ao `SelectTrigger`.
+   - Limpar `categoriaError` automaticamente no `onValueChange` do `Select`.
+
+4. Feedback visual coerente
+   - Quando há erro: borda do `SelectTrigger` em `border-destructive/60` e mensagem em `text-destructive` com ícone `AlertTriangle` (mesmo padrão já usado para o erro do toggle "Ativo").
+   - Quando há seleção válida: micro-confirmação em `text-xs text-muted-foreground`, sem cor de sucesso forte (mantém a estética Premium Clear).
+
+5. Acessibilidade
+   - `aria-invalid` no `SelectTrigger` quando há erro.
+   - `aria-describedby` a apontar para o id da mensagem de feedback.
+   - `role="status"` na mensagem positiva; `role="alert"` na mensagem de erro.
+
+### Fora do âmbito
+- Não alterar o `z-index` do `SelectContent` (já corrigido anteriormente para `z-[300]`).
+- Não alterar o esquema de dados nem o tipo `Habit`; `categoria` continua opcional no modelo, mas obrigatória ao nível do formulário.
+- Sem alterações em traduções centrais (`src/i18n/locales/*`) — as strings ficam inline no formulário, seguindo o padrão atual do ficheiro.
+
+### Resultado
+O utilizador vê sempre uma indicação clara do estado da Categoria: hint neutra antes de interagir, confirmação subtil após escolher, e mensagem de erro explícita se tentar guardar sem selecionar — eliminando a ambiguidade quando o dropdown se comporta de forma inesperada.
+
