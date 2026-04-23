@@ -56,11 +56,6 @@ export const MinimalHabitCard = ({
         />
       )}
 
-      {/* Index marker (mono) */}
-      <span className="mono-label text-[10px] text-muted-foreground/60 w-6 shrink-0 tabular-nums">
-        {typeof index === "number" ? String(index + 1).padStart(2, "0") : "—"}
-      </span>
-
       {/* Color bar */}
       <div
         className={cn(
