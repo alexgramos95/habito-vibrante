@@ -5,7 +5,7 @@ import {
   UtensilsCrossed, Leaf, ChefHat, ShoppingBasket, Sparkles, 
   ChevronLeft, ChevronRight, Settings2, Loader2, RefreshCw,
   Clock, Flame, Dumbbell, Wheat, Droplets, Check, X, Plus, MessageCircle,
-  GripVertical
+  GripVertical, Trash2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n/I18nContext";
@@ -456,18 +456,21 @@ const RecipeCard = ({
 
 // ─── Shopping List Modal ───
 const ShoppingListModal = ({
-  open, onOpenChange, plan, locale,
+  open, onOpenChange, plan, locale, profile, onUpdatePlan,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   plan: WeeklyMealPlan | null;
   locale: string;
+  profile: NutritionProfile;
+  onUpdatePlan?: (updated: WeeklyMealPlan) => void;
 }) => {
   const lang = locale.startsWith("pt") ? "pt" : "en";
   const [items, setItems] = useState<(ShoppingListItem & { _uid: string })[]>([]);
   const [draggingIdx, setDraggingIdx] = useState<number | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
   const [dragOverCategory, setDragOverCategory] = useState<string | null>(null);
+  const [substitutingUid, setSubstitutingUid] = useState<string | null>(null);
   const { setState } = useData();
   const { toast } = useToast();
 
@@ -562,6 +565,93 @@ const ShoppingListModal = ({
       next.splice(lastCatIdx + 1, 0, moved);
       return next;
     });
+  };
+
+  const handleSubstitute = async (item: ShoppingListItem & { _uid: string }) => {
+    if (!plan || !onUpdatePlan) {
+      // Fallback: only remove from list
+      setItems(prev => prev.filter(it => it._uid !== item._uid));
+      toast({ title: lang === "pt" ? "Ingrediente removido" : "Ingredient removed" });
+      return;
+    }
+    setSubstitutingUid(item._uid);
+    try {
+      const { data, error } = await supabase.functions.invoke("substitute-ingredient", {
+        body: {
+          ingredientName: item.ingredient,
+          restrictions: profile.restrictions ?? [],
+          goal: profile.goal,
+          locale,
+        },
+      });
+      if (error) throw error;
+      if (!data || !data.name) throw new Error("Empty AI response");
+
+      const sub = data as { name: string; quantity: string; unit: string; category: string; reason: string };
+      const originalLower = item.ingredient.toLowerCase();
+
+      // Update ALL recipes in the plan that contain this ingredient
+      const updatedPlan: WeeklyMealPlan = {
+        ...plan,
+        days: plan.days.map(day => ({
+          ...day,
+          meals: day.meals.map(meal => {
+            const hasIt = meal.recipe.ingredients.some(
+              ing => ing.name.toLowerCase() === originalLower,
+            );
+            if (!hasIt) return meal;
+            return {
+              ...meal,
+              recipe: {
+                ...meal.recipe,
+                ingredients: meal.recipe.ingredients.map(ing =>
+                  ing.name.toLowerCase() === originalLower
+                    ? { name: sub.name, quantity: sub.quantity, unit: sub.unit, category: sub.category }
+                    : ing,
+                ),
+              },
+            };
+          }),
+        })),
+        isCustomized: true,
+      };
+
+      onUpdatePlan(updatedPlan);
+
+      // Update the local shopping list: replace the item in place
+      setItems(prev =>
+        prev.map(it =>
+          it._uid === item._uid
+            ? {
+                ...it,
+                _uid: `ing-${sub.name.toLowerCase()}`,
+                ingredient: sub.name,
+                quantity: sub.quantity,
+                unit: sub.unit,
+                category: sub.category,
+                checked: false,
+              }
+            : it,
+        ),
+      );
+
+      toast({
+        title: lang === "pt"
+          ? `Substituído por ${sub.name}`
+          : `Replaced with ${sub.name}`,
+        description: sub.reason,
+      });
+    } catch (e) {
+      console.error("substitute-ingredient failed:", e);
+      const msg = e instanceof Error ? e.message : String(e);
+      toast({
+        title: lang === "pt" ? "Não foi possível substituir" : "Could not substitute",
+        description: msg,
+        variant: "destructive",
+      });
+    } finally {
+      setSubstitutingUid(null);
+    }
   };
 
   const grouped = useMemo(() => {
@@ -686,6 +776,20 @@ const ShoppingListModal = ({
                           </div>
                           <span className="flex-1 truncate">{item.ingredient}</span>
                           <span className="text-xs text-muted-foreground shrink-0">{item.quantity} {item.unit}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleSubstitute(item)}
+                          disabled={substitutingUid !== null}
+                          aria-label={lang === "pt" ? "Eliminar e substituir por outro" : "Delete and substitute"}
+                          title={lang === "pt" ? "Eliminar e substituir por outro" : "Delete and substitute"}
+                          className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 transition-colors shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          {substitutingUid === item._uid ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-3.5 w-3.5" />
+                          )}
                         </button>
                       </div>
                     );
@@ -1330,6 +1434,12 @@ const Nutricao = () => {
         onOpenChange={setShowShopping}
         plan={plan}
         locale={locale}
+        profile={profile}
+        onUpdatePlan={(updated) => {
+          const normalized = normalizeWeeklyPlan(updated);
+          setPlan(normalized);
+          if (normalized) localStorage.setItem(STORAGE_KEY_PLAN, JSON.stringify(normalized));
+        }}
       />
       {plan && (
         <PlanChatDrawer
