@@ -22,6 +22,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useData } from "@/contexts/DataContext";
+import { addShoppingItem } from "@/data/storage";
 import { GatedOverlay } from "@/components/Premium/GatedOverlay";
 import { RecipeChatDrawer } from "@/components/Nutrition/RecipeChatDrawer";
 import { PlanChatDrawer } from "@/components/Nutrition/PlanChatDrawer";
@@ -418,6 +420,8 @@ const ShoppingListModal = ({
 }) => {
   const lang = locale.startsWith("pt") ? "pt" : "en";
   const [items, setItems] = useState<ShoppingListItem[]>([]);
+  const { setState } = useData();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!plan) return;
@@ -428,7 +432,6 @@ const ShoppingListModal = ({
           const key = ing.name.toLowerCase();
           if (ingredientMap.has(key)) {
             const existing = ingredientMap.get(key)!;
-            // Simple: just keep first quantity, don't merge
             ingredientMap.set(key, existing);
           } else {
             ingredientMap.set(key, {
@@ -449,6 +452,10 @@ const ShoppingListModal = ({
     setItems(prev => prev.map((item, i) => i === idx ? { ...item, checked: !item.checked } : item));
   };
 
+  const toggleAll = (checked: boolean) => {
+    setItems(prev => prev.map(item => ({ ...item, checked })));
+  };
+
   const grouped = useMemo(() => {
     const groups: Record<string, ShoppingListItem[]> = {};
     items.forEach(item => {
@@ -458,9 +465,37 @@ const ShoppingListModal = ({
     return groups;
   }, [items]);
 
+  const selectedCount = items.filter(i => i.checked).length;
+
+  const handleAddToShopping = () => {
+    const selected = items.filter(i => i.checked);
+    if (selected.length === 0) return;
+    const weekStartDate = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
+    setState(prev => {
+      let next = prev;
+      selected.forEach(item => {
+        next = addShoppingItem(next, {
+          weekStartDate,
+          nome: item.ingredient,
+          quantidade: `${item.quantity} ${item.unit}`.trim(),
+          categoria: item.category,
+          price: 0,
+        });
+      });
+      return next;
+    });
+    toast({
+      title: lang === "pt"
+        ? `${selected.length} ${selected.length === 1 ? "ingrediente adicionado" : "ingredientes adicionados"}`
+        : `${selected.length} ${selected.length === 1 ? "ingredient added" : "ingredients added"}`,
+      description: lang === "pt" ? "Disponíveis em Compras" : "Available in Shopping",
+    });
+    onOpenChange(false);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[85vh]">
+      <DialogContent className="max-w-lg max-h-[85vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ShoppingBasket className="h-5 w-5 text-primary" />
@@ -468,11 +503,28 @@ const ShoppingListModal = ({
           </DialogTitle>
           <DialogDescription>
             {lang === "pt"
-              ? "Ingredientes para a semana"
-              : "Ingredients for the week"}
+              ? "Seleciona os ingredientes para adicionar à tua lista de Compras"
+              : "Select ingredients to add to your Shopping list"}
           </DialogDescription>
         </DialogHeader>
-        <ScrollArea className="max-h-[60vh]">
+
+        {items.length > 0 && (
+          <div className="flex items-center justify-between border-b border-border pb-2">
+            <button
+              onClick={() => toggleAll(selectedCount !== items.length)}
+              className="text-xs font-medium text-primary hover:underline"
+            >
+              {selectedCount === items.length
+                ? (lang === "pt" ? "Desmarcar todos" : "Deselect all")
+                : (lang === "pt" ? "Selecionar todos" : "Select all")}
+            </button>
+            <span className="text-xs text-muted-foreground tabular-nums">
+              {selectedCount}/{items.length}
+            </span>
+          </div>
+        )}
+
+        <ScrollArea className="flex-1 max-h-[50vh]">
           <div className="space-y-4 pr-2">
             {Object.entries(grouped).map(([cat, catItems]) => (
               <div key={cat}>
@@ -486,11 +538,11 @@ const ShoppingListModal = ({
                         onClick={() => toggleItem(globalIdx)}
                         className={cn(
                           "flex items-center gap-2.5 w-full rounded-lg px-3 py-2 text-sm transition-all",
-                          item.checked ? "opacity-50 line-through" : "hover:bg-secondary"
+                          item.checked ? "bg-primary/5" : "hover:bg-secondary"
                         )}
                       >
                         <div className={cn(
-                          "flex h-4 w-4 items-center justify-center rounded border transition-colors",
+                          "flex h-4 w-4 items-center justify-center rounded border transition-colors shrink-0",
                           item.checked ? "bg-primary border-primary" : "border-border"
                         )}>
                           {item.checked && <Check className="h-3 w-3 text-primary-foreground" />}
@@ -505,6 +557,17 @@ const ShoppingListModal = ({
             ))}
           </div>
         </ScrollArea>
+
+        <Button
+          className="w-full gap-2"
+          disabled={selectedCount === 0}
+          onClick={handleAddToShopping}
+        >
+          <ShoppingBasket className="h-4 w-4" />
+          {lang === "pt"
+            ? `Adicionar a Compras${selectedCount > 0 ? ` (${selectedCount})` : ""}`
+            : `Add to Shopping${selectedCount > 0 ? ` (${selectedCount})` : ""}`}
+        </Button>
       </DialogContent>
     </Dialog>
   );
