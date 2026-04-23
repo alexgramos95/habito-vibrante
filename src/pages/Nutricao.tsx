@@ -464,7 +464,7 @@ const ShoppingListModal = ({
   locale: string;
 }) => {
   const lang = locale.startsWith("pt") ? "pt" : "en";
-  const [items, setItems] = useState<ShoppingListItem[]>([]);
+  const [items, setItems] = useState<(ShoppingListItem & { _uid: string })[]>([]);
   const [draggingIdx, setDraggingIdx] = useState<number | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
   const [dragOverCategory, setDragOverCategory] = useState<string | null>(null);
