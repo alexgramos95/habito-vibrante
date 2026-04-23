@@ -1,6 +1,8 @@
-const PWA_RESET_VERSION = "2026-04-23-frontend-refresh-4";
+const PWA_RESET_VERSION = "2026-04-23-frontend-refresh-5";
 const PWA_RESET_KEY = `become-pwa-reset:${PWA_RESET_VERSION}`;
-const PWA_SCRIPT_VERSION = "2026-04-23-frontend-refresh-4";
+const PWA_SCRIPT_VERSION = "2026-04-23-frontend-refresh-5";
+
+const CURRENT_SW_MARKER = `v=${PWA_SCRIPT_VERSION}`;
 
 export const getPwaScriptUrl = () => `/sw.js?v=${PWA_SCRIPT_VERSION}`;
 
@@ -28,17 +30,29 @@ export const clearPwaRuntime = async () => {
 }
 ;
 
-export const maybeForcePublishedPwaRefresh = async () => {
-  if (typeof window === "undefined" || isPreviewHost()) return;
-  if (!("serviceWorker" in navigator)) return;
-  if (localStorage.getItem(PWA_RESET_KEY) === "done") return;
+const hasCurrentScriptVersion = (registration: ServiceWorkerRegistration) => {
+  return [registration.active, registration.waiting, registration.installing].some(
+    (worker) => worker?.scriptURL?.includes(CURRENT_SW_MARKER),
+  );
+};
+
+export const maybeForcePublishedPwaRefresh = async (): Promise<boolean> => {
+  if (typeof window === "undefined" || isPreviewHost()) return false;
+  if (!("serviceWorker" in navigator)) return false;
 
   const registrations = await navigator.serviceWorker.getRegistrations();
   const cacheKeys = "caches" in window ? await caches.keys() : [];
+  const hasStaleRegistration = registrations.some(
+    (registration) => !hasCurrentScriptVersion(registration),
+  );
 
   if (registrations.length === 0 && cacheKeys.length === 0) {
     localStorage.setItem(PWA_RESET_KEY, "done");
-    return;
+    return false;
+  }
+
+  if (localStorage.getItem(PWA_RESET_KEY) === "done" && !hasStaleRegistration) {
+    return false;
   }
 
   await clearPwaRuntime();
@@ -49,7 +63,10 @@ export const maybeForcePublishedPwaRefresh = async () => {
     const url = new URL(window.location.href);
     url.searchParams.set("_r", Date.now().toString());
     window.location.replace(url.toString());
+    return true;
   }
+
+  return true;
 };
 
 export const registerPublishedServiceWorker = async () => {
