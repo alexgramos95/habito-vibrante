@@ -16,6 +16,7 @@ export function useHabitNotifications(habits: Habit[]) {
   const userId = session?.user?.id;
   
   const pushNotifications = usePushNotifications(userId);
+  const nativeAlarms = useNativeAlarms(habits);
   
   const scheduledTimeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const lastFiredRef = useRef<Map<string, string>>(new Map());
