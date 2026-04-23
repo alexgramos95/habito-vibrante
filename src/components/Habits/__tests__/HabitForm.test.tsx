@@ -56,35 +56,35 @@ describe("HabitForm — Categoria (validação + feedback + Select dentro de Dia
     // Indicação acessível
     expect(screen.getByText("(obrigatório)")).toBeInTheDocument();
     // Trigger do Select existe e tem placeholder PT atualizado
-    expect(screen.getByText("Seleciona uma categoria")).toBeInTheDocument();
+    expect(screen.getByText("Selecionar categoria")).toBeInTheDocument();
   });
 
   it("mostra placeholder e hint de estado pristine ao abrir o formulário", () => {
     renderForm();
     // Placeholder novo, mais directivo
-    expect(screen.getByText("Seleciona uma categoria")).toBeInTheDocument();
+    expect(screen.getByText("Selecionar categoria")).toBeInTheDocument();
     // Hint pristine reforçada
     expect(
       screen.getByText("Por escolher — toca acima para abrir as opções."),
     ).toBeInTheDocument();
-    // Trigger em estado pristine tem borda tracejada
+    // Trigger em estado pristine apresenta-se sólido com fundo secundário
     const trigger = screen.getByRole("combobox");
-    expect(trigger.className).toMatch(/border-dashed/);
+    expect(trigger.className).toMatch(/bg-secondary\/50/);
+    expect(trigger.className).not.toMatch(/border-dashed/);
   });
 
-  it("transita do estado pristine para selecionado removendo a borda tracejada", async () => {
+  it("mantém o aspeto sólido e mostra confirmação após seleção", async () => {
     const user = userEvent.setup();
     renderForm();
 
     const trigger = screen.getByRole("combobox");
-    expect(trigger.className).toMatch(/border-dashed/);
+    expect(trigger.className).toMatch(/bg-secondary\/50/);
 
     await user.click(trigger);
     await user.click(
       await screen.findByRole("option", { name: DEFAULT_CATEGORIES[0] }),
     );
 
-    // Borda tracejada deve desaparecer após seleção
     const triggerAfter = screen.getByRole("combobox");
     expect(triggerAfter.className).not.toMatch(/border-dashed/);
     // E surge a confirmação
@@ -191,7 +191,7 @@ describe("HabitForm — Categoria (validação + feedback + Select dentro de Dia
     const trigger = screen.getByRole("combobox");
     expect(within(trigger).getByText(existingCategory)).toBeInTheDocument();
     expect(
-      screen.queryByText("Seleciona uma categoria"),
+      screen.queryByText("Selecionar categoria"),
     ).not.toBeInTheDocument();
 
     // Estado pristine desligado: sem borda tracejada

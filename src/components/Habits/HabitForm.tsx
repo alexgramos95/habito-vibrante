@@ -177,17 +177,15 @@ export const HabitForm = ({ habit, onSave, onCancel }: HabitFormProps) => {
                 aria-invalid={!!categoriaError}
                 aria-describedby="categoria-feedback"
                 className={cn(
-                  "transition-colors",
+                  "h-12 rounded-lg bg-secondary/50 text-base transition-colors",
                   categoriaError
-                    ? "border-destructive/60 bg-secondary/50 focus:ring-destructive"
-                    : categoria
-                      ? "bg-secondary/50"
-                      : "border-dashed border-muted-foreground/40 bg-secondary/30"
+                    ? "border-destructive/60 focus:ring-destructive"
+                    : "border-border"
                 )}
               >
                 <SelectValue
                   placeholder={
-                    isPT ? "Seleciona uma categoria" : "Select a category"
+                    isPT ? "Selecionar categoria" : "Select category"
                   }
                 />
               </SelectTrigger>
