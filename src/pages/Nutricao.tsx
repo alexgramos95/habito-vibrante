@@ -892,6 +892,13 @@ const Nutricao = () => {
       ?? localStorage.getItem("become:nutrition:profile");
     return saved ? JSON.parse(saved) : DEFAULT_NUTRITION_PROFILE;
   });
+  const [profileConfigured, setProfileConfigured] = useState<boolean>(() => {
+    return !!(
+      localStorage.getItem(STORAGE_KEY_PROFILE)
+      ?? localStorage.getItem("nutritionProfile")
+      ?? localStorage.getItem("become:nutrition:profile")
+    );
+  });
   const [plan, setPlan] = useState<WeeklyMealPlan | null>(() => {
     const saved = localStorage.getItem(STORAGE_KEY_PLAN)
       ?? localStorage.getItem("mealPlan")
