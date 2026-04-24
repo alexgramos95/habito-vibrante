@@ -4,7 +4,7 @@ import { Plus, CheckCircle2, Flame, Sparkles, TrendingUp, TrendingDown, Check, C
 import { useNavigate, Link } from "react-router-dom";
 import { useI18n } from "@/i18n/I18nContext";
 import { Habit, Tracker, TrackerEntry } from "@/data/types";
-import { addHabit, updateHabit, deleteHabit, addTrackerEntry, updateTrackerEntry, deleteTrackerEntry, isHabitDoneOnDate, getHabitCompletionWeight } from "@/data/storage";
+import { addHabit, updateHabit, deleteHabit, addTrackerEntry, updateTrackerEntry, deleteTrackerEntry, isHabitDoneOnDate, getHabitCompletionWeight, toggleDailyLog } from "@/data/storage";
 import { Navigation } from "@/components/Layout/Navigation";
 import { HabitForm } from "@/components/Habits/HabitForm";
 import { MinimalHabitCard } from "@/components/Habits/MinimalHabitCard";
