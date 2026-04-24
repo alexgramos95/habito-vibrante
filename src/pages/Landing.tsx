@@ -397,6 +397,7 @@ const Landing = () => {
         onUpgrade={handleUpgrade}
         trigger="calendar"
         trialDaysLeft={0}
+        forceLang="en"
       />
     </div>
   );
