@@ -296,7 +296,7 @@ const Perfil = () => {
           </div>
           <Progress value={levelProgress.progress} className="h-1.5" />
           <p className="mt-2 text-[10px] text-muted-foreground/80 font-mono uppercase tracking-wider">
-            {locale === 'pt-PT' ? '› Toca para ver gráficos' : '› Tap to see charts'}
+            {locale === 'pt-PT' ? '› Toca para veres o teu crescimento' : '› Tap to see your growth'}
           </p>
         </button>
 
