@@ -352,7 +352,7 @@ const Index = () => {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-muted-foreground">Progresso de hoje</p>
                 <p className="text-2xl font-bold text-foreground tracking-tight">
-                  {totalDone}<span className="text-muted-foreground font-normal text-lg">/{totalTracked}</span>
+                  {Number.isInteger(totalDone) ? totalDone : totalDone.toFixed(1)}<span className="text-muted-foreground font-normal text-lg">/{totalTracked}</span>
                 </p>
                 <div className="flex items-center gap-3 mt-1">
                   {streak > 0 && (
