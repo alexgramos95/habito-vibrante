@@ -128,14 +128,23 @@ const Calendario = () => {
     const metricEntries = (state.trackerEntries || []).filter(e => 
       e.date === dateStr && metricHabits.some(h => h.id === e.trackerId)
     );
+    const isPastOrToday = !isFuture(date);
     const onTrackMetrics = metricHabits.filter(h => {
       const habitEntries = metricEntries.filter(e => e.trackerId === h.id);
-      // Require at least one entry for the day — otherwise the habit hasn't been engaged with
-      if (habitEntries.length === 0) return false;
       const qty = habitEntries.reduce((s, e) => s + e.quantity, 0);
       const goal = h.dailyGoal ?? h.baseline ?? 0;
+
+      // For reduction trackers (e.g. cigarettes, alcohol): success = staying at/under the limit.
+      // No entries on a past/today day means the user did NOT engage in the behavior → success.
+      if (h.type === "reduce") {
+        if (!isPastOrToday) return false;
+        return goal > 0 ? qty <= goal : qty === 0;
+      }
+
+      // For increase/boolean/event/neutral: requires actual engagement
+      if (habitEntries.length === 0) return false;
       if (goal <= 0) return qty > 0;
-      return h.type === "reduce" ? qty <= goal : qty >= goal;
+      return qty >= goal;
     }).length;
 
     const totalHabits = simpleHabits.length + metricHabits.length;
