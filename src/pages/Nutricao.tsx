@@ -963,6 +963,7 @@ const Nutricao = () => {
   // Save profile
   const saveProfile = useCallback((p: NutritionProfile) => {
     setProfile(p);
+    setProfileConfigured(true);
     localStorage.setItem(STORAGE_KEY_PROFILE, JSON.stringify(p));
     toast({
       title: lang === "pt" ? "Perfil atualizado" : "Profile updated",
