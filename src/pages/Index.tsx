@@ -120,7 +120,8 @@ const Index = () => {
     return state.trackerEntries.filter(e => e.trackerId === id && e.date === today).reduce((s, e) => s + e.quantity, 0);
   }, [state.trackerEntries, today]);
 
-  const doneSimple = todaySimple.filter(h => isSimpleDone(h.id)).length;
+  // doneSimple uses weighted completion: 1.0 = on time, 0.5 = late
+  const doneSimple = todaySimple.reduce((sum, h) => sum + getHabitCompletionWeight(state, h.id, today), 0);
   const onTrackMetrics = activeMetrics.filter(h => {
     const c = getTodayCount(h.id);
     const g = h.dailyGoal ?? h.baseline ?? 1;
