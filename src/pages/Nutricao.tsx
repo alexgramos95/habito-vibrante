@@ -1023,6 +1023,17 @@ const Nutricao = () => {
 
   // Generate plan with AI (PRO) or base recipes (FREE)
   const generatePlan = useCallback(async (dayIndex?: number) => {
+    if (!profileConfigured) {
+      toast({
+        title: lang === "pt" ? "Configura o teu perfil primeiro" : "Set up your profile first",
+        description: lang === "pt"
+          ? "Define o teu objetivo, restrições e refeições por dia antes de gerar o plano."
+          : "Define your goal, restrictions and meals per day before generating the plan.",
+        variant: "destructive",
+      });
+      setShowProfile(true);
+      return;
+    }
     setIsGenerating(true);
     setGeneratingPercent(0);
 
