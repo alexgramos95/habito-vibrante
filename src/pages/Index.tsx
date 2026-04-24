@@ -407,11 +407,13 @@ const Index = () => {
             </div>
             <div className="space-y-1.5">
                {sortedTodaySimple.map(habit => {
+                const log = state.dailyLogs.find(l => l.habitId === habit.id && l.date === today && l.done);
                 return (
                   <MinimalHabitCard
                     key={habit.id}
                     habit={habit}
                     isDone={isSimpleDone(habit.id)}
+                    isLate={!!log?.isLate}
                     onToggle={() => handleToggleSimple(habit.id)}
                   />
                 );
