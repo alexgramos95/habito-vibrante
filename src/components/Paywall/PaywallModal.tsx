@@ -24,6 +24,7 @@ interface PaywallModalProps {
   onUpgrade?: (plan: PlanType) => void;
   trigger?: string;
   trialDaysLeft?: number;
+  forceLang?: "pt" | "en";
 }
 
 export const PaywallModal = ({ 
@@ -31,7 +32,8 @@ export const PaywallModal = ({
   onClose, 
   onUpgrade, 
   trigger, 
-  trialDaysLeft = 0 
+  trialDaysLeft = 0,
+  forceLang,
 }: PaywallModalProps) => {
   const { locale } = useI18n();
   const { isAuthenticated, session } = useAuth();
@@ -41,8 +43,8 @@ export const PaywallModal = ({
   const [loading, setLoading] = useState(false);
   const [restoring, setRestoring] = useState(false);
 
-  const isPT = locale === "pt-PT";
-  const lang = isPT ? "pt" : "en";
+  const lang = forceLang ?? (locale === "pt-PT" ? "pt" : "en");
+  const isPT = lang === "pt";
   
   // Use centralized copy
   const headline = PAYWALL_COPY.headline[lang];
