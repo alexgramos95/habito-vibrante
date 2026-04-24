@@ -1,4 +1,4 @@
-import { Check } from "lucide-react";
+import { Check, Clock } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Habit } from "@/data/types";
@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 interface MinimalHabitCardProps {
   habit: Habit;
   isDone: boolean;
+  isLate?: boolean;
   onToggle: () => void;
   index?: number;
 }
@@ -15,10 +16,12 @@ interface MinimalHabitCardProps {
  * Habit card — Arcade Overdrive
  * Sharp surface, hairline border, neon accent on completion.
  * On completion: subtle pop + flash overlay + strikethrough.
+ * Late completion: shows ⏰ indicator and "tardio" label (counts 50%).
  */
 export const MinimalHabitCard = ({
   habit,
   isDone,
+  isLate = false,
   onToggle,
   index,
 }: MinimalHabitCardProps) => {
@@ -41,8 +44,10 @@ export const MinimalHabitCard = ({
       onClick={() => navigate(`/app/habit/${habit.id}`)}
       className={cn(
         "relative w-full flex items-center gap-4 p-4 transition-all duration-200 cursor-pointer group min-h-[72px] touch-target border overflow-hidden",
-        isDone
+        isDone && !isLate
           ? "bg-primary/8 border-primary/60 shadow-[0_0_20px_hsl(var(--neon-toxic)/0.15)]"
+          : isDone && isLate
+          ? "bg-warning/8 border-warning/50"
           : "bg-card border-foreground/10 hover:border-accent/50 hover:bg-card/60",
         justCompleted && "scale-[1.015]",
         !habit.active && "opacity-40 cursor-not-allowed",
@@ -52,7 +57,10 @@ export const MinimalHabitCard = ({
       {justCompleted && (
         <span
           aria-hidden
-          className="pointer-events-none absolute inset-0 bg-primary/20 animate-fade-out"
+          className={cn(
+            "pointer-events-none absolute inset-0 animate-fade-out",
+            isLate ? "bg-warning/20" : "bg-primary/20",
+          )}
         />
       )}
 
@@ -64,8 +72,8 @@ export const MinimalHabitCard = ({
         )}
         style={{
           backgroundColor: habit.cor || "hsl(var(--primary))",
-          opacity: isDone ? 1 : 0.6,
-          boxShadow: isDone ? `0 0 10px ${habit.cor || "hsl(var(--neon-toxic))"}` : undefined,
+          opacity: isDone ? (isLate ? 0.7 : 1) : 0.6,
+          boxShadow: isDone && !isLate ? `0 0 10px ${habit.cor || "hsl(var(--neon-toxic))"}` : undefined,
         }}
       />
 
@@ -75,8 +83,10 @@ export const MinimalHabitCard = ({
         disabled={!habit.active}
         className={cn(
           "flex items-center justify-center w-11 h-11 border-2 shrink-0 transition-all duration-200",
-          isDone
+          isDone && !isLate
             ? "bg-primary border-primary text-primary-foreground shadow-[0_0_12px_hsl(var(--neon-toxic)/0.6)]"
+            : isDone && isLate
+            ? "bg-warning border-warning text-warning-foreground"
             : "border-foreground/20 bg-transparent group-hover:border-primary",
           justCompleted && "animate-scale-in",
           !habit.active && "cursor-not-allowed",
@@ -88,15 +98,25 @@ export const MinimalHabitCard = ({
         )} />
       </button>
 
-      {/* Habit name */}
-      <span
-        className={cn(
-          "text-left font-bold uppercase tracking-tight flex-1 text-[14px] leading-tight transition-colors duration-200",
-          isDone ? "text-primary line-through decoration-primary/40" : "text-foreground",
+      {/* Habit name + late badge */}
+      <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+        <span
+          className={cn(
+            "text-left font-bold uppercase tracking-tight text-[14px] leading-tight transition-colors duration-200",
+            isDone && !isLate ? "text-primary line-through decoration-primary/40" :
+            isDone && isLate ? "text-warning line-through decoration-warning/40" :
+            "text-foreground",
+          )}
+        >
+          {habit.nome}
+        </span>
+        {isDone && isLate && (
+          <span className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-warning">
+            <Clock className="h-3 w-3" />
+            Tardio · 50%
+          </span>
         )}
-      >
-        {habit.nome}
-      </span>
+      </div>
     </div>
   );
 };
