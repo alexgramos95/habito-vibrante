@@ -125,21 +125,49 @@ export const deleteHabit = (state: AppState, id: string): AppState => {
 
 // ============= DAILY LOG OPERATIONS =============
 
+const LATE_TOLERANCE_MINUTES = 15;
+
+/**
+ * Determines if a habit completion is "late" relative to its scheduled time.
+ * Late = completed >15min after habit.scheduledTime on the same day.
+ * Only applies when checking on the same date as today (not for past/future dates).
+ */
+const isLateCompletion = (
+  scheduledTime: string | undefined,
+  date: string,
+  now: Date = new Date()
+): boolean => {
+  if (!scheduledTime) return false;
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  if (date !== todayStr) return false;
+  const [h, m] = scheduledTime.split(":").map(Number);
+  if (isNaN(h) || isNaN(m)) return false;
+  const scheduled = new Date(now);
+  scheduled.setHours(h, m, 0, 0);
+  const diffMin = (now.getTime() - scheduled.getTime()) / 60000;
+  return diffMin > LATE_TOLERANCE_MINUTES;
+};
+
 export const toggleDailyLog = (
   state: AppState,
   habitId: string,
   date: string
-): { newState: AppState; wasCompleted: boolean; habitName: string } => {
+): { newState: AppState; wasCompleted: boolean; habitName: string; isLate: boolean } => {
   const existingLog = state.dailyLogs.find(
     (l) => l.habitId === habitId && l.date === date
   );
   
   const habit = state.habits.find((h) => h.id === habitId);
   const habitName = habit?.nome || "";
+  const late = isLateCompletion(habit?.scheduledTime, date);
+  // Late completions count partial: 5 points instead of 10
+  const pointsAward = late ? 5 : 10;
 
   if (existingLog) {
     if (existingLog.done) {
-      const newPontos = Math.max(0, state.gamification.pontos - 10);
+      // Uncheck — refund the points originally awarded
+      const refund = existingLog.isLate ? 5 : 10;
+      const newPontos = Math.max(0, state.gamification.pontos - refund);
       const newNivel = Math.floor(newPontos / 500) + 1;
       
       return {
@@ -154,16 +182,17 @@ export const toggleDailyLog = (
         },
         wasCompleted: false,
         habitName,
+        isLate: false,
       };
     } else {
-      const newPontos = state.gamification.pontos + 10;
+      const newPontos = state.gamification.pontos + pointsAward;
       const newNivel = Math.floor(newPontos / 500) + 1;
       
       return {
         newState: {
           ...state,
           dailyLogs: state.dailyLogs.map((l) =>
-            l.id === existingLog.id ? { ...l, done: true } : l
+            l.id === existingLog.id ? { ...l, done: true, isLate: late, completedAt: new Date().toISOString() } : l
           ),
           gamification: {
             ...state.gamification,
@@ -173,6 +202,7 @@ export const toggleDailyLog = (
         },
         wasCompleted: true,
         habitName,
+        isLate: late,
       };
     }
   } else {
@@ -181,9 +211,11 @@ export const toggleDailyLog = (
       habitId,
       date,
       done: true,
+      completedAt: new Date().toISOString(),
+      isLate: late,
     };
     
-    const newPontos = state.gamification.pontos + 10;
+    const newPontos = state.gamification.pontos + pointsAward;
     const newNivel = Math.floor(newPontos / 500) + 1;
     
     return {
@@ -198,6 +230,7 @@ export const toggleDailyLog = (
       },
       wasCompleted: true,
       habitName,
+      isLate: late,
     };
   }
 };
@@ -218,6 +251,38 @@ export const isHabitDoneOnDate = (
   return state.dailyLogs.some(
     (l) => l.habitId === habitId && l.date === date && l.done
   );
+};
+
+/**
+ * Returns true if the habit was completed late (after 15min tolerance window)
+ * on the given date. Used for visual indicators and partial-completion math.
+ */
+export const isHabitLateOnDate = (
+  state: AppState,
+  habitId: string,
+  date: string
+): boolean => {
+  return state.dailyLogs.some(
+    (l) => l.habitId === habitId && l.date === date && l.done && l.isLate === true
+  );
+};
+
+/**
+ * Returns the completion weight for a habit on a date:
+ * - 1.0 = on-time / no schedule
+ * - 0.5 = late (within 15min tolerance exceeded)
+ * - 0   = not done
+ */
+export const getHabitCompletionWeight = (
+  state: AppState,
+  habitId: string,
+  date: string
+): number => {
+  const log = state.dailyLogs.find(
+    (l) => l.habitId === habitId && l.date === date && l.done
+  );
+  if (!log) return 0;
+  return log.isLate ? 0.5 : 1;
 };
 
 // Bounceback: recover missed habits for a past date
