@@ -278,14 +278,27 @@ const Perfil = () => {
           </div>
         </div>
 
-        {/* ═══ Level Progress ═══ */}
-        <div className="rounded-2xl border border-border/30 bg-card/50 p-4">
+        {/* ═══ Level Progress (clickable → /app/level) ═══ */}
+        <button
+          type="button"
+          onClick={() => navigate('/app/level')}
+          className="w-full text-left rounded-2xl border border-border/30 bg-card/50 p-4 hover:border-primary/40 hover:bg-card transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          aria-label={locale === 'pt-PT' ? 'Ver evolução do nível' : 'View level progress'}
+        >
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium">{t.profile.levelProgress}</span>
-            <span className="text-[10px] text-muted-foreground">{levelProgress.pointsToNext} para nível {levelProgress.nextLevel}</span>
+            <span className="text-xs font-medium flex items-center gap-1.5">
+              <TrendingUp className="h-3.5 w-3.5 text-primary" />
+              {t.profile.levelProgress}
+            </span>
+            <span className="text-[10px] text-muted-foreground">
+              {levelProgress.pointsToNext} {locale === 'pt-PT' ? 'para nível' : 'to level'} {levelProgress.nextLevel}
+            </span>
           </div>
           <Progress value={levelProgress.progress} className="h-1.5" />
-        </div>
+          <p className="mt-2 text-[10px] text-muted-foreground/80 font-mono uppercase tracking-wider">
+            {locale === 'pt-PT' ? '› Toca para ver gráficos' : '› Tap to see charts'}
+          </p>
+        </button>
 
         {/* ═══ Chronotype ═══ */}
         <div className="rounded-2xl border border-border/30 bg-card/50 p-4 space-y-3">
