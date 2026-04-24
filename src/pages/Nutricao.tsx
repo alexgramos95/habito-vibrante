@@ -1306,17 +1306,32 @@ const Nutricao = () => {
                   {lang === "pt" ? "Cria o teu plano semanal" : "Create your weekly plan"}
                 </h3>
                 <p className="text-sm text-muted-foreground mt-1 max-w-xs mx-auto">
-                  {lang === "pt"
-                    ? "Define o teu perfil e gera receitas personalizadas para a semana"
-                    : "Set your profile and generate personalized recipes for the week"}
+                  {!profileConfigured
+                    ? (lang === "pt"
+                        ? "Primeiro configura o teu perfil nutricional. Depois podes gerar o plano da semana."
+                        : "First set up your nutrition profile. Then you can generate the weekly plan.")
+                    : (lang === "pt"
+                        ? "O teu perfil está pronto. Gera receitas personalizadas para a semana."
+                        : "Your profile is ready. Generate personalized recipes for the week.")}
                 </p>
               </div>
               <div className="flex flex-col gap-2 items-center">
-                <Button onClick={() => setShowProfile(true)} variant="outline" size="sm">
+                <Button
+                  onClick={() => setShowProfile(true)}
+                  variant={profileConfigured ? "outline" : "default"}
+                  size="sm"
+                >
                   <Settings2 className="h-4 w-4 mr-1.5" />
-                  {lang === "pt" ? "Configurar perfil" : "Setup profile"}
+                  {profileConfigured
+                    ? (lang === "pt" ? "Editar perfil" : "Edit profile")
+                    : (lang === "pt" ? "Configurar perfil" : "Setup profile")}
                 </Button>
-                <Button onClick={() => generatePlan()} disabled={isGenerating} className="gap-1.5">
+                <Button
+                  onClick={() => generatePlan()}
+                  disabled={isGenerating || !profileConfigured}
+                  variant={profileConfigured ? "default" : "outline"}
+                  className="gap-1.5"
+                >
                   {isGenerating ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
@@ -1326,6 +1341,13 @@ const Nutricao = () => {
                     ? `${lang === "pt" ? "A gerar" : "Generating"}… ${generatingPercent}%`
                     : lang === "pt" ? "Gerar refeições" : "Generate meals"}
                 </Button>
+                {!profileConfigured && (
+                  <p className="text-[11px] text-muted-foreground">
+                    {lang === "pt"
+                      ? "Configura o perfil para desbloquear a geração do plano."
+                      : "Set up the profile to unlock plan generation."}
+                  </p>
+                )}
               </div>
               {!hasPro && (
                 <p className="text-[11px] text-muted-foreground">
