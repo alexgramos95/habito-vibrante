@@ -988,6 +988,7 @@ const Nutricao = () => {
       clearNutritionStorage();
       setPlan(null);
       setProfile(DEFAULT_NUTRITION_PROFILE);
+      setProfileConfigured(false);
       setSelectedDay(0);
       setCompletedMeals({});
     };
@@ -1002,6 +1003,7 @@ const Nutricao = () => {
 
       if (!hasSavedProfile) {
         setProfile(DEFAULT_NUTRITION_PROFILE);
+        setProfileConfigured(false);
       }
 
       if (!hasSavedPlan) {
