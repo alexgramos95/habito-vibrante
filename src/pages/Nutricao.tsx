@@ -1201,7 +1201,7 @@ const Nutricao = () => {
       setGeneratingProgress("");
       setGeneratingPercent(0);
     }
-  }, [hasPro, profile, weekStart, weekdays, plan, lang, toast]);
+  }, [hasPro, profile, profileConfigured, weekStart, weekdays, plan, lang, toast]);
 
   const updateRecipeInPlan = useCallback((dayIdx: number, mealIdx: number, updatedRecipe: Recipe) => {
     if (!plan) return;
