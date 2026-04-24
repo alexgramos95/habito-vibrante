@@ -204,24 +204,31 @@ const Index = () => {
 
   // --- Handlers ---
   const handleToggleSimple = useCallback((habitId: string) => {
-    const isDone = isSimpleDone(habitId);
+    const wasDone = isSimpleDone(habitId);
     const habit = state.habits.find(h => h.id === habitId);
+    let result: { wasCompleted: boolean; isLate: boolean } | null = null;
     setState(prev => {
-      const logs = isDone
-        ? prev.dailyLogs.filter(l => !(l.habitId === habitId && l.date === today))
-        : [...prev.dailyLogs, { id: Math.random().toString(36).substring(7), habitId, date: today, done: true, completedAt: new Date().toISOString() }];
-      return { ...prev, dailyLogs: logs };
+      const r = toggleDailyLog(prev, habitId, today);
+      result = { wasCompleted: r.wasCompleted, isLate: r.isLate };
+      return r.newState;
     });
-    if (!isDone && habit) {
-      // Only show feedback (a) if user enabled it, AND (b) on first completion of the day for this habit
-      const feedbackEnabled = getHabitFeedbackEnabled();
-      const alreadyCompletedToday = state.dailyLogs.some(l => l.habitId === habitId && l.date === today && l.done);
-      if (feedbackEnabled && !alreadyCompletedToday) {
-        const { title, description } = getContextualHabitFeedback(habit);
-        toast({ title, description, duration: 2200 });
+    if (!wasDone && habit && result) {
+      // Late completion → editorial notice; on-time → contextual feedback (if enabled)
+      if (result.isLate) {
+        toast({
+          title: "Marcado como tardio",
+          description: `Conta como parcial (50%) — o horário agendado já tinha passado.`,
+          duration: 2800,
+        });
+      } else {
+        const feedbackEnabled = getHabitFeedbackEnabled();
+        if (feedbackEnabled) {
+          const { title, description } = getContextualHabitFeedback(habit);
+          toast({ title, description, duration: 2200 });
+        }
       }
     }
-  }, [isSimpleDone, today, setState, state.habits, state.dailyLogs, toast]);
+  }, [isSimpleDone, today, setState, state.habits, toast]);
 
   const handleAddMetricEntry = useCallback((habitId: string, qty: number, ts?: string) => {
     setState(prev => addTrackerEntry(prev, habitId, qty, undefined, ts));
