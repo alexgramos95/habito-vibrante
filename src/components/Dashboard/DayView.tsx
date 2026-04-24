@@ -220,6 +220,7 @@ export const DayView = ({
                 habit={habit}
                 index={idx}
                 isDone={isHabitDoneOnDate(state, habit.id, dateStr)}
+                isLate={isHabitLateOnDate(state, habit.id, dateStr)}
                 onToggle={() => onToggleHabit(habit.id)}
               />
             ))}
