@@ -104,6 +104,7 @@ export interface DailyLog {
   completedAt?: string; // ISO datetime when completed
   isBounceback?: boolean; // true if this was recovered via bounceback
   bouncebackAt?: string; // ISO datetime when bounceback was used
+  isLate?: boolean; // true if completed >15min after scheduledTime — counts as partial (50%)
 }
 
 // Weekly consistency tracking

@@ -4,7 +4,7 @@ import { Plus, CheckCircle2, Flame, Sparkles, TrendingUp, TrendingDown, Check, C
 import { useNavigate, Link } from "react-router-dom";
 import { useI18n } from "@/i18n/I18nContext";
 import { Habit, Tracker, TrackerEntry } from "@/data/types";
-import { addHabit, updateHabit, deleteHabit, addTrackerEntry, updateTrackerEntry, deleteTrackerEntry, isHabitDoneOnDate } from "@/data/storage";
+import { addHabit, updateHabit, deleteHabit, addTrackerEntry, updateTrackerEntry, deleteTrackerEntry, isHabitDoneOnDate, getHabitCompletionWeight, toggleDailyLog } from "@/data/storage";
 import { Navigation } from "@/components/Layout/Navigation";
 import { HabitForm } from "@/components/Habits/HabitForm";
 import { MinimalHabitCard } from "@/components/Habits/MinimalHabitCard";
@@ -120,7 +120,8 @@ const Index = () => {
     return state.trackerEntries.filter(e => e.trackerId === id && e.date === today).reduce((s, e) => s + e.quantity, 0);
   }, [state.trackerEntries, today]);
 
-  const doneSimple = todaySimple.filter(h => isSimpleDone(h.id)).length;
+  // doneSimple uses weighted completion: 1.0 = on time, 0.5 = late
+  const doneSimple = todaySimple.reduce((sum, h) => sum + getHabitCompletionWeight(state, h.id, today), 0);
   const onTrackMetrics = activeMetrics.filter(h => {
     const c = getTodayCount(h.id);
     const g = h.dailyGoal ?? h.baseline ?? 1;
@@ -203,24 +204,31 @@ const Index = () => {
 
   // --- Handlers ---
   const handleToggleSimple = useCallback((habitId: string) => {
-    const isDone = isSimpleDone(habitId);
+    const wasDone = isSimpleDone(habitId);
     const habit = state.habits.find(h => h.id === habitId);
+    let result: { wasCompleted: boolean; isLate: boolean } | null = null;
     setState(prev => {
-      const logs = isDone
-        ? prev.dailyLogs.filter(l => !(l.habitId === habitId && l.date === today))
-        : [...prev.dailyLogs, { id: Math.random().toString(36).substring(7), habitId, date: today, done: true, completedAt: new Date().toISOString() }];
-      return { ...prev, dailyLogs: logs };
+      const r = toggleDailyLog(prev, habitId, today);
+      result = { wasCompleted: r.wasCompleted, isLate: r.isLate };
+      return r.newState;
     });
-    if (!isDone && habit) {
-      // Only show feedback (a) if user enabled it, AND (b) on first completion of the day for this habit
-      const feedbackEnabled = getHabitFeedbackEnabled();
-      const alreadyCompletedToday = state.dailyLogs.some(l => l.habitId === habitId && l.date === today && l.done);
-      if (feedbackEnabled && !alreadyCompletedToday) {
-        const { title, description } = getContextualHabitFeedback(habit);
-        toast({ title, description, duration: 2200 });
+    if (!wasDone && habit && result) {
+      // Late completion → editorial notice; on-time → contextual feedback (if enabled)
+      if (result.isLate) {
+        toast({
+          title: "Marcado como tardio",
+          description: `Conta como parcial (50%) — o horário agendado já tinha passado.`,
+          duration: 2800,
+        });
+      } else {
+        const feedbackEnabled = getHabitFeedbackEnabled();
+        if (feedbackEnabled) {
+          const { title, description } = getContextualHabitFeedback(habit);
+          toast({ title, description, duration: 2200 });
+        }
       }
     }
-  }, [isSimpleDone, today, setState, state.habits, state.dailyLogs, toast]);
+  }, [isSimpleDone, today, setState, state.habits, toast]);
 
   const handleAddMetricEntry = useCallback((habitId: string, qty: number, ts?: string) => {
     setState(prev => addTrackerEntry(prev, habitId, qty, undefined, ts));
@@ -351,7 +359,7 @@ const Index = () => {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-muted-foreground">Progresso de hoje</p>
                 <p className="text-2xl font-bold text-foreground tracking-tight">
-                  {totalDone}<span className="text-muted-foreground font-normal text-lg">/{totalTracked}</span>
+                  {Number.isInteger(totalDone) ? totalDone : totalDone.toFixed(1)}<span className="text-muted-foreground font-normal text-lg">/{totalTracked}</span>
                 </p>
                 <div className="flex items-center gap-3 mt-1">
                   {streak > 0 && (
@@ -399,11 +407,13 @@ const Index = () => {
             </div>
             <div className="space-y-1.5">
                {sortedTodaySimple.map(habit => {
+                const log = state.dailyLogs.find(l => l.habitId === habit.id && l.date === today && l.done);
                 return (
                   <MinimalHabitCard
                     key={habit.id}
                     habit={habit}
                     isDone={isSimpleDone(habit.id)}
+                    isLate={!!log?.isLate}
                     onToggle={() => handleToggleSimple(habit.id)}
                   />
                 );

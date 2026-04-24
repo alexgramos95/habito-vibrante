@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n/I18nContext";
 import { AppState, Habit, Tracker, TrackerEntry } from "@/data/types";
-import { isHabitDoneOnDate } from "@/data/storage";
+import { isHabitDoneOnDate, isHabitLateOnDate } from "@/data/storage";
 import { MinimalHabitCard } from "@/components/Habits/MinimalHabitCard";
 import { GatedOverlay } from "@/components/Premium/GatedOverlay";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -220,6 +220,7 @@ export const DayView = ({
                 habit={habit}
                 index={idx}
                 isDone={isHabitDoneOnDate(state, habit.id, dateStr)}
+                isLate={isHabitLateOnDate(state, habit.id, dateStr)}
                 onToggle={() => onToggleHabit(habit.id)}
               />
             ))}
