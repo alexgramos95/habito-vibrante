@@ -892,6 +892,13 @@ const Nutricao = () => {
       ?? localStorage.getItem("become:nutrition:profile");
     return saved ? JSON.parse(saved) : DEFAULT_NUTRITION_PROFILE;
   });
+  const [profileConfigured, setProfileConfigured] = useState<boolean>(() => {
+    return !!(
+      localStorage.getItem(STORAGE_KEY_PROFILE)
+      ?? localStorage.getItem("nutritionProfile")
+      ?? localStorage.getItem("become:nutrition:profile")
+    );
+  });
   const [plan, setPlan] = useState<WeeklyMealPlan | null>(() => {
     const saved = localStorage.getItem(STORAGE_KEY_PLAN)
       ?? localStorage.getItem("mealPlan")
@@ -956,6 +963,7 @@ const Nutricao = () => {
   // Save profile
   const saveProfile = useCallback((p: NutritionProfile) => {
     setProfile(p);
+    setProfileConfigured(true);
     localStorage.setItem(STORAGE_KEY_PROFILE, JSON.stringify(p));
     toast({
       title: lang === "pt" ? "Perfil atualizado" : "Profile updated",
@@ -980,6 +988,7 @@ const Nutricao = () => {
       clearNutritionStorage();
       setPlan(null);
       setProfile(DEFAULT_NUTRITION_PROFILE);
+      setProfileConfigured(false);
       setSelectedDay(0);
       setCompletedMeals({});
     };
@@ -994,6 +1003,7 @@ const Nutricao = () => {
 
       if (!hasSavedProfile) {
         setProfile(DEFAULT_NUTRITION_PROFILE);
+        setProfileConfigured(false);
       }
 
       if (!hasSavedPlan) {
@@ -1013,6 +1023,17 @@ const Nutricao = () => {
 
   // Generate plan with AI (PRO) or base recipes (FREE)
   const generatePlan = useCallback(async (dayIndex?: number) => {
+    if (!profileConfigured) {
+      toast({
+        title: lang === "pt" ? "Configura o teu perfil primeiro" : "Set up your profile first",
+        description: lang === "pt"
+          ? "Define o teu objetivo, restrições e refeições por dia antes de gerar o plano."
+          : "Define your goal, restrictions and meals per day before generating the plan.",
+        variant: "destructive",
+      });
+      setShowProfile(true);
+      return;
+    }
     setIsGenerating(true);
     setGeneratingPercent(0);
 
@@ -1180,7 +1201,7 @@ const Nutricao = () => {
       setGeneratingProgress("");
       setGeneratingPercent(0);
     }
-  }, [hasPro, profile, weekStart, weekdays, plan, lang, toast]);
+  }, [hasPro, profile, profileConfigured, weekStart, weekdays, plan, lang, toast]);
 
   const updateRecipeInPlan = useCallback((dayIdx: number, mealIdx: number, updatedRecipe: Recipe) => {
     if (!plan) return;
@@ -1285,17 +1306,32 @@ const Nutricao = () => {
                   {lang === "pt" ? "Cria o teu plano semanal" : "Create your weekly plan"}
                 </h3>
                 <p className="text-sm text-muted-foreground mt-1 max-w-xs mx-auto">
-                  {lang === "pt"
-                    ? "Define o teu perfil e gera receitas personalizadas para a semana"
-                    : "Set your profile and generate personalized recipes for the week"}
+                  {!profileConfigured
+                    ? (lang === "pt"
+                        ? "Primeiro configura o teu perfil nutricional. Depois podes gerar o plano da semana."
+                        : "First set up your nutrition profile. Then you can generate the weekly plan.")
+                    : (lang === "pt"
+                        ? "O teu perfil está pronto. Gera receitas personalizadas para a semana."
+                        : "Your profile is ready. Generate personalized recipes for the week.")}
                 </p>
               </div>
               <div className="flex flex-col gap-2 items-center">
-                <Button onClick={() => setShowProfile(true)} variant="outline" size="sm">
+                <Button
+                  onClick={() => setShowProfile(true)}
+                  variant={profileConfigured ? "outline" : "default"}
+                  size="sm"
+                >
                   <Settings2 className="h-4 w-4 mr-1.5" />
-                  {lang === "pt" ? "Configurar perfil" : "Setup profile"}
+                  {profileConfigured
+                    ? (lang === "pt" ? "Editar perfil" : "Edit profile")
+                    : (lang === "pt" ? "Configurar perfil" : "Setup profile")}
                 </Button>
-                <Button onClick={() => generatePlan()} disabled={isGenerating} className="gap-1.5">
+                <Button
+                  onClick={() => generatePlan()}
+                  disabled={isGenerating || !profileConfigured}
+                  variant={profileConfigured ? "default" : "outline"}
+                  className="gap-1.5"
+                >
                   {isGenerating ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
@@ -1305,6 +1341,13 @@ const Nutricao = () => {
                     ? `${lang === "pt" ? "A gerar" : "Generating"}… ${generatingPercent}%`
                     : lang === "pt" ? "Gerar refeições" : "Generate meals"}
                 </Button>
+                {!profileConfigured && (
+                  <p className="text-[11px] text-muted-foreground">
+                    {lang === "pt"
+                      ? "Configura o perfil para desbloquear a geração do plano."
+                      : "Set up the profile to unlock plan generation."}
+                  </p>
+                )}
               </div>
               {!hasPro && (
                 <p className="text-[11px] text-muted-foreground">
