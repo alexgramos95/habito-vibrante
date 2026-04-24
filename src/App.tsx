@@ -19,6 +19,7 @@ const Calendario = lazy(() => import("./pages/Calendario"));
 const Compras = lazy(() => import("./pages/Compras"));
 const Nutricao = lazy(() => import("./pages/Nutricao"));
 const Perfil = lazy(() => import("./pages/Perfil"));
+const LevelProgress = lazy(() => import("./pages/LevelProgress"));
 const Progresso = lazy(() => import("./pages/Progresso"));
 const Definicoes = lazy(() => import("./pages/Definicoes"));
 const Landing = lazy(() => import("./pages/Landing"));
@@ -92,6 +93,7 @@ const AppRoutes = () => (
         <Route path="/app/habits" element={<MyHabits />} />
         <Route path="/app/calendar" element={<Calendario />} />
         <Route path="/app/profile" element={<Perfil />} />
+        <Route path="/app/level" element={<LevelProgress />} />
 
         {/* PRO-only pages: Shopping, Progress, Settings, Nutrition */}
         <Route path="/app/shopping" element={<GatedShopping />} />
