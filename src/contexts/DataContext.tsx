@@ -7,7 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { loadState, saveState as saveToLocalStorage, clearAllData } from '@/data/storage';
 import type { AppState } from '@/data/types';
 import { useAuth } from '@/contexts/AuthContext';
-import { isMaterialized, readOnboardingDraft } from '@/lib/onboardingDraft';
+import { readOnboardingDraft } from '@/lib/onboardingDraft';
 import { runOnboardingMaterialization } from '@/lib/onboardingMaterialization';
 
 interface DataContextType {
@@ -263,7 +263,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
       const pendingDraft = readOnboardingDraft();
       const hasPendingDraft = Boolean(pendingDraft && ((pendingDraft.habitsToCreate?.length ?? 0) > 0 || (pendingDraft.trackersToCreate?.length ?? 0) > 0));
-      if (hasPendingDraft && !isMaterialized(user.id)) {
+      if (hasPendingDraft) {
         console.log('[DATA] Onboarding draft found — gating dashboard until materialization completes');
         setIsLoading(true);
         try {
