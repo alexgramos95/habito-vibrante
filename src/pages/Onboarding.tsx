@@ -36,18 +36,16 @@ import { writeOnboardingDraft } from "@/lib/onboardingDraft";
 
 /* =============================================================
    ONBOARDING — Identity Hook → First Win → Commit
-   Localized: PT-PT and EN-US. Internal IDs are stable; labels and
-   materialized record names follow the user's selected app language.
+   Fully bilingual (PT-PT / EN-US). The locale chosen in step 1
+   ("language") drives BOTH the onboarding UI from step 2 onwards
+   AND the names of the materialized habits/metrics. PT users see
+   a fully native experience; EN users see a fully English one.
    ============================================================= */
 
 type Step = "language" | "identity" | "obstacle" | "focus" | "first-win" | "metric" | "commit";
 
 type Bilingual = { "pt-PT": string; "en-US": string };
 const pick = (b: Bilingual, locale: Locale) => b[locale] ?? b["en-US"];
-
-/** Onboarding UI is ALWAYS English. Language picked here only sets the
- *  account language used for materialized habit/metric names + app locale. */
-const UI_LOCALE: Locale = "en-US";
 
 /* ---------- IDENTITY ---------- */
 const IDENTITY_OPTIONS: { id: string; label: Bilingual; desc: Bilingual; icon: any }[] = [
