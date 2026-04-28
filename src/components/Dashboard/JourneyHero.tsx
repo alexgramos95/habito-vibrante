@@ -60,11 +60,19 @@ export const JourneyHero = ({
   onPrimaryAction,
   primaryActionLabel,
 }: JourneyHeroProps) => {
-  const day = useJourneyDay();
+  const { user } = useAuth();
   const isPT = locale === "pt-PT";
   const onboarding = useMemo(readOnboarding, []);
   const identityKey = onboarding.identityChoice || "disciplined";
   const identityLabel = (IDENTITY_LABELS[identityKey] || IDENTITY_LABELS.disciplined)[isPT ? "pt" : "en"];
+
+  // === Real-account lifecycle state (truthful across devices) ===
+  const lifecycle = useMemo(
+    () => deriveLifecycle(state, user?.created_at),
+    [state, user?.created_at],
+  );
+  const day = lifecycle.daysSinceAccount; // for stats window + recap trigger
+  const lifecycleState: LifecycleState = lifecycle.state;
 
   // === Yesterday completion ===
   const yesterdayStr = format(subDays(new Date(), 1), "yyyy-MM-dd");
@@ -79,51 +87,47 @@ export const JourneyHero = ({
   ).length;
   const yesterdayWin = yesterdayHabits.length > 0 && yesterdayDone === yesterdayHabits.length;
 
-  // === Day buckets & narrative ===
-  type Bucket = "day0" | "day1" | "day3" | "day7" | "day7plus";
-  const bucket: Bucket =
-    day === 0 ? "day0" :
-    day === 1 ? "day1" :
-    day < 6 ? "day3" :
-    day === 6 ? "day7" : "day7plus";
-
-  // === Headline copy ===
+  // === Headline copy — driven by lifecycle, NOT just local day counter ===
   const headline = (() => {
-    if (bucket === "day0")
+    if (lifecycleState === "new")
       return isPT
-        ? `Bem-vindo, futuro ${identityLabel}.`
-        : `Welcome, future ${identityLabel}.`;
-    if (bucket === "day1")
+        ? "A tua primeira vitória começa hoje."
+        : "Your first win starts today.";
+    if (lifecycleState === "early")
       return yesterdayWin
         ? (isPT ? "Ontem contou. Hoje prova-o." : "Yesterday counted. Today proves it.")
-        : (isPT ? "Dia 1. Pequeno passo, grande mudança." : "Day 1. Small step, big shift.");
-    if (bucket === "day3")
-      return isPT ? "O sistema começa a formar-se." : "The system is forming.";
-    if (bucket === "day7")
-      return isPT ? "Uma semana muda a identidade." : "One week can change identity.";
+        : (isPT ? "O sistema começa a formar-se." : "The system is forming.");
+    if (lifecycleState === "reengaged")
+      return isPT
+        ? "Bom ver-te de volta. Recomeça forte hoje."
+        : "Good to see you again. Restart strong today.";
+    // active
+    return isPT
+      ? "Bem-vindo de volta. O momentum espera-te."
+      : "Welcome back. Momentum is waiting.";
+  })();
+
+  const subline = (() => {
+    if (lifecycleState === "new")
+      return isPT
+        ? "A tua primeira vitória está pronta abaixo."
+        : "Your first win is ready below.";
+    if (lifecycleState === "early")
+      return isPT ? "Momentum a formar-se. Continua." : "Momentum is forming. Keep going.";
+    if (lifecycleState === "reengaged")
+      return isPT
+        ? `${lifecycle.totalCompletions} vitórias no histórico. Retoma o ritmo.`
+        : `${lifecycle.totalCompletions} wins in your history. Pick the rhythm back up.`;
     return isPT
       ? `És cada vez mais ${identityLabel}.`
       : `You are becoming more ${identityLabel}.`;
   })();
 
-  const subline = (() => {
-    if (bucket === "day0")
-      return isPT
-        ? "A tua primeira vitória está pronta abaixo."
-        : "Your first win is ready below.";
-    if (bucket === "day1")
-      return isPT ? "Protege a tua streak hoje." : "Protect your streak today.";
-    if (bucket === "day3")
-      return isPT ? "Momentum a formar-se. Continua." : "Momentum is forming. Keep going.";
-    if (bucket === "day7")
-      return isPT ? "Última ação antes do recap semanal." : "One last action before your weekly recap.";
-    return isPT ? "Mantém a cadência." : "Keep the cadence.";
-  })();
-
-  // === Day 3+ stats ===
-  const showStats = day >= 2;
+  // === Stats: show as soon as there's any history (not tied to local day) ===
+  const showStats = lifecycle.hasMeaningfulActivity || day >= 2;
   const last7Stats = useMemo(() => {
-    const days = Array.from({ length: Math.min(day + 1, 7) }, (_, i) => format(subDays(new Date(), i), "yyyy-MM-dd"));
+    const windowSize = Math.max(1, Math.min(day + 1, 7));
+    const days = Array.from({ length: windowSize }, (_, i) => format(subDays(new Date(), i), "yyyy-MM-dd"));
     let scheduled = 0;
     let done = 0;
     let perDay: Array<{ date: string; done: number; total: number }> = [];
@@ -149,26 +153,32 @@ export const JourneyHero = ({
     return { consistency, wins: done, momentum, strongest, scheduled };
   }, [state.habits, state.dailyLogs, day, streak]);
 
-  // === Day 7 recap modal trigger flag ===
+  // === Weekly recap modal: trigger after a real account-week, only once ===
   const [showRecap, setShowRecap] = useState(false);
   const [showShareCard, setShowShareCard] = useState(false);
   useEffect(() => {
-    if (day >= 6) {
+    if (day >= 6 && lifecycle.hasMeaningfulActivity) {
       try {
         if (!localStorage.getItem(RECAP_KEY)) {
           setShowRecap(true);
-          track("weekly_recap_seen", { day });
+          track("weekly_recap_seen", { day, lifecycle: lifecycleState });
         }
       } catch { /* ignore */ }
     }
-  }, [day]);
+  }, [day, lifecycle.hasMeaningfulActivity, lifecycleState]);
   const dismissRecap = () => {
     try { localStorage.setItem(RECAP_KEY, "1"); } catch { /* ignore */ }
-    track("weekly_recap_cta_clicked", { day });
+    track("weekly_recap_cta_clicked", { day, lifecycle: lifecycleState });
     setShowRecap(false);
   };
 
-  const dayLabel = isPT ? `DIA ${day + 1}` : `DAY ${day + 1}`;
+  // Badge: hide misleading "DIA 1" for active/re-engaged users
+  const dayLabel = (() => {
+    if (lifecycleState === "active") return isPT ? "ATIVO" : "ACTIVE";
+    if (lifecycleState === "reengaged") return isPT ? "REGRESSO" : "RETURNING";
+    if (lifecycleState === "early") return isPT ? `DIA ${day + 1}` : `DAY ${day + 1}`;
+    return isPT ? "COMEÇO" : "START";
+  })();
   const allDoneToday = totalTracked > 0 && totalDone >= totalTracked;
 
   return (
