@@ -69,7 +69,8 @@ const habitToTracker = (h: Habit): Tracker => ({
 });
 
 const Index = () => {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const isPT = locale === 'pt-PT';
   const { toast } = useToast();
   const navigate = useNavigate();
   const { isAuthenticated, isEmailVerified } = useAuth();
@@ -129,7 +130,9 @@ const Index = () => {
         }));
         toast({
           title: `+${REFERRAL_XP_REWARD} XP`,
-          description: "Welcome bonus from your invite. Build something.",
+          description: isPT
+            ? "Bónus de boas-vindas do teu convite. Constrói algo."
+            : "Welcome bonus from your invite. Build something.",
           duration: 3500,
         });
       }
@@ -269,8 +272,10 @@ const Index = () => {
       // Late completion → editorial notice; on-time → contextual feedback (if enabled)
       if (result.isLate) {
         toast({
-          title: "Marcado como tardio",
-          description: `Conta como parcial (50%) — o horário agendado já tinha passado.`,
+          title: isPT ? "Marcado como tardio" : "Marked as late",
+          description: isPT
+            ? "Conta como parcial (50%) — o horário agendado já tinha passado."
+            : "Counts as partial (50%) — the scheduled time has already passed.",
           duration: 2800,
         });
       } else {
@@ -295,7 +300,7 @@ const Index = () => {
 
   const handleAddMetricEntry = useCallback((habitId: string, qty: number, ts?: string) => {
     setState(prev => addTrackerEntry(prev, habitId, qty, undefined, ts));
-    toast({ title: "✓ Registado" });
+    toast({ title: isPT ? "✓ Registado" : "✓ Logged" });
   }, [setState, toast]);
 
   const handleDeleteMetricEntry = useCallback((entryId: string) => {
@@ -334,13 +339,13 @@ const Index = () => {
     };
     if (editingHabit) {
       setState(prev => updateHabit(prev, editingHabit.id, habitData));
-      toast({ title: "Métrica atualizada" });
+      toast({ title: isPT ? "Métrica atualizada" : "Metric updated" });
     } else {
       if (!canAddMetric) { setShowPaywall(true); return; }
       setState(prev => addHabit(prev, habitData as Omit<Habit, "id" | "createdAt">));
       track("habit_created", { mode: "metric" });
       trackOnce("first_habit_created", "first_habit_created", { source: "manual", mode: "metric" });
-      toast({ title: "Métrica criada" });
+      toast({ title: isPT ? "Métrica criada" : "Metric created" });
     }
     setShowMetricForm(false);
     setEditingHabit(null);

@@ -1,6 +1,7 @@
 import { useEffect, useCallback, useRef } from "react";
 import { Habit } from "@/data/types";
 import { useToast } from "@/hooks/use-toast";
+import { isPT } from "@/i18n/getLocale";
 
 interface NotificationState {
   permission: NotificationPermission;
@@ -27,10 +28,13 @@ export const useNotifications = (habits: Habit[]) => {
 
   // Request notification permission
   const requestPermission = useCallback(async (): Promise<NotificationPermission> => {
+    const pt = isPT();
     if (!isSupported) {
       toast({
-        title: "Notifications not supported",
-        description: "Your browser doesn't support notifications.",
+        title: pt ? "Notificações não suportadas" : "Notifications not supported",
+        description: pt
+          ? "O teu navegador não suporta notificações."
+          : "Your browser doesn't support notifications.",
         variant: "destructive",
       });
       return "denied";
@@ -41,13 +45,17 @@ export const useNotifications = (habits: Habit[]) => {
       
       if (permission === "granted") {
         toast({
-          title: "Notifications enabled",
-          description: "You'll receive reminders for your habits.",
+          title: pt ? "Notificações ativadas" : "Notifications enabled",
+          description: pt
+            ? "Vais receber lembretes para os teus hábitos."
+            : "You'll receive reminders for your habits.",
         });
       } else if (permission === "denied") {
         toast({
-          title: "Notifications blocked",
-          description: "Enable notifications in your browser settings.",
+          title: pt ? "Notificações bloqueadas" : "Notifications blocked",
+          description: pt
+            ? "Ativa as notificações nas definições do navegador."
+            : "Enable notifications in your browser settings.",
           variant: "destructive",
         });
       }
@@ -73,10 +81,11 @@ export const useNotifications = (habits: Habit[]) => {
     }
     
     try {
+      const pt = isPT();
       const notification = new Notification(`becoMe: ${habit.nome}`, {
         body: habit.categoria 
-          ? `Time for your ${habit.categoria.toLowerCase()} habit`
-          : "Time for your habit",
+          ? (pt ? `Hora do teu hábito de ${habit.categoria.toLowerCase()}` : `Time for your ${habit.categoria.toLowerCase()} habit`)
+          : (pt ? "Hora do teu hábito" : "Time for your habit"),
         icon: "/icons/icon-192.png",
         badge: "/icons/icon-192.png",
         tag: `habit-${habit.id}`, // Prevents duplicate notifications

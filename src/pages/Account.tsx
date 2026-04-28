@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { ResetDataDialog } from "@/components/Profile/ResetDataDialog";
+import { useI18n } from "@/i18n/I18nContext";
 import { z } from "zod";
 
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
@@ -19,6 +20,8 @@ const Account = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, isAuthenticated, subscriptionStatus, signOut, refreshSubscription } = useAuth();
+  const { locale } = useI18n();
+  const isPT = locale === 'pt-PT';
 
   const [displayName, setDisplayName] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
@@ -71,14 +74,16 @@ const Account = () => {
       if (error) throw error;
 
       toast({
-        title: "Profile updated",
-        description: "Your display name has been saved.",
+        title: isPT ? "Perfil atualizado" : "Profile updated",
+        description: isPT ? "O nome foi guardado." : "Your display name has been saved.",
       });
     } catch (err) {
       console.error("Error saving profile:", err);
       toast({
-        title: "Error",
-        description: "Could not save profile. Please try again.",
+        title: isPT ? "Erro" : "Error",
+        description: isPT
+          ? "Não foi possível guardar o perfil. Tenta novamente."
+          : "Could not save profile. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -121,7 +126,7 @@ const Account = () => {
       });
 
       if (signInError) {
-        setPasswordErrors({ current: "Current password is incorrect" });
+        setPasswordErrors({ current: isPT ? "Palavra-passe atual incorreta" : "Current password is incorrect" });
         setSavingPassword(false);
         return;
       }
@@ -134,8 +139,10 @@ const Account = () => {
       if (error) throw error;
 
       toast({
-        title: "Password changed",
-        description: "Your password has been updated successfully.",
+        title: isPT ? "Palavra-passe alterada" : "Password changed",
+        description: isPT
+          ? "A tua palavra-passe foi atualizada."
+          : "Your password has been updated successfully.",
       });
 
       // Clear form
@@ -146,8 +153,10 @@ const Account = () => {
     } catch (err) {
       console.error("Error changing password:", err);
       toast({
-        title: "Error",
-        description: "Could not change password. Please try again.",
+        title: isPT ? "Erro" : "Error",
+        description: isPT
+          ? "Não foi possível alterar a palavra-passe. Tenta novamente."
+          : "Could not change password. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -170,8 +179,10 @@ const Account = () => {
     } catch (err) {
       console.error("Error opening customer portal:", err);
       toast({
-        title: "Error",
-        description: "Could not open billing portal. You may not have an active subscription.",
+        title: isPT ? "Erro" : "Error",
+        description: isPT
+          ? "Não foi possível abrir o portal de faturação. Pode não existir uma subscrição ativa."
+          : "Could not open billing portal. You may not have an active subscription.",
         variant: "destructive",
       });
     } finally {
@@ -197,16 +208,20 @@ const Account = () => {
       await signOut();
 
       toast({
-        title: "Account deleted",
-        description: "Your account and data have been removed.",
+        title: isPT ? "Conta eliminada" : "Account deleted",
+        description: isPT
+          ? "A tua conta e dados foram removidos."
+          : "Your account and data have been removed.",
       });
 
       navigate("/", { replace: true });
     } catch (err) {
       console.error("Error deleting account:", err);
       toast({
-        title: "Error",
-        description: "Could not delete account. Please try again.",
+        title: isPT ? "Erro" : "Error",
+        description: isPT
+          ? "Não foi possível eliminar a conta. Tenta novamente."
+          : "Could not delete account. Please try again.",
         variant: "destructive",
       });
     }
