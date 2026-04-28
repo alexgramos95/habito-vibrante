@@ -497,7 +497,7 @@ export const CalendarPreview = () => {
                     !isFuture && !isComplete && !isPartial && "border-foreground/10 bg-card/30 text-muted-foreground",
                     isPartial && "border-primary/40 bg-primary/15 text-primary",
                     isComplete && "border-primary bg-primary text-primary-foreground shadow-[0_0_10px_hsl(var(--neon-toxic)/0.5)]",
-                    isToday && "ring-2 ring-accent ring-offset-1 ring-offset-background",
+                    isToday && "ring-2 ring-accent ring-offset-1 ring-offset-background animate-pulse",
                   )}
                 >
                   {d}
