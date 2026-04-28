@@ -120,13 +120,14 @@ serve(async (req) => {
         throw new Error("Invalid input: data is required for upload");
       }
       if (action === 'materialize_onboarding' && parseResult.data.profile?.language) {
-        await supabaseClient
+        const { error: profileUpdateError } = await supabaseClient
           .from('profiles')
-          .upsert({
-            user_id: user.id,
+          .update({
             language: parseResult.data.profile.language,
             updated_at: new Date().toISOString(),
-          }, { onConflict: 'user_id' });
+          })
+          .eq('user_id', user.id);
+        if (profileUpdateError) throw new Error(`Profile update failed: ${profileUpdateError.message}`);
       }
       
       // Upload local data to cloud
