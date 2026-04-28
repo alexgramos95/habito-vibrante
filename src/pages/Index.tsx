@@ -319,7 +319,7 @@ const Index = () => {
     } else {
       if (!canAddSimple) { setShowPaywall(true); return; }
       setState(prev => addHabit(prev, { ...data, mode: "simple" }));
-      track("habit_created", { mode: "simple" });
+      trackEvent("habit_created", { mode: "simple", source: "manual" });
       trackOnce("first_habit_created", "first_habit_created", { source: "manual", mode: "simple" });
       toast({ title: t.habits.habitCreated });
     }
