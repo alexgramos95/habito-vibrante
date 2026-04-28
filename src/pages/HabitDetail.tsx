@@ -129,7 +129,7 @@ const HabitDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { state, setState } = useData();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { toast } = useToast();
 
   const habit = state.habits.find(h => h.id === id);
