@@ -72,9 +72,9 @@ const Landing = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background text-foreground antialiased">
+    <div className="min-h-screen bg-background text-foreground antialiased animate-page-enter">
       {/* ===== NAV ===== */}
-      <nav className="fixed top-0 inset-x-0 z-50 backdrop-blur-xl bg-background/70 border-b border-foreground/[0.06]">
+      <nav className="fixed top-0 inset-x-0 z-50 backdrop-blur-2xl bg-background/60 border-b border-foreground/[0.05]">
         <div className="container max-w-6xl flex items-center justify-between h-16">
           <div className="flex items-center gap-2.5">
             <div className="h-8 w-8 bg-primary flex items-center justify-center">
