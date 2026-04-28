@@ -214,12 +214,13 @@ const UI: Record<string, Bilingual> = {
 
 const Onboarding = () => {
   const navigate = useNavigate();
-  const { locale } = useI18n();
+  const { locale, setLocale } = useI18n();
   const { completeOnboarding } = useSubscription();
 
-  const STEPS: Step[] = ["identity", "obstacle", "focus", "first-win", "metric", "commit"];
+  const STEPS: Step[] = ["language", "identity", "obstacle", "focus", "first-win", "metric", "commit"];
 
-  const [step, setStep] = useState<Step>("identity");
+  const [step, setStep] = useState<Step>("language");
+  const [accountLocale, setAccountLocale] = useState<Locale>(locale);
   const [identity, setIdentity] = useState<string | null>(null);
   const [obstacle, setObstacle] = useState<string | null>(null);
   const [focus, setFocus] = useState<string[]>([]);
