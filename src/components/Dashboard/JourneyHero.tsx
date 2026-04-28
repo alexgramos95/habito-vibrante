@@ -35,31 +35,9 @@ const readOnboarding = (): OnboardingPayload => {
   }
 };
 
-/** Returns 0 for day of signup, 1 for next calendar day, etc. */
-const useJourneyDay = (): number => {
-  const [day, setDay] = useState<number>(() => {
-    try {
-      let start = localStorage.getItem(JOURNEY_KEY);
-      if (!start) {
-        start = format(new Date(), "yyyy-MM-dd");
-        localStorage.setItem(JOURNEY_KEY, start);
-      }
-      return Math.max(0, differenceInCalendarDays(new Date(), parseISO(start)));
-    } catch {
-      return 0;
-    }
-  });
-  useEffect(() => {
-    const id = setInterval(() => {
-      try {
-        const start = localStorage.getItem(JOURNEY_KEY);
-        if (start) setDay(Math.max(0, differenceInCalendarDays(new Date(), parseISO(start))));
-      } catch { /* ignore */ }
-    }, 60_000);
-    return () => clearInterval(id);
-  }, []);
-  return day;
-};
+/* Lifecycle is now derived from real account activity (see deriveLifecycle).
+   The previous local-only "journey day" counter was misleading for returning
+   users on new devices/browsers. */
 
 interface JourneyHeroProps {
   state: AppState;
