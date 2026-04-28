@@ -175,8 +175,87 @@ const computeRecommendations = (m: RetentionMetrics, completionsTrend: DayPoint[
   return recs;
 };
 
+interface SourceRow {
+  source: AcquisitionSource;
+  users: number;          // distinct sessions/cohorts seen with this source
+  appOpens: number;
+  habitsCompleted: number;
+  d1Returned: number;
+  d7Returned: number;
+  referralInvites: number;
+  referralPromptsShown: number;
+  avgHabits: number;      // habits completed per cohort user
+  d1Rate: number;
+  d7Rate: number;
+  referralCTR: number;
+  qualityScore: number;   // composite 0..1
+}
 
-const Insights = () => {
+const SOURCE_KEYS: AcquisitionSource[] = [
+  "direct", "instagram", "tiktok", "twitter", "reddit",
+  "facebook", "youtube", "linkedin", "referral",
+  "organic_search", "paid_ads", "email", "other",
+];
+
+const computeSourceStats = (
+  log: { event: string; timestamp: string; properties?: any }[],
+): SourceRow[] => {
+  // Bucket by source. "users" is approximated by counting distinct
+  // acquisition_captured events per source (one per browser/cohort).
+  const buckets = new Map<AcquisitionSource, {
+    users: number; appOpens: number; habitsCompleted: number;
+    d1: number; d7: number; invites: number; prompts: number;
+  }>();
+  const ensure = (s: AcquisitionSource) => {
+    if (!buckets.has(s)) buckets.set(s, {
+      users: 0, appOpens: 0, habitsCompleted: 0, d1: 0, d7: 0, invites: 0, prompts: 0,
+    });
+    return buckets.get(s)!;
+  };
+
+  for (const e of log) {
+    const s = (e.properties?.source as AcquisitionSource) || "direct";
+    const b = ensure(s);
+    if (e.event === "acquisition_captured") b.users += 1;
+    else if (e.event === "app_open") b.appOpens += 1;
+    else if (e.event === "habit_completed" || e.event === "first_habit_completed") b.habitsCompleted += 1;
+    else if (e.event === "day1_return") b.d1 += 1;
+    else if (e.event === "day7_return") b.d7 += 1;
+    else if (e.event === "referral_invite_sent") b.invites += 1;
+    else if (e.event === "referral_prompt_shown") b.prompts += 1;
+  }
+
+  const rows: SourceRow[] = [];
+  for (const source of SOURCE_KEYS) {
+    const b = buckets.get(source);
+    if (!b) continue;
+    // If no acquisition_captured event yet, infer 1 user from any activity.
+    const users = Math.max(b.users, b.appOpens > 0 || b.habitsCompleted > 0 ? 1 : 0);
+    if (users === 0) continue;
+    const avgHabits = +(b.habitsCompleted / users).toFixed(2);
+    const d1Rate = users > 0 ? b.d1 / users : 0;
+    const d7Rate = users > 0 ? b.d7 / users : 0;
+    const referralCTR = b.prompts > 0 ? b.invites / b.prompts : 0;
+    // Composite quality: weighted blend (D7 is the strongest retention signal)
+    const qualityScore = +(
+      0.45 * d7Rate +
+      0.25 * d1Rate +
+      0.20 * Math.min(1, avgHabits / 5) +
+      0.10 * referralCTR
+    ).toFixed(3);
+    rows.push({
+      source, users,
+      appOpens: b.appOpens,
+      habitsCompleted: b.habitsCompleted,
+      d1Returned: b.d1, d7Returned: b.d7,
+      referralInvites: b.invites, referralPromptsShown: b.prompts,
+      avgHabits, d1Rate, d7Rate, referralCTR, qualityScore,
+    });
+  }
+  return rows.sort((a, b) => b.qualityScore - a.qualityScore);
+};
+
+
   const [metrics, setMetrics] = useState<RetentionMetrics>(() => getRetentionMetrics());
   const [showRaw, setShowRaw] = useState(false);
   const log = useMemo(() => getEventLog(), [metrics]);
