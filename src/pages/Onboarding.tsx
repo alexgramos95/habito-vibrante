@@ -341,25 +341,23 @@ const Onboarding = () => {
 const StepIdentity = ({
   value,
   onChange,
-  onContinue,
 }: {
   value: string | null;
   onChange: (id: string) => void;
-  onContinue: () => void;
 }) => (
-  <div className="flex-1 flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-500">
-    <div className="text-center pt-4 pb-7">
+  <div className="flex-1 flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-300">
+    <div className="text-center pt-4 pb-6">
       <p className="font-mono text-[10px] uppercase tracking-widest text-primary mb-3">
-        // Step 1 · Identity
+        // Identity
       </p>
-      <h1 className="type-display text-3xl sm:text-4xl mb-3 leading-tight">
+      <h1 className="type-display text-3xl sm:text-4xl mb-2 leading-tight">
         Who do you want<br />to become?
       </h1>
-      <p className="text-sm text-muted-foreground/85">Pick the version of you that matters most.</p>
+      <p className="text-sm text-muted-foreground/80">Pick one. Tap to continue.</p>
     </div>
 
     <div className="grid gap-2.5 mb-6">
-      {IDENTITY_OPTIONS.map((opt, i) => {
+      {IDENTITY_OPTIONS.map((opt) => {
         const Icon = opt.icon;
         const selected = value === opt.id;
         return (
@@ -367,19 +365,18 @@ const StepIdentity = ({
             key={opt.id}
             onClick={() => onChange(opt.id)}
             className={cn(
-              "group flex items-center gap-4 p-4 text-left border-2 transition-all duration-200 active:scale-[0.985] min-h-[64px]",
+              "group flex items-center gap-4 p-4 text-left border-2 transition-all duration-150 active:scale-[0.985] min-h-[64px]",
               selected
-                ? "border-primary bg-primary/[0.08] shadow-[0_0_24px_hsl(var(--neon-toxic)/0.25)]"
-                : "border-foreground/10 hover:border-foreground/25 bg-foreground/[0.015]",
+                ? "border-primary bg-primary/[0.10] shadow-[0_0_28px_hsl(var(--neon-toxic)/0.3)]"
+                : "border-foreground/10 hover:border-foreground/30 bg-foreground/[0.015]",
             )}
-            style={{ animationDelay: `${i * 40}ms` }}
           >
             <div
               className={cn(
-                "h-11 w-11 shrink-0 flex items-center justify-center border transition-all duration-200",
+                "h-11 w-11 shrink-0 flex items-center justify-center border transition-all duration-150",
                 selected
                   ? "border-primary bg-primary/15"
-                  : "border-foreground/10 bg-foreground/[0.03] group-hover:border-foreground/25",
+                  : "border-foreground/10 bg-foreground/[0.03] group-hover:border-foreground/30",
               )}
             >
               <Icon className={cn("h-5 w-5", selected ? "text-primary" : "text-muted-foreground")} />
@@ -388,17 +385,13 @@ const StepIdentity = ({
               <p className={cn("text-base font-bold tracking-tight", selected && "text-primary")}>
                 {opt.label}
               </p>
-              <p className="text-xs text-muted-foreground/80 mt-0.5">{opt.desc}</p>
+              <p className="text-xs text-muted-foreground/75 mt-0.5">{opt.desc}</p>
             </div>
-            {selected && (
-              <Check className="h-5 w-5 text-primary shrink-0 animate-completion-pop" />
-            )}
+            {selected && <Check className="h-5 w-5 text-primary shrink-0 animate-completion-pop" />}
           </button>
         );
       })}
     </div>
-
-    <ContinueBar disabled={!value} onClick={onContinue} />
   </div>
 );
 
