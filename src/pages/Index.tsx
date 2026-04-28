@@ -261,8 +261,18 @@ const Index = () => {
           toast({ title, description, duration: 2200 });
         }
       }
+
+      // Referral milestone: 3 lifetime habit completions → invite prompt (once)
+      if (!hasSeenReferralPrompt()) {
+        const lifetimeWins = (state.dailyLogs?.filter(l => l.done).length || 0) + 1;
+        if (lifetimeWins >= 3) {
+          markReferralPromptSeen();
+          // small delay so the completion toast is felt first
+          setTimeout(() => setShowReferralPrompt(true), 900);
+        }
+      }
     }
-  }, [isSimpleDone, today, setState, state.habits, toast, showFirstSession, dismissFirstSession]);
+  }, [isSimpleDone, today, setState, state.habits, state.dailyLogs, toast, showFirstSession, dismissFirstSession]);
 
   const handleAddMetricEntry = useCallback((habitId: string, qty: number, ts?: string) => {
     setState(prev => addTrackerEntry(prev, habitId, qty, undefined, ts));
