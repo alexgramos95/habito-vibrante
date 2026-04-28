@@ -10,6 +10,7 @@ import {
   ResponsiveContainer, ReferenceLine,
 } from "recharts";
 import { Navigation } from "@/components/Layout/Navigation";
+import { PageHeader } from "@/components/Layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useI18n } from "@/i18n/I18nContext";
