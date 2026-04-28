@@ -268,7 +268,7 @@ const Landing = () => {
       </section>
 
       {/* ===== GAMIFICATION ===== */}
-      <section className="py-24 md:py-32 border-t border-foreground/[0.06] relative overflow-hidden">
+      <section className="py-28 md:py-36 border-t border-foreground/[0.05] relative overflow-hidden">
         <div
           className="absolute inset-0 pointer-events-none opacity-40"
           style={{
@@ -277,37 +277,37 @@ const Landing = () => {
           }}
         />
         <div className="container max-w-5xl px-6 relative z-10">
-          <div className="text-center mb-16">
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary mb-4">// Momentum</p>
-            <h2 className="text-3xl md:text-5xl font-black italic uppercase tracking-tight leading-[1] mb-4">
+          <div className="text-center mb-20">
+            <p className="type-eyebrow text-primary mb-5">// Momentum</p>
+            <h2 className="type-display text-3xl md:text-5xl mb-5">
               Progress should feel addictive.
             </h2>
-            <p className="text-muted-foreground max-w-xl mx-auto">
+            <p className="type-body text-muted-foreground max-w-[44ch] mx-auto">
               Streaks, levels and consistency — calibrated for adults. No confetti spam.
             </p>
           </div>
 
-          <div className="grid gap-px bg-foreground/[0.06] border border-foreground/[0.06] md:grid-cols-4">
+          <div className="grid gap-px bg-foreground/[0.05] border border-foreground/[0.05] md:grid-cols-4">
             {[
               { label: "Streak", value: "47", unit: "On fire.", icon: Flame },
               { label: "Level", value: "12", unit: "Next one's close.", icon: TrendingUp },
               { label: "Points", value: "2.4K", unit: "This month.", icon: Sparkles },
               { label: "Consistency", value: "89%", unit: "Real momentum.", icon: Target },
             ].map((s, i) => (
-              <div key={i} className="bg-background p-8 text-center group hover:bg-foreground/[0.015] transition-colors">
-                <s.icon className="h-4 w-4 mx-auto text-primary mb-3 transition-transform group-hover:scale-110" />
-                <p className="type-eyebrow mb-2">{s.label}</p>
-                <p className="text-4xl font-black italic text-primary mb-1.5 tabular-nums" style={{ textShadow: "0 0 24px hsl(var(--neon-toxic) / 0.4)" }}>
+              <div key={i} className="bg-background p-9 text-center group hover:bg-foreground/[0.015] transition-colors duration-300">
+                <s.icon className="h-4 w-4 mx-auto text-primary mb-4 transition-transform duration-300 group-hover:scale-110" />
+                <p className="type-eyebrow mb-3">{s.label}</p>
+                <p className="type-display text-5xl text-primary mb-2 tabular-nums" style={{ textShadow: "0 0 24px hsl(var(--neon-toxic) / 0.45)" }}>
                   {s.value}
                 </p>
-                <p className="text-xs text-muted-foreground/80">{s.unit}</p>
+                <p className="type-body text-xs text-muted-foreground/80">{s.unit}</p>
               </div>
             ))}
           </div>
 
           {/* Consistency strip */}
-          <div className="mt-10 border border-foreground/[0.06] bg-background p-6">
-            <div className="flex items-center justify-between mb-4">
+          <div className="mt-12 border border-foreground/[0.05] bg-background p-7">
+            <div className="flex items-center justify-between mb-5">
               <p className="type-eyebrow">Last 30 days</p>
               <p className="type-eyebrow text-primary">You're building momentum.</p>
             </div>
@@ -317,7 +317,7 @@ const Landing = () => {
                 return (
                   <div
                     key={i}
-                    className="flex-1 h-10 transition-transform hover:scale-y-110 origin-bottom"
+                    className="flex-1 h-10 transition-transform duration-200 hover:scale-y-110 origin-bottom"
                     style={{ background: `hsl(var(--neon-toxic) / ${intensity})` }}
                   />
                 );
@@ -328,16 +328,16 @@ const Landing = () => {
       </section>
 
       {/* ===== DIFFERENTIATION ===== */}
-      <section className="py-24 md:py-32 border-t border-foreground/[0.06]">
+      <section className="py-28 md:py-36 border-t border-foreground/[0.05]">
         <div className="container max-w-3xl px-6 text-center">
-          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary mb-5">// Why Become</p>
-          <h2 className="text-3xl md:text-6xl font-black italic uppercase tracking-tight leading-[1] mb-8">
+          <p className="type-eyebrow text-primary mb-6">// Why Become</p>
+          <h2 className="type-display text-3xl md:text-6xl mb-10">
             Most apps track tasks.<br />
-            <span className="text-primary" style={{ textShadow: "0 0 40px hsl(var(--neon-toxic) / 0.4)" }}>
+            <span className="text-primary" style={{ textShadow: "0 0 40px hsl(var(--neon-toxic) / 0.45)" }}>
               Become tracks transformation.
             </span>
           </h2>
-          <p className="text-lg text-muted-foreground leading-relaxed">
+          <p className="type-body text-lg text-muted-foreground max-w-[48ch] mx-auto">
             Tasks come and go. Identity is what stays. Every check-in inside Become is a vote
             for the version of you that's worth becoming.
           </p>
