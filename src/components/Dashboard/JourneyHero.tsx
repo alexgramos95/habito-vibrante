@@ -206,8 +206,8 @@ export const JourneyHero = ({
           {subline}
         </p>
 
-        {/* Yesterday celebration (Day 1+) */}
-        {bucket === "day1" && yesterdayWin && (
+        {/* Yesterday celebration — for early users with a yesterday-win */}
+        {(lifecycleState === "early" || lifecycleState === "active") && yesterdayWin && (
           <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-success/30 bg-success/10 px-3 py-1 text-xs font-semibold text-success">
             <Sparkles className="h-3.5 w-3.5" />
             {isPT ? `Ontem: ${yesterdayDone}/${yesterdayHabits.length} completo` : `Yesterday: ${yesterdayDone}/${yesterdayHabits.length} complete`}
