@@ -166,26 +166,31 @@ const Auth = () => {
     setLoading(true);
 
     try {
+      const isPT = locale === 'pt-PT';
       if (mode === 'signup') {
         const { error } = await signUp(email, password, displayName);
         if (error) {
           if (error.message.includes('already registered')) {
             toast({
-              title: 'Account exists',
-              description: 'This email is already registered. Please sign in instead.',
+              title: isPT ? 'Conta já existe' : 'Account exists',
+              description: isPT
+                ? 'Este email já está registado. Inicia sessão.'
+                : 'This email is already registered. Please sign in instead.',
               variant: 'destructive',
             });
           } else {
             toast({
-              title: 'Sign up failed',
+              title: isPT ? 'Falha no registo' : 'Sign up failed',
               description: error.message,
               variant: 'destructive',
             });
           }
         } else {
           toast({
-            title: 'Check your email!',
-            description: 'We sent you a verification link. Please verify your email to continue.',
+            title: isPT ? 'Verifica o teu email' : 'Check your email!',
+            description: isPT
+              ? 'Enviámos um link de verificação. Confirma o email para continuar.'
+              : 'We sent you a verification link. Please verify your email to continue.',
           });
           setMode('verify-email');
         }
@@ -194,20 +199,24 @@ const Auth = () => {
         if (error) {
           if (error.message.includes('Invalid login')) {
             toast({
-              title: 'Invalid credentials',
-              description: 'Please check your email and password.',
+              title: isPT ? 'Credenciais inválidas' : 'Invalid credentials',
+              description: isPT
+                ? 'Verifica o email e a palavra-passe.'
+                : 'Please check your email and password.',
               variant: 'destructive',
             });
           } else if (error.message.includes('Email not confirmed')) {
             toast({
-              title: 'Email not verified',
-              description: 'Please check your email and click the verification link.',
+              title: isPT ? 'Email por verificar' : 'Email not verified',
+              description: isPT
+                ? 'Abre o teu email e clica no link de verificação.'
+                : 'Please check your email and click the verification link.',
               variant: 'destructive',
             });
             setMode('verify-email');
           } else {
             toast({
-              title: 'Sign in failed',
+              title: isPT ? 'Falha ao iniciar sessão' : 'Sign in failed',
               description: error.message,
               variant: 'destructive',
             });
@@ -218,14 +227,16 @@ const Auth = () => {
         const { error } = await resetPassword(email);
         if (error) {
           toast({
-            title: 'Reset failed',
+            title: isPT ? 'Falha ao recuperar' : 'Reset failed',
             description: error.message,
             variant: 'destructive',
           });
         } else {
           toast({
-            title: 'Check your email',
-            description: 'We sent you a password reset link.',
+            title: isPT ? 'Verifica o teu email' : 'Check your email',
+            description: isPT
+              ? 'Enviámos um link para redefinir a palavra-passe.'
+              : 'We sent you a password reset link.',
           });
           setMode('signin');
         }
@@ -233,14 +244,16 @@ const Auth = () => {
         const { error } = await updatePassword(password);
         if (error) {
           toast({
-            title: 'Update failed',
+            title: isPT ? 'Falha na atualização' : 'Update failed',
             description: error.message,
             variant: 'destructive',
           });
         } else {
           toast({
-            title: 'Password updated',
-            description: 'You can now sign in with your new password.',
+            title: isPT ? 'Palavra-passe atualizada' : 'Password updated',
+            description: isPT
+              ? 'Já podes iniciar sessão com a nova palavra-passe.'
+              : 'You can now sign in with your new password.',
           });
           navigate('/app', { replace: true });
         }
@@ -256,7 +269,7 @@ const Auth = () => {
       const { error } = await signInWithGoogle();
       if (error) {
         toast({
-          title: 'Google sign in failed',
+          title: locale === 'pt-PT' ? 'Falha no login com Google' : 'Google sign in failed',
           description: error.message,
           variant: 'destructive',
         });
@@ -275,7 +288,7 @@ const Auth = () => {
       });
       if (error) {
         toast({
-          title: 'Apple sign in failed',
+          title: locale === 'pt-PT' ? 'Falha no login com Apple' : 'Apple sign in failed',
           description: error.message,
           variant: 'destructive',
         });
@@ -288,18 +301,21 @@ const Auth = () => {
 
   const handleResendVerification = async () => {
     setResending(true);
+    const isPT = locale === 'pt-PT';
     try {
       const { error } = await resendVerificationEmail();
       if (error) {
         toast({
-          title: 'Failed to resend',
+          title: isPT ? 'Não foi possível reenviar' : 'Failed to resend',
           description: error.message,
           variant: 'destructive',
         });
       } else {
         toast({
-          title: 'Email sent!',
-          description: 'Please check your inbox for the verification link.',
+          title: isPT ? 'Email enviado' : 'Email sent!',
+          description: isPT
+            ? 'Vê na tua caixa de entrada o link de verificação.'
+            : 'Please check your inbox for the verification link.',
         });
       }
     } finally {

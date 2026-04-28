@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useI18n } from "@/i18n/I18nContext";
 import { z } from "zod";
 
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
@@ -21,6 +22,8 @@ const ResetPassword = () => {
 
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { locale } = useI18n();
+  const isPT = locale === 'pt-PT';
 
   // Check if we have a valid recovery session
   useEffect(() => {
@@ -88,15 +91,17 @@ const ResetPassword = () => {
 
       if (error) {
         toast({
-          title: "Error",
+          title: isPT ? "Erro" : "Error",
           description: error.message,
           variant: "destructive",
         });
       } else {
         setSuccess(true);
         toast({
-          title: "Password updated!",
-          description: "You can now sign in with your new password.",
+          title: isPT ? "Palavra-passe atualizada" : "Password updated!",
+          description: isPT
+            ? "Já podes iniciar sessão com a nova palavra-passe."
+            : "You can now sign in with your new password.",
         });
 
         // Sign out to force clean login with new password
@@ -110,8 +115,10 @@ const ResetPassword = () => {
     } catch (err) {
       console.error("Error updating password:", err);
       toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
+        title: isPT ? "Erro" : "Error",
+        description: isPT
+          ? "Ocorreu um problema. Tenta novamente."
+          : "Something went wrong. Please try again.",
         variant: "destructive",
       });
     } finally {
