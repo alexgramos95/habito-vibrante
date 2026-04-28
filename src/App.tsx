@@ -30,6 +30,7 @@ const Account = lazy(() => import("./pages/Account"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const Insights = lazy(() => import("./pages/Insights"));
 
 // Onboarding importado de forma direta (sem React.lazy)
 import Onboarding from "./pages/Onboarding";
@@ -94,6 +95,8 @@ const AppRoutes = () => (
         <Route path="/app/calendar" element={<Calendario />} />
         <Route path="/app/profile" element={<Perfil />} />
         <Route path="/app/level" element={<LevelProgress />} />
+        <Route path="/app/insights" element={<Insights />} />
+        <Route path="/insights" element={<Insights />} />
 
         {/* PRO-only pages: Shopping, Progress, Settings, Nutrition */}
         <Route path="/app/shopping" element={<GatedShopping />} />
