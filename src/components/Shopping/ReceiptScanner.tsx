@@ -144,12 +144,13 @@ export const ReceiptScanner = ({ onItemsExtracted }: ReceiptScannerProps) => {
         onChange={handleFileChange}
       />
 
-      {/* Scan button */}
+      {/* Scan button — secondary action, aligns with shopping CTA hierarchy */}
       <Button
         size="sm"
+        variant="outline-soft"
         onClick={() => setShowOptions(true)}
         disabled={isProcessing}
-        className="gap-1.5 rounded-xl h-9 px-3"
+        className="gap-1.5 h-9 px-3 rounded-xl"
       >
         {isProcessing ? (
           <Loader2 className="h-4 w-4 animate-spin" />
@@ -157,7 +158,7 @@ export const ReceiptScanner = ({ onItemsExtracted }: ReceiptScannerProps) => {
           <Receipt className="h-4 w-4" />
         )}
         <span className="hidden sm:inline">
-          {locale === "pt-PT" ? "Fotografar talão" : "Scan receipt"}
+          {locale === "pt-PT" ? "Talão" : "Receipt"}
         </span>
       </Button>
 
@@ -173,7 +174,8 @@ export const ReceiptScanner = ({ onItemsExtracted }: ReceiptScannerProps) => {
           <div className="space-y-3 py-4">
             <Button
               variant="default"
-              className="w-full gap-3 h-14"
+              size="lg"
+              className="w-full gap-3 rounded-xl"
               onClick={() => {
                 setShowOptions(false);
                 handleCameraCapture();
@@ -184,8 +186,9 @@ export const ReceiptScanner = ({ onItemsExtracted }: ReceiptScannerProps) => {
               {locale === "pt-PT" ? "Tirar foto" : "Take photo"}
             </Button>
             <Button
-              variant="outline"
-              className="w-full gap-3 h-14"
+              variant="outline-soft"
+              size="lg"
+              className="w-full gap-3 rounded-xl"
               onClick={() => {
                 setShowOptions(false);
                 handleGalleryUpload();

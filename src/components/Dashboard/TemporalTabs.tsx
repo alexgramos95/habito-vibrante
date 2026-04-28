@@ -1,5 +1,5 @@
-import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n/I18nContext";
+import { SegmentedTabs } from "@/components/ui/segmented-tabs";
 
 export type TemporalView = 'dia' | 'semana' | 'mes';
 
@@ -9,36 +9,26 @@ interface TemporalTabsProps {
 }
 
 /**
- * Temporal navigation tabs for becoMe
- * Dia = ação
- * Semana = ritmo
- * Mês = narrativa
+ * Temporal navigation tabs for becoMe.
+ * Uses unified SegmentedTabs primitive for visual consistency.
  */
 export const TemporalTabs = ({ active, onChange }: TemporalTabsProps) => {
   const { locale } = useI18n();
-
-  const tabs: { id: TemporalView; label: string }[] = [
-    { id: 'dia', label: locale === 'pt-PT' ? 'Dia' : 'Day' },
-    { id: 'semana', label: locale === 'pt-PT' ? 'Semana' : 'Week' },
-    { id: 'mes', label: locale === 'pt-PT' ? 'Mês' : 'Month' },
-  ];
+  const isPT = locale === 'pt-PT';
 
   return (
-    <div className="flex items-center gap-2 p-1 bg-secondary/50 rounded-xl w-fit mx-auto">
-      {tabs.map((tab) => (
-        <button
-          key={tab.id}
-          onClick={() => onChange(tab.id)}
-          className={cn(
-            "px-5 py-2.5 rounded-lg text-sm font-bold uppercase tracking-tight italic transition-all duration-150 touch-target",
-            active === tab.id
-              ? "bg-primary text-primary-foreground border-2 border-primary shadow-[4px_4px_0_0_hsl(var(--neon-ultra))]"
-              : "text-muted-foreground hover:text-foreground hover:bg-secondary border-2 border-transparent"
-          )}
-        >
-          {tab.label}
-        </button>
-      ))}
+    <div className="flex justify-center">
+      <SegmentedTabs<TemporalView>
+        value={active}
+        onChange={onChange}
+        size="md"
+        options={[
+          { value: 'dia',    label: isPT ? 'Dia'   : 'Day'   },
+          { value: 'semana', label: isPT ? 'Semana': 'Week'  },
+          { value: 'mes',    label: isPT ? 'Mês'   : 'Month' },
+        ]}
+        ariaLabel={isPT ? 'Período' : 'Period'}
+      />
     </div>
   );
 };
