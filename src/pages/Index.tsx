@@ -396,8 +396,8 @@ const Index = () => {
 
         <NotificationSetup />
 
-        {/* ═══ Daily Progress Hero ═══ */}
-        {state.habits.length > 0 && totalTracked > 0 && (
+        {/* ═══ Daily Progress Hero — hidden on Day 0/1 to keep ONE main action ═══ */}
+        {!isEarlyDay && state.habits.length > 0 && totalTracked > 0 && (
           <div className="rounded-2xl border border-primary/15 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 p-5">
             <div className="flex items-center gap-5">
               <CircularProgress percent={progressPercent} />
@@ -423,8 +423,9 @@ const Index = () => {
           </div>
         )}
 
-        {/* ═══ Daily Motivation Card ═══ */}
-        {state.habits.length > 0 && <MotivationCard card={motivationCard} />}
+        {/* ═══ Daily Motivation Card — hidden on Day 0/1 (declutter) ═══ */}
+        {!isEarlyDay && state.habits.length > 0 && <MotivationCard card={motivationCard} />}
+
 
         {/* ═══ Empty state ═══ */}
         {state.habits.length === 0 && (
