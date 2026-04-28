@@ -480,6 +480,10 @@ const Insights = () => {
   const acquisitionMeta = useMemo(() => getAcquisitionMeta(), []);
   const sourceStats = useMemo(() => computeSourceStats(log), [log]);
 
+  // ----- Cohort analysis (by signup week, optional source filter) -----
+  const [cohortSource, setCohortSource] = useState<AcquisitionSource | "all">("all");
+  const cohorts = useMemo(() => computeCohorts(log, cohortSource), [log, cohortSource]);
+
   useEffect(() => {
     const id = setInterval(() => setMetrics(getRetentionMetrics()), 5000);
     return () => clearInterval(id);
