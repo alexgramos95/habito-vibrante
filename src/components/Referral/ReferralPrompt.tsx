@@ -42,8 +42,7 @@ export const ReferralPrompt = ({ open, onClose, variant = "milestone" }: Referra
     if (ok) {
       setCopied(true);
       track("referral_link_copied", { variant, ...abProps });
-      incInvitesSent("copy");
-      track("referral_invite_sent", { channel: "copy", ...abProps });
+      incInvitesSent("copy", abProps);
       setTimeout(() => setCopied(false), 1800);
     }
   };
@@ -54,10 +53,7 @@ export const ReferralPrompt = ({ open, onClose, variant = "milestone" }: Referra
       text: getInviteMessage(),
       url: link,
     });
-    if (ok) {
-      incInvitesSent("native_share");
-      track("referral_invite_sent", { channel: "native_share", ...abProps });
-    }
+    if (ok) incInvitesSent("native_share", abProps);
   };
 
   const dismiss = () => {
