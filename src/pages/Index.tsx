@@ -306,6 +306,8 @@ const Index = () => {
     } else {
       if (!canAddMetric) { setShowPaywall(true); return; }
       setState(prev => addHabit(prev, habitData as Omit<Habit, "id" | "createdAt">));
+      track("habit_created", { mode: "metric" });
+      trackOnce("first_habit_created", "first_habit_created", { source: "manual", mode: "metric" });
       toast({ title: "Métrica criada" });
     }
     setShowMetricForm(false);
