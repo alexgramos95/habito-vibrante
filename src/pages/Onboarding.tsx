@@ -306,16 +306,18 @@ const Onboarding = () => {
     : pick(UI.taglineFallback, accountLocale);
 
   const handleComplete = () => {
-    // Habits payload — localized names
-    const finalHabitIds = habits.length > 0 ? habits : suggestedHabits[0] ? [suggestedHabits[0].id] : [];
-    const habitsToCreate = suggestedHabits
-      .filter((h) => finalHabitIds.includes(h.id))
+    // Habits payload — localized names. Only includes presets the user
+    // explicitly selected. NO automatic fallback (avoids creating habits
+    // the user never chose).
+    const habitsToCreate: Array<Record<string, unknown>> = suggestedHabits
+      .filter((h) => habits.includes(h.id))
       .map((preset) => ({
         nome: pick(preset.name, accountLocale),
         categoria: preset.category,
         cor: preset.color,
         active: true,
         scheduledDays: [],
+        mode: "simple",
       }));
 
     // Append custom habit (raw user input, not translated)
@@ -327,14 +329,22 @@ const Onboarding = () => {
         cor: "#8b5cf6",
         active: true,
         scheduledDays: [],
+        mode: "simple",
       });
     }
 
-    // Metrics → trackers payload
+    // Metrics are now unified into the habits model with mode: "metric".
+    // The legacy trackersToCreate array is kept empty for backward-compat
+    // with any other consumer, but real creation happens via habitsToCreate.
     const trackersToCreate: Array<Record<string, unknown>> = [];
     METRIC_SUGGESTIONS.filter((m) => metrics.includes(m.id)).forEach((m) => {
-      trackersToCreate.push({
-        name: pick(m.name, accountLocale),
+      habitsToCreate.push({
+        nome: pick(m.name, accountLocale),
+        categoria: "metrics",
+        cor: "#8b5cf6",
+        active: true,
+        scheduledDays: [],
+        mode: "metric",
         type: m.type,
         inputMode: m.type === "boolean" ? "binary" : "incremental",
         unitSingular: pick(m.unit, accountLocale),
@@ -347,8 +357,13 @@ const Onboarding = () => {
     });
     const customMetricName = customMetric.trim();
     if (customMetricName) {
-      trackersToCreate.push({
-        name: customMetricName,
+      habitsToCreate.push({
+        nome: customMetricName,
+        categoria: "metrics",
+        cor: "#8b5cf6",
+        active: true,
+        scheduledDays: [],
+        mode: "metric",
         type: "increase",
         inputMode: "incremental",
         unitSingular: "",
@@ -359,6 +374,7 @@ const Onboarding = () => {
         frequency: "daily",
       });
     }
+    const finalHabitIds = habits;
 
     const identityVectors = identity ? IDENTITY_TO_VECTORS[identity] ?? [identityLabel] : [];
 
