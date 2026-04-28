@@ -12,6 +12,13 @@ import {
   clearAnalyticsLog,
   type RetentionMetrics,
 } from "@/hooks/useAnalytics";
+import {
+  computeVariantStats,
+  REFERRAL_HEADLINE_TEST, REFERRAL_HEADLINE_VARIANTS,
+  SHARE_HEADLINE_TEST, SHARE_HEADLINE_VARIANTS,
+  type VariantStats,
+} from "@/lib/abTest";
+import { Trophy } from "lucide-react";
 
 /* =============================================================
    RETENTION INSIGHTS — local-first analytics dashboard
