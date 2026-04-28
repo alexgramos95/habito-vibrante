@@ -231,6 +231,14 @@ const Insights = () => {
           </CardContent>
         </Card>
 
+        {/* Alerts — automatic insight engine */}
+        {alerts.length > 0 && (
+          <section className="space-y-2">
+            <h2 className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Signals</h2>
+            {alerts.map((a, i) => <AlertCard key={i} alert={a} />)}
+          </section>
+        )}
+
         {/* Retention */}
         <section>
           <h2 className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">Retention</h2>
@@ -251,6 +259,17 @@ const Insights = () => {
           </div>
         </section>
 
+        {/* 7-day trends */}
+        <section>
+          <h2 className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">7-day trends</h2>
+          <div className="grid grid-cols-2 gap-3">
+            <TrendCard title="Habits completed" data={trendCompletions} />
+            <TrendCard title="Habits created" data={trendCreations} />
+            <TrendCard title="App opens" data={trendAppOpens} />
+            <TrendCard title="Hero CTA clicks" data={trendCtaClicks} />
+          </div>
+        </section>
+
         {/* CTA CTR */}
         <section>
           <h2 className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">CTA performance</h2>
@@ -267,6 +286,14 @@ const Insights = () => {
               clicks={metrics.recapClicks}
               ctr={metrics.recapCTR}
             />
+          </div>
+        </section>
+
+        {/* Recommendations — generated from data */}
+        <section>
+          <h2 className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">Top recommendations</h2>
+          <div className="space-y-2">
+            {recommendations.map((r, i) => <RecommendationCard key={i} index={i + 1} rec={r} />)}
           </div>
         </section>
 
