@@ -29,6 +29,7 @@ import { getContextualHabitFeedback, getHabitFeedbackEnabled } from "@/logic/hab
 import { MotivationCard } from "@/components/Dashboard/MotivationCard";
 import { getDailyMotivation } from "@/logic/dailyMotivation";
 import { JourneyHero } from "@/components/Dashboard/JourneyHero";
+import { track, trackOnce, checkReturnEvents } from "@/hooks/useAnalytics";
 // HabitCoachTip removed — coach is now on the detail page
 
 // --- Circular progress ring ---
@@ -106,6 +107,12 @@ const Index = () => {
     else if (!isEmailVerified) navigate("/auth?verify=required", { replace: true });
     else if (!isPro && trialStatus.isExpired) navigate("/decision", { replace: true });
   }, [isAuthenticated, isEmailVerified, isPro, trialStatus.isExpired, navigate]);
+
+  // --- Analytics: app_open + return cohort checks (D1/D3/D7) ---
+  useEffect(() => {
+    track("app_open", { route: "/app" });
+    checkReturnEvents();
+  }, []);
 
   // --- Derived data ---
   const today = format(new Date(), "yyyy-MM-dd");
@@ -233,6 +240,10 @@ const Index = () => {
       return r.newState;
     });
     if (!wasDone && habit && result) {
+      // Analytics: every completion + first-ever completion (one-shot)
+      track("habit_completed", { habitId, isLate: result.isLate });
+      trackOnce("first_habit_completed", "first_habit_completed", { habitId, isLate: result.isLate });
+
       // Late completion → editorial notice; on-time → contextual feedback (if enabled)
       if (result.isLate) {
         toast({
@@ -248,7 +259,7 @@ const Index = () => {
         }
       }
     }
-  }, [isSimpleDone, today, setState, state.habits, toast]);
+  }, [isSimpleDone, today, setState, state.habits, toast, showFirstSession, dismissFirstSession]);
 
   const handleAddMetricEntry = useCallback((habitId: string, qty: number, ts?: string) => {
     setState(prev => addTrackerEntry(prev, habitId, qty, undefined, ts));
@@ -270,6 +281,8 @@ const Index = () => {
     } else {
       if (!canAddSimple) { setShowPaywall(true); return; }
       setState(prev => addHabit(prev, { ...data, mode: "simple" }));
+      track("habit_created", { mode: "simple" });
+      trackOnce("first_habit_created", "first_habit_created", { source: "manual", mode: "simple" });
       toast({ title: t.habits.habitCreated });
     }
     setShowHabitForm(false);
@@ -293,6 +306,8 @@ const Index = () => {
     } else {
       if (!canAddMetric) { setShowPaywall(true); return; }
       setState(prev => addHabit(prev, habitData as Omit<Habit, "id" | "createdAt">));
+      track("habit_created", { mode: "metric" });
+      trackOnce("first_habit_created", "first_habit_created", { source: "manual", mode: "metric" });
       toast({ title: "Métrica criada" });
     }
     setShowMetricForm(false);
@@ -382,6 +397,7 @@ const Index = () => {
             onPrimaryAction={
               sortedTodaySimple.length > 0
                 ? () => {
+                    track("journeyhero_cta_clicked", { habitsScheduled: sortedTodaySimple.length });
                     if (showFirstSession) dismissFirstSession();
                     const first = sortedTodaySimple.find(h => !isSimpleDone(h.id));
                     if (first) {

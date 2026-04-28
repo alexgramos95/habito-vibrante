@@ -4,6 +4,7 @@ import { Flame, Sparkles, Target, TrendingUp, Trophy, ChevronRight } from "lucid
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { AppState, Habit } from "@/data/types";
+import { track } from "@/hooks/useAnalytics";
 
 const JOURNEY_KEY = "become-journey-start";
 const RECAP_KEY = "become-week1-recap-seen";
@@ -173,12 +174,16 @@ export const JourneyHero = ({
   useEffect(() => {
     if (day >= 6) {
       try {
-        if (!localStorage.getItem(RECAP_KEY)) setShowRecap(true);
+        if (!localStorage.getItem(RECAP_KEY)) {
+          setShowRecap(true);
+          track("weekly_recap_seen", { day });
+        }
       } catch { /* ignore */ }
     }
   }, [day]);
   const dismissRecap = () => {
     try { localStorage.setItem(RECAP_KEY, "1"); } catch { /* ignore */ }
+    track("weekly_recap_cta_clicked", { day });
     setShowRecap(false);
   };
 
