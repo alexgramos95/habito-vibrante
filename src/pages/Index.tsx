@@ -29,6 +29,7 @@ import { getContextualHabitFeedback, getHabitFeedbackEnabled } from "@/logic/hab
 import { MotivationCard } from "@/components/Dashboard/MotivationCard";
 import { getDailyMotivation } from "@/logic/dailyMotivation";
 import { JourneyHero } from "@/components/Dashboard/JourneyHero";
+import { track, trackOnce, checkReturnEvents } from "@/hooks/useAnalytics";
 // HabitCoachTip removed — coach is now on the detail page
 
 // --- Circular progress ring ---
