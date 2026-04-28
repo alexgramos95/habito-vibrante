@@ -6,8 +6,9 @@ import { cn } from "@/lib/utils";
 import { AppState, Habit } from "@/data/types";
 import { track } from "@/hooks/useAnalytics";
 import { ShareCard } from "@/components/Referral/ShareCard";
+import { useAuth } from "@/contexts/AuthContext";
+import { deriveLifecycle, type LifecycleState } from "@/lib/lifecycleState";
 
-const JOURNEY_KEY = "become-journey-start";
 const RECAP_KEY = "become-week1-recap-seen";
 
 const IDENTITY_LABELS: Record<string, { pt: string; en: string }> = {
