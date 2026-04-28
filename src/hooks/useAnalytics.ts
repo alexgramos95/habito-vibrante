@@ -42,6 +42,11 @@ export type AnalyticsEvent =
   | 'share_card_shared'
   | 'share_card_downloaded'
   // Onboarding materialization
+  | 'onboarding_materialization_started'
+  | 'onboarding_materialization_success'
+  | 'onboarding_materialization_failed'
+  | 'onboarding_materialization_duplicate_prevented'
+  | 'dashboard_loaded_before_materialization'
   | 'onboarding_materialized_success'
   | 'onboarding_materialized_failed'
   | 'time_to_first_dashboard_ready';
