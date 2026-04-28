@@ -102,41 +102,55 @@ export const DayView = ({
   // Pick the "priority" habit = first scheduled, not done
   const priorityHabit = habitsForDay.find(h => !isHabitDoneOnDate(state, h.id, dateStr)) || habitsForDay[0];
 
+  // Emotional momentum copy — replaces robotic "X/Y · Z%"
+  const momentumCopy = (() => {
+    if (totalToday === 0) return locale === 'pt-PT' ? 'Dia em aberto.' : 'Day wide open.';
+    if (completedToday === 0) return locale === 'pt-PT' ? 'Primeiro passo conta.' : 'First step counts.';
+    if (completedToday === totalToday) return locale === 'pt-PT' ? 'Dia completo. Bem feito.' : 'Full day. Well done.';
+    if (completionPct >= 75) return locale === 'pt-PT' ? 'Quase lá. Mantém o ritmo.' : 'Almost there. Keep the rhythm.';
+    if (completionPct >= 50) return locale === 'pt-PT' ? 'A construir momentum.' : "You're building momentum.";
+    return completedToday === 1
+      ? (locale === 'pt-PT' ? 'Bom arranque. 1 vitória.' : 'Strong start. 1 win today.')
+      : (locale === 'pt-PT' ? `Bom arranque. ${completedToday} vitórias.` : `Strong start. ${completedToday} wins today.`);
+  })();
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-10 animate-page-enter">
       {/* Operator Telemetry Header */}
-      <header className="space-y-5 border-b border-foreground/10 pb-6">
+      <header className="space-y-6 border-b border-foreground/10 pb-7">
         <div className="flex items-center gap-3">
           <span className="size-2 bg-primary animate-pulse shadow-[0_0_8px_hsl(var(--neon-toxic))]" />
-          <span className="mono-label text-primary text-[10px]">
+          <span className="type-eyebrow text-primary text-[10px]">
             {locale === 'pt-PT' ? 'SISTEMA ATIVO' : 'SYSTEM ACTIVE'} · {formattedDate.toUpperCase()}
           </span>
         </div>
 
         <div className="flex items-end justify-between gap-4">
-          <h1 className="display-headline text-5xl md:text-6xl">
+          <h1 className="type-display text-5xl md:text-6xl">
             {locale === 'pt-PT' ? 'NÍVEL ' : 'LEVEL '}
-            <span className="text-primary glow-toxic tabular-nums">{gam.nivel}</span>
+            <span className="text-primary glow-toxic tabular-nums inline-block animate-xp-pulse" key={gam.nivel}>
+              {gam.nivel}
+            </span>
           </h1>
           <div className="text-right">
-            <div className="mono-label text-muted-foreground/60 text-[10px]">
+            <div className="type-eyebrow text-muted-foreground/60 text-[10px]">
               {locale === 'pt-PT' ? 'STREAK' : 'STREAK'}
             </div>
-            <div className="display-headline text-3xl text-accent glow-ultra tabular-nums">
+            <div className="type-display text-3xl text-accent glow-ultra tabular-nums">
               {gam.currentStreak ?? 0}<span className="text-sm text-muted-foreground/60 ml-1 not-italic">D</span>
             </div>
           </div>
         </div>
 
-        {/* XP / completion bar */}
-        <div className="space-y-2">
-          <div className="flex justify-between mono-label text-[10px]">
-            <span className="text-primary">{locale === 'pt-PT' ? 'PROGRESSO_DIA' : 'DAY_PROGRESS'}</span>
-            <span className="text-muted-foreground/60 tabular-nums">{completedToday}/{totalToday} · {completionPct}%</span>
+        {/* Momentum bar — emotional, smooth */}
+        <div className="space-y-2.5">
+          <div className="flex justify-between items-baseline">
+            <span className="text-sm font-semibold text-foreground tracking-tight">{momentumCopy}</span>
+            <span className="type-eyebrow text-muted-foreground/60 text-[10px] tabular-nums">{completedToday}/{totalToday}</span>
           </div>
-          <div className="h-2 bg-foreground/5 relative overflow-hidden">
+          <div className="h-1.5 bg-foreground/[0.06] relative overflow-hidden">
             <div
-              className="absolute inset-y-0 left-0 bg-primary transition-all duration-500 shadow-[0_0_12px_hsl(var(--neon-toxic)/0.7)]"
+              className="absolute inset-y-0 left-0 bg-primary transition-[width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] shadow-[0_0_12px_hsl(var(--neon-toxic)/0.7)]"
               style={{ width: `${completionPct}%` }}
             />
           </div>
