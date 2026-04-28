@@ -207,25 +207,20 @@ const Compras = () => {
       <Navigation />
 
       <main className="page-content max-w-xl mx-auto space-y-5">
-        {/* ═══ Page Header ═══ */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
-              <ShoppingCart className="h-5 w-5 text-primary" />
-              {t.shopping.title}
-            </h1>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {locale === 'pt-PT' ? `Mensal: ${formatCurrency(monthlyTotal)}` : `Monthly: ${formatCurrency(monthlyTotal)}`}
-            </p>
-          </div>
-          <div className="flex gap-1.5">
-            <ReceiptScanner onItemsExtracted={handleReceiptItemsExtracted} />
-            <Button size="sm" className="gap-1.5 rounded-xl h-9 px-3" onClick={openAddForm}>
-              <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">{t.shopping.addItem}</span>
-            </Button>
-          </div>
-        </div>
+        <PageHeader
+          title={t.shopping.title}
+          subtitle={locale === 'pt-PT' ? `Mensal: ${formatCurrency(monthlyTotal)}` : `Monthly: ${formatCurrency(monthlyTotal)}`}
+          icon={ShoppingCart}
+          actions={
+            <>
+              <ReceiptScanner onItemsExtracted={handleReceiptItemsExtracted} />
+              <Button size="sm" className="gap-1.5 rounded-xl h-9 px-3" onClick={openAddForm}>
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">{t.shopping.addItem}</span>
+              </Button>
+            </>
+          }
+        />
 
         {/* ═══ Weekly Telemetry Hero ═══ */}
         <div className="border-2 border-primary/40 bg-card shadow-[4px_4px_0_0_hsl(var(--neon-ultra)/0.4)] p-5">
