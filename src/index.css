@@ -349,6 +349,86 @@
     @apply outline-none ring-2 ring-primary/40 ring-offset-2 ring-offset-background;
   }
 
+  /* ============================================
+     ELITE MOTION SYSTEM — premium micro-interactions
+     ============================================ */
+
+  /* XP / points gain — quick scale + glow */
+  @keyframes xp-pulse {
+    0%   { transform: scale(1);    filter: drop-shadow(0 0 0 hsl(var(--neon-toxic) / 0)); }
+    35%  { transform: scale(1.18); filter: drop-shadow(0 0 14px hsl(var(--neon-toxic) / 0.7)); }
+    100% { transform: scale(1);    filter: drop-shadow(0 0 0 hsl(var(--neon-toxic) / 0)); }
+  }
+  .animate-xp-pulse { animation: xp-pulse 0.55s cubic-bezier(0.22, 1, 0.36, 1); }
+
+  /* Progress bar — smooth elastic fill */
+  @keyframes progress-fill {
+    from { transform: scaleX(0); }
+    to   { transform: scaleX(1); }
+  }
+  .animate-progress-fill { transform-origin: left; animation: progress-fill 0.7s cubic-bezier(0.22, 1, 0.36, 1); }
+
+  /* Completion pop — checkmark satisfying tick */
+  @keyframes completion-pop {
+    0%   { transform: scale(0.6); opacity: 0; }
+    50%  { transform: scale(1.15); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .animate-completion-pop { animation: completion-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+  /* Card press — tactile feedback */
+  .press-tactile {
+    transition: transform 0.12s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.12s ease;
+  }
+  .press-tactile:active { transform: scale(0.985); }
+
+  /* Page transition — soft enter */
+  @keyframes page-enter {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .animate-page-enter { animation: page-enter 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+  /* Stagger helpers — apply with style={{ animationDelay }} */
+  .stagger-item { opacity: 0; animation: page-enter 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+
+  /* ============================================
+     PREMIUM TYPOGRAPHY RHYTHM
+     World-class SaaS hierarchy
+     ============================================ */
+  .type-eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+  }
+  .type-display {
+    font-family: 'Inter Tight', sans-serif;
+    font-weight: 900;
+    font-style: italic;
+    text-transform: uppercase;
+    letter-spacing: -0.035em;
+    line-height: 0.92;
+  }
+  .type-title {
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  .type-body {
+    color: hsl(var(--muted-foreground));
+    line-height: 1.65;
+    font-size: 0.95rem;
+  }
+  .type-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: hsl(var(--muted-foreground));
+    letter-spacing: 0.01em;
+  }
+
   /* Reduced motion support */
   @media (prefers-reduced-motion: reduce) {
     .animate-pulse-slow,
@@ -357,7 +437,12 @@
     .shimmer,
     .fade-in,
     .fade-in-up,
-    .scale-in {
+    .scale-in,
+    .animate-xp-pulse,
+    .animate-progress-fill,
+    .animate-completion-pop,
+    .animate-page-enter,
+    .stagger-item {
       animation: none !important;
     }
   }
