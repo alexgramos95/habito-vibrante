@@ -489,14 +489,24 @@ const Index = () => {
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-1">
-                <Button size="sm" variant="ghost" className="h-8 px-2.5 text-muted-foreground hover:text-foreground" onClick={() => setShowMyHabits(true)}>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline-soft"
+                  className="h-9 gap-1.5 px-3 rounded-xl"
+                  onClick={() => setShowMyHabits(true)}
+                >
                   <ListChecks className="h-4 w-4" />
-                  <span className="ml-1.5 hidden sm:inline text-xs">Todos</span>
+                  <span className="hidden sm:inline">{isPT ? 'Os meus' : 'All'}</span>
                 </Button>
-                <Button size="sm" variant="ghost" className="h-8 px-2.5 text-muted-foreground hover:text-foreground" onClick={() => setShowModeSelector(true)}>
+                <Button
+                  size="sm"
+                  variant="default"
+                  className="h-9 gap-1.5 px-3 rounded-xl"
+                  onClick={() => setShowModeSelector(true)}
+                >
                   <Plus className="h-4 w-4" />
-                  <span className="ml-1.5 hidden sm:inline text-xs">Novo</span>
+                  <span className="hidden sm:inline">{isPT ? 'Novo' : 'New'}</span>
                 </Button>
               </div>
             </div>
