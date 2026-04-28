@@ -85,10 +85,13 @@ export const JourneyHero = ({
   const lifecycleState: LifecycleState = lifecycle.state;
 
   // === Greeting based on time of day ===
+  // Reads firstName from the unified profile-name source (profiles.display_name
+  // → user_metadata.full_name → empty). We deliberately do NOT fall back to the
+  // email handle here — handles like "alexgramos95" read as a username and
+  // break the editorial tone of the greeting.
+  const { firstName } = useProfileName();
   const greeting = useMemo(() => {
     const h = new Date().getHours();
-    const firstName = (user?.user_metadata?.full_name as string | undefined)?.split(" ")[0]
-      || (user?.email ? user.email.split("@")[0] : "");
     const name = firstName ? `, ${firstName}` : "";
     if (isPT) {
       if (h < 12) return `Bom dia${name}.`;
@@ -98,7 +101,7 @@ export const JourneyHero = ({
     if (h < 12) return `Good morning${name}.`;
     if (h < 19) return `Good afternoon${name}.`;
     return `Good evening${name}.`;
-  }, [user, isPT]);
+  }, [firstName, isPT]);
 
   // === Sub-headline: identity + state ===
   const subline = (() => {
