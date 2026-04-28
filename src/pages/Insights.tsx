@@ -393,4 +393,94 @@ const FunnelRow = ({ label, at }: { label: string; at: string | null }) => (
   </div>
 );
 
+const ALERT_STYLES: Record<AlertLevel, { bg: string; border: string; icon: React.ReactNode; label: string }> = {
+  critical: {
+    bg: "bg-destructive/10",
+    border: "border-destructive/40",
+    icon: <AlertOctagon className="h-4 w-4 text-destructive" />,
+    label: "text-destructive",
+  },
+  warning: {
+    bg: "bg-amber-500/10",
+    border: "border-amber-500/40",
+    icon: <AlertTriangle className="h-4 w-4 text-amber-500" />,
+    label: "text-amber-600 dark:text-amber-400",
+  },
+  success: {
+    bg: "bg-emerald-500/10",
+    border: "border-emerald-500/40",
+    icon: <CheckCircle2 className="h-4 w-4 text-emerald-500" />,
+    label: "text-emerald-600 dark:text-emerald-400",
+  },
+};
+
+const AlertCard = ({ alert }: { alert: Alert }) => {
+  const s = ALERT_STYLES[alert.level];
+  return (
+    <div className={`rounded-xl border ${s.border} ${s.bg} p-3 flex gap-3 items-start`}>
+      <div className="mt-0.5 shrink-0">{s.icon}</div>
+      <div className="flex-1 min-w-0">
+        <p className={`text-sm font-bold ${s.label}`}>{alert.title}</p>
+        <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{alert.detail}</p>
+      </div>
+    </div>
+  );
+};
+
+const TrendCard = ({ title, data }: { title: string; data: DayPoint[] }) => {
+  const max = Math.max(1, ...data.map(d => d.value));
+  const total = data.reduce((s, d) => s + d.value, 0);
+  const last3 = data.slice(-3).reduce((s, d) => s + d.value, 0);
+  const prev3 = data.slice(-6, -3).reduce((s, d) => s + d.value, 0);
+  const delta = prev3 === 0 ? 0 : ((last3 - prev3) / prev3) * 100;
+  return (
+    <Card>
+      <CardContent className="p-3">
+        <div className="flex items-baseline justify-between gap-2">
+          <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground truncate">{title}</span>
+          <span className="text-[10px] font-mono tabular-nums text-muted-foreground">Σ {total}</span>
+        </div>
+        <div className="mt-2 flex items-end gap-1 h-12">
+          {data.map((d, i) => (
+            <div key={i} className="flex-1 flex flex-col items-center justify-end gap-1">
+              <div
+                className="w-full rounded-sm bg-primary/70 transition-all"
+                style={{ height: `${(d.value / max) * 100}%`, minHeight: d.value > 0 ? 2 : 1 }}
+                title={`${d.day}: ${d.value}`}
+              />
+            </div>
+          ))}
+        </div>
+        <div className="mt-1.5 flex items-center justify-between">
+          <div className="flex gap-1">
+            {data.map((d, i) => (
+              <span key={i} className="text-[8px] font-mono text-muted-foreground/60 flex-1 text-center">{d.label[0]}</span>
+            ))}
+          </div>
+          {prev3 > 0 && (
+            <span className={`text-[10px] font-mono tabular-nums ${delta >= 0 ? "text-emerald-500" : "text-destructive"}`}>
+              {delta >= 0 ? "+" : ""}{Math.round(delta)}%
+            </span>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+const RecommendationCard = ({ index, rec }: { index: number; rec: Recommendation }) => (
+  <div className="rounded-xl border border-foreground/10 bg-foreground/[0.02] p-3 flex gap-3 items-start">
+    <div className="mt-0.5 shrink-0 h-6 w-6 rounded-full bg-primary/15 text-primary flex items-center justify-center">
+      <Lightbulb className="h-3.5 w-3.5" />
+    </div>
+    <div className="flex-1 min-w-0">
+      <p className="text-sm font-bold leading-snug">
+        <span className="font-mono text-[10px] text-muted-foreground mr-1.5">{String(index).padStart(2, "0")}</span>
+        {rec.title}
+      </p>
+      <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{rec.rationale}</p>
+    </div>
+  </div>
+);
+
 export default Insights;
