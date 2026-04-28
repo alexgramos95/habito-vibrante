@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, BarChart3, Flame, Target, MousePointerClick, Trash2, Download } from "lucide-react";
+import {
+  ArrowLeft, BarChart3, Flame, Target, MousePointerClick, Trash2, Download,
+  AlertTriangle, AlertOctagon, CheckCircle2, Lightbulb,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -19,10 +22,161 @@ import {
 const fmtPct = (n: number) => `${Math.round(n * 100)}%`;
 const fmtDate = (s: string | null) => (s ? new Date(s).toLocaleString() : "—");
 
+// Day-bucket helper for trends
+const dayKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+interface DayPoint { day: string; label: string; value: number }
+
+/** Buckets events into the last 7 days. `reducer` defines what to count. */
+const trend7 = (
+  log: { event: string; timestamp: string; properties?: any }[],
+  predicate: (e: { event: string; properties?: any }) => boolean,
+): DayPoint[] => {
+  const today = new Date();
+  const buckets: DayPoint[] = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    buckets.push({
+      day: dayKey(d),
+      label: d.toLocaleDateString(undefined, { weekday: "short" }).slice(0, 2),
+      value: 0,
+    });
+  }
+  const idx = new Map(buckets.map((b, i) => [b.day, i]));
+  for (const e of log) {
+    if (!predicate(e)) continue;
+    const k = dayKey(new Date(e.timestamp));
+    const i = idx.get(k);
+    if (i !== undefined) buckets[i].value += 1;
+  }
+  return buckets;
+};
+
+// Alert engine
+type AlertLevel = "critical" | "warning" | "success";
+interface Alert { level: AlertLevel; title: string; detail: string }
+
+const computeAlerts = (m: RetentionMetrics): Alert[] => {
+  const alerts: Alert[] = [];
+  const days = m.daysSinceStart ?? 0;
+
+  // D1 retention
+  if (days >= 1 && m.d1Rate < 0.30) {
+    alerts.push({
+      level: "critical",
+      title: "Day 1 retention weak",
+      detail: `Only ${fmtPct(m.d1Rate)} returned on day 1. Strengthen the day-0 → day-1 hook.`,
+    });
+  }
+
+  // First-win conversion: completed / created
+  const firstWinRate = m.firstHabitCreatedAt
+    ? (m.firstHabitCompletedAt ? 1 : 0)
+    : 0;
+  // Use proxy: if a habit was created but no first completion logged, that's friction.
+  if (m.firstHabitCreatedAt && !m.firstHabitCompletedAt) {
+    alerts.push({
+      level: "warning",
+      title: "First win friction too high",
+      detail: "User created a habit but hasn't completed one yet. Reduce taps to first check-in.",
+    });
+  } else if (firstWinRate < 0.5 && m.firstHabitCreatedAt) {
+    alerts.push({
+      level: "warning",
+      title: "First win friction too high",
+      detail: `First-completion rate looks low.`,
+    });
+  }
+
+  // CTA CTR
+  if (m.ctaImpressions >= 3 && m.ctaCTR < 0.40) {
+    alerts.push({
+      level: "warning",
+      title: "Dashboard CTA weak",
+      detail: `Journey hero CTR is ${fmtPct(m.ctaCTR)}. Test sharper copy or a clearer single action.`,
+    });
+  }
+
+  // D7 success
+  if (days >= 7 && m.d7Rate > 0.20) {
+    alerts.push({
+      level: "success",
+      title: "Strong habit signals",
+      detail: `${fmtPct(m.d7Rate)} D7 retention — early product-market fit signal.`,
+    });
+  }
+
+  return alerts;
+};
+
+interface Recommendation { title: string; rationale: string }
+
+const computeRecommendations = (m: RetentionMetrics, completionsTrend: DayPoint[]): Recommendation[] => {
+  const recs: Recommendation[] = [];
+  const days = m.daysSinceStart ?? 0;
+
+  if (m.ctaImpressions >= 3 && m.ctaCTR < 0.40) {
+    recs.push({
+      title: "Sharpen the Journey CTA",
+      rationale: `CTR is ${fmtPct(m.ctaCTR)} across ${m.ctaImpressions} impressions. Test outcome-led copy ("Start your first action") and remove competing buttons above the fold.`,
+    });
+  }
+  if (days >= 1 && m.d1Rate < 0.30) {
+    recs.push({
+      title: "Strengthen the day-1 return loop",
+      rationale: "Send a single, specific push at the user's chosen time. Lead with their habit name, not the brand.",
+    });
+  }
+  if (m.firstHabitCreatedAt && !m.firstHabitCompletedAt) {
+    recs.push({
+      title: "Reduce friction to first completion",
+      rationale: "Auto-scroll to the first habit immediately after onboarding and pre-expand its check-in affordance.",
+    });
+  }
+  if (m.avgHabitsPerDayFirstWeek > 0 && m.avgHabitsPerDayFirstWeek < 1) {
+    recs.push({
+      title: "Lower the daily completion bar",
+      rationale: `Average is ${m.avgHabitsPerDayFirstWeek}/day. Suggest a single keystone habit instead of multiple during week 1.`,
+    });
+  }
+  const last3 = completionsTrend.slice(-3).reduce((s, d) => s + d.value, 0);
+  const prev3 = completionsTrend.slice(-6, -3).reduce((s, d) => s + d.value, 0);
+  if (prev3 > 0 && last3 < prev3 * 0.6) {
+    recs.push({
+      title: "Completion velocity is dropping",
+      rationale: `Last 3 days dropped ${Math.round((1 - last3 / prev3) * 100)}% vs the prior 3. Trigger a re-engagement nudge or surface the weekly recap early.`,
+    });
+  }
+  if (days >= 7 && m.d7Rate > 0.20 && m.recapCTR < 0.5) {
+    recs.push({
+      title: "Capitalize on D7 success",
+      rationale: "Users are sticking but the weekly recap CTA is under-clicked. Make the recap actionable (set next week's target) instead of summary-only.",
+    });
+  }
+  if (recs.length === 0) {
+    recs.push({
+      title: "No clear signal yet",
+      rationale: "Wait for more events. Revisit once D1 has at least 5 cohort members.",
+    });
+  }
+  return recs;
+};
+
+
 const Insights = () => {
   const [metrics, setMetrics] = useState<RetentionMetrics>(() => getRetentionMetrics());
   const [showRaw, setShowRaw] = useState(false);
   const log = useMemo(() => getEventLog(), [metrics]);
+
+  // Trends — last 7 days
+  const trendCompletions = useMemo(() => trend7(log, e => e.event === "habit_completed" || e.event === "first_habit_completed"), [log]);
+  const trendCreations = useMemo(() => trend7(log, e => e.event === "habit_created" || e.event === "first_habit_created"), [log]);
+  const trendAppOpens = useMemo(() => trend7(log, e => e.event === "app_open"), [log]);
+  const trendCtaClicks = useMemo(() => trend7(log, e => e.event === "journeyhero_cta_clicked"), [log]);
+
+  const alerts = useMemo(() => computeAlerts(metrics), [metrics]);
+  const recommendations = useMemo(() => computeRecommendations(metrics, trendCompletions), [metrics, trendCompletions]);
 
   useEffect(() => {
     const id = setInterval(() => setMetrics(getRetentionMetrics()), 5000);
@@ -77,6 +231,14 @@ const Insights = () => {
           </CardContent>
         </Card>
 
+        {/* Alerts — automatic insight engine */}
+        {alerts.length > 0 && (
+          <section className="space-y-2">
+            <h2 className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Signals</h2>
+            {alerts.map((a, i) => <AlertCard key={i} alert={a} />)}
+          </section>
+        )}
+
         {/* Retention */}
         <section>
           <h2 className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">Retention</h2>
@@ -97,6 +259,17 @@ const Insights = () => {
           </div>
         </section>
 
+        {/* 7-day trends */}
+        <section>
+          <h2 className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">7-day trends</h2>
+          <div className="grid grid-cols-2 gap-3">
+            <TrendCard title="Habits completed" data={trendCompletions} />
+            <TrendCard title="Habits created" data={trendCreations} />
+            <TrendCard title="App opens" data={trendAppOpens} />
+            <TrendCard title="Hero CTA clicks" data={trendCtaClicks} />
+          </div>
+        </section>
+
         {/* CTA CTR */}
         <section>
           <h2 className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">CTA performance</h2>
@@ -113,6 +286,14 @@ const Insights = () => {
               clicks={metrics.recapClicks}
               ctr={metrics.recapCTR}
             />
+          </div>
+        </section>
+
+        {/* Recommendations — generated from data */}
+        <section>
+          <h2 className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">Top recommendations</h2>
+          <div className="space-y-2">
+            {recommendations.map((r, i) => <RecommendationCard key={i} index={i + 1} rec={r} />)}
           </div>
         </section>
 
@@ -209,6 +390,96 @@ const FunnelRow = ({ label, at }: { label: string; at: string | null }) => (
     <span className={`font-mono text-xs tabular-nums ${at ? "text-foreground" : "text-muted-foreground/60"}`}>
       {fmtDate(at)}
     </span>
+  </div>
+);
+
+const ALERT_STYLES: Record<AlertLevel, { bg: string; border: string; icon: React.ReactNode; label: string }> = {
+  critical: {
+    bg: "bg-destructive/10",
+    border: "border-destructive/40",
+    icon: <AlertOctagon className="h-4 w-4 text-destructive" />,
+    label: "text-destructive",
+  },
+  warning: {
+    bg: "bg-amber-500/10",
+    border: "border-amber-500/40",
+    icon: <AlertTriangle className="h-4 w-4 text-amber-500" />,
+    label: "text-amber-600 dark:text-amber-400",
+  },
+  success: {
+    bg: "bg-emerald-500/10",
+    border: "border-emerald-500/40",
+    icon: <CheckCircle2 className="h-4 w-4 text-emerald-500" />,
+    label: "text-emerald-600 dark:text-emerald-400",
+  },
+};
+
+const AlertCard = ({ alert }: { alert: Alert }) => {
+  const s = ALERT_STYLES[alert.level];
+  return (
+    <div className={`rounded-xl border ${s.border} ${s.bg} p-3 flex gap-3 items-start`}>
+      <div className="mt-0.5 shrink-0">{s.icon}</div>
+      <div className="flex-1 min-w-0">
+        <p className={`text-sm font-bold ${s.label}`}>{alert.title}</p>
+        <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{alert.detail}</p>
+      </div>
+    </div>
+  );
+};
+
+const TrendCard = ({ title, data }: { title: string; data: DayPoint[] }) => {
+  const max = Math.max(1, ...data.map(d => d.value));
+  const total = data.reduce((s, d) => s + d.value, 0);
+  const last3 = data.slice(-3).reduce((s, d) => s + d.value, 0);
+  const prev3 = data.slice(-6, -3).reduce((s, d) => s + d.value, 0);
+  const delta = prev3 === 0 ? 0 : ((last3 - prev3) / prev3) * 100;
+  return (
+    <Card>
+      <CardContent className="p-3">
+        <div className="flex items-baseline justify-between gap-2">
+          <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground truncate">{title}</span>
+          <span className="text-[10px] font-mono tabular-nums text-muted-foreground">Σ {total}</span>
+        </div>
+        <div className="mt-2 flex items-end gap-1 h-12">
+          {data.map((d, i) => (
+            <div key={i} className="flex-1 flex flex-col items-center justify-end gap-1">
+              <div
+                className="w-full rounded-sm bg-primary/70 transition-all"
+                style={{ height: `${(d.value / max) * 100}%`, minHeight: d.value > 0 ? 2 : 1 }}
+                title={`${d.day}: ${d.value}`}
+              />
+            </div>
+          ))}
+        </div>
+        <div className="mt-1.5 flex items-center justify-between">
+          <div className="flex gap-1">
+            {data.map((d, i) => (
+              <span key={i} className="text-[8px] font-mono text-muted-foreground/60 flex-1 text-center">{d.label[0]}</span>
+            ))}
+          </div>
+          {prev3 > 0 && (
+            <span className={`text-[10px] font-mono tabular-nums ${delta >= 0 ? "text-emerald-500" : "text-destructive"}`}>
+              {delta >= 0 ? "+" : ""}{Math.round(delta)}%
+            </span>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+const RecommendationCard = ({ index, rec }: { index: number; rec: Recommendation }) => (
+  <div className="rounded-xl border border-foreground/10 bg-foreground/[0.02] p-3 flex gap-3 items-start">
+    <div className="mt-0.5 shrink-0 h-6 w-6 rounded-full bg-primary/15 text-primary flex items-center justify-center">
+      <Lightbulb className="h-3.5 w-3.5" />
+    </div>
+    <div className="flex-1 min-w-0">
+      <p className="text-sm font-bold leading-snug">
+        <span className="font-mono text-[10px] text-muted-foreground mr-1.5">{String(index).padStart(2, "0")}</span>
+        {rec.title}
+      </p>
+      <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{rec.rationale}</p>
+    </div>
   </div>
 );
 
