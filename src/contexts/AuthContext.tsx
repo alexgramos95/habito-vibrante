@@ -197,6 +197,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   
   // Data sync hook
   const { downloadFromCloud } = useDataSync();
+  const queryClient = useQueryClient();
   
   // Track last check time to prevent rate limiting
   const lastCheckRef = useRef<number>(0);
