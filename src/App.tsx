@@ -73,8 +73,11 @@ const GatedSettings = () => (
 const PWAUpdateWrapper = ({ children }: { children: React.ReactNode }) => {
   const { showUpdateToast, applyUpdate, dismissUpdate } = usePWAUpdate();
 
-  // Capture ?ref= once per session, regardless of entry route.
-  useEffect(() => { captureRefFromUrl(); }, []);
+  // Capture acquisition source first, then referral ?ref= code.
+  useEffect(() => {
+    captureAcquisitionSource();
+    captureRefFromUrl();
+  }, []);
 
   return (
     <>
