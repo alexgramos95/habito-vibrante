@@ -170,6 +170,7 @@ const Auth = () => {
     try {
       const isPT = locale === 'pt-PT';
       if (mode === 'signup') {
+        trackEvent('signup_started', { method: 'email' });
         const { error } = await signUp(email, password, displayName);
         if (error) {
           if (error.message.includes('already registered')) {
