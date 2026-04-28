@@ -416,6 +416,14 @@ const Onboarding = () => {
       customMetric: !!customMetricName,
       locale: accountLocale,
     });
+    trackEvent("onboarding_completed", {
+      identity,
+      obstacle,
+      focusCount: focus.length,
+      habitsSeeded: habitsToCreate.length,
+      metricsSeeded: habitsToCreate.filter((h) => h.mode === "metric").length,
+      locale: accountLocale,
+    });
     if (habitsToCreate.length > 0) {
       trackOnce("first_habit_created", "first_habit_created", {
         source: "onboarding",
