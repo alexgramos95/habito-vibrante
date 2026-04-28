@@ -308,7 +308,7 @@ const Onboarding = () => {
     const habitsToCreate = suggestedHabits
       .filter((h) => finalHabitIds.includes(h.id))
       .map((preset) => ({
-        nome: pick(preset.name, locale),
+        nome: pick(preset.name, accountLocale),
         categoria: preset.category,
         cor: preset.color,
         active: true,
@@ -331,11 +331,11 @@ const Onboarding = () => {
     const trackersToCreate: Array<Record<string, unknown>> = [];
     METRIC_SUGGESTIONS.filter((m) => metrics.includes(m.id)).forEach((m) => {
       trackersToCreate.push({
-        name: pick(m.name, locale),
+        name: pick(m.name, accountLocale),
         type: m.type,
         inputMode: m.type === "boolean" ? "binary" : "incremental",
-        unitSingular: pick(m.unit, locale),
-        unitPlural: pick(m.unitPlural, locale),
+        unitSingular: pick(m.unit, accountLocale),
+        unitPlural: pick(m.unitPlural, accountLocale),
         baseline: 0,
         valuePerUnit: 0,
         icon: m.emoji,
