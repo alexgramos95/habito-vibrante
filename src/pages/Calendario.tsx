@@ -406,7 +406,7 @@ const Calendario = () => {
               <div className="flex items-center gap-3 mt-2">
                 {currentStreak > 0 && (
                   <span className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider text-primary">
-                    <Flame className="h-3 w-3" /> {currentStreak}D STREAK
+                    <Flame className="h-3 w-3" /> {currentStreak}{locale === 'pt-PT' ? 'D EM SEQUÊNCIA' : 'D STREAK'}
                   </span>
                 )}
                 {monthStats.consistency >= 80 && (
