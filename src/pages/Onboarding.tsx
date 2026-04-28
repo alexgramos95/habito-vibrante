@@ -302,12 +302,12 @@ const Onboarding = () => {
       <main className="relative z-10 flex-1 flex flex-col px-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)]">
         <div className="max-w-md w-full mx-auto flex-1 flex flex-col">
           {step === "identity" && (
-            <StepIdentity value={identity} onChange={setIdentity} onContinue={goNext} />
+            <StepIdentity value={identity} onChange={pickIdentity} />
           )}
           {step === "obstacle" && (
-            <StepObstacle value={obstacle} onChange={setObstacle} onContinue={goNext} />
+            <StepObstacle value={obstacle} onChange={pickObstacle} />
           )}
-          {step === "focus" && <StepFocus value={focus} onToggle={toggleFocus} onContinue={goNext} />}
+          {step === "focus" && <StepFocus value={focus} onToggle={toggleFocus} onContinue={() => { ensureDefaultHabit(suggestedHabits); goNext(); }} />}
           {step === "first-win" && (
             <StepFirstWin
               suggestions={suggestedHabits}
@@ -321,6 +321,10 @@ const Onboarding = () => {
               identityLabel={identityLabel}
               focusLabels={focusLabels}
               habitCount={habits.length}
+              firstHabitName={
+                (suggestedHabits.find((h) => habits.includes(h.id)) || suggestedHabits[0])?.name ?? "Your first habit"
+              }
+              tagline={tagline}
               onStart={handleComplete}
             />
           )}
