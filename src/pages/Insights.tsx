@@ -21,6 +21,9 @@ import {
   type VariantStats, type Confidence, type HistoryEntry,
 } from "@/lib/abTest";
 import { Trophy, History, FlaskConical, Zap } from "lucide-react";
+import {
+  getAcquisitionMeta, SOURCE_LABEL, type AcquisitionSource,
+} from "@/lib/acquisition";
 
 /* =============================================================
    RETENTION INSIGHTS — local-first analytics dashboard
