@@ -253,6 +253,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         console.log('[DATA] Waiting for subscription status to be loaded...');
         const pendingDraft = readOnboardingDraft();
         const hasPendingDraft = Boolean(pendingDraft && ((pendingDraft.habitsToCreate?.length ?? 0) > 0 || (pendingDraft.trackersToCreate?.length ?? 0) > 0));
+        if (hasPendingDraft) {
+          setIsLoading(true);
+        }
         if (!hasPendingDraft && !hasInitializedRef.current) {
           const localState = loadState();
           setStateInternal(localState);
