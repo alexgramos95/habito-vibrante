@@ -9,7 +9,6 @@ import type { AppState } from '@/data/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { isMaterialized, readOnboardingDraft } from '@/lib/onboardingDraft';
 import { runOnboardingMaterialization } from '@/lib/onboardingMaterialization';
-import { track } from '@/hooks/useAnalytics';
 
 interface DataContextType {
   state: AppState;
@@ -346,7 +345,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
           setStateInternal(freshLocalState);
         }
 
-        track('dashboard_loaded_before_materialization', { blocked: false });
       }
 
       setIsLoading(false);
