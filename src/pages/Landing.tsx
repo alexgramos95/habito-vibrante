@@ -216,20 +216,20 @@ const Landing = () => {
       </section>
 
       {/* ===== WHY USERS FAIL ===== */}
-      <section id="how" className="py-24 md:py-32 border-t border-foreground/[0.06]">
+      <section id="how" className="py-28 md:py-36 border-t border-foreground/[0.05]">
         <div className="container max-w-3xl text-center px-6">
-          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary mb-5">// The problem</p>
-          <h2 className="text-3xl md:text-5xl font-black italic uppercase tracking-tight leading-[1] mb-6">
+          <p className="type-eyebrow text-primary mb-6">// The problem</p>
+          <h2 className="type-display text-3xl md:text-5xl mb-7">
             Most people don't fail<br />because of motivation.
           </h2>
-          <p className="text-lg md:text-xl text-muted-foreground leading-relaxed mb-12">
-            They fail because they don't have <span className="text-foreground">systems</span>.
-            Apps remind them. Coaches push them. But nothing connects who they are today
+          <p className="type-body text-lg md:text-xl text-muted-foreground mb-14 max-w-[44ch] mx-auto">
+            They fail because they don't have <span className="text-foreground font-semibold">systems</span>.
+            Apps remind them. Coaches push them. Nothing connects who they are today
             with who they're trying to become.
           </p>
           <div className="inline-block border-l-2 border-primary pl-6 py-2 text-left max-w-md">
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary mb-2">// Then there's Become</p>
-            <p className="text-base text-foreground leading-relaxed">
+            <p className="type-eyebrow text-primary mb-3">// Then there's Become</p>
+            <p className="type-body text-base text-foreground">
               One operating system for your habits, health, plans and momentum.
               Built for people who are done playing.
             </p>
@@ -238,29 +238,29 @@ const Landing = () => {
       </section>
 
       {/* ===== WHAT'S INSIDE ===== */}
-      <section id="inside" className="py-24 md:py-32 border-t border-foreground/[0.06]">
+      <section id="inside" className="py-28 md:py-36 border-t border-foreground/[0.05]">
         <div className="container max-w-6xl px-6">
-          <div className="text-center mb-16">
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary mb-4">// What's inside</p>
-            <h2 className="text-3xl md:text-5xl font-black italic uppercase tracking-tight leading-[1] mb-4">
+          <div className="text-center mb-20">
+            <p className="type-eyebrow text-primary mb-5">// What's inside</p>
+            <h2 className="type-display text-3xl md:text-5xl mb-5">
               One system. Every lever.
             </h2>
-            <p className="text-muted-foreground max-w-xl mx-auto">
+            <p className="type-body text-muted-foreground max-w-[44ch] mx-auto">
               Stop stitching six apps together. Become unifies the inputs that actually move identity.
             </p>
           </div>
 
-          <div className="grid gap-px bg-foreground/[0.06] border border-foreground/[0.06] md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-px bg-foreground/[0.05] border border-foreground/[0.05] md:grid-cols-2 lg:grid-cols-3">
             {modules.map((m, i) => (
               <div
                 key={i}
-                className="bg-background p-8 group hover:bg-foreground/[0.02] transition-colors"
+                className="bg-background p-9 group hover:bg-foreground/[0.02] transition-colors duration-300"
               >
-                <div className="h-10 w-10 mb-6 flex items-center justify-center border border-foreground/10 group-hover:border-primary/40 group-hover:bg-primary/5 transition-all">
+                <div className="h-11 w-11 mb-7 flex items-center justify-center border border-foreground/10 group-hover:border-primary/40 group-hover:bg-primary/5 transition-all duration-300">
                   <m.icon className="h-5 w-5 text-primary" />
                 </div>
-                <h3 className="text-lg font-bold mb-2 tracking-tight">{m.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{m.desc}</p>
+                <h3 className="text-lg font-bold mb-2.5 tracking-tight">{m.title}</h3>
+                <p className="type-body text-sm text-muted-foreground">{m.desc}</p>
               </div>
             ))}
           </div>
