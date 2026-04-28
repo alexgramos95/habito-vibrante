@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   Calendar as CalendarIcon,
   Leaf,
@@ -15,11 +16,35 @@ import {
   ChevronLeft,
   ChevronRight,
   Zap,
+  Activity,
+  Target,
 } from "lucide-react";
 import { Surface } from "@/components/ui/surface";
 import { Button } from "@/components/ui/button";
 import { BecomeLogo } from "@/components/Brand/BecomeLogo";
 import { cn } from "@/lib/utils";
+
+/* ───────── Shared micro-motion hooks ─────────
+ * Loops every ~5–7s so previews feel alive without becoming distracting.
+ * Respects prefers-reduced-motion via CSS in animations themselves.
+ */
+const useLoopedToggle = (period = 5200, initial = false) => {
+  const [on, setOn] = useState(initial);
+  useEffect(() => {
+    const t = setInterval(() => setOn((v) => !v), period);
+    return () => clearInterval(t);
+  }, [period]);
+  return on;
+};
+
+const useDelayedToggle = (delay: number, initial = false) => {
+  const [on, setOn] = useState(initial);
+  useEffect(() => {
+    const t = setTimeout(() => setOn(true), delay);
+    return () => clearTimeout(t);
+  }, [delay]);
+  return on;
+};
 
 /**
  * Landing previews — Truthful clones of the logged-in PRO experience.
@@ -90,7 +115,7 @@ const PreviewTopBar = () => (
 const PreviewBottomNav = ({
   active,
 }: {
-  active: "habits" | "calendar" | "nutrition" | "shopping" | "profile";
+  active: "habits" | "calendar" | "nutrition" | "shopping" | "profile" | "none";
 }) => {
   const items = [
     { id: "habits",    label: "Hábitos",    icon: LayoutDashboard },
@@ -234,13 +259,16 @@ const PreviewHabitRow = ({
       ) : (
         <div
           className={cn(
-            "relative flex items-center justify-center w-11 h-11 border-2 shrink-0",
+            "relative flex items-center justify-center w-11 h-11 border-2 shrink-0 transition-all duration-300",
             done
               ? "bg-primary border-primary text-primary-foreground shadow-[0_0_14px_hsl(var(--neon-toxic)/0.55)]"
               : "border-foreground/20 bg-transparent",
           )}
         >
-          <Check className={cn("h-5 w-5 stroke-[3]", done ? "opacity-100" : "opacity-0")} />
+          <Check className={cn(
+            "h-5 w-5 stroke-[3] transition-all duration-300",
+            done ? "opacity-100 scale-100 animate-completion-pop" : "opacity-0 scale-75",
+          )} />
         </div>
       )}
 
@@ -276,7 +304,13 @@ const PreviewHabitRow = ({
    subsystems)
    ════════════════════════════════════════════════════════════════════════ */
 
-export const HabitsPreview = () => (
+export const HabitsPreview = () => {
+  // Micro-motion: third habit auto-completes ~1.6s after mount,
+  // momentum bar then advances 50% → 75%.
+  const thirdDone = useDelayedToggle(1600);
+  const momentumPct = thirdDone ? 75 : 50;
+  const momentumLabel = thirdDone ? "3/4" : "2/4";
+  return (
   <div className="flex flex-col">
     <PreviewTopBar />
 
@@ -312,14 +346,14 @@ export const HabitsPreview = () => (
             <span className="text-sm font-semibold text-foreground tracking-tight">
               A construir momentum.
             </span>
-            <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground/60 tabular-nums">
-              2/4
+            <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground/60 tabular-nums transition-all duration-500">
+              {momentumLabel}
             </span>
           </div>
           <div className="h-1.5 bg-foreground/[0.06] relative overflow-hidden">
             <div
-              className="absolute inset-y-0 left-0 bg-primary shadow-[0_0_12px_hsl(var(--neon-toxic)/0.7)]"
-              style={{ width: "50%" }}
+              className="absolute inset-y-0 left-0 bg-primary shadow-[0_0_12px_hsl(var(--neon-toxic)/0.7)] transition-[width] duration-[900ms] ease-out"
+              style={{ width: `${momentumPct}%` }}
             />
           </div>
         </div>
@@ -365,6 +399,7 @@ export const HabitsPreview = () => (
         <div className="space-y-2">
           <PreviewHabitRow name="Treino matinal" time="06:30" done />
           <PreviewHabitRow name="Ler 20 min" time="07:15" done />
+          <PreviewHabitRow name="Meditar" time="08:00" done={thirdDone} />
           <PreviewHabitRow name="Café" reduce metric={{ count: 3, goal: 5, unit: "chávenas" }} />
         </div>
       </section>
@@ -372,7 +407,8 @@ export const HabitsPreview = () => (
 
     <PreviewBottomNav active="habits" />
   </div>
-);
+  );
+};
 
 /* ════════════════════════════════════════════════════════════════════════
    2. CALENDAR — clone of Calendario monthly view
@@ -461,7 +497,7 @@ export const CalendarPreview = () => {
                     !isFuture && !isComplete && !isPartial && "border-foreground/10 bg-card/30 text-muted-foreground",
                     isPartial && "border-primary/40 bg-primary/15 text-primary",
                     isComplete && "border-primary bg-primary text-primary-foreground shadow-[0_0_10px_hsl(var(--neon-toxic)/0.5)]",
-                    isToday && "ring-2 ring-accent ring-offset-1 ring-offset-background",
+                    isToday && "ring-2 ring-accent ring-offset-1 ring-offset-background animate-pulse",
                   )}
                 >
                   {d}
@@ -584,15 +620,23 @@ export const NutritionPreview = () => (
    ════════════════════════════════════════════════════════════════════════ */
 
 export const ShoppingPreview = () => {
-  const items = [
+  // Micro-motion: "Batata-doce" gets toggled at ~2s. Progress bar fills accordingly.
+  const extraDone = useDelayedToggle(2000);
+  const baseItems = [
     { name: "Peito de frango", qty: "1.2 kg", cat: "Talho", done: true },
     { name: "Salmão fresco", qty: "600 g", cat: "Peixaria", done: true },
-    { name: "Batata-doce", qty: "1 kg", cat: "Frutas e Legumes", done: false },
+    { name: "Batata-doce", qty: "1 kg", cat: "Frutas e Legumes", done: false, animate: true },
     { name: "Brócolos", qty: "2 un", cat: "Frutas e Legumes", done: false },
     { name: "Iogurte grego", qty: "4 un", cat: "Lacticínios", done: false },
     { name: "Amêndoas", qty: "200 g", cat: "Mercearia", done: false },
     { name: "Aveia integral", qty: "500 g", cat: "Mercearia", done: true },
   ];
+  const items = baseItems.map((it) =>
+    it.animate ? { ...it, done: extraDone } : it,
+  );
+  const completed = items.filter((i) => i.done).length;
+  const total = items.length;
+  const pct = (completed / total) * 100;
 
   return (
     <div className="flex flex-col">
@@ -615,12 +659,15 @@ export const ShoppingPreview = () => {
             <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">
               PROGRESSO
             </p>
-            <p className="text-base font-black italic tabular-nums">
-              3<span className="text-muted-foreground/50 text-xs">/7</span>
+            <p className="text-base font-black italic tabular-nums transition-all duration-500">
+              {completed}<span className="text-muted-foreground/50 text-xs">/{total}</span>
             </p>
           </div>
           <div className="w-32 h-1.5 bg-foreground/10 overflow-hidden">
-            <div className="h-full bg-primary shadow-[0_0_8px_hsl(var(--neon-toxic))]" style={{ width: "43%" }} />
+            <div
+              className="h-full bg-primary shadow-[0_0_8px_hsl(var(--neon-toxic))] transition-[width] duration-[900ms] ease-out"
+              style={{ width: `${pct}%` }}
+            />
           </div>
         </Surface>
 
@@ -633,16 +680,19 @@ export const ShoppingPreview = () => {
               className="flex items-center gap-3"
             >
               <div className={cn(
-                "flex items-center justify-center w-7 h-7 border-2 shrink-0",
+                "flex items-center justify-center w-7 h-7 border-2 shrink-0 transition-all duration-300",
                 item.done
                   ? "border-primary bg-primary text-primary-foreground shadow-[0_0_10px_hsl(var(--neon-toxic)/0.5)]"
                   : "border-foreground/20",
               )}>
-                {item.done && <Check className="h-4 w-4 stroke-[3]" />}
+                <Check className={cn(
+                  "h-4 w-4 stroke-[3] transition-all duration-300",
+                  item.done ? "opacity-100 scale-100" : "opacity-0 scale-50",
+                )} />
               </div>
               <div className="flex-1 min-w-0">
                 <p className={cn(
-                  "text-[12px] font-bold uppercase tracking-tight truncate",
+                  "text-[12px] font-bold uppercase tracking-tight truncate transition-colors duration-300",
                   item.done && "text-primary line-through decoration-primary/40",
                 )}>
                   {item.name}
@@ -660,6 +710,138 @@ export const ShoppingPreview = () => {
       </div>
 
       <PreviewBottomNav active="shopping" />
+    </div>
+  );
+};
+
+/* ════════════════════════════════════════════════════════════════════════
+   5. PROGRESS — clone of MonthView (cycle nav + sparkline + readouts +
+   subtle month grid). PRO surface; landing always shows it unlocked.
+   ════════════════════════════════════════════════════════════════════════ */
+
+export const ProgressPreview = () => {
+  // Sparkline data — 30 days, smooth upward trend with believable noise.
+  const data = [
+    35, 42, 38, 50, 48, 55, 60, 58, 62, 70,
+    65, 72, 78, 74, 80, 82, 78, 85, 88, 84,
+    90, 92, 88, 94, 91, 95, 97, 93, 96, 98,
+  ];
+  const max = Math.max(...data);
+  const w = 320;
+  const h = 80;
+  const stepX = w / (data.length - 1);
+  const points = data.map((v, i) => `${i * stepX},${h - (v / max) * h}`).join(" ");
+  const areaPath = `M0,${h} L${points} L${w},${h} Z`;
+  const linePath = `M${points}`;
+
+  // Pulsing "current" dot
+  const pulse = useLoopedToggle(1400, true);
+
+  return (
+    <div className="flex flex-col">
+      <PreviewTopBar />
+
+      <div className="px-4 pt-5 pb-4 space-y-5">
+        <PreviewPageHeader
+          icon={Activity}
+          title="Progresso"
+          subtitle="Leitura do ciclo"
+        />
+
+        {/* Cycle nav — mirror of MonthView */}
+        <div className="flex items-center justify-between border-y-2 border-foreground/10 py-3">
+          <ChevronLeft className="h-4 w-4 text-muted-foreground" />
+          <div className="text-center">
+            <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+              CICLO
+            </p>
+            <h2 className="text-xl font-black italic uppercase tracking-tighter">
+              Abril 2026
+            </h2>
+          </div>
+          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+        </div>
+
+        {/* Sparkline */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+              // CONSISTÊNCIA
+            </p>
+            <span className="font-black italic tabular-nums text-primary text-lg drop-shadow-[0_0_8px_hsl(var(--neon-toxic))]">
+              98%
+            </span>
+          </div>
+          <Surface tone="subtle" size="compact" className="overflow-hidden">
+            <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-20" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="spark" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.45" />
+                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              <path d={areaPath} fill="url(#spark)" />
+              <path
+                d={linePath}
+                fill="none"
+                stroke="hsl(var(--primary))"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                style={{ filter: "drop-shadow(0 0 4px hsl(var(--neon-toxic)))" }}
+              />
+              <circle
+                cx={w}
+                cy={h - (data[data.length - 1] / max) * h}
+                r={pulse ? 4 : 3}
+                fill="hsl(var(--primary))"
+                style={{
+                  filter: "drop-shadow(0 0 6px hsl(var(--neon-toxic)))",
+                  transition: "r 700ms ease-in-out",
+                }}
+              />
+            </svg>
+          </Surface>
+        </div>
+
+        {/* Readouts */}
+        <div className="space-y-2">
+          <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground px-1">
+            // LEITURA
+          </p>
+          <div className="border-l-2 border-primary/60 bg-card/50 p-3">
+            <p className="text-[12px] text-foreground/90 leading-relaxed">
+              Mês mais consistente até hoje. Treino e leitura sustentaram-se 23 dias seguidos.
+            </p>
+          </div>
+          <div className="border-l-2 border-primary/60 bg-card/50 p-3">
+            <p className="text-[12px] text-foreground/90 leading-relaxed">
+              Café reduzido em <span className="text-primary font-bold tabular-nums">38%</span> face ao ciclo anterior.
+            </p>
+          </div>
+        </div>
+
+        {/* KPI strip — mirror of progress KPIs */}
+        <div className="grid grid-cols-3 gap-2">
+          {[
+            { icon: Flame, label: "Streak", value: "23D" },
+            { icon: TrendingUp, label: "Nível", value: "07" },
+            { icon: Target, label: "Dias", value: "21/28" },
+          ].map((k, i) => (
+            <Surface key={i} tone="subtle" size="compact" className="text-center">
+              <k.icon className="h-3.5 w-3.5 mx-auto text-primary mb-1" />
+              <p className="font-mono text-[8px] uppercase tracking-widest text-muted-foreground">
+                {k.label}
+              </p>
+              <p className="font-black italic tabular-nums text-sm text-primary">
+                {k.value}
+              </p>
+            </Surface>
+          ))}
+        </div>
+      </div>
+
+      <PreviewBottomNav active="none" />
     </div>
   );
 };
