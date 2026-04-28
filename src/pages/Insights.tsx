@@ -185,6 +185,16 @@ const Insights = () => {
   const alerts = useMemo(() => computeAlerts(metrics), [metrics]);
   const recommendations = useMemo(() => computeRecommendations(metrics, trendCompletions), [metrics, trendCompletions]);
 
+  // A/B test results — recompute alongside metrics tick
+  const referralVariants = useMemo(
+    () => computeVariantStats(REFERRAL_HEADLINE_TEST, REFERRAL_HEADLINE_VARIANTS, "referral_prompt_shown", "referral_invite_sent"),
+    [log],
+  );
+  const shareVariants = useMemo(
+    () => computeVariantStats(SHARE_HEADLINE_TEST, SHARE_HEADLINE_VARIANTS, "share_card_opened", "share_card_shared"),
+    [log],
+  );
+
   useEffect(() => {
     const id = setInterval(() => setMetrics(getRetentionMetrics()), 5000);
     return () => clearInterval(id);
