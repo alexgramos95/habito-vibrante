@@ -172,6 +172,7 @@ export const JourneyHero = ({
 
   // === Day 7 recap modal trigger flag ===
   const [showRecap, setShowRecap] = useState(false);
+  const [showShareCard, setShowShareCard] = useState(false);
   useEffect(() => {
     if (day >= 6) {
       try {
