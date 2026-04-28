@@ -128,8 +128,8 @@
     background-attachment: fixed;
   }
 
-  /* Scanline overlay — applied globally, very subtle */
-  body::before {
+  /* Scanline overlay — opt-in only via .with-scanlines (was global, too noisy on dashboard) */
+  .with-scanlines::before {
     content: '';
     position: fixed;
     inset: 0;
@@ -139,8 +139,8 @@
       0deg,
       transparent,
       transparent 2px,
-      hsl(var(--neon-toxic) / 0.025) 3px,
-      hsl(var(--neon-toxic) / 0.025) 3px
+      hsl(var(--neon-toxic) / 0.02) 3px,
+      hsl(var(--neon-toxic) / 0.02) 3px
     );
   }
 
