@@ -7,6 +7,7 @@ import { AppState } from "@/data/types";
 import { track } from "@/hooks/useAnalytics";
 import { ShareCard } from "@/components/Referral/ShareCard";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProfileName } from "@/hooks/useProfileName";
 import { deriveLifecycle, type LifecycleState } from "@/lib/lifecycleState";
 
 const RECAP_KEY = "become-week1-recap-seen";
