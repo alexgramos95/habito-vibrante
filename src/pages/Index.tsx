@@ -344,7 +344,8 @@ const Index = () => {
     } else {
       if (!canAddMetric) { setShowPaywall(true); return; }
       setState(prev => addHabit(prev, habitData as Omit<Habit, "id" | "createdAt">));
-      track("habit_created", { mode: "metric" });
+      trackEvent("habit_created", { mode: "metric", source: "manual" });
+      trackEvent("metric_created", { source: "manual", unit: trackerData.unitSingular });
       trackOnce("first_habit_created", "first_habit_created", { source: "manual", mode: "metric" });
       toast({ title: isPT ? "Métrica criada" : "Metric created" });
     }
