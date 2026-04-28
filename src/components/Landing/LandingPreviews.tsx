@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   Calendar as CalendarIcon,
   Leaf,
@@ -15,11 +16,35 @@ import {
   ChevronLeft,
   ChevronRight,
   Zap,
+  Activity,
+  Target,
 } from "lucide-react";
 import { Surface } from "@/components/ui/surface";
 import { Button } from "@/components/ui/button";
 import { BecomeLogo } from "@/components/Brand/BecomeLogo";
 import { cn } from "@/lib/utils";
+
+/* ───────── Shared micro-motion hooks ─────────
+ * Loops every ~5–7s so previews feel alive without becoming distracting.
+ * Respects prefers-reduced-motion via CSS in animations themselves.
+ */
+const useLoopedToggle = (period = 5200, initial = false) => {
+  const [on, setOn] = useState(initial);
+  useEffect(() => {
+    const t = setInterval(() => setOn((v) => !v), period);
+    return () => clearInterval(t);
+  }, [period]);
+  return on;
+};
+
+const useDelayedToggle = (delay: number, initial = false) => {
+  const [on, setOn] = useState(initial);
+  useEffect(() => {
+    const t = setTimeout(() => setOn(true), delay);
+    return () => clearTimeout(t);
+  }, [delay]);
+  return on;
+};
 
 /**
  * Landing previews — Truthful clones of the logged-in PRO experience.
