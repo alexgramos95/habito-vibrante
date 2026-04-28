@@ -126,16 +126,16 @@ const Progresso = () => {
           <div className="flex items-center gap-5">
             <CircularProgress percent={levelProgress.progress} />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-muted-foreground">Nível</p>
+              <p className="text-sm font-medium text-muted-foreground">{isPT ? 'Nível' : 'Level'}</p>
               <p className="text-2xl font-bold text-foreground tracking-tight">
                 {levelProgress.current}
               </p>
               <div className="flex items-center gap-3 mt-1">
                 <span className="flex items-center gap-1 text-xs font-semibold text-primary">
-                  <Star className="h-3.5 w-3.5" /> {state.gamification.pontos} pts
+                  <Star className="h-3.5 w-3.5" /> {state.gamification.pontos} {isPT ? 'pts' : 'pts'}
                 </span>
                 <span className="text-xs text-muted-foreground">
-                  {levelProgress.pointsToNext} para nível {levelProgress.nextLevel}
+                  {levelProgress.pointsToNext} {isPT ? `para nível ${levelProgress.nextLevel}` : `to level ${levelProgress.nextLevel}`}
                 </span>
               </div>
             </div>
@@ -147,29 +147,29 @@ const Progresso = () => {
           <div className="rounded-xl border border-primary/15 bg-primary/5 p-3 text-center">
             <TrendingUp className="h-4 w-4 text-primary mx-auto mb-1" />
             <p className="text-lg font-bold text-primary">{consistency30d}%</p>
-            <p className="text-[9px] text-muted-foreground">30 dias</p>
+            <p className="text-[9px] text-muted-foreground">{isPT ? '30 dias' : '30 days'}</p>
           </div>
           <div className="rounded-xl border border-warning/15 bg-warning/5 p-3 text-center">
             <Flame className="h-4 w-4 text-warning mx-auto mb-1" />
             <p className="text-lg font-bold text-warning">{state.gamification.currentStreak || 0}</p>
-            <p className="text-[9px] text-muted-foreground">streak</p>
+            <p className="text-[9px] text-muted-foreground">{isPT ? 'sequência' : 'streak'}</p>
           </div>
           <div className="rounded-xl border border-success/15 bg-success/5 p-3 text-center">
             <Target className="h-4 w-4 text-success mx-auto mb-1" />
             <p className="text-lg font-bold text-success">{state.habits.filter(h => h.active).length}</p>
-            <p className="text-[9px] text-muted-foreground">ativos</p>
+            <p className="text-[9px] text-muted-foreground">{isPT ? 'ativos' : 'active'}</p>
           </div>
         </div>
 
         {/* ═══ Achievements ═══ */}
         <div className="space-y-2">
           <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-1">
-            Conquistas · {unlockedAchievements.length}/{ACHIEVEMENTS.length}
+            {isPT ? 'Conquistas' : 'Achievements'} · {unlockedAchievements.length}/{ACHIEVEMENTS.length}
           </h2>
           {unlockedAchievements.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-border/40 bg-card/30 p-8 text-center">
               <Medal className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">Nenhuma conquista desbloqueada</p>
+              <p className="text-sm text-muted-foreground">{isPT ? 'Ainda nenhuma conquista registada' : 'No achievements yet'}</p>
             </div>
           ) : (
             <div className="grid gap-1.5 grid-cols-2">
