@@ -544,36 +544,39 @@ const Index = () => {
                     <button
                       onClick={() => navigate(`/app/habit/${habit.id}`)}
                       className={cn(
-                        "w-full flex items-center gap-3.5 p-4 rounded-2xl border transition-all duration-300 text-left group",
-                        "hover:shadow-sm hover:border-primary/20",
+                        "press-tactile w-full flex items-center gap-3.5 p-4 border text-left group min-h-[72px]",
+                        "transition-[background-color,border-color,box-shadow] duration-300 ease-out",
                         isOnTrack
-                          ? "border-success/20 bg-success/5"
-                          : "border-border/40 bg-card/60"
+                          ? "border-success/40 bg-success/[0.06] shadow-[0_0_18px_hsl(var(--success)/0.12)]"
+                          : "border-foreground/[0.08] bg-card hover:border-accent/40 hover:bg-card/70"
                       )}
                     >
                       <div className={cn(
-                        "h-11 w-11 rounded-xl flex items-center justify-center text-lg shrink-0 border transition-colors",
+                        "h-11 w-11 flex items-center justify-center text-lg shrink-0 border-2 transition-colors",
                         isOnTrack
-                          ? "border-success/20 bg-success/8"
+                          ? "border-success/50 bg-success/10"
                           : habit.type === "reduce"
-                            ? "border-warning/20 bg-warning/8"
-                            : "border-primary/20 bg-primary/8"
+                            ? "border-warning/40 bg-warning/10"
+                            : "border-primary/40 bg-primary/10"
                       )}>
                         {habit.icon || "📊"}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate text-foreground">{habit.nome}</p>
+                        <p className="font-bold uppercase tracking-tight text-[14px] truncate text-foreground">{habit.nome}</p>
                         <div className="flex items-center gap-2 mt-1.5">
-                          <div className="flex-1 h-1.5 rounded-full bg-muted/60 overflow-hidden">
+                          <div className="flex-1 h-1 bg-foreground/10 overflow-hidden">
                             <div
                               className={cn(
-                                "h-full rounded-full transition-all duration-700 ease-out",
+                                "h-full transition-all duration-700 ease-out",
                                 isOnTrack ? "bg-success" : habit.type === "reduce" ? "bg-warning" : "bg-primary"
                               )}
-                              style={{ width: `${Math.min(100, prog)}%` }}
+                              style={{
+                                width: `${Math.min(100, prog)}%`,
+                                boxShadow: isOnTrack || habit.type !== "reduce" ? "0 0 8px hsl(var(--neon-toxic) / 0.5)" : undefined,
+                              }}
                             />
                           </div>
-                          <span className="text-xs font-mono text-muted-foreground whitespace-nowrap">
+                          <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground/80 whitespace-nowrap tabular-nums">
                             {count}/{goal}
                           </span>
                         </div>
@@ -582,11 +585,10 @@ const Index = () => {
                         <div
                           onClick={e => { e.stopPropagation(); handleAddMetricEntry(habit.id, 1); }}
                           className={cn(
-                            "h-10 w-10 rounded-xl flex items-center justify-center shrink-0 border transition-all",
-                            "hover:shadow-md active:scale-95",
+                            "h-10 w-10 flex items-center justify-center shrink-0 border-2 transition-all active:scale-95",
                             habit.type === "reduce"
-                              ? "border-warning/30 bg-warning/10 text-warning hover:bg-warning/20"
-                              : "border-primary/30 bg-primary/10 text-primary hover:bg-primary/20"
+                              ? "border-warning/50 bg-warning/10 text-warning hover:bg-warning/20"
+                              : "border-primary/50 bg-primary/10 text-primary hover:bg-primary/20 hover:shadow-[0_0_14px_hsl(var(--neon-toxic)/0.45)]"
                           )}
                         >
                           <Plus className="h-4 w-4" />
@@ -597,7 +599,6 @@ const Index = () => {
                           onClick={e => {
                             e.stopPropagation();
                             if (isOnTrack && count > 0) {
-                              // Uncheck: remove today's entries for this metric
                               const todayEntries = state.trackerEntries.filter(
                                 en => en.trackerId === habit.id && en.date === today
                               );
@@ -607,11 +608,10 @@ const Index = () => {
                             }
                           }}
                           className={cn(
-                            "h-10 w-10 rounded-xl flex items-center justify-center shrink-0 border transition-all",
-                            "hover:shadow-md active:scale-95",
+                            "h-10 w-10 flex items-center justify-center shrink-0 border-2 transition-all active:scale-95",
                             isOnTrack && count > 0
-                              ? "border-success/30 bg-success/10 text-success"
-                              : "border-primary/30 bg-primary/10 text-primary hover:bg-primary/20"
+                              ? "border-success/50 bg-success/10 text-success"
+                              : "border-primary/50 bg-primary/10 text-primary hover:bg-primary/20 hover:shadow-[0_0_14px_hsl(var(--neon-toxic)/0.45)]"
                           )}
                         >
                           <Check className="h-4 w-4" />
