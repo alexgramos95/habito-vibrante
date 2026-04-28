@@ -131,12 +131,13 @@ type MetricPreset = {
 };
 
 const METRIC_SUGGESTIONS: MetricPreset[] = [
-  { id: "water",     name: { "en-US": "Water",     "pt-PT": "Água" },        emoji: "💧", type: "increase", unit: { "en-US": "glass", "pt-PT": "copo" }, unitPlural: { "en-US": "glasses", "pt-PT": "copos" } },
-  { id: "steps",     name: { "en-US": "Steps",     "pt-PT": "Passos" },      emoji: "👣", type: "increase", unit: { "en-US": "step", "pt-PT": "passo" }, unitPlural: { "en-US": "steps", "pt-PT": "passos" } },
-  { id: "sleep",     name: { "en-US": "Sleep",     "pt-PT": "Sono" },        emoji: "😴", type: "increase", unit: { "en-US": "hour", "pt-PT": "hora" }, unitPlural: { "en-US": "hours", "pt-PT": "horas" } },
-  { id: "reading",   name: { "en-US": "Reading",   "pt-PT": "Leitura" },     emoji: "📚", type: "increase", unit: { "en-US": "page", "pt-PT": "página" }, unitPlural: { "en-US": "pages", "pt-PT": "páginas" } },
-  { id: "meditation", name: { "en-US": "Meditation", "pt-PT": "Meditação" }, emoji: "🧘", type: "increase", unit: { "en-US": "minute", "pt-PT": "minuto" }, unitPlural: { "en-US": "minutes", "pt-PT": "minutos" } },
-  { id: "alcohol",   name: { "en-US": "Alcohol",   "pt-PT": "Álcool" },      emoji: "🍺", type: "reduce",   unit: { "en-US": "drink", "pt-PT": "bebida" }, unitPlural: { "en-US": "drinks", "pt-PT": "bebidas" } },
+  { id: "water",      name: { "en-US": "Water",      "pt-PT": "Água" },      emoji: "💧", type: "increase", unit: { "en-US": "glass",  "pt-PT": "copo" },    unitPlural: { "en-US": "glasses",  "pt-PT": "copos" } },
+  { id: "steps",      name: { "en-US": "Steps",      "pt-PT": "Passos" },    emoji: "👣", type: "increase", unit: { "en-US": "step",   "pt-PT": "passo" },   unitPlural: { "en-US": "steps",    "pt-PT": "passos" } },
+  { id: "sleep",      name: { "en-US": "Sleep",      "pt-PT": "Sono" },      emoji: "😴", type: "increase", unit: { "en-US": "hour",   "pt-PT": "hora" },    unitPlural: { "en-US": "hours",    "pt-PT": "horas" } },
+  { id: "reading",    name: { "en-US": "Reading",    "pt-PT": "Leitura" },   emoji: "📚", type: "increase", unit: { "en-US": "page",   "pt-PT": "página" },  unitPlural: { "en-US": "pages",    "pt-PT": "páginas" } },
+  { id: "meditation", name: { "en-US": "Meditation", "pt-PT": "Meditação" }, emoji: "🧘", type: "increase", unit: { "en-US": "minute", "pt-PT": "minuto" },  unitPlural: { "en-US": "minutes",  "pt-PT": "minutos" } },
+  { id: "smoking",    name: { "en-US": "Smoking",    "pt-PT": "Cigarros" },  emoji: "🚬", type: "reduce",   unit: { "en-US": "cig",    "pt-PT": "cigarro" }, unitPlural: { "en-US": "cigs",     "pt-PT": "cigarros" } },
+  { id: "alcohol",    name: { "en-US": "Alcohol",    "pt-PT": "Álcool" },    emoji: "🍺", type: "reduce",   unit: { "en-US": "drink",  "pt-PT": "bebida" },  unitPlural: { "en-US": "drinks",   "pt-PT": "bebidas" } },
 ];
 
 /* Identity vectors used elsewhere */
