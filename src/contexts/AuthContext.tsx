@@ -315,6 +315,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       sessionRef.current = null;
       lastCheckRef.current = 0;
       isCheckingRef.current = false;
+      // ACCOUNT-LEAK GUARD: purge local data on forced sign-out so a
+      // recovered/expired session can't leave another user's data behind.
+      purgeAccountData('auth-recovery');
+      try { queryClient.clear(); } catch { /* ignore */ }
       setLoading(false);
     };
 
