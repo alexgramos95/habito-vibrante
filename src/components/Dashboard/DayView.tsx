@@ -228,16 +228,24 @@ export const DayView = ({
           </div>
         ) : (
           <div className="space-y-2">
-            {habitsForDay.map((habit, idx) => (
-              <MinimalHabitCard
-                key={habit.id}
-                habit={habit}
-                index={idx}
-                isDone={isHabitDoneOnDate(state, habit.id, dateStr)}
-                isLate={isHabitLateOnDate(state, habit.id, dateStr)}
-                onToggle={() => onToggleHabit(habit.id)}
-              />
-            ))}
+            {habitsForDay.map((habit, idx) => {
+              const metricCount = habit.mode === "metric"
+                ? (state.trackerEntries || [])
+                    .filter((e: any) => e.trackerId === habit.id && e.date === dateStr)
+                    .reduce((s: number, e: any) => s + (e.quantity || 0), 0)
+                : 0;
+              return (
+                <MinimalHabitCard
+                  key={habit.id}
+                  habit={habit}
+                  index={idx}
+                  isDone={isHabitDoneOnDate(state, habit.id, dateStr)}
+                  isLate={isHabitLateOnDate(state, habit.id, dateStr)}
+                  onToggle={() => onToggleHabit(habit.id)}
+                  metricCount={metricCount}
+                />
+              );
+            })}
           </div>
         )}
       </section>
