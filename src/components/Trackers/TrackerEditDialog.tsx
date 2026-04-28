@@ -174,13 +174,21 @@ export const TrackerEditDialog = ({
     }));
   };
 
-  const typeDescriptions: Record<TrackerType, string> = {
-    reduce: "Less is better (e.g., alcohol, spending)",
-    increase: "More is better (e.g., exercise, water)",
-    boolean: "Yes or no (e.g., supplement taken)",
-    event: "Event logging (e.g., coffee bought)",
-    neutral: "Tracking only, no goal",
-  };
+  const typeDescriptions: Record<TrackerType, string> = isPT
+    ? {
+        reduce: "Menos é melhor (ex.: álcool, despesa)",
+        increase: "Mais é melhor (ex.: exercício, água)",
+        boolean: "Sim ou não (ex.: tomar suplemento)",
+        event: "Registo de evento (ex.: café comprado)",
+        neutral: "Apenas monitorizar, sem objetivo",
+      }
+    : {
+        reduce: "Less is better (e.g., alcohol, spending)",
+        increase: "More is better (e.g., exercise, water)",
+        boolean: "Yes or no (e.g., supplement taken)",
+        event: "Event logging (e.g., coffee bought)",
+        neutral: "Tracking only, no goal",
+      };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
