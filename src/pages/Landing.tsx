@@ -116,36 +116,37 @@ const Landing = () => {
         />
 
         <div className="container max-w-5xl relative z-10 text-center px-6">
-          <div className="inline-flex items-center gap-2 mb-8 px-3 py-1.5 border border-foreground/10 bg-foreground/[0.03] backdrop-blur-sm">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-            <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+          <div className="inline-flex items-center gap-2 mb-10 px-3 py-1.5 border border-foreground/10 bg-foreground/[0.03] backdrop-blur-sm">
+            <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_hsl(var(--neon-toxic))]" />
+            <span className="type-eyebrow text-muted-foreground">
               Identity OS · Now in beta
             </span>
           </div>
 
-          <h1 className="text-[40px] sm:text-6xl md:text-7xl lg:text-[88px] font-black italic uppercase tracking-[-0.04em] leading-[0.92] mb-7 animate-fade-in">
+          <h1 className="type-display text-[44px] sm:text-6xl md:text-7xl lg:text-[92px] mb-8 animate-fade-in">
             Become the person<br />
-            <span className="text-primary" style={{ textShadow: "0 0 60px hsl(var(--neon-toxic) / 0.4)" }}>
+            <span className="text-primary" style={{ textShadow: "0 0 60px hsl(var(--neon-toxic) / 0.45)" }}>
               you promised
             </span><br />
             yourself you'd be.
           </h1>
 
-          <p className="text-base md:text-xl text-muted-foreground max-w-xl mx-auto mb-10 leading-relaxed">
-            One system for habits, health, and momentum. Built for people serious about who they're becoming.
+          <p className="type-body text-lg md:text-xl text-muted-foreground max-w-[34ch] mx-auto mb-12">
+            One system for habits, health, and momentum.<br className="hidden md:block" />
+            Built for people serious about who they're becoming.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-6">
-            <Button size="lg" onClick={handleStartTrial} className="gap-2 px-10 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-7">
+            <Button size="lg" onClick={handleStartTrial} className="press-tactile gap-2 px-10 w-full sm:w-auto">
               Start Free
               <ArrowRight className="h-5 w-5" />
             </Button>
-            <Button size="lg" variant="ghost" onClick={() => scrollTo("how")} className="w-full sm:w-auto">
+            <Button size="lg" variant="ghost" onClick={() => scrollTo("how")} className="press-tactile w-full sm:w-auto">
               See How It Works
             </Button>
           </div>
 
-          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60">
+          <p className="type-eyebrow text-muted-foreground/50">
             7 days free · No credit card · Cancel anytime
           </p>
 
