@@ -131,8 +131,8 @@ const Landing = () => {
             yourself you'd be.
           </h1>
 
-          <p className="text-base md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-            Habits, health, goals, discipline and momentum — all in one operating system.
+          <p className="text-base md:text-xl text-muted-foreground max-w-xl mx-auto mb-10 leading-relaxed">
+            One system for habits, health, and momentum. Built for people serious about who they're becoming.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-6">
@@ -288,18 +288,18 @@ const Landing = () => {
 
           <div className="grid gap-px bg-foreground/[0.06] border border-foreground/[0.06] md:grid-cols-4">
             {[
-              { label: "Streak", value: "47", unit: "days", icon: Flame },
-              { label: "Level", value: "12", unit: "operator", icon: TrendingUp },
-              { label: "Points", value: "2.4K", unit: "this month", icon: Sparkles },
-              { label: "Consistency", value: "89%", unit: "last 30d", icon: Target },
+              { label: "Streak", value: "47", unit: "On fire.", icon: Flame },
+              { label: "Level", value: "12", unit: "Next one's close.", icon: TrendingUp },
+              { label: "Points", value: "2.4K", unit: "This month.", icon: Sparkles },
+              { label: "Consistency", value: "89%", unit: "Real momentum.", icon: Target },
             ].map((s, i) => (
-              <div key={i} className="bg-background p-8 text-center">
-                <s.icon className="h-4 w-4 mx-auto text-primary mb-3" />
-                <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground mb-2">{s.label}</p>
-                <p className="text-4xl font-black italic text-primary mb-1" style={{ textShadow: "0 0 24px hsl(var(--neon-toxic) / 0.4)" }}>
+              <div key={i} className="bg-background p-8 text-center group hover:bg-foreground/[0.015] transition-colors">
+                <s.icon className="h-4 w-4 mx-auto text-primary mb-3 transition-transform group-hover:scale-110" />
+                <p className="type-eyebrow mb-2">{s.label}</p>
+                <p className="text-4xl font-black italic text-primary mb-1.5 tabular-nums" style={{ textShadow: "0 0 24px hsl(var(--neon-toxic) / 0.4)" }}>
                   {s.value}
                 </p>
-                <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{s.unit}</p>
+                <p className="text-xs text-muted-foreground/80">{s.unit}</p>
               </div>
             ))}
           </div>
@@ -307,8 +307,8 @@ const Landing = () => {
           {/* Consistency strip */}
           <div className="mt-10 border border-foreground/[0.06] bg-background p-6">
             <div className="flex items-center justify-between mb-4">
-              <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Last 30 days</p>
-              <p className="font-mono text-[10px] uppercase tracking-widest text-primary">89% consistent</p>
+              <p className="type-eyebrow">Last 30 days</p>
+              <p className="type-eyebrow text-primary">You're building momentum.</p>
             </div>
             <div className="flex gap-1">
               {Array.from({ length: 30 }).map((_, i) => {
@@ -316,7 +316,7 @@ const Landing = () => {
                 return (
                   <div
                     key={i}
-                    className="flex-1 h-10"
+                    className="flex-1 h-10 transition-transform hover:scale-y-110 origin-bottom"
                     style={{ background: `hsl(var(--neon-toxic) / ${intensity})` }}
                   />
                 );
@@ -348,13 +348,13 @@ const Landing = () => {
         <div className="container max-w-6xl px-6">
           <div className="grid gap-px bg-foreground/[0.06] border border-foreground/[0.06] md:grid-cols-3 mb-16">
             {[
-              { value: "12,400+", label: "Users transformed" },
-              { value: "1.2M", label: "Habits completed" },
-              { value: "380K", label: "Days tracked" },
+              { value: "12,400+", label: "People in motion" },
+              { value: "1.2M", label: "Wins logged" },
+              { value: "380K", label: "Days showed up" },
             ].map((s, i) => (
               <div key={i} className="bg-background p-10 text-center">
-                <p className="text-5xl font-black italic tracking-tight mb-2">{s.value}</p>
-                <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">{s.label}</p>
+                <p className="text-5xl font-black italic tracking-tight mb-2 tabular-nums">{s.value}</p>
+                <p className="type-eyebrow">{s.label}</p>
               </div>
             ))}
           </div>
