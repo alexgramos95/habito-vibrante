@@ -7,6 +7,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { loadState, saveState as saveToLocalStorage, clearAllData } from '@/data/storage';
 import type { AppState } from '@/data/types';
 import { useAuth, materializeOnboardingData } from '@/contexts/AuthContext';
+import { clearOnboardingDraft, consumeOnboardingDraftAgeMs, readOnboardingDraft } from '@/lib/onboardingDraft';
+import { track } from '@/hooks/useAnalytics';
 
 interface DataContextType {
   state: AppState;
