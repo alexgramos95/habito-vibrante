@@ -346,13 +346,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           return;
         }
         
+        // ACCOUNT-LEAK GUARD: detect account switch on the same browser and
+        // wipe all account-scoped local data BEFORE the new user's data loads.
+        // Also wipe React Query cache so no stale queries leak across accounts.
+        const newUserId = newSession?.user?.id ?? null;
+        const switched = detectAccountSwitchAndPurge(newUserId);
+        if (switched) {
+          try { queryClient.clear(); } catch { /* ignore */ }
+        }
+
         setSession(newSession);
         setUser(newSession?.user ?? null);
         setLoading(false);
-        
+
         // Check subscription on sign in events
         if (newSession?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
           if (event === 'SIGNED_IN') {
+            // On a fresh SIGNED_IN, force-refetch ALL queries so no cached
+            // data from a previous account leaks through.
+            try { queryClient.invalidateQueries(); } catch { /* ignore */ }
             // NOTE: Materialization is now handled by DataContext after checking PRO/cloud status
             // Download cloud data to sync across devices
             downloadFromCloud(newSession.access_token).then((success) => {
