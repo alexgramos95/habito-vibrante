@@ -992,7 +992,8 @@ const StepCommit = ({
   locale,
   identityLabel,
   focusLabels,
-  habitCount,
+  habitNames,
+  metricNames,
   firstHabitName,
   tagline,
   onStart,
@@ -1000,17 +1001,41 @@ const StepCommit = ({
   locale: Locale;
   identityLabel: string;
   focusLabels: string[];
-  habitCount: number;
+  habitNames: string[];
+  metricNames: string[];
   firstHabitName: string;
   tagline: string;
   onStart: () => void;
 }) => {
-  const stats = [
-    { label: pick(UI.firstStreak, locale), value: pick(UI.active, locale), icon: Flame },
-    { label: pick(UI.level, locale),       value: "01",                     icon: Sparkles },
-    { label: pick(UI.firstHabit, locale),  value: pick(UI.ready, locale),   icon: Check },
-    { label: pick(UI.momentum, locale),    value: pick(UI.today, locale),   icon: Zap },
-  ];
+  const summaryRows: { label: string; value: string; icon: any }[] = [];
+  if (identityLabel) {
+    summaryRows.push({
+      label: pick(UI.summaryIdentity, locale),
+      value: identityLabel,
+      icon: Sparkles,
+    });
+  }
+  if (focusLabels.length > 0) {
+    summaryRows.push({
+      label: pick(UI.summaryFocus, locale),
+      value: focusLabels.join(" · "),
+      icon: Target,
+    });
+  }
+  if (habitNames.length > 0) {
+    summaryRows.push({
+      label: `${pick(UI.summaryHabits, locale)} · ${habitNames.length}`,
+      value: habitNames.join(" · "),
+      icon: Flame,
+    });
+  }
+  if (metricNames.length > 0) {
+    summaryRows.push({
+      label: `${pick(UI.summaryMetrics, locale)} · ${metricNames.length}`,
+      value: metricNames.join(" · "),
+      icon: Activity,
+    });
+  }
 
   return (
     <div className="flex-1 flex flex-col animate-in fade-in zoom-in-95 duration-500">
@@ -1034,25 +1059,35 @@ const StepCommit = ({
             {pick(UI.commitTitle2, locale)}
           </span>
         </h1>
-        <p className="text-sm text-muted-foreground/85 max-w-[32ch] italic">{tagline}</p>
+        <p className="text-sm text-muted-foreground/85 max-w-[34ch] italic">{tagline}</p>
 
-        <div className="w-full mt-7 grid grid-cols-2 gap-px bg-foreground/10 border border-foreground/10">
-          {stats.map((s, i) => (
+        {/* Personalized summary */}
+        <div className="w-full mt-7 border border-foreground/10 divide-y divide-foreground/10">
+          {summaryRows.map((row, i) => (
             <div
-              key={s.label}
-              className="bg-background p-4 flex flex-col items-start gap-2 animate-in fade-in slide-in-from-bottom-1"
+              key={row.label}
+              className="bg-background p-4 flex items-start gap-3 text-left animate-in fade-in slide-in-from-bottom-1"
               style={{ animationDelay: `${120 + i * 90}ms`, animationFillMode: "both" }}
             >
-              <s.icon className="h-4 w-4 text-primary" />
-              <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">{s.label}</p>
-              <p className="text-base font-black italic uppercase tracking-tight text-foreground">{s.value}</p>
+              <div className="h-9 w-9 shrink-0 border border-primary/40 bg-primary/[0.08] flex items-center justify-center">
+                <row.icon className="h-4 w-4 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground mb-1">
+                  {row.label}
+                </p>
+                <p className="text-sm font-bold tracking-tight text-foreground leading-snug break-words">
+                  {row.value}
+                </p>
+              </div>
             </div>
           ))}
         </div>
 
+        {/* Up-next pointer */}
         <div
           className="w-full mt-4 border-2 border-primary/40 bg-primary/[0.06] p-4 text-left flex items-center gap-3 animate-in fade-in slide-in-from-bottom-1"
-          style={{ animationDelay: "520ms", animationFillMode: "both" }}
+          style={{ animationDelay: `${120 + summaryRows.length * 90 + 80}ms`, animationFillMode: "both" }}
         >
           <div className="h-9 w-9 shrink-0 border-2 border-primary bg-primary/15 flex items-center justify-center">
             <Flame className="h-4 w-4 text-primary" />
@@ -1065,6 +1100,10 @@ const StepCommit = ({
           </div>
           <ArrowRight className="h-4 w-4 text-primary shrink-0" />
         </div>
+
+        <p className="mt-5 text-[11px] font-mono uppercase tracking-widest text-muted-foreground/70">
+          {pick(UI.todayBegins, locale)} · {pick(UI.commitMantra, locale)}
+        </p>
       </div>
 
       <div className="space-y-2 pb-2">
