@@ -234,6 +234,11 @@ const Onboarding = () => {
   const [metrics, setMetrics] = useState<string[]>([]);
   const [customMetric, setCustomMetric] = useState<string>("");
 
+  // Fire onboarding_started once per session
+  useEffect(() => {
+    trackEvent("onboarding_started", { source: "web" });
+  }, []);
+
   const stepIndex = STEPS.indexOf(step);
 
   const goNext = () => {
