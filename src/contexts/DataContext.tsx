@@ -198,6 +198,29 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   };
 
   /**
+   * ACCOUNT-LEAK GUARD: when the authenticated user id changes (account switch
+   * on the same browser, or fresh login after logout), drop the in-memory
+   * AppState back to defaults BEFORE the init effect runs. This prevents the
+   * previous account's habits/logs/gamification from flashing in the UI while
+   * cloud download is in flight.
+   */
+  const lastUserIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    const currentUid = user?.id ?? null;
+    if (lastUserIdRef.current !== currentUid) {
+      if (lastUserIdRef.current !== null) {
+        // Real transition (logout, login as someone else, etc.) — wipe state.
+        console.log('[DATA] 🔒 User id changed, resetting in-memory state to defaults');
+        setStateInternal(defaultState);
+        hasInitializedRef.current = false;
+        lastProStatusRef.current = null;
+        setLastSyncedAt(null);
+      }
+      lastUserIdRef.current = currentUid;
+    }
+  }, [user?.id]);
+
+  /**
    * Initialize data on mount and auth changes
    */
   useEffect(() => {
