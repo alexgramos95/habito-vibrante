@@ -40,8 +40,11 @@ const SyncDataSchema = z.object({
 });
 
 const SyncRequestSchema = z.object({
-  action: z.enum(["upload", "download"]),
+  action: z.enum(["upload", "download", "materialize_onboarding"]),
   data: SyncDataSchema.optional(),
+  profile: z.object({
+    language: z.string().min(2).max(12).optional(),
+  }).optional(),
 });
 
 // Safe error mapping
@@ -106,15 +109,24 @@ serve(async (req) => {
 
     const isPro = subData?.plan === 'pro';
     
-    // Download is available for ALL users, upload requires Pro
+    // Download + onboarding materialization are available for ALL users; manual upload remains Pro-only.
     if (action === 'upload' && !isPro) {
       throw new Error("Sync requires Pro subscription");
     }
     logStep("Authorization verified", { action, isPro });
 
-    if (action === 'upload') {
+    if (action === 'upload' || action === 'materialize_onboarding') {
       if (!data) {
         throw new Error("Invalid input: data is required for upload");
+      }
+      if (action === 'materialize_onboarding' && parseResult.data.profile?.language) {
+        await supabaseClient
+          .from('profiles')
+          .upsert({
+            user_id: user.id,
+            language: parseResult.data.profile.language,
+            updated_at: new Date().toISOString(),
+          }, { onConflict: 'user_id' });
       }
       
       // Upload local data to cloud
@@ -135,9 +147,9 @@ serve(async (req) => {
         }, { onConflict: 'user_id' });
 
       if (upsertError) throw new Error(`Sync upload failed: ${upsertError.message}`);
-      logStep("Data uploaded successfully");
+      logStep(action === 'materialize_onboarding' ? "Onboarding materialized successfully" : "Data uploaded successfully");
 
-      return new Response(JSON.stringify({ success: true, action: 'uploaded' }), {
+      return new Response(JSON.stringify({ success: true, action: action === 'materialize_onboarding' ? 'materialized' : 'uploaded' }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });
