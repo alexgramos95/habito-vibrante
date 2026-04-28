@@ -86,11 +86,11 @@ export const ReferralPrompt = ({ open, onClose, variant = "milestone" }: Referra
           {variant === "milestone" ? "// 3 WINS UNLOCKED" : "// INVITE"}
         </p>
         <h3 className="text-2xl font-bold tracking-tight leading-tight">
-          Know someone building discipline too?
+          {headlineVariant.copy}
         </h3>
         <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-          Invite a friend to Become. Both of you get{" "}
-          <strong className="text-foreground">+{REFERRAL_XP_REWARD} XP</strong> when they join.
+          Invite a friend and both earn{" "}
+          <strong className="text-foreground">+{REFERRAL_XP_REWARD} XP</strong>.
         </p>
 
         {/* Link preview */}
