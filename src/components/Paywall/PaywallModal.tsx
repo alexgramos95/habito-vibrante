@@ -73,6 +73,7 @@ export const PaywallModal = ({
     setLoading(true);
     try {
       void track('checkout_started', { plan: selectedPlan, trigger: trigger || null });
+      trackEvent('checkout_started', { plan: selectedPlan, trigger: trigger || null });
       const { data, error } = await supabase.functions.invoke("create-checkout", {
         body: { priceType: selectedPlan },
         headers: {
