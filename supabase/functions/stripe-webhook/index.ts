@@ -531,3 +531,48 @@ async function upsertSubscription(supabase: any, userId: string, customerId: str
     logStep("Subscription upserted successfully", { userId, plan, status });
   }
 }
+
+// ---------- Revenue analytics ----------
+// deno-lint-ignore no-explicit-any
+async function logRevenueEvent(
+  supabase: any,
+  stripe: Stripe,
+  event: Stripe.Event,
+  opts: {
+    eventType: string;
+    customerId?: string | null;
+    amountCents?: number | null;
+    currency?: string | null;
+    status?: string | null;
+    plan?: string | null;
+    clientReferenceId?: string | null;
+    metadata?: Record<string, string> | null;
+    customerEmail?: string | null;
+  },
+) {
+  try {
+    const userId = await resolveUserId(supabase, stripe, {
+      clientReferenceId: opts.clientReferenceId ?? null,
+      metadata: opts.metadata ?? null,
+      customerId: opts.customerId ?? null,
+      customerEmail: opts.customerEmail ?? null,
+    });
+
+    const { error } = await supabase.from("revenue_events").insert({
+      stripe_event_id: event.id,
+      stripe_customer_id: opts.customerId ?? null,
+      event_type: opts.eventType,
+      amount_cents: opts.amountCents ?? null,
+      currency: (opts.currency || "eur").toLowerCase(),
+      status: opts.status ?? null,
+      plan: opts.plan ?? null,
+      user_id: userId,
+      occurred_at: new Date(event.created * 1000).toISOString(),
+      raw: { type: event.type, id: event.id },
+    });
+    if (error) logStep("ERROR inserting revenue_event", { error: error.message });
+  } catch (e) {
+    const m = e instanceof Error ? e.message : String(e);
+    logStep("ERROR logRevenueEvent", { error: m });
+  }
+}
