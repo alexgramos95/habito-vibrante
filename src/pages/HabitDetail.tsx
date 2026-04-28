@@ -213,9 +213,9 @@ const HabitDetail = () => {
   const handleSaveSimple = useCallback((data: Omit<Habit, "id" | "createdAt">) => {
     if (!habit) return;
     setState(prev => updateHabit(prev, habit.id, { ...data, mode: "simple" }));
-    toast({ title: "Hábito atualizado" });
+    toast({ title: locale === "pt-PT" ? "Hábito atualizado" : "Habit updated" });
     setShowEditSimple(false);
-  }, [habit, setState, toast]);
+  }, [habit, setState, toast, locale]);
 
   const handleSaveMetric = useCallback((trackerData: Omit<Tracker, "id" | "createdAt">) => {
     if (!habit) return;
@@ -230,29 +230,29 @@ const HabitDetail = () => {
       scheduledDays: trackerData.scheduledDays,
     };
     setState(prev => updateHabit(prev, habit.id, habitData));
-    toast({ title: "Métrica atualizada" });
+    toast({ title: locale === "pt-PT" ? "Métrica atualizada" : "Metric updated" });
     setShowEditMetric(false);
-  }, [habit, setState, toast]);
+  }, [habit, setState, toast, locale]);
 
   const handleDeleteHabit = useCallback(() => {
     if (!habit) return;
     setState(prev => deleteHabit(prev, habit.id));
-    toast({ title: "Hábito eliminado" });
+    toast({ title: locale === "pt-PT" ? "Hábito eliminado" : "Habit deleted" });
     navigate("/app");
-  }, [habit, setState, toast, navigate]);
+  }, [habit, setState, toast, navigate, locale]);
 
   const handleAddEntry = useCallback((qty: number) => {
     if (!habit) return;
     setState(prev => addTrackerEntry(prev, habit.id, qty));
-    toast({ title: "✓ Registado" });
-  }, [habit, setState, toast]);
+    toast({ title: locale === "pt-PT" ? "✓ Registado" : "✓ Logged" });
+  }, [habit, setState, toast, locale]);
 
   const handleDeleteEntry = useCallback(() => {
     if (!deletingEntryId) return;
     setState(prev => deleteTrackerEntry(prev, deletingEntryId));
-    toast({ title: "Registo eliminado" });
+    toast({ title: locale === "pt-PT" ? "Registo eliminado" : "Entry deleted" });
     setDeletingEntryId(null);
-  }, [deletingEntryId, setState, toast]);
+  }, [deletingEntryId, setState, toast, locale]);
 
   const handleToggleEntry = useCallback((entryId: string, currentQty: number) => {
     // For quantities > 1, decrement. For 1, delete the entry.
@@ -261,8 +261,9 @@ const HabitDetail = () => {
         ? updateTrackerEntry(prev, entryId, { quantity: currentQty - 1 })
         : deleteTrackerEntry(prev, entryId)
     );
-    toast({ title: currentQty > 1 ? "✓ Reduzido" : "✓ Eliminado" });
-  }, [setState, toast]);
+    const isPT = locale === "pt-PT";
+    toast({ title: currentQty > 1 ? (isPT ? "✓ Reduzido" : "✓ Decreased") : (isPT ? "✓ Eliminado" : "✓ Removed") });
+  }, [setState, toast, locale]);
 
   if (!habit || !stats) {
     return (

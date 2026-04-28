@@ -36,12 +36,19 @@ const Definicoes = () => {
 
   const handleResetAll = async () => {
     setIsResetting(true);
+    const isPT = locale === "pt-PT";
     try {
       await resetAppData();
-      toast({ title: "Progress reset.", description: "All data has been deleted." });
+      toast({
+        title: isPT ? "Progresso reiniciado." : "Progress reset.",
+        description: isPT ? "Todos os dados foram eliminados." : "All data has been deleted.",
+      });
       window.location.reload();
     } catch {
-      toast({ title: "Reset failed", variant: "destructive" });
+      toast({
+        title: isPT ? "Falha ao reiniciar" : "Reset failed",
+        variant: "destructive",
+      });
     } finally { setIsResetting(false); setShowResetAllConfirm(false); }
   };
 
