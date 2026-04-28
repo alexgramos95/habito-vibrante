@@ -32,6 +32,7 @@ import { useI18n, type Locale } from "@/i18n/I18nContext";
 import { cn } from "@/lib/utils";
 import { useSubscription } from "@/hooks/useSubscription";
 import { track, trackOnce } from "@/hooks/useAnalytics";
+import { trackEvent } from "@/lib/canonicalEvents";
 import { writeOnboardingDraft } from "@/lib/onboardingDraft";
 
 /* =============================================================
