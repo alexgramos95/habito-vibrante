@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tracker, TrackerType, TrackerFrequency, TrackerInputMode, TRACKER_TEMPLATES } from "@/data/types";
 import { useI18n } from "@/i18n/I18nContext";
-import { cn } from "@/lib/utils";
+
 
 interface TrackerEditDialogProps {
   open: boolean;
@@ -20,7 +20,7 @@ interface TrackerEditDialogProps {
   onDelete?: () => void;
 }
 
-const WEEKDAYS = [
+const WEEKDAYS_EN = [
   { value: 0, label: "Sun" },
   { value: 1, label: "Mon" },
   { value: 2, label: "Tue" },
@@ -28,6 +28,16 @@ const WEEKDAYS = [
   { value: 4, label: "Thu" },
   { value: 5, label: "Fri" },
   { value: 6, label: "Sat" },
+];
+
+const WEEKDAYS_PT = [
+  { value: 0, label: "Dom" },
+  { value: 1, label: "Seg" },
+  { value: 2, label: "Ter" },
+  { value: 3, label: "Qua" },
+  { value: 4, label: "Qui" },
+  { value: 5, label: "Sex" },
+  { value: 6, label: "Sáb" },
 ];
 
 const TRACKER_ICONS = ["🎯", "📊", "💪", "🏃", "💧", "🧘", "📚", "☕", "🍺", "💊", "⏰", "🍎", "💰", "🛒", "😴"];
@@ -39,7 +49,8 @@ export const TrackerEditDialog = ({
   onSave,
   onDelete
 }: TrackerEditDialogProps) => {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const isPT = locale === "pt-PT";
   const isEditing = !!tracker;
 
   const [formData, setFormData] = useState({
@@ -163,31 +174,45 @@ export const TrackerEditDialog = ({
     }));
   };
 
-  const typeDescriptions: Record<TrackerType, string> = {
-    reduce: "Less is better (e.g., alcohol, spending)",
-    increase: "More is better (e.g., exercise, water)",
-    boolean: "Yes or no (e.g., supplement taken)",
-    event: "Event logging (e.g., coffee bought)",
-    neutral: "Tracking only, no goal",
-  };
+  const typeDescriptions: Record<TrackerType, string> = isPT
+    ? {
+        reduce: "Menos é melhor (ex.: álcool, despesa)",
+        increase: "Mais é melhor (ex.: exercício, água)",
+        boolean: "Sim ou não (ex.: tomar suplemento)",
+        event: "Registo de evento (ex.: café comprado)",
+        neutral: "Apenas monitorizar, sem objetivo",
+      }
+    : {
+        reduce: "Less is better (e.g., alcohol, spending)",
+        increase: "More is better (e.g., exercise, water)",
+        boolean: "Yes or no (e.g., supplement taken)",
+        event: "Event logging (e.g., coffee bought)",
+        neutral: "Tracking only, no goal",
+      };
+
+  const WEEKDAYS = isPT ? WEEKDAYS_PT : WEEKDAYS_EN;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {isEditing ? "Edit Tracker" : "New Tracker"}
+            {isEditing
+              ? (isPT ? "Editar métrica" : "Edit Metric")
+              : (isPT ? "Nova métrica" : "New Metric")}
           </DialogTitle>
           <DialogDescription>
-            {isEditing ? "Modify tracker properties." : "Create a tracker to monitor behaviors."}
+            {isEditing
+              ? (isPT ? "Modifica as propriedades da métrica." : "Modify metric properties.")
+              : (isPT ? "Cria uma métrica para monitorizar comportamentos." : "Create a metric to monitor behaviors.")}
           </DialogDescription>
         </DialogHeader>
 
         {!isEditing && (
           <Tabs value={tab} onValueChange={(v) => setTab(v as "custom" | "templates")}>
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="templates">Templates</TabsTrigger>
-              <TabsTrigger value="custom">Custom</TabsTrigger>
+              <TabsTrigger value="templates">{isPT ? "Modelos" : "Templates"}</TabsTrigger>
+              <TabsTrigger value="custom">{isPT ? "Personalizado" : "Custom"}</TabsTrigger>
             </TabsList>
             
             <TabsContent value="templates" className="space-y-3 mt-4">
@@ -202,9 +227,10 @@ export const TrackerEditDialog = ({
                     <span className="text-xl">{template.icon}</span>
                     <span className="text-sm">{template.name}</span>
                     <span className="text-xs text-muted-foreground">
-                      {template.type === "reduce" ? "Reduce" : 
-                       template.type === "increase" ? "Increase" :
-                       template.type === "boolean" ? "Boolean" : "Event"}
+                      {template.type === "reduce" ? (isPT ? "Reduzir" : "Reduce") :
+                       template.type === "increase" ? (isPT ? "Aumentar" : "Increase") :
+                       template.type === "boolean" ? (isPT ? "Sim/Não" : "Boolean") :
+                       (isPT ? "Evento" : "Event")}
                     </span>
                   </Button>
                 ))}
@@ -217,7 +243,7 @@ export const TrackerEditDialog = ({
           <div className="space-y-4 py-2">
             {/* Icon Selection */}
             <div className="space-y-2">
-              <Label>Icon</Label>
+              <Label>{isPT ? "Ícone" : "Icon"}</Label>
               <div className="flex flex-wrap gap-1">
                 {TRACKER_ICONS.map(icon => (
                   <Button
@@ -239,7 +265,7 @@ export const TrackerEditDialog = ({
               <Label htmlFor="name">{t.trackers.name} *</Label>
               <Input
                 id="name"
-                placeholder="Ex: Meditation"
+                placeholder={isPT ? "Ex: Meditação" : "Ex: Meditation"}
                 value={formData.name}
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
               />
@@ -251,7 +277,6 @@ export const TrackerEditDialog = ({
               <Select
                 value={formData.type}
                 onValueChange={(value: TrackerType) => {
-                  // Auto-set inputMode based on type
                   let newInputMode = formData.inputMode;
                   if (value === "boolean") newInputMode = "binary";
                   else if (value === "event") newInputMode = "incremental";
@@ -262,11 +287,11 @@ export const TrackerEditDialog = ({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="reduce">⬇️ Reduce</SelectItem>
-                  <SelectItem value="increase">⬆️ Increase</SelectItem>
-                  <SelectItem value="boolean">✅ Boolean</SelectItem>
-                  <SelectItem value="event">📌 Event</SelectItem>
-                  <SelectItem value="neutral">➖ Neutral</SelectItem>
+                  <SelectItem value="reduce">⬇️ {isPT ? "Reduzir" : "Reduce"}</SelectItem>
+                  <SelectItem value="increase">⬆️ {isPT ? "Aumentar" : "Increase"}</SelectItem>
+                  <SelectItem value="boolean">✅ {isPT ? "Sim/Não" : "Boolean"}</SelectItem>
+                  <SelectItem value="event">📌 {isPT ? "Evento" : "Event"}</SelectItem>
+                  <SelectItem value="neutral">➖ {isPT ? "Neutro" : "Neutral"}</SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">{typeDescriptions[formData.type]}</p>
@@ -274,7 +299,7 @@ export const TrackerEditDialog = ({
 
             {/* Input Mode */}
             <div className="space-y-2">
-              <Label>Input Mode</Label>
+              <Label>{isPT ? "Modo de registo" : "Input Mode"}</Label>
               <Select
                 value={formData.inputMode}
                 onValueChange={(value: TrackerInputMode) => setFormData(prev => ({ ...prev, inputMode: value }))}
@@ -283,17 +308,17 @@ export const TrackerEditDialog = ({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="binary">✅ Binary (done/not done)</SelectItem>
-                  <SelectItem value="fixedAmount">🎯 Fixed amount (1 click = goal)</SelectItem>
-                  <SelectItem value="incremental">➕ Incremental (+1 per click)</SelectItem>
-                  <SelectItem value="manualAmount">✏️ Manual (enter value)</SelectItem>
+                  <SelectItem value="binary">✅ {isPT ? "Binário (feito/não feito)" : "Binary (done/not done)"}</SelectItem>
+                  <SelectItem value="fixedAmount">🎯 {isPT ? "Quantidade fixa (1 clique = meta)" : "Fixed amount (1 click = goal)"}</SelectItem>
+                  <SelectItem value="incremental">➕ {isPT ? "Incremental (+1 por clique)" : "Incremental (+1 per click)"}</SelectItem>
+                  <SelectItem value="manualAmount">✏️ {isPT ? "Manual (introduzir valor)" : "Manual (enter value)"}</SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">
-                {formData.inputMode === "binary" && "One click marks day complete"}
-                {formData.inputMode === "fixedAmount" && "One click logs daily goal"}
-                {formData.inputMode === "incremental" && "Each click adds +1 to timeline"}
-                {formData.inputMode === "manualAmount" && "Opens field for custom value"}
+                {formData.inputMode === "binary" && (isPT ? "Um clique marca o dia como concluído" : "One click marks day complete")}
+                {formData.inputMode === "fixedAmount" && (isPT ? "Um clique regista a meta diária" : "One click logs daily goal")}
+                {formData.inputMode === "incremental" && (isPT ? "Cada clique adiciona +1 à timeline" : "Each click adds +1 to timeline")}
+                {formData.inputMode === "manualAmount" && (isPT ? "Abre campo para valor personalizado" : "Opens field for custom value")}
               </p>
             </div>
 
@@ -304,7 +329,7 @@ export const TrackerEditDialog = ({
                   <Label htmlFor="unitSingular">{t.trackers.unitSingular}</Label>
                   <Input
                     id="unitSingular"
-                    placeholder={formData.inputMode === "fixedAmount" ? "Ex: minute" : formData.inputMode === "incremental" ? "Ex: unit" : "Ex: minute"}
+                    placeholder={isPT ? "Ex: minuto" : "Ex: minute"}
                     value={formData.unitSingular}
                     onChange={(e) => setFormData(prev => ({ ...prev, unitSingular: e.target.value }))}
                   />
@@ -313,7 +338,7 @@ export const TrackerEditDialog = ({
                   <Label htmlFor="unitPlural">{t.trackers.unitPlural}</Label>
                   <Input
                     id="unitPlural"
-                    placeholder={formData.inputMode === "fixedAmount" ? "Ex: minutes" : formData.inputMode === "incremental" ? "Ex: units" : "Ex: minutes"}
+                    placeholder={isPT ? "Ex: minutos" : "Ex: minutes"}
                     value={formData.unitPlural}
                     onChange={(e) => setFormData(prev => ({ ...prev, unitPlural: e.target.value }))}
                   />
@@ -321,7 +346,7 @@ export const TrackerEditDialog = ({
               </div>
             )}
 
-            {/* Baseline and Goal - hide for boolean and event */}
+            {/* Baseline and Goal */}
             {!["boolean", "event"].includes(formData.type) && (
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -333,7 +358,7 @@ export const TrackerEditDialog = ({
                     value={formData.baseline}
                     onChange={(e) => setFormData(prev => ({ ...prev, baseline: e.target.value }))}
                   />
-                  <p className="text-xs text-muted-foreground">0 is valid</p>
+                  <p className="text-xs text-muted-foreground">{isPT ? "0 é válido" : "0 is valid"}</p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="dailyGoal">{t.trackers.dailyGoal}</Label>
@@ -341,11 +366,11 @@ export const TrackerEditDialog = ({
                     id="dailyGoal"
                     type="number"
                     min="0"
-                    placeholder="Optional"
+                    placeholder={isPT ? "Opcional" : "Optional"}
                     value={formData.dailyGoal}
                     onChange={(e) => setFormData(prev => ({ ...prev, dailyGoal: e.target.value }))}
                   />
-                  <p className="text-xs text-muted-foreground">Empty = no goal</p>
+                  <p className="text-xs text-muted-foreground">{isPT ? "Vazio = sem meta" : "Empty = no goal"}</p>
                 </div>
               </div>
             )}
@@ -361,15 +386,15 @@ export const TrackerEditDialog = ({
                 onChange={(e) => setFormData(prev => ({ ...prev, valuePerUnit: e.target.value }))}
               />
               <p className="text-xs text-muted-foreground">
-                {formData.type === "event" 
-                  ? "Negative = expense (e.g., -3.00 for coffee)"
-                  : "0 = no financial impact"}
+                {formData.type === "event"
+                  ? (isPT ? "Negativo = despesa (ex.: -3.00 para café)" : "Negative = expense (e.g., -3.00 for coffee)")
+                  : (isPT ? "0 = sem impacto financeiro" : "0 = no financial impact")}
               </p>
             </div>
 
             {/* Frequency */}
             <div className="space-y-2">
-              <Label>Frequency</Label>
+              <Label>{isPT ? "Frequência" : "Frequency"}</Label>
               <Select
                 value={formData.frequency}
                 onValueChange={(value: TrackerFrequency) => setFormData(prev => ({ ...prev, frequency: value }))}
@@ -378,10 +403,10 @@ export const TrackerEditDialog = ({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="daily">Daily</SelectItem>
-                  <SelectItem value="weekly">Weekly</SelectItem>
-                  <SelectItem value="specific_days">Specific days</SelectItem>
-                  <SelectItem value="flex">Flexible</SelectItem>
+                  <SelectItem value="daily">{isPT ? "Diário" : "Daily"}</SelectItem>
+                  <SelectItem value="weekly">{isPT ? "Semanal" : "Weekly"}</SelectItem>
+                  <SelectItem value="specific_days">{isPT ? "Dias específicos" : "Specific days"}</SelectItem>
+                  <SelectItem value="flex">{isPT ? "Flexível" : "Flexible"}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -389,7 +414,7 @@ export const TrackerEditDialog = ({
             {/* Specific Days */}
             {formData.frequency === "specific_days" && (
               <div className="space-y-2">
-                <Label>Days</Label>
+                <Label>{isPT ? "Dias" : "Days"}</Label>
                 <div className="flex gap-1">
                   {WEEKDAYS.map(day => (
                     <Button
@@ -409,7 +434,7 @@ export const TrackerEditDialog = ({
 
             {/* Scheduled Time */}
             <div className="space-y-2">
-              <Label htmlFor="scheduledTime">Time (optional)</Label>
+              <Label htmlFor="scheduledTime">{isPT ? "Horário (opcional)" : "Time (optional)"}</Label>
               <Input
                 id="scheduledTime"
                 type="time"
@@ -417,7 +442,7 @@ export const TrackerEditDialog = ({
                 onChange={(e) => setFormData(prev => ({ ...prev, scheduledTime: e.target.value }))}
               />
               <p className="text-xs text-muted-foreground">
-                Set reminder time
+                {isPT ? "Define horário do lembrete" : "Set reminder time"}
               </p>
             </div>
 
@@ -425,8 +450,10 @@ export const TrackerEditDialog = ({
             {isEditing && (
               <div className="flex items-center justify-between rounded-xl border border-border/50 p-4">
                 <div>
-                  <Label className="font-medium">Active</Label>
-                  <p className="text-xs text-muted-foreground">Deactivate to pause without deleting</p>
+                  <Label className="font-medium">{isPT ? "Ativo" : "Active"}</Label>
+                  <p className="text-xs text-muted-foreground">
+                    {isPT ? "Desativar para pausar sem eliminar" : "Deactivate to pause without deleting"}
+                  </p>
                 </div>
                 <Switch
                   checked={formData.active}
@@ -440,7 +467,7 @@ export const TrackerEditDialog = ({
         <DialogFooter className="flex-col gap-2 sm:flex-row">
           {isEditing && onDelete && (
             <Button variant="destructive" onClick={onDelete} className="sm:mr-auto">
-              Delete
+              {t.habits.delete}
             </Button>
           )}
           <Button variant="outline" onClick={() => onOpenChange(false)}>
