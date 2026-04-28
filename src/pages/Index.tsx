@@ -80,6 +80,13 @@ const Index = () => {
   const [showModeSelector, setShowModeSelector] = useState(false);
   const [showMyHabits, setShowMyHabits] = useState(false);
   const [selectedMetricId, setSelectedMetricId] = useState<string | null>(null);
+  const [showFirstSession, setShowFirstSession] = useState<boolean>(() => {
+    try { return localStorage.getItem("become-first-session") === "1"; } catch { return false; }
+  });
+  const dismissFirstSession = useCallback(() => {
+    try { localStorage.removeItem("become-first-session"); } catch { /* ignore */ }
+    setShowFirstSession(false);
+  }, []);
 
   // Auth guard
   useEffect(() => {
