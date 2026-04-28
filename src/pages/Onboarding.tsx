@@ -522,7 +522,8 @@ const Onboarding = () => {
               locale={accountLocale}
               identityLabel={identityLabel}
               focusLabels={focusLabels}
-              habitCount={habits.length + (customHabit.trim() ? 1 : 0)}
+              habitNames={selectedHabitNames}
+              metricNames={selectedMetricNames}
               firstHabitName={firstHabitName}
               tagline={tagline}
               onStart={handleComplete}
