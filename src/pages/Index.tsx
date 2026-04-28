@@ -397,6 +397,7 @@ const Index = () => {
             onPrimaryAction={
               sortedTodaySimple.length > 0
                 ? () => {
+                    track("journeyhero_cta_clicked", { habitsScheduled: sortedTodaySimple.length });
                     if (showFirstSession) dismissFirstSession();
                     const first = sortedTodaySimple.find(h => !isSimpleDone(h.id));
                     if (first) {
