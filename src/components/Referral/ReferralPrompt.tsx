@@ -18,19 +18,32 @@ interface ReferralPromptProps {
 export const ReferralPrompt = ({ open, onClose, variant = "milestone" }: ReferralPromptProps) => {
   const [copied, setCopied] = useState(false);
   const link = buildReferralLink();
+  const headlineVariant = useMemo(
+    () => pickVariant(REFERRAL_HEADLINE_TEST, REFERRAL_HEADLINE_VARIANTS),
+    [],
+  );
 
   useEffect(() => {
-    if (open) track("referral_prompt_shown", { variant });
-  }, [open, variant]);
+    if (open) {
+      track("referral_prompt_shown", {
+        variant,
+        testKey: REFERRAL_HEADLINE_TEST,
+        variant_id: headlineVariant.id,
+      });
+    }
+  }, [open, variant, headlineVariant.id]);
 
   if (!open) return null;
+
+  const abProps = { testKey: REFERRAL_HEADLINE_TEST, variant: headlineVariant.id };
 
   const handleCopy = async () => {
     const ok = await copyToClipboard(link);
     if (ok) {
       setCopied(true);
-      track("referral_link_copied", { variant });
+      track("referral_link_copied", { variant, ...abProps });
       incInvitesSent("copy");
+      track("referral_invite_sent", { channel: "copy", ...abProps });
       setTimeout(() => setCopied(false), 1800);
     }
   };
@@ -41,11 +54,14 @@ export const ReferralPrompt = ({ open, onClose, variant = "milestone" }: Referra
       text: getInviteMessage(),
       url: link,
     });
-    if (ok) incInvitesSent("native_share");
+    if (ok) {
+      incInvitesSent("native_share");
+      track("referral_invite_sent", { channel: "native_share", ...abProps });
+    }
   };
 
   const dismiss = () => {
-    track("referral_prompt_dismissed", { variant });
+    track("referral_prompt_dismissed", { variant, ...abProps });
     onClose();
   };
 
