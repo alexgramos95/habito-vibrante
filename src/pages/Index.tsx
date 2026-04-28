@@ -356,6 +356,37 @@ const Index = () => {
           </div>
         )}
 
+        {/* First-session activation — fires once after onboarding */}
+        {showFirstSession && sortedTodaySimple.length > 0 && (
+          <div
+            className="relative overflow-hidden rounded-2xl border-2 border-primary/40 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-4 animate-in fade-in slide-in-from-top-2 duration-500 shadow-[0_0_40px_hsl(var(--neon-toxic)/0.25)]"
+          >
+            <div className="flex items-start gap-3">
+              <div className="h-10 w-10 shrink-0 flex items-center justify-center bg-primary text-primary-foreground border-2 border-primary shadow-[0_0_24px_hsl(var(--neon-toxic)/0.55)]">
+                <Flame className="h-5 w-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-mono text-[10px] uppercase tracking-widest text-primary mb-0.5">
+                  // Day 1 · Welcome
+                </p>
+                <p className="text-sm font-bold tracking-tight">
+                  One tap to start your streak.
+                </p>
+                <p className="text-xs text-muted-foreground/85 mt-0.5">
+                  Tap your first habit below. That's how everything begins.
+                </p>
+              </div>
+              <button
+                onClick={dismissFirstSession}
+                className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors px-2 py-1"
+                aria-label="Dismiss"
+              >
+                Got it
+              </button>
+            </div>
+          </div>
+        )}
+
         <NotificationSetup />
 
         {/* ═══ Daily Progress Hero ═══ */}
