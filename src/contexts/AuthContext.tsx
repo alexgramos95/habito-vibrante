@@ -384,13 +384,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             // On a fresh SIGNED_IN, force-refetch ALL queries so no cached
             // data from a previous account leaks through.
             try { queryClient.invalidateQueries(); } catch { /* ignore */ }
-            // NOTE: Materialization is now handled by DataContext after checking PRO/cloud status
-            // Download cloud data to sync across devices
-            downloadFromCloud(newSession.access_token).then((success) => {
-              if (success) {
-                console.log('[AUTH] Cloud data synced on sign in');
-              }
-            });
+            // NOTE: Cloud download + onboarding materialization are handled by
+            // DataContext after subscription/PRO status is known. Calling
+            // downloadFromCloud here would race with the materializer and could
+            // overwrite the freshly-created onboarding habits with an empty
+            // cloud snapshot. See: "Onboarding habits/metrics lost on signup".
           }
           setTimeout(() => {
             refreshSubscription(true);
@@ -412,16 +410,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
       
       if (existingSession?.user) {
-        // NOTE: Materialization is now handled by DataContext after checking PRO/cloud status
+        // NOTE: Cloud download + onboarding materialization are handled by
+        // DataContext, which knows the PRO/trial status. Doing it here would
+        // race with materialization and risk overwriting freshly-created
+        // onboarding habits with an empty cloud snapshot.
         console.log('[AUTH] User has existing session');
-        
-        // Download cloud data to sync across devices
-        downloadFromCloud(existingSession.access_token).then((success) => {
-          if (success) {
-            console.log('[AUTH] Cloud data synced on existing session');
-          }
-        });
-        
+
         // Initial subscription check with slight delay
         setTimeout(() => {
           refreshSubscription(true);
