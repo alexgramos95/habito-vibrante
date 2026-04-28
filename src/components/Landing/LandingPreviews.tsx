@@ -259,13 +259,16 @@ const PreviewHabitRow = ({
       ) : (
         <div
           className={cn(
-            "relative flex items-center justify-center w-11 h-11 border-2 shrink-0",
+            "relative flex items-center justify-center w-11 h-11 border-2 shrink-0 transition-all duration-300",
             done
               ? "bg-primary border-primary text-primary-foreground shadow-[0_0_14px_hsl(var(--neon-toxic)/0.55)]"
               : "border-foreground/20 bg-transparent",
           )}
         >
-          <Check className={cn("h-5 w-5 stroke-[3]", done ? "opacity-100" : "opacity-0")} />
+          <Check className={cn(
+            "h-5 w-5 stroke-[3] transition-all duration-300",
+            done ? "opacity-100 scale-100 animate-completion-pop" : "opacity-0 scale-75",
+          )} />
         </div>
       )}
 
