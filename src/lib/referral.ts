@@ -79,11 +79,11 @@ export const consumePendingRefForReward = (): { code: string } | null => {
 export const getInvitesSent = (): number => {
   try { return parseInt(localStorage.getItem(SENT_KEY) || "0", 10) || 0; } catch { return 0; }
 };
-export const incInvitesSent = (channel: string) => {
+export const incInvitesSent = (channel: string, extra?: Record<string, any>) => {
   try {
     const n = getInvitesSent() + 1;
     localStorage.setItem(SENT_KEY, String(n));
-    track("referral_invite_sent" as any, { channel, total: n });
+    track("referral_invite_sent" as any, { channel, total: n, ...(extra || {}) });
   } catch { /* ignore */ }
 };
 
