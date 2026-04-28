@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { Surface } from "@/components/ui/surface";
 
 interface KPICardProps {
   title: string;
@@ -12,7 +13,8 @@ interface KPICardProps {
 
 /**
  * KPICard — Arcade Overdrive
- * Tactile shadow, mono labels, neon values.
+ * Sits on top of the unified Surface primitive.
+ * Variant controls the value/icon accent only — base card geometry is shared.
  */
 export const KPICard = ({
   title,
@@ -22,35 +24,30 @@ export const KPICard = ({
   variant = "default",
   className,
 }: KPICardProps) => {
-  const accent =
-    variant === "primary"
-      ? "border-primary/50 shadow-[4px_4px_0_0_hsl(var(--neon-ultra)/0.4)]"
-      : variant === "success"
-        ? "border-success/50 shadow-[4px_4px_0_0_hsl(var(--success)/0.3)]"
-        : variant === "warning"
-          ? "border-warning/50 shadow-[4px_4px_0_0_hsl(var(--warning)/0.3)]"
-          : "border-foreground/15 shadow-[4px_4px_0_0_hsl(var(--neon-ultra)/0.2)]";
+  // Surface tone — keep neutral for non-primary variants so KPI grids breathe.
+  const tone =
+    variant === "primary" ? "active" :
+    variant === "warning" ? "warning" :
+    variant === "success" ? "accent" :
+    "default";
 
   const valueColor =
-    variant === "primary"
-      ? "text-primary"
-      : variant === "success"
-        ? "text-success"
-        : variant === "warning"
-          ? "text-warning"
-          : "text-foreground";
+    variant === "primary" ? "text-primary" :
+    variant === "success" ? "text-success" :
+    variant === "warning" ? "text-warning" :
+    "text-foreground";
 
   return (
-    <div className={cn("relative bg-card border-2 p-4 transition-all", accent, className)}>
+    <Surface tone={tone} size="default" className={className}>
       <div className="flex items-center justify-between mb-3">
         <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
           {title}
         </span>
-        <div className={cn("flex h-8 w-8 items-center justify-center border", valueColor, "border-current/30")}>
+        <div className={cn("flex h-8 w-8 items-center justify-center rounded-lg border border-current/30", valueColor)}>
           {icon}
         </div>
       </div>
-      <p className={cn("font-black italic uppercase tracking-tighter text-3xl md:text-4xl leading-none", valueColor)}>
+      <p className={cn("font-black italic uppercase tracking-tighter text-3xl md:text-4xl leading-none tabular-nums", valueColor)}>
         {value}
       </p>
       {subtitle && (
@@ -58,6 +55,6 @@ export const KPICard = ({
           {subtitle}
         </p>
       )}
-    </div>
+    </Surface>
   );
 };
