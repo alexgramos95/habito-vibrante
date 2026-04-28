@@ -571,14 +571,13 @@ const StepLanguage = ({
   <div className="flex-1 flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-300">
     <div className="text-center pt-4 pb-6">
       <p className="font-mono text-[10px] uppercase tracking-widest text-primary mb-3">
-        // Language · Idioma
+        // Step 6 · Language
       </p>
       <h1 className="type-display text-3xl sm:text-4xl mb-2 leading-tight">
-        Choose your language<br />
-        <span className="text-muted-foreground/70">Escolhe o teu idioma</span>
+        Choose your language
       </h1>
       <p className="text-sm text-muted-foreground/80">
-        We tailor everything to it · Adaptamos tudo a ele
+        We tailor everything to it.
       </p>
     </div>
 
