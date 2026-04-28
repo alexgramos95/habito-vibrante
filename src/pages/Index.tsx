@@ -29,6 +29,8 @@ import { getContextualHabitFeedback, getHabitFeedbackEnabled } from "@/logic/hab
 import { MotivationCard } from "@/components/Dashboard/MotivationCard";
 import { getDailyMotivation } from "@/logic/dailyMotivation";
 import { JourneyHero } from "@/components/Dashboard/JourneyHero";
+import { ReferralPrompt } from "@/components/Referral/ReferralPrompt";
+import { hasSeenReferralPrompt, markReferralPromptSeen } from "@/lib/referral";
 import { track, trackOnce, checkReturnEvents } from "@/hooks/useAnalytics";
 // HabitCoachTip removed — coach is now on the detail page
 
@@ -85,6 +87,7 @@ const Index = () => {
   const [showFirstSession, setShowFirstSession] = useState<boolean>(() => {
     try { return localStorage.getItem("become-first-session") === "1"; } catch { return false; }
   });
+  const [showReferralPrompt, setShowReferralPrompt] = useState(false);
   const dismissFirstSession = useCallback(() => {
     try { localStorage.removeItem("become-first-session"); } catch { /* ignore */ }
     setShowFirstSession(false);
@@ -112,7 +115,26 @@ const Index = () => {
   useEffect(() => {
     track("app_open", { route: "/app" });
     checkReturnEvents();
-  }, []);
+
+    // Referee XP reward — if user signed up via ?ref= link, grant once.
+    import("@/lib/referral").then(({ consumePendingRefForReward, REFERRAL_XP_REWARD }) => {
+      const reward = consumePendingRefForReward();
+      if (reward) {
+        setState(prev => ({
+          ...prev,
+          gamification: {
+            ...prev.gamification,
+            pontos: (prev.gamification?.pontos || 0) + REFERRAL_XP_REWARD,
+          },
+        }));
+        toast({
+          title: `+${REFERRAL_XP_REWARD} XP`,
+          description: "Welcome bonus from your invite. Build something.",
+          duration: 3500,
+        });
+      }
+    });
+  }, [setState, toast]);
 
   // --- Derived data ---
   const today = format(new Date(), "yyyy-MM-dd");
@@ -258,8 +280,18 @@ const Index = () => {
           toast({ title, description, duration: 2200 });
         }
       }
+
+      // Referral milestone: 3 lifetime habit completions → invite prompt (once)
+      if (!hasSeenReferralPrompt()) {
+        const lifetimeWins = (state.dailyLogs?.filter(l => l.done).length || 0) + 1;
+        if (lifetimeWins >= 3) {
+          markReferralPromptSeen();
+          // small delay so the completion toast is felt first
+          setTimeout(() => setShowReferralPrompt(true), 900);
+        }
+      }
     }
-  }, [isSimpleDone, today, setState, state.habits, toast, showFirstSession, dismissFirstSession]);
+  }, [isSimpleDone, today, setState, state.habits, state.dailyLogs, toast, showFirstSession, dismissFirstSession]);
 
   const handleAddMetricEntry = useCallback((habitId: string, qty: number, ts?: string) => {
     setState(prev => addTrackerEntry(prev, habitId, qty, undefined, ts));
@@ -702,6 +734,9 @@ const Index = () => {
 
       {/* ═══ Paywall ═══ */}
       <PaywallModal open={showPaywall} onClose={() => setShowPaywall(false)} onUpgrade={upgradeToPro} trialDaysLeft={trialStatus.daysRemaining} />
+
+      {/* ═══ Referral milestone prompt ═══ */}
+      <ReferralPrompt open={showReferralPrompt} onClose={() => setShowReferralPrompt(false)} variant="milestone" />
     </div>
   );
 };

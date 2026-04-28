@@ -30,7 +30,17 @@ export type AnalyticsEvent =
   | 'journeyhero_cta_clicked'
   | 'weekly_recap_seen'
   | 'weekly_recap_cta_clicked'
-  | 'app_open';
+  | 'app_open'
+  // Referral / viral loops
+  | 'referral_prompt_shown'
+  | 'referral_prompt_dismissed'
+  | 'referral_invite_sent'
+  | 'referral_link_copied'
+  | 'referral_link_visited'
+  | 'referral_redeemed'
+  | 'share_card_opened'
+  | 'share_card_shared'
+  | 'share_card_downloaded';
 
 interface AnalyticsPayload {
   event: AnalyticsEvent;
