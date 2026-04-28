@@ -14,11 +14,13 @@ import {
 } from "@/hooks/useAnalytics";
 import {
   computeVariantStats,
-  REFERRAL_HEADLINE_TEST, REFERRAL_HEADLINE_VARIANTS,
-  SHARE_HEADLINE_TEST, SHARE_HEADLINE_VARIANTS,
-  type VariantStats,
+  REFERRAL_HEADLINE_TEST, REFERRAL_HEADLINE_NAME, REFERRAL_HEADLINE_VARIANTS,
+  SHARE_HEADLINE_TEST, SHARE_HEADLINE_NAME, SHARE_HEADLINE_VARIANTS,
+  CONFIDENCE_LABEL, getHistory, maybeAutoPromote, getPromotedVariant,
+  SUGGESTED_TESTS,
+  type VariantStats, type Confidence, type HistoryEntry,
 } from "@/lib/abTest";
-import { Trophy } from "lucide-react";
+import { Trophy, History, FlaskConical, Zap } from "lucide-react";
 
 /* =============================================================
    RETENTION INSIGHTS — local-first analytics dashboard
