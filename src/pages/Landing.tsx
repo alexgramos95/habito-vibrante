@@ -437,29 +437,29 @@ const Landing = () => {
       </section>
 
       {/* ===== FAQ ===== */}
-      <section id="faq" className="py-24 md:py-32 border-t border-foreground/[0.06]">
+      <section id="faq" className="py-28 md:py-36 border-t border-foreground/[0.05]">
         <div className="container max-w-3xl px-6">
-          <div className="text-center mb-12">
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary mb-4">// FAQ</p>
-            <h2 className="text-3xl md:text-5xl font-black italic uppercase tracking-tight leading-[1]">
+          <div className="text-center mb-14">
+            <p className="type-eyebrow text-primary mb-5">// FAQ</p>
+            <h2 className="type-display text-3xl md:text-5xl">
               Questions, answered.
             </h2>
           </div>
 
-          <div className="border-t border-foreground/[0.08]">
+          <div className="border-t border-foreground/[0.07]">
             {faqs.map((faq, i) => (
-              <div key={i} className="border-b border-foreground/[0.08]">
+              <div key={i} className="border-b border-foreground/[0.07]">
                 <button
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className="w-full flex items-center justify-between py-6 text-left group"
+                  className="w-full flex items-center justify-between py-7 text-left group"
                 >
-                  <span className="font-semibold text-base md:text-lg pr-4 group-hover:text-primary transition-colors">
+                  <span className="font-semibold text-base md:text-lg pr-4 group-hover:text-primary transition-colors duration-200 tracking-tight">
                     {faq.q}
                   </span>
-                  <ChevronDown className={cn("h-5 w-5 text-muted-foreground shrink-0 transition-transform", openFaq === i && "rotate-180 text-primary")} />
+                  <ChevronDown className={cn("h-5 w-5 text-muted-foreground shrink-0 transition-all duration-300", openFaq === i && "rotate-180 text-primary")} />
                 </button>
                 {openFaq === i && (
-                  <div className="pb-6 text-muted-foreground leading-relaxed animate-fade-in">
+                  <div className="pb-7 type-body text-muted-foreground animate-fade-in max-w-[60ch]">
                     {faq.a}
                   </div>
                 )}
@@ -470,7 +470,7 @@ const Landing = () => {
       </section>
 
       {/* ===== FINAL CTA ===== */}
-      <section className="py-32 md:py-40 border-t border-foreground/[0.06] relative overflow-hidden">
+      <section className="py-32 md:py-44 border-t border-foreground/[0.05] relative overflow-hidden">
         <div
           className="absolute inset-0 pointer-events-none opacity-60"
           style={{
@@ -478,16 +478,16 @@ const Landing = () => {
           }}
         />
         <div className="container max-w-3xl px-6 text-center relative z-10">
-          <h2 className="text-4xl md:text-7xl font-black italic uppercase tracking-tight leading-[0.95] mb-8">
+          <h2 className="type-display text-4xl md:text-7xl mb-10">
             Your future self<br />
-            <span className="text-primary" style={{ textShadow: "0 0 50px hsl(var(--neon-toxic) / 0.5)" }}>
+            <span className="text-primary" style={{ textShadow: "0 0 50px hsl(var(--neon-toxic) / 0.55)" }}>
               starts today.
             </span>
           </h2>
-          <p className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto">
+          <p className="type-body text-lg text-muted-foreground mb-12 max-w-xl mx-auto">
             7 days free. No credit card. Cancel anytime.
           </p>
-          <Button size="lg" onClick={handleStartTrial} className="gap-2 px-12">
+          <Button size="lg" onClick={handleStartTrial} className="press-tactile gap-2 px-12">
             Start Free
             <ArrowRight className="h-5 w-5" />
           </Button>
