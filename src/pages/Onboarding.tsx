@@ -89,34 +89,34 @@ type HabitPreset = {
 
 const HABIT_SUGGESTIONS: Record<string, HabitPreset[]> = {
   habits: [
-    { id: "plan-tomorrow", name: { "en-US": "Plan tomorrow tonight", "pt-PT": "Planear o amanhã esta noite" }, icon: BookOpen, emoji: "🗒️", category: "productivity", color: "#8b5cf6" },
-    { id: "no-phone-am",   name: { "en-US": "No phone first hour",   "pt-PT": "Sem telemóvel na 1ª hora" },     icon: Sun,      emoji: "📵", category: "focus",        color: "#f59e0b" },
-    { id: "read-5",        name: { "en-US": "Read 5 pages",          "pt-PT": "Ler 5 páginas" },                icon: BookOpen, emoji: "📚", category: "productivity", color: "#3b82f6" },
+    { id: "plan-tomorrow", name: { "en-US": "Plan tomorrow tonight", "pt-PT": "Planear o dia seguinte" }, icon: BookOpen, emoji: "🗒️", category: "productivity", color: "#8b5cf6" },
+    { id: "no-phone-am",   name: { "en-US": "No phone first hour",   "pt-PT": "Sem telemóvel ao acordar" }, icon: Sun,      emoji: "📵", category: "focus",        color: "#f59e0b" },
+    { id: "read-daily",    name: { "en-US": "Read daily",            "pt-PT": "Ler diariamente" },          icon: BookOpen, emoji: "📚", category: "productivity", color: "#3b82f6" },
   ],
   fitness: [
-    { id: "walk-10",  name: { "en-US": "10-min walk",   "pt-PT": "Caminhada de 10 min" }, icon: Footprints, emoji: "🚶", category: "fitness", color: "#22c55e" },
-    { id: "stretch",  name: { "en-US": "5-min stretch", "pt-PT": "Alongamentos 5 min" },  icon: Dumbbell,   emoji: "🧘", category: "fitness", color: "#22c55e" },
-    { id: "workout",  name: { "en-US": "Train 30 min",  "pt-PT": "Treinar 30 min" },      icon: Dumbbell,   emoji: "🏋️", category: "fitness", color: "#22c55e" },
+    { id: "walk-10",  name: { "en-US": "10-min walk",   "pt-PT": "Caminhar 10 minutos" }, icon: Footprints, emoji: "🚶", category: "fitness", color: "#22c55e" },
+    { id: "stretch",  name: { "en-US": "5-min stretch", "pt-PT": "Alongar 5 minutos" },   icon: Dumbbell,   emoji: "🧘", category: "fitness", color: "#22c55e" },
+    { id: "workout",  name: { "en-US": "Train 30 min",  "pt-PT": "Treinar 30 minutos" },  icon: Dumbbell,   emoji: "🏋️", category: "fitness", color: "#22c55e" },
   ],
   nutrition: [
-    { id: "water-am", name: { "en-US": "Drink water on waking", "pt-PT": "Beber água ao acordar" },  icon: Droplet, emoji: "💧", category: "health", color: "#06b6d4" },
-    { id: "protein",  name: { "en-US": "Protein with every meal", "pt-PT": "Proteína em cada refeição" }, icon: Heart, emoji: "🍳", category: "health", color: "#ef4444" },
-    { id: "no-snack", name: { "en-US": "No snacking after 9pm", "pt-PT": "Sem snacks depois das 21h" }, icon: Heart, emoji: "🌙", category: "health", color: "#6366f1" },
+    { id: "water-am", name: { "en-US": "Drink water on waking", "pt-PT": "Beber água ao acordar" },     icon: Droplet, emoji: "💧", category: "health", color: "#06b6d4" },
+    { id: "protein",  name: { "en-US": "Protein every meal",    "pt-PT": "Proteína em cada refeição" }, icon: Heart,   emoji: "🍳", category: "health", color: "#ef4444" },
+    { id: "no-snack", name: { "en-US": "No snacks after 9pm",   "pt-PT": "Sem snacks depois das 21h" }, icon: Heart,   emoji: "🌙", category: "health", color: "#6366f1" },
   ],
   productivity: [
-    { id: "deep-work",   name: { "en-US": "Deep work · 90 min",   "pt-PT": "Trabalho profundo · 90 min" }, icon: Target,   emoji: "🎯", category: "productivity", color: "#3b82f6" },
+    { id: "deep-work",   name: { "en-US": "Deep work · 90 min",   "pt-PT": "Foco profundo · 90 min" },     icon: Target,   emoji: "🎯", category: "productivity", color: "#3b82f6" },
     { id: "single-task", name: { "en-US": "One task before email", "pt-PT": "Uma tarefa antes do email" }, icon: BookOpen, emoji: "✅", category: "productivity", color: "#3b82f6" },
     { id: "shutdown",    name: { "en-US": "End-of-day shutdown",  "pt-PT": "Encerrar o dia" },             icon: Moon,     emoji: "🛑", category: "productivity", color: "#64748b" },
   ],
   money: [
-    { id: "save-2",        name: { "en-US": "Save €2 daily",   "pt-PT": "Poupar €2 por dia" },   icon: Banknote,   emoji: "💶", category: "finances", color: "#22c55e" },
-    { id: "no-coffee-out", name: { "en-US": "Skip coffee out", "pt-PT": "Sem café fora de casa" }, icon: Coffee,    emoji: "☕", category: "finances", color: "#a16207" },
-    { id: "track-spend",   name: { "en-US": "Log one expense", "pt-PT": "Registar uma despesa" }, icon: DollarSign, emoji: "📊", category: "finances", color: "#22c55e" },
+    { id: "save-2",        name: { "en-US": "Save €2 daily",   "pt-PT": "Poupar €2 por dia" },     icon: Banknote,   emoji: "💶", category: "finances", color: "#22c55e" },
+    { id: "no-coffee-out", name: { "en-US": "Skip coffee out", "pt-PT": "Café só em casa" },        icon: Coffee,    emoji: "☕", category: "finances", color: "#a16207" },
+    { id: "track-spend",   name: { "en-US": "Log one expense", "pt-PT": "Registar uma despesa" },  icon: DollarSign, emoji: "📊", category: "finances", color: "#22c55e" },
   ],
   reset: [
-    { id: "sleep-12", name: { "en-US": "Sleep before midnight",   "pt-PT": "Dormir antes da meia-noite" }, icon: Moon, emoji: "😴", category: "sleep",       color: "#6366f1" },
-    { id: "wake-same", name: { "en-US": "Wake at the same time",  "pt-PT": "Acordar à mesma hora" },        icon: Sun,  emoji: "🌅", category: "sleep",       color: "#f59e0b" },
-    { id: "breath",   name: { "en-US": "5 min of breathing",      "pt-PT": "5 min de respiração" },         icon: Wind, emoji: "🌬️", category: "mindfulness", color: "#8b5cf6" },
+    { id: "sleep-early", name: { "en-US": "Sleep early",            "pt-PT": "Dormir cedo" },              icon: Moon, emoji: "😴", category: "sleep",       color: "#6366f1" },
+    { id: "wake-same",   name: { "en-US": "Wake at the same time",  "pt-PT": "Acordar à mesma hora" },     icon: Sun,  emoji: "🌅", category: "sleep",       color: "#f59e0b" },
+    { id: "breath",      name: { "en-US": "5 min of breathing",     "pt-PT": "5 minutos a respirar" },     icon: Wind, emoji: "🌬️", category: "mindfulness", color: "#8b5cf6" },
   ],
 };
 
