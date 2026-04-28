@@ -267,7 +267,7 @@ const Index = () => {
     });
     if (!wasDone && habit && result) {
       // Analytics: every completion + first-ever completion (one-shot)
-      track("habit_completed", { habitId, isLate: result.isLate });
+      trackEvent("habit_completed", { habitId, isLate: result.isLate });
       trackOnce("first_habit_completed", "first_habit_completed", { habitId, isLate: result.isLate });
 
       // Late completion → editorial notice; on-time → contextual feedback (if enabled)
