@@ -36,18 +36,16 @@ import { writeOnboardingDraft } from "@/lib/onboardingDraft";
 
 /* =============================================================
    ONBOARDING — Identity Hook → First Win → Commit
-   Localized: PT-PT and EN-US. Internal IDs are stable; labels and
-   materialized record names follow the user's selected app language.
+   Fully bilingual (PT-PT / EN-US). The locale chosen in step 1
+   ("language") drives BOTH the onboarding UI from step 2 onwards
+   AND the names of the materialized habits/metrics. PT users see
+   a fully native experience; EN users see a fully English one.
    ============================================================= */
 
 type Step = "language" | "identity" | "obstacle" | "focus" | "first-win" | "metric" | "commit";
 
 type Bilingual = { "pt-PT": string; "en-US": string };
 const pick = (b: Bilingual, locale: Locale) => b[locale] ?? b["en-US"];
-
-/** Onboarding UI is ALWAYS English. Language picked here only sets the
- *  account language used for materialized habit/metric names + app locale. */
-const UI_LOCALE: Locale = "en-US";
 
 /* ---------- IDENTITY ---------- */
 const IDENTITY_OPTIONS: { id: string; label: Bilingual; desc: Bilingual; icon: any }[] = [
@@ -91,34 +89,34 @@ type HabitPreset = {
 
 const HABIT_SUGGESTIONS: Record<string, HabitPreset[]> = {
   habits: [
-    { id: "plan-tomorrow", name: { "en-US": "Plan tomorrow tonight", "pt-PT": "Planear o amanhã esta noite" }, icon: BookOpen, emoji: "🗒️", category: "productivity", color: "#8b5cf6" },
-    { id: "no-phone-am",   name: { "en-US": "No phone first hour",   "pt-PT": "Sem telemóvel na 1ª hora" },     icon: Sun,      emoji: "📵", category: "focus",        color: "#f59e0b" },
-    { id: "read-5",        name: { "en-US": "Read 5 pages",          "pt-PT": "Ler 5 páginas" },                icon: BookOpen, emoji: "📚", category: "productivity", color: "#3b82f6" },
+    { id: "plan-tomorrow", name: { "en-US": "Plan tomorrow tonight", "pt-PT": "Planear o dia seguinte" }, icon: BookOpen, emoji: "🗒️", category: "productivity", color: "#8b5cf6" },
+    { id: "no-phone-am",   name: { "en-US": "No phone first hour",   "pt-PT": "Sem telemóvel ao acordar" }, icon: Sun,      emoji: "📵", category: "focus",        color: "#f59e0b" },
+    { id: "read-daily",    name: { "en-US": "Read daily",            "pt-PT": "Ler diariamente" },          icon: BookOpen, emoji: "📚", category: "productivity", color: "#3b82f6" },
   ],
   fitness: [
-    { id: "walk-10",  name: { "en-US": "10-min walk",   "pt-PT": "Caminhada de 10 min" }, icon: Footprints, emoji: "🚶", category: "fitness", color: "#22c55e" },
-    { id: "stretch",  name: { "en-US": "5-min stretch", "pt-PT": "Alongamentos 5 min" },  icon: Dumbbell,   emoji: "🧘", category: "fitness", color: "#22c55e" },
-    { id: "workout",  name: { "en-US": "Train 30 min",  "pt-PT": "Treinar 30 min" },      icon: Dumbbell,   emoji: "🏋️", category: "fitness", color: "#22c55e" },
+    { id: "walk-10",  name: { "en-US": "10-min walk",   "pt-PT": "Caminhar 10 minutos" }, icon: Footprints, emoji: "🚶", category: "fitness", color: "#22c55e" },
+    { id: "stretch",  name: { "en-US": "5-min stretch", "pt-PT": "Alongar 5 minutos" },   icon: Dumbbell,   emoji: "🧘", category: "fitness", color: "#22c55e" },
+    { id: "workout",  name: { "en-US": "Train 30 min",  "pt-PT": "Treinar 30 minutos" },  icon: Dumbbell,   emoji: "🏋️", category: "fitness", color: "#22c55e" },
   ],
   nutrition: [
-    { id: "water-am", name: { "en-US": "Drink water on waking", "pt-PT": "Beber água ao acordar" },  icon: Droplet, emoji: "💧", category: "health", color: "#06b6d4" },
-    { id: "protein",  name: { "en-US": "Protein with every meal", "pt-PT": "Proteína em cada refeição" }, icon: Heart, emoji: "🍳", category: "health", color: "#ef4444" },
-    { id: "no-snack", name: { "en-US": "No snacking after 9pm", "pt-PT": "Sem snacks depois das 21h" }, icon: Heart, emoji: "🌙", category: "health", color: "#6366f1" },
+    { id: "water-am", name: { "en-US": "Drink water on waking", "pt-PT": "Beber água ao acordar" },     icon: Droplet, emoji: "💧", category: "health", color: "#06b6d4" },
+    { id: "protein",  name: { "en-US": "Protein every meal",    "pt-PT": "Proteína em cada refeição" }, icon: Heart,   emoji: "🍳", category: "health", color: "#ef4444" },
+    { id: "no-snack", name: { "en-US": "No snacks after 9pm",   "pt-PT": "Sem snacks depois das 21h" }, icon: Heart,   emoji: "🌙", category: "health", color: "#6366f1" },
   ],
   productivity: [
-    { id: "deep-work",   name: { "en-US": "Deep work · 90 min",   "pt-PT": "Trabalho profundo · 90 min" }, icon: Target,   emoji: "🎯", category: "productivity", color: "#3b82f6" },
+    { id: "deep-work",   name: { "en-US": "Deep work · 90 min",   "pt-PT": "Foco profundo · 90 min" },     icon: Target,   emoji: "🎯", category: "productivity", color: "#3b82f6" },
     { id: "single-task", name: { "en-US": "One task before email", "pt-PT": "Uma tarefa antes do email" }, icon: BookOpen, emoji: "✅", category: "productivity", color: "#3b82f6" },
     { id: "shutdown",    name: { "en-US": "End-of-day shutdown",  "pt-PT": "Encerrar o dia" },             icon: Moon,     emoji: "🛑", category: "productivity", color: "#64748b" },
   ],
   money: [
-    { id: "save-2",        name: { "en-US": "Save €2 daily",   "pt-PT": "Poupar €2 por dia" },   icon: Banknote,   emoji: "💶", category: "finances", color: "#22c55e" },
-    { id: "no-coffee-out", name: { "en-US": "Skip coffee out", "pt-PT": "Sem café fora de casa" }, icon: Coffee,    emoji: "☕", category: "finances", color: "#a16207" },
-    { id: "track-spend",   name: { "en-US": "Log one expense", "pt-PT": "Registar uma despesa" }, icon: DollarSign, emoji: "📊", category: "finances", color: "#22c55e" },
+    { id: "save-2",        name: { "en-US": "Save €2 daily",   "pt-PT": "Poupar €2 por dia" },     icon: Banknote,   emoji: "💶", category: "finances", color: "#22c55e" },
+    { id: "no-coffee-out", name: { "en-US": "Skip coffee out", "pt-PT": "Café só em casa" },        icon: Coffee,    emoji: "☕", category: "finances", color: "#a16207" },
+    { id: "track-spend",   name: { "en-US": "Log one expense", "pt-PT": "Registar uma despesa" },  icon: DollarSign, emoji: "📊", category: "finances", color: "#22c55e" },
   ],
   reset: [
-    { id: "sleep-12", name: { "en-US": "Sleep before midnight",   "pt-PT": "Dormir antes da meia-noite" }, icon: Moon, emoji: "😴", category: "sleep",       color: "#6366f1" },
-    { id: "wake-same", name: { "en-US": "Wake at the same time",  "pt-PT": "Acordar à mesma hora" },        icon: Sun,  emoji: "🌅", category: "sleep",       color: "#f59e0b" },
-    { id: "breath",   name: { "en-US": "5 min of breathing",      "pt-PT": "5 min de respiração" },         icon: Wind, emoji: "🌬️", category: "mindfulness", color: "#8b5cf6" },
+    { id: "sleep-early", name: { "en-US": "Sleep early",            "pt-PT": "Dormir cedo" },              icon: Moon, emoji: "😴", category: "sleep",       color: "#6366f1" },
+    { id: "wake-same",   name: { "en-US": "Wake at the same time",  "pt-PT": "Acordar à mesma hora" },     icon: Sun,  emoji: "🌅", category: "sleep",       color: "#f59e0b" },
+    { id: "breath",      name: { "en-US": "5 min of breathing",     "pt-PT": "5 minutos a respirar" },     icon: Wind, emoji: "🌬️", category: "mindfulness", color: "#8b5cf6" },
   ],
 };
 
@@ -133,12 +131,13 @@ type MetricPreset = {
 };
 
 const METRIC_SUGGESTIONS: MetricPreset[] = [
-  { id: "water",     name: { "en-US": "Water",     "pt-PT": "Água" },        emoji: "💧", type: "increase", unit: { "en-US": "glass", "pt-PT": "copo" }, unitPlural: { "en-US": "glasses", "pt-PT": "copos" } },
-  { id: "steps",     name: { "en-US": "Steps",     "pt-PT": "Passos" },      emoji: "👣", type: "increase", unit: { "en-US": "step", "pt-PT": "passo" }, unitPlural: { "en-US": "steps", "pt-PT": "passos" } },
-  { id: "sleep",     name: { "en-US": "Sleep",     "pt-PT": "Sono" },        emoji: "😴", type: "increase", unit: { "en-US": "hour", "pt-PT": "hora" }, unitPlural: { "en-US": "hours", "pt-PT": "horas" } },
-  { id: "reading",   name: { "en-US": "Reading",   "pt-PT": "Leitura" },     emoji: "📚", type: "increase", unit: { "en-US": "page", "pt-PT": "página" }, unitPlural: { "en-US": "pages", "pt-PT": "páginas" } },
-  { id: "meditation", name: { "en-US": "Meditation", "pt-PT": "Meditação" }, emoji: "🧘", type: "increase", unit: { "en-US": "minute", "pt-PT": "minuto" }, unitPlural: { "en-US": "minutes", "pt-PT": "minutos" } },
-  { id: "alcohol",   name: { "en-US": "Alcohol",   "pt-PT": "Álcool" },      emoji: "🍺", type: "reduce",   unit: { "en-US": "drink", "pt-PT": "bebida" }, unitPlural: { "en-US": "drinks", "pt-PT": "bebidas" } },
+  { id: "water",      name: { "en-US": "Water",      "pt-PT": "Água" },      emoji: "💧", type: "increase", unit: { "en-US": "glass",  "pt-PT": "copo" },    unitPlural: { "en-US": "glasses",  "pt-PT": "copos" } },
+  { id: "steps",      name: { "en-US": "Steps",      "pt-PT": "Passos" },    emoji: "👣", type: "increase", unit: { "en-US": "step",   "pt-PT": "passo" },   unitPlural: { "en-US": "steps",    "pt-PT": "passos" } },
+  { id: "sleep",      name: { "en-US": "Sleep",      "pt-PT": "Sono" },      emoji: "😴", type: "increase", unit: { "en-US": "hour",   "pt-PT": "hora" },    unitPlural: { "en-US": "hours",    "pt-PT": "horas" } },
+  { id: "reading",    name: { "en-US": "Reading",    "pt-PT": "Leitura" },   emoji: "📚", type: "increase", unit: { "en-US": "page",   "pt-PT": "página" },  unitPlural: { "en-US": "pages",    "pt-PT": "páginas" } },
+  { id: "meditation", name: { "en-US": "Meditation", "pt-PT": "Meditação" }, emoji: "🧘", type: "increase", unit: { "en-US": "minute", "pt-PT": "minuto" },  unitPlural: { "en-US": "minutes",  "pt-PT": "minutos" } },
+  { id: "smoking",    name: { "en-US": "Smoking",    "pt-PT": "Cigarros" },  emoji: "🚬", type: "reduce",   unit: { "en-US": "cig",    "pt-PT": "cigarro" }, unitPlural: { "en-US": "cigs",     "pt-PT": "cigarros" } },
+  { id: "alcohol",    name: { "en-US": "Alcohol",    "pt-PT": "Álcool" },    emoji: "🍺", type: "reduce",   unit: { "en-US": "drink",  "pt-PT": "bebida" },  unitPlural: { "en-US": "drinks",   "pt-PT": "bebidas" } },
 ];
 
 /* Identity vectors used elsewhere */
@@ -152,60 +151,64 @@ const IDENTITY_TO_VECTORS: Record<string, string[]> = {
 };
 
 const IDENTITY_TAGLINE: Record<string, Bilingual> = {
-  disciplined: { "en-US": "Built for disciplined people.", "pt-PT": "Feito para pessoas disciplinadas." },
-  healthier:   { "en-US": "Built for stronger bodies.",    "pt-PT": "Feito para corpos mais fortes." },
-  stronger:    { "en-US": "Built for steadier minds.",     "pt-PT": "Feito para mentes mais estáveis." },
-  organized:   { "en-US": "Built for clear-headed money.", "pt-PT": "Feito para dinheiro com clareza." },
-  productive:  { "en-US": "Built for ambitious growth.",   "pt-PT": "Feito para crescimento ambicioso." },
-  consistent:  { "en-US": "Built for stronger routines.",  "pt-PT": "Feito para rotinas mais fortes." },
+  disciplined: { "en-US": "Built for disciplined people.",     "pt-PT": "Feito para quem aparece todos os dias." },
+  healthier:   { "en-US": "Built for stronger bodies.",        "pt-PT": "Feito para corpos mais fortes." },
+  stronger:    { "en-US": "Built for steadier minds.",         "pt-PT": "Feito para mentes mais calmas." },
+  organized:   { "en-US": "Built for clear-headed money.",     "pt-PT": "Feito para dinheiro com clareza." },
+  productive:  { "en-US": "Built for ambitious growth.",       "pt-PT": "Feito para crescer com intenção." },
+  consistent:  { "en-US": "Built for stronger routines.",      "pt-PT": "Feito para rotinas mais firmes." },
 };
 
 /* ---------- UI strings ---------- */
 const UI: Record<string, Bilingual> = {
-  back:            { "en-US": "Back",                   "pt-PT": "Voltar" },
-  identityKicker:  { "en-US": "// Identity",            "pt-PT": "// Identidade" },
-  identityTitle1:  { "en-US": "Who do you want",        "pt-PT": "Quem queres" },
-  identityTitle2:  { "en-US": "to become?",             "pt-PT": "tornar-te?" },
-  identityHint:    { "en-US": "Pick one. Tap to continue.", "pt-PT": "Escolhe um. Toca para avançar." },
-  obstacleKicker:  { "en-US": "// Honest check",        "pt-PT": "// Verdade simples" },
-  obstacleTitle1:  { "en-US": "What gets",              "pt-PT": "O que te" },
-  obstacleTitle2:  { "en-US": "in your way?",           "pt-PT": "atrapalha?" },
-  obstacleHint:    { "en-US": "We design around it.",   "pt-PT": "Desenhamos à volta disso." },
-  focusKicker:     { "en-US": "// Step 3 · Focus",      "pt-PT": "// Passo 3 · Foco" },
-  focusTitle1:     { "en-US": "Choose your",            "pt-PT": "Escolhe o teu" },
-  focusTitle2:     { "en-US": "first focus.",           "pt-PT": "primeiro foco." },
-  focusHint:       { "en-US": "Pick up to 2. Less is more.", "pt-PT": "Até 2. Menos é mais." },
-  firstWinKicker:  { "en-US": "// Step 4 · First win",  "pt-PT": "// Passo 4 · Primeira vitória" },
-  firstWinTitle1:  { "en-US": "Pick your",              "pt-PT": "Escolhe o teu" },
-  firstWinTitle2:  { "en-US": "first habit.",           "pt-PT": "primeiro hábito." },
-  firstWinHint:    { "en-US": "One tap. We handle the rest.", "pt-PT": "Um toque. Tratamos do resto." },
-  firstWinFooter:  { "en-US": "You can add more — or skip and start with one. Small wins compound.", "pt-PT": "Podes adicionar mais — ou começar com um. Pequenas vitórias acumulam." },
-  metricKicker:    { "en-US": "// Step 5 · Metrics",    "pt-PT": "// Passo 5 · Métricas" },
-  metricTitle1:    { "en-US": "Track what",             "pt-PT": "Acompanha o que" },
-  metricTitle2:    { "en-US": "matters.",               "pt-PT": "importa." },
-  metricHint:      { "en-US": "Optional. Pick a metric to monitor — or skip.", "pt-PT": "Opcional. Escolhe uma métrica — ou salta." },
-  commitKicker:    { "en-US": "// System online",      "pt-PT": "// Sistema online" },
-  commitTitle1:    { "en-US": "Your new system",       "pt-PT": "O teu novo sistema" },
-  commitTitle2:    { "en-US": "starts now.",           "pt-PT": "começa agora." },
-  enter:           { "en-US": "Enter Become",          "pt-PT": "Entrar no Become" },
-  trial:           { "en-US": "7 days free · No card · Cancel anytime", "pt-PT": "7 dias grátis · Sem cartão · Cancela quando quiseres" },
-  upNext:          { "en-US": "Up next · Today",       "pt-PT": "A seguir · Hoje" },
-  firstStreak:     { "en-US": "First streak",          "pt-PT": "Primeira sequência" },
-  active:          { "en-US": "Active",                "pt-PT": "Ativa" },
-  level:           { "en-US": "Level",                 "pt-PT": "Nível" },
-  firstHabit:      { "en-US": "First habit",           "pt-PT": "Primeiro hábito" },
-  ready:           { "en-US": "Ready",                 "pt-PT": "Pronto" },
-  momentum:        { "en-US": "Momentum",              "pt-PT": "Momento" },
-  today:           { "en-US": "Today",                 "pt-PT": "Hoje" },
-  yourFirstHabit:  { "en-US": "Your first habit",     "pt-PT": "O teu primeiro hábito" },
-  continueLabel:   { "en-US": "Continue",              "pt-PT": "Continuar" },
-  selected:        { "en-US": "selected",              "pt-PT": "selecionado(s)" },
-  skip:            { "en-US": "Skip for now",          "pt-PT": "Saltar por agora" },
-  customHabit:     { "en-US": "Other habit",           "pt-PT": "Outro hábito" },
-  customMetric:    { "en-US": "Other metric",          "pt-PT": "Outra métrica" },
-  customHabitPh:   { "en-US": "Type your habit name",  "pt-PT": "Escreve o nome do teu hábito" },
-  customMetricPh:  { "en-US": "Type your metric name", "pt-PT": "Escreve o nome da tua métrica" },
+  back:            { "en-US": "Back",                         "pt-PT": "Voltar" },
+  identityKicker:  { "en-US": "// Identity",                  "pt-PT": "// Identidade" },
+  identityTitle1:  { "en-US": "Who do you want",              "pt-PT": "Quem queres" },
+  identityTitle2:  { "en-US": "to become?",                   "pt-PT": "tornar-te?" },
+  identityHint:    { "en-US": "Pick one. Tap to continue.",   "pt-PT": "Escolhe uma. Toca para avançar." },
+  obstacleKicker:  { "en-US": "// Honest check",              "pt-PT": "// Verdade nua" },
+  obstacleTitle1:  { "en-US": "What gets",                    "pt-PT": "O que te" },
+  obstacleTitle2:  { "en-US": "in your way?",                 "pt-PT": "atrapalha?" },
+  obstacleHint:    { "en-US": "We design around it.",         "pt-PT": "Desenhamos à volta disso." },
+  focusKicker:     { "en-US": "// Step 3 · Focus",            "pt-PT": "// Passo 3 · Foco" },
+  focusTitle1:     { "en-US": "Choose your",                  "pt-PT": "Escolhe o teu" },
+  focusTitle2:     { "en-US": "first focus.",                 "pt-PT": "primeiro foco." },
+  focusHint:       { "en-US": "Pick up to 2. Less is more.",  "pt-PT": "Até 2. Menos é mais." },
+  firstWinKicker:  { "en-US": "// Step 4 · First win",        "pt-PT": "// Passo 4 · Primeira vitória" },
+  firstWinTitle1:  { "en-US": "Pick your",                    "pt-PT": "Escolhe o teu" },
+  firstWinTitle2:  { "en-US": "first habit.",                 "pt-PT": "primeiro hábito." },
+  firstWinHint:    { "en-US": "One tap. We handle the rest.", "pt-PT": "Um toque. Nós tratamos do resto." },
+  firstWinFooter:  { "en-US": "Small wins compound. Start with one — add more later.", "pt-PT": "Pequenos passos. Nova identidade." },
+  metricKicker:    { "en-US": "// Step 5 · Metrics",          "pt-PT": "// Passo 5 · Métricas" },
+  metricTitle1:    { "en-US": "Track what",                   "pt-PT": "Acompanha o que" },
+  metricTitle2:    { "en-US": "matters.",                     "pt-PT": "te importa." },
+  metricHint:      { "en-US": "Optional. Pick one to monitor — or skip.", "pt-PT": "Opcional. Escolhe uma — ou avança." },
+  commitKicker:    { "en-US": "// System ready",              "pt-PT": "// Sistema pronto" },
+  commitTitle1:    { "en-US": "Your system",                  "pt-PT": "O teu sistema" },
+  commitTitle2:    { "en-US": "is ready.",                    "pt-PT": "está pronto." },
+  enter:           { "en-US": "Begin evolution",              "pt-PT": "Começar evolução" },
+  trial:           { "en-US": "7 days free · No card · Cancel anytime", "pt-PT": "7 dias grátis · Sem cartão · Cancelas quando quiseres" },
+  upNext:          { "en-US": "Up next · Today",              "pt-PT": "A seguir · Hoje" },
+  yourFirstHabit:  { "en-US": "Your first habit",             "pt-PT": "O teu primeiro hábito" },
+  continueLabel:   { "en-US": "Continue",                     "pt-PT": "Continuar" },
+  selected:        { "en-US": "selected",                     "pt-PT": "selecionado(s)" },
+  skip:            { "en-US": "Skip for now",                 "pt-PT": "Saltar por agora" },
+  customHabit:     { "en-US": "Create custom habit",          "pt-PT": "Criar hábito personalizado" },
+  customMetric:    { "en-US": "Create custom metric",         "pt-PT": "Criar métrica personalizada" },
+  customHabitPh:   { "en-US": "e.g. Meditate 10 min",         "pt-PT": "ex: Meditar 10 min" },
+  customMetricPh:  { "en-US": "e.g. Coffees per day",         "pt-PT": "ex: Cafés por dia" },
+  customHabitTitle:  { "en-US": "Name your habit",            "pt-PT": "Nomeia o teu hábito" },
+  customMetricTitle: { "en-US": "Name your metric",           "pt-PT": "Nomeia a tua métrica" },
+  customSave:      { "en-US": "Save",                         "pt-PT": "Guardar" },
+  customCancel:    { "en-US": "Cancel",                       "pt-PT": "Cancelar" },
   taglineFallback: { "en-US": "Built for the person you're becoming.", "pt-PT": "Feito para a pessoa que te estás a tornar." },
+  // Commit summary
+  summaryIdentity: { "en-US": "Identity",                     "pt-PT": "Identidade" },
+  summaryHabits:   { "en-US": "Habits",                       "pt-PT": "Hábitos" },
+  summaryMetrics:  { "en-US": "Metrics",                      "pt-PT": "Métricas" },
+  summaryFocus:    { "en-US": "Focus",                        "pt-PT": "Foco" },
+  commitMantra:    { "en-US": "Consistency beats motivation.", "pt-PT": "A consistência vence a motivação." },
+  todayBegins:     { "en-US": "Today begins everything.",     "pt-PT": "Hoje começa tudo." },
 };
 
 /* =============================================================
@@ -287,7 +290,7 @@ const Onboarding = () => {
   const identityLabel = useMemo(
     () => {
       const opt = IDENTITY_OPTIONS.find((o) => o.id === identity);
-      return opt ? pick(opt.label, UI_LOCALE) : "";
+      return opt ? pick(opt.label, accountLocale) : "";
     },
     [identity],
   );
@@ -295,12 +298,12 @@ const Onboarding = () => {
     () => focus
       .map((f) => FOCUS_OPTIONS.find((o) => o.id === f))
       .filter(Boolean)
-      .map((o) => pick(o!.label, UI_LOCALE)),
+      .map((o) => pick(o!.label, accountLocale)),
     [focus],
   );
   const tagline = identity
-    ? pick(IDENTITY_TAGLINE[identity] ?? UI.taglineFallback, UI_LOCALE)
-    : pick(UI.taglineFallback, UI_LOCALE);
+    ? pick(IDENTITY_TAGLINE[identity] ?? UI.taglineFallback, accountLocale)
+    : pick(UI.taglineFallback, accountLocale);
 
   const handleComplete = () => {
     // Habits payload — localized names
@@ -405,12 +408,25 @@ const Onboarding = () => {
     navigate("/auth?next=trial&firstSession=1");
   };
 
+  const selectedHabitNames = useMemo(() => {
+    const names = suggestedHabits
+      .filter((h) => habits.includes(h.id))
+      .map((h) => pick(h.name, accountLocale));
+    if (customHabit.trim()) names.push(customHabit.trim());
+    return names;
+  }, [suggestedHabits, habits, customHabit, accountLocale]);
+
+  const selectedMetricNames = useMemo(() => {
+    const names = METRIC_SUGGESTIONS
+      .filter((m) => metrics.includes(m.id))
+      .map((m) => pick(m.name, accountLocale));
+    if (customMetric.trim()) names.push(customMetric.trim());
+    return names;
+  }, [metrics, customMetric, accountLocale]);
+
   const firstHabitName =
-    customHabit.trim() ||
-    (() => {
-      const preset = suggestedHabits.find((h) => habits.includes(h.id)) || suggestedHabits[0];
-      return preset ? pick(preset.name, UI_LOCALE) : pick(UI.yourFirstHabit, UI_LOCALE);
-    })();
+    selectedHabitNames[0] ??
+    (suggestedHabits[0] ? pick(suggestedHabits[0].name, accountLocale) : pick(UI.yourFirstHabit, accountLocale));
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col antialiased relative overflow-hidden">
@@ -433,7 +449,7 @@ const Onboarding = () => {
                 ? "opacity-0 pointer-events-none"
                 : "text-muted-foreground hover:text-foreground hover:bg-foreground/5 active:scale-95",
             )}
-            aria-label={pick(UI.back, UI_LOCALE)}
+            aria-label={pick(UI.back, accountLocale)}
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
@@ -464,14 +480,14 @@ const Onboarding = () => {
             <StepLanguage value={accountLocale} onChange={pickLanguage} />
           )}
           {step === "identity" && (
-            <StepIdentity locale={UI_LOCALE} value={identity} onChange={pickIdentity} />
+            <StepIdentity locale={accountLocale} value={identity} onChange={pickIdentity} />
           )}
           {step === "obstacle" && (
-            <StepObstacle locale={UI_LOCALE} value={obstacle} onChange={pickObstacle} />
+            <StepObstacle locale={accountLocale} value={obstacle} onChange={pickObstacle} />
           )}
           {step === "focus" && (
             <StepFocus
-              locale={UI_LOCALE}
+              locale={accountLocale}
               value={focus}
               onToggle={toggleFocus}
               onContinue={() => {
@@ -482,7 +498,7 @@ const Onboarding = () => {
           )}
           {step === "first-win" && (
             <StepFirstWin
-              locale={UI_LOCALE}
+              locale={accountLocale}
               suggestions={suggestedHabits}
               selected={habits}
               onToggle={toggleHabit}
@@ -493,7 +509,7 @@ const Onboarding = () => {
           )}
           {step === "metric" && (
             <StepMetric
-              locale={UI_LOCALE}
+              locale={accountLocale}
               selected={metrics}
               onToggle={toggleMetric}
               customValue={customMetric}
@@ -503,10 +519,11 @@ const Onboarding = () => {
           )}
           {step === "commit" && (
             <StepCommit
-              locale={UI_LOCALE}
+              locale={accountLocale}
               identityLabel={identityLabel}
               focusLabels={focusLabels}
-              habitCount={habits.length + (customHabit.trim() ? 1 : 0)}
+              habitNames={selectedHabitNames}
+              metricNames={selectedMetricNames}
               firstHabitName={firstHabitName}
               tagline={tagline}
               onStart={handleComplete}
@@ -536,13 +553,14 @@ const StepLanguage = ({
   <div className="flex-1 flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-300">
     <div className="text-center pt-4 pb-6">
       <p className="font-mono text-[10px] uppercase tracking-widest text-primary mb-3">
-        // Language
+        // Language · Idioma
       </p>
       <h1 className="type-display text-3xl sm:text-4xl mb-2 leading-tight">
-        Pick your<br />account language.
+        Choose your language<br />
+        <span className="text-muted-foreground/70">Escolhe o teu idioma</span>
       </h1>
       <p className="text-sm text-muted-foreground/80">
-        Used inside the app. Onboarding stays in English.
+        We tailor everything to it · Adaptamos tudo a ele
       </p>
     </div>
 
@@ -563,9 +581,9 @@ const StepLanguage = ({
             <span className="text-2xl shrink-0" aria-hidden>{opt.flag}</span>
             <div className="flex-1 min-w-0">
               <p className={cn("text-base font-bold tracking-tight", selected && "text-primary")}>
-                {opt.label}
+                {opt.native}
               </p>
-              <p className="text-xs text-muted-foreground/75 mt-0.5">{opt.native}</p>
+              <p className="text-xs text-muted-foreground/75 mt-0.5">{opt.label}</p>
             </div>
             {selected && <Check className="h-5 w-5 text-primary shrink-0 animate-completion-pop" />}
           </button>
@@ -974,7 +992,8 @@ const StepCommit = ({
   locale,
   identityLabel,
   focusLabels,
-  habitCount,
+  habitNames,
+  metricNames,
   firstHabitName,
   tagline,
   onStart,
@@ -982,17 +1001,41 @@ const StepCommit = ({
   locale: Locale;
   identityLabel: string;
   focusLabels: string[];
-  habitCount: number;
+  habitNames: string[];
+  metricNames: string[];
   firstHabitName: string;
   tagline: string;
   onStart: () => void;
 }) => {
-  const stats = [
-    { label: pick(UI.firstStreak, locale), value: pick(UI.active, locale), icon: Flame },
-    { label: pick(UI.level, locale),       value: "01",                     icon: Sparkles },
-    { label: pick(UI.firstHabit, locale),  value: pick(UI.ready, locale),   icon: Check },
-    { label: pick(UI.momentum, locale),    value: pick(UI.today, locale),   icon: Zap },
-  ];
+  const summaryRows: { label: string; value: string; icon: any }[] = [];
+  if (identityLabel) {
+    summaryRows.push({
+      label: pick(UI.summaryIdentity, locale),
+      value: identityLabel,
+      icon: Sparkles,
+    });
+  }
+  if (focusLabels.length > 0) {
+    summaryRows.push({
+      label: pick(UI.summaryFocus, locale),
+      value: focusLabels.join(" · "),
+      icon: Target,
+    });
+  }
+  if (habitNames.length > 0) {
+    summaryRows.push({
+      label: `${pick(UI.summaryHabits, locale)} · ${habitNames.length}`,
+      value: habitNames.join(" · "),
+      icon: Flame,
+    });
+  }
+  if (metricNames.length > 0) {
+    summaryRows.push({
+      label: `${pick(UI.summaryMetrics, locale)} · ${metricNames.length}`,
+      value: metricNames.join(" · "),
+      icon: Activity,
+    });
+  }
 
   return (
     <div className="flex-1 flex flex-col animate-in fade-in zoom-in-95 duration-500">
@@ -1016,25 +1059,35 @@ const StepCommit = ({
             {pick(UI.commitTitle2, locale)}
           </span>
         </h1>
-        <p className="text-sm text-muted-foreground/85 max-w-[32ch] italic">{tagline}</p>
+        <p className="text-sm text-muted-foreground/85 max-w-[34ch] italic">{tagline}</p>
 
-        <div className="w-full mt-7 grid grid-cols-2 gap-px bg-foreground/10 border border-foreground/10">
-          {stats.map((s, i) => (
+        {/* Personalized summary */}
+        <div className="w-full mt-7 border border-foreground/10 divide-y divide-foreground/10">
+          {summaryRows.map((row, i) => (
             <div
-              key={s.label}
-              className="bg-background p-4 flex flex-col items-start gap-2 animate-in fade-in slide-in-from-bottom-1"
+              key={row.label}
+              className="bg-background p-4 flex items-start gap-3 text-left animate-in fade-in slide-in-from-bottom-1"
               style={{ animationDelay: `${120 + i * 90}ms`, animationFillMode: "both" }}
             >
-              <s.icon className="h-4 w-4 text-primary" />
-              <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">{s.label}</p>
-              <p className="text-base font-black italic uppercase tracking-tight text-foreground">{s.value}</p>
+              <div className="h-9 w-9 shrink-0 border border-primary/40 bg-primary/[0.08] flex items-center justify-center">
+                <row.icon className="h-4 w-4 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground mb-1">
+                  {row.label}
+                </p>
+                <p className="text-sm font-bold tracking-tight text-foreground leading-snug break-words">
+                  {row.value}
+                </p>
+              </div>
             </div>
           ))}
         </div>
 
+        {/* Up-next pointer */}
         <div
           className="w-full mt-4 border-2 border-primary/40 bg-primary/[0.06] p-4 text-left flex items-center gap-3 animate-in fade-in slide-in-from-bottom-1"
-          style={{ animationDelay: "520ms", animationFillMode: "both" }}
+          style={{ animationDelay: `${120 + summaryRows.length * 90 + 80}ms`, animationFillMode: "both" }}
         >
           <div className="h-9 w-9 shrink-0 border-2 border-primary bg-primary/15 flex items-center justify-center">
             <Flame className="h-4 w-4 text-primary" />
@@ -1047,6 +1100,10 @@ const StepCommit = ({
           </div>
           <ArrowRight className="h-4 w-4 text-primary shrink-0" />
         </div>
+
+        <p className="mt-5 text-[11px] font-mono uppercase tracking-widest text-muted-foreground/70">
+          {pick(UI.todayBegins, locale)} · {pick(UI.commitMantra, locale)}
+        </p>
       </div>
 
       <div className="space-y-2 pb-2">
