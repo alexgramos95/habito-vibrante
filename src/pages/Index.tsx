@@ -89,6 +89,17 @@ const Index = () => {
     setShowFirstSession(false);
   }, []);
 
+  // Journey day (0 = signup day) — drives early-day decluttering
+  const journeyDay = useMemo(() => {
+    try {
+      const start = localStorage.getItem("become-journey-start");
+      if (!start) return 0;
+      const ms = new Date().setHours(0,0,0,0) - new Date(start).setHours(0,0,0,0);
+      return Math.max(0, Math.floor(ms / 86400000));
+    } catch { return 0; }
+  }, []);
+  const isEarlyDay = journeyDay <= 1; // Day 0 & 1 → minimal dashboard
+
   // Auth guard
   useEffect(() => {
     if (!isAuthenticated) navigate("/auth?next=trial", { replace: true });
