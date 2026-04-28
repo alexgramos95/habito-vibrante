@@ -183,6 +183,7 @@ const UI: Record<string, Bilingual> = {
   metricTitle1:    { "en-US": "Track what",                   "pt-PT": "Acompanha o que" },
   metricTitle2:    { "en-US": "matters.",                     "pt-PT": "te importa." },
   metricHint:      { "en-US": "Optional. Pick one to monitor — or skip.", "pt-PT": "Opcional. Escolhe uma — ou avança." },
+  languageKicker:  { "en-US": "// Step 6 · Language",         "pt-PT": "// Passo 6 · Idioma" },
   commitKicker:    { "en-US": "// System ready",              "pt-PT": "// Sistema pronto" },
   commitTitle1:    { "en-US": "Your system",                  "pt-PT": "O teu sistema" },
   commitTitle2:    { "en-US": "is ready.",                    "pt-PT": "está pronto." },
@@ -220,10 +221,10 @@ const Onboarding = () => {
   const { locale, setLocale } = useI18n();
   const { completeOnboarding } = useSubscription();
 
-  const STEPS: Step[] = ["language", "identity", "obstacle", "focus", "first-win", "metric", "commit"];
+  const STEPS: Step[] = ["identity", "obstacle", "focus", "first-win", "metric", "language", "commit"];
 
-  const [step, setStep] = useState<Step>("language");
-  const [accountLocale, setAccountLocale] = useState<Locale>(locale);
+  const [step, setStep] = useState<Step>("identity");
+  const [accountLocale, setAccountLocale] = useState<Locale>("en-US");
   const [identity, setIdentity] = useState<string | null>(null);
   const [obstacle, setObstacle] = useState<string | null>(null);
   const [focus, setFocus] = useState<string[]>([]);
@@ -265,7 +266,7 @@ const Onboarding = () => {
   const pickLanguage = (lng: Locale) => {
     setAccountLocale(lng);
     try { setLocale(lng); } catch { /* ignore */ }
-    window.setTimeout(() => setStep("identity"), 220);
+    window.setTimeout(() => setStep("commit"), 220);
   };
   const pickIdentity = (id: string) => {
     setIdentity(id);
