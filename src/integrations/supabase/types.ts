@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      analytics_events: {
+        Row: {
+          app_locale: string | null
+          app_platform: string | null
+          created_at: string
+          event_name: string
+          event_props: Json
+          id: string
+          session_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          app_locale?: string | null
+          app_platform?: string | null
+          created_at?: string
+          event_name: string
+          event_props?: Json
+          id?: string
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          app_locale?: string | null
+          app_platform?: string | null
+          created_at?: string
+          event_name?: string
+          event_props?: Json
+          id?: string
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       feedback: {
         Row: {
           additional_notes: string | null
@@ -146,6 +179,51 @@ export type Database = {
         }
         Relationships: []
       }
+      revenue_events: {
+        Row: {
+          amount_cents: number | null
+          created_at: string
+          currency: string | null
+          event_type: string
+          id: string
+          occurred_at: string
+          plan: string | null
+          raw: Json
+          status: string | null
+          stripe_customer_id: string | null
+          stripe_event_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount_cents?: number | null
+          created_at?: string
+          currency?: string | null
+          event_type: string
+          id?: string
+          occurred_at?: string
+          plan?: string | null
+          raw?: Json
+          status?: string | null
+          stripe_customer_id?: string | null
+          stripe_event_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount_cents?: number | null
+          created_at?: string
+          currency?: string | null
+          event_type?: string
+          id?: string
+          occurred_at?: string
+          plan?: string | null
+          raw?: Json
+          status?: string | null
+          stripe_customer_id?: string | null
+          stripe_event_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           apple_transaction_id: string | null
@@ -251,15 +329,69 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
-      [_ in never]: never
+      cohort_retention_weekly: {
+        Row: {
+          active_users: number | null
+          cohort_week: string | null
+          week_offset: number | null
+        }
+        Relationships: []
+      }
+      funnel_daily: {
+        Row: {
+          day: string | null
+          event_count: number | null
+          event_name: string | null
+          unique_users: number | null
+        }
+        Relationships: []
+      }
+      revenue_daily: {
+        Row: {
+          amount_cents_sum: number | null
+          day: string | null
+          event_count: number | null
+          event_type: string | null
+          plan: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      [_ in never]: never
+      claim_first_admin: { Args: never; Returns: boolean }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -386,6 +518,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const
