@@ -1084,4 +1084,77 @@ const SourceIntelligenceTable = ({ rows }: { rows: SourceRow[] }) => {
   );
 };
 
+const TREND_STYLE: Record<CohortTrend, { label: string; cls: string; arrow: string }> = {
+  improving: { label: "Improving", cls: "text-emerald-600 dark:text-emerald-400 border-emerald-500/40 bg-emerald-500/10", arrow: "↑" },
+  declining: { label: "Declining", cls: "text-destructive border-destructive/40 bg-destructive/10", arrow: "↓" },
+  stable:    { label: "Stable",    cls: "text-muted-foreground border-foreground/15 bg-foreground/[0.04]", arrow: "→" },
+  first:     { label: "Baseline",  cls: "text-muted-foreground border-foreground/15 bg-foreground/[0.04]", arrow: "·" },
+};
+
+const CohortAnalysisTable = ({ rows }: { rows: CohortRow[] }) => {
+  if (rows.length === 0) {
+    return (
+      <Card>
+        <CardContent className="p-4">
+          <p className="text-xs text-muted-foreground italic">
+            No cohorts for this filter yet. Cohorts form once users with this source have at least one tracked event.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+  return (
+    <Card>
+      <CardContent className="p-0">
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="text-muted-foreground border-b border-foreground/10">
+                <th className="text-left  font-mono font-normal uppercase tracking-wider px-3 py-2 text-[10px]">Cohort</th>
+                <th className="text-right font-mono font-normal uppercase tracking-wider px-2 py-2 text-[10px]">Users</th>
+                <th className="text-right font-mono font-normal uppercase tracking-wider px-2 py-2 text-[10px]">D1</th>
+                <th className="text-right font-mono font-normal uppercase tracking-wider px-2 py-2 text-[10px]">D7</th>
+                <th className="text-right font-mono font-normal uppercase tracking-wider px-2 py-2 text-[10px]">Avg habits</th>
+                <th className="text-right font-mono font-normal uppercase tracking-wider px-2 py-2 text-[10px]">Avg streak</th>
+                <th className="text-right font-mono font-normal uppercase tracking-wider px-2 py-2 text-[10px]">Ref %</th>
+                <th className="text-right font-mono font-normal uppercase tracking-wider px-3 py-2 text-[10px]">Trend</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r, i) => {
+                const trend = cohortTrend(r, rows[i - 1]);
+                const t = TREND_STYLE[trend];
+                return (
+                  <tr key={r.weekKey} className="border-b border-foreground/5 last:border-0">
+                    <td className="px-3 py-2.5">
+                      <div className="font-bold">Week of {r.weekLabel}</div>
+                      <div className="text-[10px] font-mono text-muted-foreground">{r.weekKey}</div>
+                    </td>
+                    <td className="px-2 py-2.5 text-right tabular-nums">{r.users}</td>
+                    <td className="px-2 py-2.5 text-right tabular-nums">{fmtPct(r.d1Rate)}</td>
+                    <td className="px-2 py-2.5 text-right tabular-nums">{fmtPct(r.d7Rate)}</td>
+                    <td className="px-2 py-2.5 text-right tabular-nums">{r.avgHabitsFirstWeek}</td>
+                    <td className="px-2 py-2.5 text-right tabular-nums">{r.avgStreak}d</td>
+                    <td className="px-2 py-2.5 text-right tabular-nums">
+                      {Math.round(r.referralRate * 100)}%
+                    </td>
+                    <td className="px-3 py-2.5 text-right">
+                      <span className={`inline-flex items-center gap-1 text-[9px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded border ${t.cls}`}>
+                        <span>{t.arrow}</span>{t.label}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        <p className="px-3 py-2 text-[10px] font-mono text-muted-foreground border-t border-foreground/10">
+          Trend compares each cohort's quality vs the previous week (Δ &gt; ±5 pts).
+        </p>
+      </CardContent>
+    </Card>
+  );
+};
+
 export default Insights;
