@@ -115,9 +115,9 @@ const Progresso = () => {
           <div>
             <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-primary" />
-              Progresso
+              {isPT ? 'Progresso' : 'Progress'}
             </h1>
-            <p className="text-xs text-muted-foreground mt-0.5">Recompensas e poupanças</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{isPT ? 'Recompensas e poupanças' : 'Rewards and savings'}</p>
           </div>
         </div>
 
