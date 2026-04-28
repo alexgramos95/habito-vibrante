@@ -460,15 +460,18 @@ const Onboarding = () => {
 
       <main className="relative z-10 flex-1 flex flex-col px-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)]">
         <div className="max-w-md w-full mx-auto flex-1 flex flex-col">
+          {step === "language" && (
+            <StepLanguage value={accountLocale} onChange={pickLanguage} />
+          )}
           {step === "identity" && (
-            <StepIdentity locale={locale} value={identity} onChange={pickIdentity} />
+            <StepIdentity locale={UI_LOCALE} value={identity} onChange={pickIdentity} />
           )}
           {step === "obstacle" && (
-            <StepObstacle locale={locale} value={obstacle} onChange={pickObstacle} />
+            <StepObstacle locale={UI_LOCALE} value={obstacle} onChange={pickObstacle} />
           )}
           {step === "focus" && (
             <StepFocus
-              locale={locale}
+              locale={UI_LOCALE}
               value={focus}
               onToggle={toggleFocus}
               onContinue={() => {
@@ -479,7 +482,7 @@ const Onboarding = () => {
           )}
           {step === "first-win" && (
             <StepFirstWin
-              locale={locale}
+              locale={UI_LOCALE}
               suggestions={suggestedHabits}
               selected={habits}
               onToggle={toggleHabit}
@@ -490,7 +493,7 @@ const Onboarding = () => {
           )}
           {step === "metric" && (
             <StepMetric
-              locale={locale}
+              locale={UI_LOCALE}
               selected={metrics}
               onToggle={toggleMetric}
               customValue={customMetric}
@@ -500,7 +503,7 @@ const Onboarding = () => {
           )}
           {step === "commit" && (
             <StepCommit
-              locale={locale}
+              locale={UI_LOCALE}
               identityLabel={identityLabel}
               focusLabels={focusLabels}
               habitCount={habits.length + (customHabit.trim() ? 1 : 0)}
@@ -514,6 +517,63 @@ const Onboarding = () => {
     </div>
   );
 };
+
+/* =============================================================
+   STEP 0 — Language (always shown in English; sets account locale)
+   ============================================================= */
+const LANGUAGE_OPTIONS: { id: Locale; label: string; native: string; flag: string }[] = [
+  { id: "en-US", label: "English",    native: "English",    flag: "🇬🇧" },
+  { id: "pt-PT", label: "Portuguese", native: "Português",  flag: "🇵🇹" },
+];
+
+const StepLanguage = ({
+  value,
+  onChange,
+}: {
+  value: Locale;
+  onChange: (lng: Locale) => void;
+}) => (
+  <div className="flex-1 flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-300">
+    <div className="text-center pt-4 pb-6">
+      <p className="font-mono text-[10px] uppercase tracking-widest text-primary mb-3">
+        // Language
+      </p>
+      <h1 className="type-display text-3xl sm:text-4xl mb-2 leading-tight">
+        Pick your<br />account language.
+      </h1>
+      <p className="text-sm text-muted-foreground/80">
+        Used inside the app. Onboarding stays in English.
+      </p>
+    </div>
+
+    <div className="grid gap-2.5 mb-6">
+      {LANGUAGE_OPTIONS.map((opt) => {
+        const selected = value === opt.id;
+        return (
+          <button
+            key={opt.id}
+            onClick={() => onChange(opt.id)}
+            className={cn(
+              "flex items-center gap-4 p-4 text-left border-2 transition-all duration-150 active:scale-[0.985] min-h-[64px]",
+              selected
+                ? "border-primary bg-primary/[0.10] shadow-[0_0_28px_hsl(var(--neon-toxic)/0.3)]"
+                : "border-foreground/10 hover:border-foreground/30 bg-foreground/[0.015]",
+            )}
+          >
+            <span className="text-2xl shrink-0" aria-hidden>{opt.flag}</span>
+            <div className="flex-1 min-w-0">
+              <p className={cn("text-base font-bold tracking-tight", selected && "text-primary")}>
+                {opt.label}
+              </p>
+              <p className="text-xs text-muted-foreground/75 mt-0.5">{opt.native}</p>
+            </div>
+            {selected && <Check className="h-5 w-5 text-primary shrink-0 animate-completion-pop" />}
+          </button>
+        );
+      })}
+    </div>
+  </div>
+);
 
 /* =============================================================
    STEP 1 — Identity
