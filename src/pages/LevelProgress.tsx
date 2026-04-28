@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { format, subDays, startOfWeek, endOfWeek, eachDayOfInterval, parseISO } from "date-fns";
 import { pt, enUS } from "date-fns/locale";
 import {
-  ArrowLeft, Star, Flame, Trophy, TrendingUp, Target, Sparkles,
+  Star, Flame, Trophy, TrendingUp, Target, Sparkles,
 } from "lucide-react";
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
