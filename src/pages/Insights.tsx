@@ -169,6 +169,15 @@ const Insights = () => {
   const [showRaw, setShowRaw] = useState(false);
   const log = useMemo(() => getEventLog(), [metrics]);
 
+  // Trends — last 7 days
+  const trendCompletions = useMemo(() => trend7(log, e => e.event === "habit_completed" || e.event === "first_habit_completed"), [log]);
+  const trendCreations = useMemo(() => trend7(log, e => e.event === "habit_created" || e.event === "first_habit_created"), [log]);
+  const trendAppOpens = useMemo(() => trend7(log, e => e.event === "app_open"), [log]);
+  const trendCtaClicks = useMemo(() => trend7(log, e => e.event === "journeyhero_cta_clicked"), [log]);
+
+  const alerts = useMemo(() => computeAlerts(metrics), [metrics]);
+  const recommendations = useMemo(() => computeRecommendations(metrics, trendCompletions), [metrics, trendCompletions]);
+
   useEffect(() => {
     const id = setInterval(() => setMetrics(getRetentionMetrics()), 5000);
     return () => clearInterval(id);
