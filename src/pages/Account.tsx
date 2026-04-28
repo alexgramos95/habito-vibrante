@@ -270,20 +270,13 @@ const Account = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b">
-        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="text-xl font-semibold flex items-center gap-2">
-            <User className="h-5 w-5 text-primary" />
-            Conta
-          </h1>
-        </div>
-      </div>
-
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+        <PageHeader
+          title="Conta"
+          icon={User}
+          backTo
+          sticky
+        />
         {/* Identity Section */}
         <Card>
           <CardHeader>
