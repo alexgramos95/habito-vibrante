@@ -18,6 +18,7 @@ import {
 } from "@/config/billing";
 import { PAYWALL_COPY, UPGRADE_COPY } from "@/config/copy";
 import { track } from "@/lib/analytics";
+import { trackEvent } from "@/lib/canonicalEvents";
 
 interface PaywallModalProps {
   open: boolean;
