@@ -190,6 +190,7 @@ const Auth = () => {
           }
         } else {
           void track('signup', { method: 'email' });
+          trackEvent('signup_completed', { method: 'email' });
           toast({
             title: isPT ? 'Verifica o teu email' : 'Check your email!',
             description: isPT
