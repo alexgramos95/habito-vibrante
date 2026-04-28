@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Share2, Download, X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { nativeShare, buildReferralLink } from "@/lib/referral";
 import { track } from "@/hooks/useAnalytics";
+import { pickVariant, SHARE_HEADLINE_TEST, SHARE_HEADLINE_VARIANTS } from "@/lib/abTest";
 
 interface ShareCardProps {
   open: boolean;
