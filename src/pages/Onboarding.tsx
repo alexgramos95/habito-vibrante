@@ -387,7 +387,7 @@ const Onboarding = () => {
       metricsSeeded: trackersToCreate.length,
       customHabit: !!customHabitName,
       customMetric: !!customMetricName,
-      locale,
+      locale: accountLocale,
     });
     if (habitsToCreate.length > 0) {
       trackOnce("first_habit_created", "first_habit_created", {
@@ -409,7 +409,7 @@ const Onboarding = () => {
     customHabit.trim() ||
     (() => {
       const preset = suggestedHabits.find((h) => habits.includes(h.id)) || suggestedHabits[0];
-      return preset ? pick(preset.name, locale) : pick(UI.yourFirstHabit, locale);
+      return preset ? pick(preset.name, UI_LOCALE) : pick(UI.yourFirstHabit, UI_LOCALE);
     })();
 
   return (
@@ -433,7 +433,7 @@ const Onboarding = () => {
                 ? "opacity-0 pointer-events-none"
                 : "text-muted-foreground hover:text-foreground hover:bg-foreground/5 active:scale-95",
             )}
-            aria-label={pick(UI.back, locale)}
+            aria-label={pick(UI.back, UI_LOCALE)}
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
