@@ -40,10 +40,14 @@ import { writeOnboardingDraft } from "@/lib/onboardingDraft";
    materialized record names follow the user's selected app language.
    ============================================================= */
 
-type Step = "identity" | "obstacle" | "focus" | "first-win" | "metric" | "commit";
+type Step = "language" | "identity" | "obstacle" | "focus" | "first-win" | "metric" | "commit";
 
 type Bilingual = { "pt-PT": string; "en-US": string };
 const pick = (b: Bilingual, locale: Locale) => b[locale] ?? b["en-US"];
+
+/** Onboarding UI is ALWAYS English. Language picked here only sets the
+ *  account language used for materialized habit/metric names + app locale. */
+const UI_LOCALE: Locale = "en-US";
 
 /* ---------- IDENTITY ---------- */
 const IDENTITY_OPTIONS: { id: string; label: Bilingual; desc: Bilingual; icon: any }[] = [
@@ -210,12 +214,13 @@ const UI: Record<string, Bilingual> = {
 
 const Onboarding = () => {
   const navigate = useNavigate();
-  const { locale } = useI18n();
+  const { locale, setLocale } = useI18n();
   const { completeOnboarding } = useSubscription();
 
-  const STEPS: Step[] = ["identity", "obstacle", "focus", "first-win", "metric", "commit"];
+  const STEPS: Step[] = ["language", "identity", "obstacle", "focus", "first-win", "metric", "commit"];
 
-  const [step, setStep] = useState<Step>("identity");
+  const [step, setStep] = useState<Step>("language");
+  const [accountLocale, setAccountLocale] = useState<Locale>(locale);
   const [identity, setIdentity] = useState<string | null>(null);
   const [obstacle, setObstacle] = useState<string | null>(null);
   const [focus, setFocus] = useState<string[]>([]);
@@ -254,6 +259,11 @@ const Onboarding = () => {
     setHabits((prev) => (prev.length === 0 && list[0] ? [list[0].id] : prev));
   };
 
+  const pickLanguage = (lng: Locale) => {
+    setAccountLocale(lng);
+    try { setLocale(lng); } catch { /* ignore */ }
+    window.setTimeout(() => setStep("identity"), 220);
+  };
   const pickIdentity = (id: string) => {
     setIdentity(id);
     window.setTimeout(() => setStep("obstacle"), 220);
@@ -277,20 +287,20 @@ const Onboarding = () => {
   const identityLabel = useMemo(
     () => {
       const opt = IDENTITY_OPTIONS.find((o) => o.id === identity);
-      return opt ? pick(opt.label, locale) : "";
+      return opt ? pick(opt.label, UI_LOCALE) : "";
     },
-    [identity, locale],
+    [identity],
   );
   const focusLabels = useMemo(
     () => focus
       .map((f) => FOCUS_OPTIONS.find((o) => o.id === f))
       .filter(Boolean)
-      .map((o) => pick(o!.label, locale)),
-    [focus, locale],
+      .map((o) => pick(o!.label, UI_LOCALE)),
+    [focus],
   );
   const tagline = identity
-    ? pick(IDENTITY_TAGLINE[identity] ?? UI.taglineFallback, locale)
-    : pick(UI.taglineFallback, locale);
+    ? pick(IDENTITY_TAGLINE[identity] ?? UI.taglineFallback, UI_LOCALE)
+    : pick(UI.taglineFallback, UI_LOCALE);
 
   const handleComplete = () => {
     // Habits payload — localized names
@@ -298,7 +308,7 @@ const Onboarding = () => {
     const habitsToCreate = suggestedHabits
       .filter((h) => finalHabitIds.includes(h.id))
       .map((preset) => ({
-        nome: pick(preset.name, locale),
+        nome: pick(preset.name, accountLocale),
         categoria: preset.category,
         cor: preset.color,
         active: true,
@@ -321,11 +331,11 @@ const Onboarding = () => {
     const trackersToCreate: Array<Record<string, unknown>> = [];
     METRIC_SUGGESTIONS.filter((m) => metrics.includes(m.id)).forEach((m) => {
       trackersToCreate.push({
-        name: pick(m.name, locale),
+        name: pick(m.name, accountLocale),
         type: m.type,
         inputMode: m.type === "boolean" ? "binary" : "incremental",
-        unitSingular: pick(m.unit, locale),
-        unitPlural: pick(m.unitPlural, locale),
+        unitSingular: pick(m.unit, accountLocale),
+        unitPlural: pick(m.unitPlural, accountLocale),
         baseline: 0,
         valuePerUnit: 0,
         icon: m.emoji,
@@ -377,7 +387,7 @@ const Onboarding = () => {
       metricsSeeded: trackersToCreate.length,
       customHabit: !!customHabitName,
       customMetric: !!customMetricName,
-      locale,
+      locale: accountLocale,
     });
     if (habitsToCreate.length > 0) {
       trackOnce("first_habit_created", "first_habit_created", {
@@ -399,7 +409,7 @@ const Onboarding = () => {
     customHabit.trim() ||
     (() => {
       const preset = suggestedHabits.find((h) => habits.includes(h.id)) || suggestedHabits[0];
-      return preset ? pick(preset.name, locale) : pick(UI.yourFirstHabit, locale);
+      return preset ? pick(preset.name, UI_LOCALE) : pick(UI.yourFirstHabit, UI_LOCALE);
     })();
 
   return (
@@ -423,7 +433,7 @@ const Onboarding = () => {
                 ? "opacity-0 pointer-events-none"
                 : "text-muted-foreground hover:text-foreground hover:bg-foreground/5 active:scale-95",
             )}
-            aria-label={pick(UI.back, locale)}
+            aria-label={pick(UI.back, UI_LOCALE)}
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
@@ -450,15 +460,18 @@ const Onboarding = () => {
 
       <main className="relative z-10 flex-1 flex flex-col px-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)]">
         <div className="max-w-md w-full mx-auto flex-1 flex flex-col">
+          {step === "language" && (
+            <StepLanguage value={accountLocale} onChange={pickLanguage} />
+          )}
           {step === "identity" && (
-            <StepIdentity locale={locale} value={identity} onChange={pickIdentity} />
+            <StepIdentity locale={UI_LOCALE} value={identity} onChange={pickIdentity} />
           )}
           {step === "obstacle" && (
-            <StepObstacle locale={locale} value={obstacle} onChange={pickObstacle} />
+            <StepObstacle locale={UI_LOCALE} value={obstacle} onChange={pickObstacle} />
           )}
           {step === "focus" && (
             <StepFocus
-              locale={locale}
+              locale={UI_LOCALE}
               value={focus}
               onToggle={toggleFocus}
               onContinue={() => {
@@ -469,7 +482,7 @@ const Onboarding = () => {
           )}
           {step === "first-win" && (
             <StepFirstWin
-              locale={locale}
+              locale={UI_LOCALE}
               suggestions={suggestedHabits}
               selected={habits}
               onToggle={toggleHabit}
@@ -480,7 +493,7 @@ const Onboarding = () => {
           )}
           {step === "metric" && (
             <StepMetric
-              locale={locale}
+              locale={UI_LOCALE}
               selected={metrics}
               onToggle={toggleMetric}
               customValue={customMetric}
@@ -490,7 +503,7 @@ const Onboarding = () => {
           )}
           {step === "commit" && (
             <StepCommit
-              locale={locale}
+              locale={UI_LOCALE}
               identityLabel={identityLabel}
               focusLabels={focusLabels}
               habitCount={habits.length + (customHabit.trim() ? 1 : 0)}
@@ -504,6 +517,63 @@ const Onboarding = () => {
     </div>
   );
 };
+
+/* =============================================================
+   STEP 0 — Language (always shown in English; sets account locale)
+   ============================================================= */
+const LANGUAGE_OPTIONS: { id: Locale; label: string; native: string; flag: string }[] = [
+  { id: "en-US", label: "English",    native: "English",    flag: "🇬🇧" },
+  { id: "pt-PT", label: "Portuguese", native: "Português",  flag: "🇵🇹" },
+];
+
+const StepLanguage = ({
+  value,
+  onChange,
+}: {
+  value: Locale;
+  onChange: (lng: Locale) => void;
+}) => (
+  <div className="flex-1 flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-300">
+    <div className="text-center pt-4 pb-6">
+      <p className="font-mono text-[10px] uppercase tracking-widest text-primary mb-3">
+        // Language
+      </p>
+      <h1 className="type-display text-3xl sm:text-4xl mb-2 leading-tight">
+        Pick your<br />account language.
+      </h1>
+      <p className="text-sm text-muted-foreground/80">
+        Used inside the app. Onboarding stays in English.
+      </p>
+    </div>
+
+    <div className="grid gap-2.5 mb-6">
+      {LANGUAGE_OPTIONS.map((opt) => {
+        const selected = value === opt.id;
+        return (
+          <button
+            key={opt.id}
+            onClick={() => onChange(opt.id)}
+            className={cn(
+              "flex items-center gap-4 p-4 text-left border-2 transition-all duration-150 active:scale-[0.985] min-h-[64px]",
+              selected
+                ? "border-primary bg-primary/[0.10] shadow-[0_0_28px_hsl(var(--neon-toxic)/0.3)]"
+                : "border-foreground/10 hover:border-foreground/30 bg-foreground/[0.015]",
+            )}
+          >
+            <span className="text-2xl shrink-0" aria-hidden>{opt.flag}</span>
+            <div className="flex-1 min-w-0">
+              <p className={cn("text-base font-bold tracking-tight", selected && "text-primary")}>
+                {opt.label}
+              </p>
+              <p className="text-xs text-muted-foreground/75 mt-0.5">{opt.native}</p>
+            </div>
+            {selected && <Check className="h-5 w-5 text-primary shrink-0 animate-completion-pop" />}
+          </button>
+        );
+      })}
+    </div>
+  </div>
+);
 
 /* =============================================================
    STEP 1 — Identity
