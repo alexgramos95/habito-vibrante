@@ -197,6 +197,14 @@ const Insights = () => {
     [log],
   );
 
+  // Auto-promote strong winners and refresh history
+  const [history, setHistory] = useState<HistoryEntry[]>(() => getHistory());
+  useEffect(() => {
+    const a = maybeAutoPromote(REFERRAL_HEADLINE_TEST, REFERRAL_HEADLINE_NAME, referralVariants);
+    const b = maybeAutoPromote(SHARE_HEADLINE_TEST, SHARE_HEADLINE_NAME, shareVariants);
+    if (a || b) setHistory(getHistory());
+  }, [referralVariants, shareVariants]);
+
   useEffect(() => {
     const id = setInterval(() => setMetrics(getRetentionMetrics()), 5000);
     return () => clearInterval(id);
