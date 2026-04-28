@@ -197,6 +197,194 @@ const SOURCE_KEYS: AcquisitionSource[] = [
   "organic_search", "paid_ads", "email", "other",
 ];
 
+// ---------- Cohort analysis (by signup week) ----------
+type LogEvent = { event: string; timestamp: string; properties?: any };
+
+interface CohortRow {
+  weekKey: string;        // e.g. "2026-W17"
+  weekStart: Date;
+  weekLabel: string;      // "Apr 20"
+  users: number;
+  d1Rate: number;
+  d7Rate: number;
+  avgHabitsFirstWeek: number;
+  avgStreak: number;
+  referralRate: number;   // invites sent / users
+  qualityScore: number;
+}
+
+// Stable per-browser id (we only have one local "user" but still bucket properly).
+const localUserId = (): string => {
+  try {
+    let id = localStorage.getItem("become-local-user-id");
+    if (!id) {
+      id = `u_${Math.random().toString(36).slice(2, 10)}`;
+      localStorage.setItem("become-local-user-id", id);
+    }
+    return id;
+  } catch { return "u_anon"; }
+};
+
+// ISO week start (Monday) for a given date
+const isoWeekStart = (d: Date): Date => {
+  const x = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const day = x.getUTCDay() || 7; // Sun=0 → 7
+  if (day !== 1) x.setUTCDate(x.getUTCDate() - (day - 1));
+  return x;
+};
+const isoWeekKey = (d: Date): string => {
+  const start = isoWeekStart(d);
+  // ISO week number
+  const tmp = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate()));
+  tmp.setUTCDate(tmp.getUTCDate() + 4 - (tmp.getUTCDay() || 7));
+  const yearStart = new Date(Date.UTC(tmp.getUTCFullYear(), 0, 1));
+  const week = Math.ceil((((tmp.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  return `${tmp.getUTCFullYear()}-W${String(week).padStart(2, "0")}`;
+};
+const weekLabel = (d: Date) =>
+  d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+
+const dayKeyLocal = (iso: string) => {
+  const d = new Date(iso);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
+
+/**
+ * Compute weekly cohorts from the event log.
+ * Each user is assigned to the ISO week of their first event (or
+ * acquisition_captured if present). Source filter restricts the population.
+ */
+const computeCohorts = (
+  log: LogEvent[],
+  sourceFilter: AcquisitionSource | "all",
+): CohortRow[] => {
+  if (log.length === 0) return [];
+
+  // Group events per user. We currently only have one local user, but we
+  // also synthesize per-source pseudo-users so historical sources still
+  // show as separate cohort members when filter = "all".
+  const me = localUserId();
+
+  // Build a per-user event map. Key strategy:
+  //  - one bucket for the current local user (events without user_id)
+  //  - extra buckets keyed by `properties.user_id` if ever stamped
+  type UserBundle = { events: LogEvent[]; source: AcquisitionSource };
+  const users = new Map<string, UserBundle>();
+  const ensure = (id: string, source: AcquisitionSource): UserBundle => {
+    if (!users.has(id)) users.set(id, { events: [], source });
+    return users.get(id)!;
+  };
+  // Default source for the local user comes from acquisition meta
+  let mySource: AcquisitionSource = "direct";
+  try { mySource = (localStorage.getItem("become-acquisition-source") as AcquisitionSource) || "direct"; } catch { /* ignore */ }
+  ensure(me, mySource);
+
+  for (const e of log) {
+    const uid = (e.properties?.user_id as string) || me;
+    const src = (e.properties?.source as AcquisitionSource) || (uid === me ? mySource : "direct");
+    ensure(uid, src).events.push(e);
+  }
+
+  // Filter users by source
+  const filtered = Array.from(users.entries()).filter(([, b]) =>
+    sourceFilter === "all" ? true : b.source === sourceFilter,
+  );
+
+  // Bucket users by signup week (week of first event)
+  const cohorts = new Map<string, {
+    weekStart: Date;
+    userIds: string[];
+    d1: number;
+    d7: number;
+    habitsFirstWeek: number[];
+    streaks: number[];
+    invites: number;
+  }>();
+
+  for (const [uid, bundle] of filtered) {
+    if (bundle.events.length === 0) continue;
+    const sorted = [...bundle.events].sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+    const acq = sorted.find(e => e.event === "acquisition_captured");
+    const firstTs = new Date((acq || sorted[0]).timestamp);
+    if (isNaN(firstTs.getTime())) continue;
+
+    const wk = isoWeekKey(firstTs);
+    const wkStart = isoWeekStart(firstTs);
+    if (!cohorts.has(wk)) {
+      cohorts.set(wk, {
+        weekStart: wkStart,
+        userIds: [],
+        d1: 0, d7: 0,
+        habitsFirstWeek: [],
+        streaks: [],
+        invites: 0,
+      });
+    }
+    const c = cohorts.get(wk)!;
+    c.userIds.push(uid);
+
+    // D1 / D7 returns
+    if (sorted.some(e => e.event === "day1_return")) c.d1 += 1;
+    if (sorted.some(e => e.event === "day7_return")) c.d7 += 1;
+
+    // First-week habit completions
+    const weekCompletions = sorted.filter(e => {
+      if (e.event !== "habit_completed" && e.event !== "first_habit_completed") return false;
+      const t = new Date(e.timestamp).getTime();
+      return t >= firstTs.getTime() && t < firstTs.getTime() + 7 * 86_400_000;
+    });
+    c.habitsFirstWeek.push(weekCompletions.length);
+
+    // Longest consecutive-day streak in first week
+    const days = new Set(weekCompletions.map(e => dayKeyLocal(e.timestamp)));
+    let longest = 0, cur = 0;
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(firstTs);
+      d.setDate(d.getDate() + i);
+      const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      if (days.has(k)) { cur += 1; longest = Math.max(longest, cur); } else cur = 0;
+    }
+    c.streaks.push(longest);
+
+    c.invites += sorted.filter(e => e.event === "referral_invite_sent").length;
+  }
+
+  const rows: CohortRow[] = [];
+  for (const [weekKey, c] of cohorts) {
+    const users = c.userIds.length;
+    if (users === 0) continue;
+    const avgHabits = +(c.habitsFirstWeek.reduce((s, n) => s + n, 0) / users).toFixed(2);
+    const avgStreak = +(c.streaks.reduce((s, n) => s + n, 0) / users).toFixed(2);
+    const d1Rate = c.d1 / users;
+    const d7Rate = c.d7 / users;
+    const referralRate = c.invites / users;
+    const qualityScore = +(
+      0.45 * d7Rate +
+      0.25 * d1Rate +
+      0.20 * Math.min(1, avgHabits / 5) +
+      0.10 * Math.min(1, referralRate)
+    ).toFixed(3);
+    rows.push({
+      weekKey,
+      weekStart: c.weekStart,
+      weekLabel: weekLabel(c.weekStart),
+      users, d1Rate, d7Rate,
+      avgHabitsFirstWeek: avgHabits,
+      avgStreak, referralRate, qualityScore,
+    });
+  }
+  return rows.sort((a, b) => a.weekStart.getTime() - b.weekStart.getTime());
+};
+
+type CohortTrend = "improving" | "declining" | "stable" | "first";
+const cohortTrend = (curr: CohortRow, prev?: CohortRow): CohortTrend => {
+  if (!prev) return "first";
+  const delta = curr.qualityScore - prev.qualityScore;
+  if (delta > 0.05) return "improving";
+  if (delta < -0.05) return "declining";
+  return "stable";
+};
+
 const computeSourceStats = (
   log: { event: string; timestamp: string; properties?: any }[],
 ): SourceRow[] => {
@@ -292,6 +480,10 @@ const Insights = () => {
   const acquisitionMeta = useMemo(() => getAcquisitionMeta(), []);
   const sourceStats = useMemo(() => computeSourceStats(log), [log]);
 
+  // ----- Cohort analysis (by signup week, optional source filter) -----
+  const [cohortSource, setCohortSource] = useState<AcquisitionSource | "all">("all");
+  const cohorts = useMemo(() => computeCohorts(log, cohortSource), [log, cohortSource]);
+
   useEffect(() => {
     const id = setInterval(() => setMetrics(getRetentionMetrics()), 5000);
     return () => clearInterval(id);
@@ -352,6 +544,24 @@ const Insights = () => {
         <section>
           <h2 className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">Source intelligence</h2>
           <SourceIntelligenceTable rows={sourceStats} />
+        </section>
+
+        {/* Cohort analysis (by signup week) */}
+        <section>
+          <div className="flex items-center justify-between mb-2 gap-2">
+            <h2 className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Cohort analysis · weekly</h2>
+            <select
+              value={cohortSource}
+              onChange={e => setCohortSource(e.target.value as AcquisitionSource | "all")}
+              className="text-[10px] font-mono uppercase tracking-wider bg-background border border-foreground/15 rounded px-2 py-1 text-foreground"
+            >
+              <option value="all">All sources</option>
+              {SOURCE_KEYS.map(s => (
+                <option key={s} value={s}>{SOURCE_LABEL[s]}</option>
+              ))}
+            </select>
+          </div>
+          <CohortAnalysisTable rows={cohorts} />
         </section>
 
         {/* Alerts — automatic insight engine */}
@@ -868,6 +1078,79 @@ const SourceIntelligenceTable = ({ rows }: { rows: SourceRow[] }) => {
 
         <p className="px-3 py-2 text-[10px] font-mono text-muted-foreground border-t border-foreground/10">
           Quality = 0.45·D7 + 0.25·D1 + 0.20·avg-habits + 0.10·referral-CTR
+        </p>
+      </CardContent>
+    </Card>
+  );
+};
+
+const TREND_STYLE: Record<CohortTrend, { label: string; cls: string; arrow: string }> = {
+  improving: { label: "Improving", cls: "text-emerald-600 dark:text-emerald-400 border-emerald-500/40 bg-emerald-500/10", arrow: "↑" },
+  declining: { label: "Declining", cls: "text-destructive border-destructive/40 bg-destructive/10", arrow: "↓" },
+  stable:    { label: "Stable",    cls: "text-muted-foreground border-foreground/15 bg-foreground/[0.04]", arrow: "→" },
+  first:     { label: "Baseline",  cls: "text-muted-foreground border-foreground/15 bg-foreground/[0.04]", arrow: "·" },
+};
+
+const CohortAnalysisTable = ({ rows }: { rows: CohortRow[] }) => {
+  if (rows.length === 0) {
+    return (
+      <Card>
+        <CardContent className="p-4">
+          <p className="text-xs text-muted-foreground italic">
+            No cohorts for this filter yet. Cohorts form once users with this source have at least one tracked event.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+  return (
+    <Card>
+      <CardContent className="p-0">
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="text-muted-foreground border-b border-foreground/10">
+                <th className="text-left  font-mono font-normal uppercase tracking-wider px-3 py-2 text-[10px]">Cohort</th>
+                <th className="text-right font-mono font-normal uppercase tracking-wider px-2 py-2 text-[10px]">Users</th>
+                <th className="text-right font-mono font-normal uppercase tracking-wider px-2 py-2 text-[10px]">D1</th>
+                <th className="text-right font-mono font-normal uppercase tracking-wider px-2 py-2 text-[10px]">D7</th>
+                <th className="text-right font-mono font-normal uppercase tracking-wider px-2 py-2 text-[10px]">Avg habits</th>
+                <th className="text-right font-mono font-normal uppercase tracking-wider px-2 py-2 text-[10px]">Avg streak</th>
+                <th className="text-right font-mono font-normal uppercase tracking-wider px-2 py-2 text-[10px]">Ref %</th>
+                <th className="text-right font-mono font-normal uppercase tracking-wider px-3 py-2 text-[10px]">Trend</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r, i) => {
+                const trend = cohortTrend(r, rows[i - 1]);
+                const t = TREND_STYLE[trend];
+                return (
+                  <tr key={r.weekKey} className="border-b border-foreground/5 last:border-0">
+                    <td className="px-3 py-2.5">
+                      <div className="font-bold">Week of {r.weekLabel}</div>
+                      <div className="text-[10px] font-mono text-muted-foreground">{r.weekKey}</div>
+                    </td>
+                    <td className="px-2 py-2.5 text-right tabular-nums">{r.users}</td>
+                    <td className="px-2 py-2.5 text-right tabular-nums">{fmtPct(r.d1Rate)}</td>
+                    <td className="px-2 py-2.5 text-right tabular-nums">{fmtPct(r.d7Rate)}</td>
+                    <td className="px-2 py-2.5 text-right tabular-nums">{r.avgHabitsFirstWeek}</td>
+                    <td className="px-2 py-2.5 text-right tabular-nums">{r.avgStreak}d</td>
+                    <td className="px-2 py-2.5 text-right tabular-nums">
+                      {Math.round(r.referralRate * 100)}%
+                    </td>
+                    <td className="px-3 py-2.5 text-right">
+                      <span className={`inline-flex items-center gap-1 text-[9px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded border ${t.cls}`}>
+                        <span>{t.arrow}</span>{t.label}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        <p className="px-3 py-2 text-[10px] font-mono text-muted-foreground border-t border-foreground/10">
+          Trend compares each cohort's quality vs the previous week (Δ &gt; ±5 pts).
         </p>
       </CardContent>
     </Card>
