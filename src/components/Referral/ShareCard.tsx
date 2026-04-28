@@ -119,6 +119,30 @@ const roundRect = (ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
   ctx.closePath();
 };
 
+const wrapText = (
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  cx: number,
+  startY: number,
+  maxWidth: number,
+  lineHeight: number,
+) => {
+  const words = text.split(" ");
+  const lines: string[] = [];
+  let cur = "";
+  for (const w of words) {
+    const test = cur ? `${cur} ${w}` : w;
+    if (ctx.measureText(test).width > maxWidth && cur) {
+      lines.push(cur);
+      cur = w;
+    } else {
+      cur = test;
+    }
+  }
+  if (cur) lines.push(cur);
+  lines.forEach((l, i) => ctx.fillText(l, cx, startY + i * lineHeight));
+};
+
 export const ShareCard = ({ open, onClose, stats, identityLabel = "disciplined self", isPT = true }: ShareCardProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [shared, setShared] = useState(false);
