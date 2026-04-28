@@ -107,28 +107,12 @@ const LevelProgress = () => {
       <Navigation />
 
       <main className="page-content max-w-2xl mx-auto space-y-5">
-        {/* Header */}
-        <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/app/profile")}
-            className="h-9 w-9 shrink-0"
-            aria-label={isPt ? "Voltar" : "Back"}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-xl font-black italic uppercase tracking-tighter">
-              {isPt ? "Evolução do Nível" : "Level Progress"}
-            </h1>
-            <p className="text-xs text-muted-foreground">
-              {isPt
-                ? "Acompanha o teu percurso ao longo do tempo"
-                : "Track your journey over time"}
-            </p>
-          </div>
-        </div>
+        <PageHeader
+          title={isPt ? "Evolução do Nível" : "Level Progress"}
+          subtitle={isPt ? "Acompanha o teu percurso ao longo do tempo" : "Track your journey over time"}
+          backTo="/app/profile"
+          backLabel={isPt ? "Voltar" : "Back"}
+        />
 
         {/* Hero level card */}
         <div className="rounded-2xl border-2 border-primary/40 bg-card p-5 shadow-[4px_4px_0_0_hsl(var(--neon-ultra)/0.4)]">
