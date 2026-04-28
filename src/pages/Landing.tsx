@@ -193,11 +193,7 @@ const Landing = () => {
             <Link to="/auth" className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors">
               Sign In
             </Link>
-            <Button
-              size="sm"
-              onClick={handleStartTrial}
-              className="press-tactile shadow-[0_0_24px_hsl(var(--neon-toxic)/0.35)] hover:shadow-[0_0_36px_hsl(var(--neon-toxic)/0.55)] transition-shadow"
-            >
+            <Button size="sm" onClick={handleStartTrial}>
               Start Free
             </Button>
           </div>
@@ -247,12 +243,12 @@ const Landing = () => {
             <Button
               size="lg"
               onClick={handleStartTrial}
-              className="press-tactile gap-2 px-12 h-14 text-base font-bold w-full sm:w-auto shadow-[0_0_40px_hsl(var(--neon-toxic)/0.45)] hover:shadow-[0_0_60px_hsl(var(--neon-toxic)/0.7)] hover:scale-[1.02] transition-all duration-300"
+              className="gap-2 px-12 w-full sm:w-auto"
             >
               Start Free
               <ArrowRight className="h-5 w-5" />
             </Button>
-            <Button size="lg" variant="ghost" onClick={() => scrollTo("inside")} className="press-tactile w-full sm:w-auto h-14">
+            <Button size="lg" variant="outline" onClick={() => scrollTo("inside")} className="w-full sm:w-auto">
               See How It Works
             </Button>
           </div>
@@ -446,7 +442,7 @@ const Landing = () => {
               <Button
                 size="lg"
                 onClick={handleStartTrial}
-                className="press-tactile gap-2 px-12 h-14 text-base font-bold shadow-[0_0_40px_hsl(var(--neon-toxic)/0.4)] hover:shadow-[0_0_60px_hsl(var(--neon-toxic)/0.65)] hover:scale-[1.02] transition-all duration-300"
+                className="gap-2 px-12"
               >
                 Start Free
                 <ArrowRight className="h-5 w-5" />
@@ -539,11 +535,8 @@ const Landing = () => {
                   </div>
                   <p className="type-body text-sm text-muted-foreground/80 mb-9 min-h-[40px]">{p.desc}</p>
                   <Button
-                    className={cn(
-                      "press-tactile w-full h-12 font-bold transition-all duration-300",
-                      p.popular &&
-                        "shadow-[0_0_30px_hsl(var(--neon-toxic)/0.4)] hover:shadow-[0_0_50px_hsl(var(--neon-toxic)/0.65)] hover:scale-[1.02]",
-                    )}
+                    className="w-full"
+                    size="lg"
                     variant={p.popular ? "default" : "outline"}
                     onClick={handleStartTrial}
                   >
@@ -619,9 +612,9 @@ const Landing = () => {
               7 days free. No credit card. Cancel anytime.
             </p>
             <Button
-              size="lg"
+              size="xl"
               onClick={handleStartTrial}
-              className="press-tactile gap-2 px-14 h-16 text-base font-bold shadow-[0_0_50px_hsl(var(--neon-toxic)/0.5)] hover:shadow-[0_0_70px_hsl(var(--neon-toxic)/0.75)] hover:scale-[1.03] transition-all duration-300"
+              className="gap-2 px-14"
             >
               Start Free
               <ArrowRight className="h-5 w-5" />
@@ -657,7 +650,7 @@ const Landing = () => {
         <Button
           size="lg"
           onClick={handleStartTrial}
-          className="press-tactile w-full h-13 gap-2 font-bold shadow-[0_0_30px_hsl(var(--neon-toxic)/0.45)]"
+          className="w-full gap-2"
         >
           Start Free
           <ArrowRight className="h-5 w-5" />

@@ -1127,7 +1127,7 @@ const StepCommit = ({
         <Button
           size="lg"
           onClick={onStart}
-          className="press-tactile w-full h-14 text-base font-bold gap-2 shadow-[0_0_44px_hsl(var(--neon-toxic)/0.55)] hover:shadow-[0_0_64px_hsl(var(--neon-toxic)/0.8)] hover:scale-[1.02] transition-all duration-300"
+          className="w-full gap-2"
         >
           {pick(UI.enter, locale)}
           <ArrowRight className="h-5 w-5" />
@@ -1164,11 +1164,7 @@ const ContinueBar = ({
       size="lg"
       onClick={onClick}
       disabled={disabled}
-      className={cn(
-        "press-tactile w-full h-14 text-base font-bold gap-2 transition-all duration-300",
-        !disabled &&
-          "shadow-[0_0_36px_hsl(var(--neon-toxic)/0.45)] hover:shadow-[0_0_56px_hsl(var(--neon-toxic)/0.7)] hover:scale-[1.01]",
-      )}
+      className="w-full gap-2"
     >
       {label ?? pick(UI.continueLabel, locale)}
       <ArrowRight className="h-5 w-5" />
