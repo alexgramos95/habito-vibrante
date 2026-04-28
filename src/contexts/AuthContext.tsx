@@ -5,8 +5,6 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef, ReactNode } from 'react';
 import { User, Session, Provider } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { loadState, saveState, addHabit, addTracker } from '@/data/storage';
-import type { Tracker } from '@/data/types';
 import { useDataSync } from '@/hooks/useDataSync';
 import { AUTH_RECOVERY_EVENT, isRecoverableAuthError, recoverInvalidSession } from '@/lib/authSessionRecovery';
 import { purgeAccountData, detectAccountSwitchAndPurge } from '@/lib/sessionCleanup';
@@ -55,14 +53,10 @@ const defaultSubscriptionStatus: SubscriptionStatus = {
 // Minimum time between subscription checks (30 seconds)
 const SUBSCRIPTION_CHECK_COOLDOWN = 30000;
 
-import {
-  ONBOARDING_DATA_KEY,
-  readOnboardingDraft,
-  isMaterialized,
-  markMaterialized,
-  getMaterializedKey,
-} from '@/lib/onboardingDraft';
-import { track } from '@/hooks/useAnalytics';
+// Note: onboarding materialization is now handled by DataContext via
+// `runOnboardingMaterialization` (see src/lib/onboardingMaterialization.ts).
+// The legacy materializer that lived here was removed to avoid double-runs
+// that could create duplicate habits or wipe selected metrics.
 
 /**
  * Materialize onboarding habits and trackers after successful authentication.
