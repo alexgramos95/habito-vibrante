@@ -546,6 +546,24 @@ const Insights = () => {
           <SourceIntelligenceTable rows={sourceStats} />
         </section>
 
+        {/* Cohort analysis (by signup week) */}
+        <section>
+          <div className="flex items-center justify-between mb-2 gap-2">
+            <h2 className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Cohort analysis · weekly</h2>
+            <select
+              value={cohortSource}
+              onChange={e => setCohortSource(e.target.value as AcquisitionSource | "all")}
+              className="text-[10px] font-mono uppercase tracking-wider bg-background border border-foreground/15 rounded px-2 py-1 text-foreground"
+            >
+              <option value="all">All sources</option>
+              {SOURCE_KEYS.map(s => (
+                <option key={s} value={s}>{SOURCE_LABEL[s]}</option>
+              ))}
+            </select>
+          </div>
+          <CohortAnalysisTable rows={cohorts} />
+        </section>
+
         {/* Alerts — automatic insight engine */}
         {alerts.length > 0 && (
           <section className="space-y-2">
