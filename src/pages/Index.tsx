@@ -117,6 +117,20 @@ const Index = () => {
   useEffect(() => {
     track("app_open", { route: "/app" });
     checkReturnEvents();
+    // Mirror retention milestones to canonical event stream (PostHog + Supabase)
+    try {
+      const start = localStorage.getItem("become-journey-start");
+      if (start) {
+        const startDate = new Date(start);
+        if (!isNaN(startDate.getTime())) {
+          const diff = Math.round(
+            (Date.now() - startDate.getTime()) / 86_400_000
+          );
+          if (diff >= 1) trackEvent("day1_return", { dayOffset: diff });
+          if (diff >= 7) trackEvent("day7_return", { dayOffset: diff });
+        }
+      }
+    } catch { /* ignore */ }
 
     // Referee XP reward — if user signed up via ?ref= link, grant once.
     import("@/lib/referral").then(({ consumePendingRefForReward, REFERRAL_XP_REWARD }) => {
