@@ -32,6 +32,7 @@ import { JourneyHero } from "@/components/Dashboard/JourneyHero";
 import { ReferralPrompt } from "@/components/Referral/ReferralPrompt";
 import { hasSeenReferralPrompt, markReferralPromptSeen } from "@/lib/referral";
 import { track, trackOnce, checkReturnEvents } from "@/hooks/useAnalytics";
+import { trackEvent } from "@/lib/canonicalEvents";
 // HabitCoachTip removed — coach is now on the detail page
 
 // --- Circular progress ring ---
