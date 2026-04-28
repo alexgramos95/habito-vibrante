@@ -4,6 +4,7 @@ import { pt, enUS as enUSLocale } from "date-fns/locale";
 import { ShoppingCart, Plus, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useI18n } from "@/i18n/I18nContext";
 import { Navigation } from "@/components/Layout/Navigation";
+import { PageHeader } from "@/components/Layout/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
