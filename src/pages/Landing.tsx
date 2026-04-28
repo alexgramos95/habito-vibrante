@@ -18,6 +18,13 @@ import { cn } from "@/lib/utils";
 import { useSubscription } from "@/hooks/useSubscription";
 import { PaywallModal } from "@/components/Paywall/PaywallModal";
 import { BecomeLogo } from "@/components/Brand/BecomeLogo";
+import {
+  PhoneFrame,
+  HabitsPreview,
+  CalendarPreview,
+  NutritionPreview,
+  ShoppingPreview,
+} from "@/components/Landing/LandingPreviews";
 
 /**
  * Landing — "Identity OS for ambitious people"
