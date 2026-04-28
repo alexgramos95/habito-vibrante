@@ -240,6 +240,10 @@ const Index = () => {
       return r.newState;
     });
     if (!wasDone && habit && result) {
+      // Analytics: every completion + first-ever completion (one-shot)
+      track("habit_completed", { habitId, isLate: result.isLate });
+      trackOnce("first_habit_completed", "first_habit_completed", { habitId, isLate: result.isLate });
+
       // Late completion → editorial notice; on-time → contextual feedback (if enabled)
       if (result.isLate) {
         toast({
@@ -255,7 +259,7 @@ const Index = () => {
         }
       }
     }
-  }, [isSimpleDone, today, setState, state.habits, toast]);
+  }, [isSimpleDone, today, setState, state.habits, toast, showFirstSession, dismissFirstSession]);
 
   const handleAddMetricEntry = useCallback((habitId: string, qty: number, ts?: string) => {
     setState(prev => addTrackerEntry(prev, habitId, qty, undefined, ts));
