@@ -86,21 +86,13 @@ const Definicoes = () => {
       <Navigation />
 
       <main className="page-content max-w-xl mx-auto space-y-5">
-        {/* Header */}
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate(-1)}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
-              <Settings className="h-5 w-5 text-primary" />
-              {t.settings.title}
-            </h1>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {locale === 'pt-PT' ? 'Preferências da aplicação' : 'App preferences'}
-            </p>
-          </div>
-        </div>
+        <PageHeader
+          title={t.settings.title}
+          subtitle={locale === 'pt-PT' ? 'Preferências da aplicação' : 'App preferences'}
+          icon={Settings}
+          backTo
+          backLabel={locale === 'pt-PT' ? 'Voltar' : 'Back'}
+        />
 
         {/* Language */}
         <div className="rounded-2xl border border-border/30 bg-card/50 p-4 space-y-3">

@@ -256,24 +256,17 @@ const Triggers = () => {
       <Navigation />
 
       <main className="page-content">
-        {/* Header */}
-        <div className="page-header">
-          <div>
-            <h1 className="page-title flex items-center gap-2">
-              <Bell className="h-5 w-5 text-primary" />
-              {t.triggers.title}
-            </h1>
-            <p className="page-subtitle">
-              {locale === 'pt-PT' 
-                ? 'Alarmes e lembretes' 
-                : 'Alarms and reminders'}
-            </p>
-          </div>
-          <Button onClick={() => { resetForm(); setShowNewTriggerDialog(true); }} size="sm" className="gap-1.5 h-9 px-3 rounded-xl">
-            <Plus className="h-4 w-4" />
-            <span className="hidden sm:inline">{locale === 'pt-PT' ? 'Novo' : 'New'}</span>
-          </Button>
-        </div>
+        <PageHeader
+          title={t.triggers.title}
+          subtitle={locale === 'pt-PT' ? 'Alarmes e lembretes' : 'Alarms and reminders'}
+          icon={Bell}
+          actions={
+            <Button onClick={() => { resetForm(); setShowNewTriggerDialog(true); }} size="sm" className="gap-1.5 h-9 px-3 rounded-xl">
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline">{locale === 'pt-PT' ? 'Novo' : 'New'}</span>
+            </Button>
+          }
+        />
 
         {/* Empty State */}
         {triggers.length === 0 ? (

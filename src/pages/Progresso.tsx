@@ -110,16 +110,11 @@ const Progresso = () => {
       <Navigation />
 
       <main className="page-content max-w-xl mx-auto space-y-5">
-        {/* ═══ Page Header ═══ */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-primary" />
-              {isPT ? 'Progresso' : 'Progress'}
-            </h1>
-            <p className="text-xs text-muted-foreground mt-0.5">{isPT ? 'Recompensas e poupanças' : 'Rewards and savings'}</p>
-          </div>
-        </div>
+        <PageHeader
+          title={isPT ? 'Progresso' : 'Progress'}
+          subtitle={isPT ? 'Recompensas e poupanças' : 'Rewards and savings'}
+          icon={TrendingUp}
+        />
 
         {/* ═══ Level Hero ═══ */}
         <div className="rounded-2xl border border-primary/15 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 p-5">
