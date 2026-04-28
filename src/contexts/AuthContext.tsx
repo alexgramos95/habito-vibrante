@@ -9,6 +9,8 @@ import { loadState, saveState, addHabit, addTracker } from '@/data/storage';
 import type { Tracker } from '@/data/types';
 import { useDataSync } from '@/hooks/useDataSync';
 import { AUTH_RECOVERY_EVENT, isRecoverableAuthError, recoverInvalidSession } from '@/lib/authSessionRecovery';
+import { purgeAccountData, detectAccountSwitchAndPurge } from '@/lib/sessionCleanup';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface SubscriptionStatus {
   subscribed: boolean;
