@@ -28,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n/I18nContext";
 import { cn } from "@/lib/utils";
 import { useSubscription } from "@/hooks/useSubscription";
+import { track, trackOnce } from "@/hooks/useAnalytics";
 
 /* =============================================================
    ONBOARDING — Identity Hook → First Win → Commit
@@ -237,6 +238,20 @@ const Onboarding = () => {
       localStorage.setItem("become-first-session", "1");
     } catch {
       /* ignore */
+    }
+
+    // === Analytics: onboarding funnel ===
+    trackOnce("onboarding_completed", "onboarding_completed", {
+      identity,
+      obstacle,
+      focusCount: focus.length,
+      habitsSeeded: habitsToCreate.length,
+    });
+    if (habitsToCreate.length > 0) {
+      trackOnce("first_habit_created", "first_habit_created", {
+        source: "onboarding",
+        count: habitsToCreate.length,
+      });
     }
 
     completeOnboarding({
