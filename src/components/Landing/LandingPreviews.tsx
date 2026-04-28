@@ -301,7 +301,13 @@ const PreviewHabitRow = ({
    subsystems)
    ════════════════════════════════════════════════════════════════════════ */
 
-export const HabitsPreview = () => (
+export const HabitsPreview = () => {
+  // Micro-motion: third habit auto-completes ~1.6s after mount,
+  // momentum bar then advances 50% → 75%.
+  const thirdDone = useDelayedToggle(1600);
+  const momentumPct = thirdDone ? 75 : 50;
+  const momentumLabel = thirdDone ? "3/4" : "2/4";
+  return (
   <div className="flex flex-col">
     <PreviewTopBar />
 
