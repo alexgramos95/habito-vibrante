@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useData } from "@/contexts/DataContext";
 import { useI18n } from "@/i18n/I18nContext";
 import { Navigation } from "@/components/Layout/Navigation";
+import { PageHeader } from "@/components/Layout/PageHeader";
 import { cn } from "@/lib/utils";
 import { HabitForm } from "@/components/Habits/HabitForm";
 import { TrackerEditDialog } from "@/components/Trackers/TrackerEditDialog";
