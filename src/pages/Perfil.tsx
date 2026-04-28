@@ -30,6 +30,7 @@ import { PaywallModal } from "@/components/Paywall/PaywallModal";
 import { TrialBanner } from "@/components/Paywall/TrialBanner";
 import { ExportDialog } from "@/components/Export/ExportDialog";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProfileName } from "@/hooks/useProfileName";
 import { OperatorHero } from "@/components/Profile/OperatorHero";
 import { getHabitFeedbackEnabled, setHabitFeedbackEnabled } from "@/logic/habitFeedback";
 import { Sparkles } from "lucide-react";
@@ -103,11 +104,11 @@ const Perfil = () => {
     }
   };
 
+  // Unified profile-name source — same hook used by greeting / hero.
+  const { displayName: profileDisplayName } = useProfileName();
   const getDisplayName = () => {
     if (!user) return locale === 'pt-PT' ? 'Visitante' : 'Guest';
-    if (user.user_metadata?.full_name) return user.user_metadata.full_name;
-    if (user.email) return user.email.split('@')[0];
-    return locale === 'pt-PT' ? 'Visitante' : 'Guest';
+    return profileDisplayName || (locale === 'pt-PT' ? 'Visitante' : 'Guest');
   };
   const displayName = getDisplayName();
   const displayEmail = user?.email || (locale === 'pt-PT' ? 'Não autenticado' : 'Not signed in');
