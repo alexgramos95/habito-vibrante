@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Copy, Check, Send, Sparkles, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -6,6 +6,7 @@ import {
   incInvitesSent, REFERRAL_XP_REWARD,
 } from "@/lib/referral";
 import { track } from "@/hooks/useAnalytics";
+import { pickVariant, REFERRAL_HEADLINE_TEST, REFERRAL_HEADLINE_VARIANTS } from "@/lib/abTest";
 
 interface ReferralPromptProps {
   open: boolean;
