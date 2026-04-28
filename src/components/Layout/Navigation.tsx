@@ -6,6 +6,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n/I18nContext";
 import { useSubscription } from "@/hooks/useSubscription";
+import { BecomeLogo } from "@/components/Brand/BecomeLogo";
 
 export const Navigation = () => {
   const { t, locale } = useI18n();
@@ -52,9 +53,7 @@ export const Navigation = () => {
       <nav className="sticky top-0 z-50 border-b border-foreground/10 bg-background/95 backdrop-blur-xl">
         <div className="container flex h-14 items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center bg-primary text-primary-foreground font-black italic text-base border-2 border-primary shadow-[2px_2px_0_0_hsl(var(--neon-ultra))]">
-              B
-            </div>
+            <BecomeLogo compact />
             <div className="flex flex-col leading-tight">
               <span className="text-sm font-black uppercase italic tracking-tighter text-foreground">{t.app.name}</span>
               <span className="mono-label text-[10px] text-muted-foreground/60 hidden sm:block">{t.app.tagline}</span>
