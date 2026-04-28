@@ -345,16 +345,16 @@ const Landing = () => {
       </section>
 
       {/* ===== SOCIAL PROOF ===== */}
-      <section className="py-24 md:py-32 border-t border-foreground/[0.06]">
+      <section className="py-28 md:py-36 border-t border-foreground/[0.05]">
         <div className="container max-w-6xl px-6">
-          <div className="grid gap-px bg-foreground/[0.06] border border-foreground/[0.06] md:grid-cols-3 mb-16">
+          <div className="grid gap-px bg-foreground/[0.05] border border-foreground/[0.05] md:grid-cols-3 mb-20">
             {[
               { value: "12,400+", label: "People in motion" },
               { value: "1.2M", label: "Wins logged" },
               { value: "380K", label: "Days showed up" },
             ].map((s, i) => (
-              <div key={i} className="bg-background p-10 text-center">
-                <p className="text-5xl font-black italic tracking-tight mb-2 tabular-nums">{s.value}</p>
+              <div key={i} className="bg-background p-12 text-center">
+                <p className="type-display text-5xl mb-3 tabular-nums">{s.value}</p>
                 <p className="type-eyebrow">{s.label}</p>
               </div>
             ))}
