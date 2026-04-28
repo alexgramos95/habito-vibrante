@@ -1,5 +1,6 @@
 import { Quote } from "lucide-react";
 import type { MotivationCard as Card } from "@/data/motivationCards";
+import { Surface } from "@/components/ui/surface";
 
 interface MotivationCardProps {
   card: Card;
@@ -7,11 +8,11 @@ interface MotivationCardProps {
 
 /**
  * Daily motivation card — editorial, observational tone.
- * Sits below the Daily Progress Hero on the main dashboard.
+ * Uses unified Surface (hero variant) for consistent rhythm with other hero cards.
  */
 export const MotivationCard = ({ card }: MotivationCardProps) => {
   return (
-    <div className="rounded-2xl border border-border/40 bg-gradient-to-br from-accent/5 via-card/40 to-primary/5 p-5">
+    <Surface tone="hero" size="hero">
       <div className="flex items-start gap-3">
         <Quote
           aria-hidden
@@ -29,6 +30,6 @@ export const MotivationCard = ({ card }: MotivationCardProps) => {
           )}
         </div>
       </div>
-    </div>
+    </Surface>
   );
 };

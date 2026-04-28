@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Habit } from "@/data/types";
 import { useNavigate } from "react-router-dom";
+import { Surface } from "@/components/ui/surface";
 
 interface MinimalHabitCardProps {
   habit: Habit;
@@ -65,21 +66,22 @@ export const MinimalHabitCard = ({
     return Math.min(100, (metricCount / goal) * 100);
   })();
 
+  // Map state → Surface tone (single source of truth for card visuals)
+  const tone =
+    isExceeded ? "exceeded" :
+    isDone && !isLate ? "active" :
+    isDone && isLate ? "warning" :
+    goalReached ? "accent" :
+    "default";
+
   return (
-    <div
+    <Surface
+      tone={tone}
+      size="default"
+      interactive
       onClick={() => navigate(`/app/habit/${habit.id}`)}
       className={cn(
-        "press-tactile relative w-full flex items-center gap-4 p-4 cursor-pointer group min-h-[72px] touch-target border overflow-hidden",
-        "transition-[background-color,border-color,box-shadow] duration-300 ease-out",
-        isExceeded
-          ? "bg-destructive/[0.10] border-destructive/60 shadow-[0_0_24px_hsl(var(--destructive)/0.18)]"
-          : isDone && !isLate
-          ? "bg-primary/[0.06] border-primary/50 shadow-[0_0_24px_hsl(var(--neon-toxic)/0.12)]"
-          : isDone && isLate
-          ? "bg-warning/[0.06] border-warning/40"
-          : goalReached
-          ? "bg-primary/[0.05] border-primary/40"
-          : "bg-card border-foreground/[0.08] hover:border-accent/40 hover:bg-card/70",
+        "w-full flex items-center gap-4 group min-h-[72px] touch-target",
         !habit.active && "opacity-40 cursor-not-allowed",
       )}
     >
@@ -216,6 +218,6 @@ export const MinimalHabitCard = ({
           </span>
         )}
       </div>
-    </div>
+    </Surface>
   );
 };
