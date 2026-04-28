@@ -646,41 +646,42 @@ const Index = () => {
       <Dialog open={showModeSelector} onOpenChange={setShowModeSelector}>
         <DialogContent className="w-[90vw] max-w-sm">
           <DialogHeader>
-            <DialogTitle>Novo hábito</DialogTitle>
-            <DialogDescription>Escolhe o tipo de hábito que queres criar.</DialogDescription>
+            <p className="mono-label text-primary mb-1">// Novo</p>
+            <DialogTitle className="display-headline text-2xl">Escolhe o tipo</DialogTitle>
+            <DialogDescription>Ritual diário ou métrica que cresce ao longo do dia.</DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-3 py-4">
             <button
               onClick={() => { setShowModeSelector(false); setEditingHabit(null); setShowHabitForm(true); }}
               disabled={!canAddSimple}
               className={cn(
-                "flex flex-col items-center gap-2 p-5 rounded-xl border-2 transition-all text-center",
+                "press-tactile flex flex-col items-center gap-2.5 p-5 border-2 transition-all text-center",
                 canAddSimple
-                  ? "border-primary/20 hover:border-primary/40 hover:bg-primary/5"
-                  : "border-muted opacity-50 cursor-not-allowed"
+                  ? "border-primary/40 bg-primary/[0.04] hover:bg-primary/10 hover:shadow-[0_0_18px_hsl(var(--neon-toxic)/0.35)]"
+                  : "border-foreground/10 opacity-40 cursor-not-allowed"
               )}
             >
-              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+              <div className="h-12 w-12 border-2 border-primary bg-primary/15 flex items-center justify-center">
                 <CheckCircle2 className="h-6 w-6 text-primary" />
               </div>
-              <span className="font-semibold text-sm">Simples</span>
-              <span className="text-xs text-muted-foreground">Checkbox diário</span>
+              <span className="font-bold uppercase italic tracking-tight text-sm">Simples</span>
+              <span className="mono-label text-muted-foreground/70">Checkbox</span>
             </button>
             <button
               onClick={() => { setShowModeSelector(false); setEditingHabit(null); setShowMetricForm(true); }}
               disabled={!canAddMetric}
               className={cn(
-                "flex flex-col items-center gap-2 p-5 rounded-xl border-2 transition-all text-center",
+                "press-tactile flex flex-col items-center gap-2.5 p-5 border-2 transition-all text-center",
                 canAddMetric
-                  ? "border-accent/20 hover:border-accent/40 hover:bg-accent/5"
-                  : "border-muted opacity-50 cursor-not-allowed"
+                  ? "border-accent/40 bg-accent/[0.04] hover:bg-accent/10 hover:shadow-[0_0_18px_hsl(var(--neon-ultra)/0.35)]"
+                  : "border-foreground/10 opacity-40 cursor-not-allowed"
               )}
             >
-              <div className="h-12 w-12 rounded-full bg-accent/10 flex items-center justify-center">
+              <div className="h-12 w-12 border-2 border-accent bg-accent/15 flex items-center justify-center">
                 <TrendingUp className="h-6 w-6 text-accent" />
               </div>
-              <span className="font-semibold text-sm">Métrica</span>
-              <span className="text-xs text-muted-foreground">{canAddMetric ? "Rastrear valores" : "Requer PRO"}</span>
+              <span className="font-bold uppercase italic tracking-tight text-sm">Métrica</span>
+              <span className="mono-label text-muted-foreground/70">{canAddMetric ? "Valores" : "PRO"}</span>
             </button>
           </div>
         </DialogContent>
