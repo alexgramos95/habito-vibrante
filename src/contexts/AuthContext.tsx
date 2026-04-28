@@ -410,16 +410,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
       
       if (existingSession?.user) {
-        // NOTE: Materialization is now handled by DataContext after checking PRO/cloud status
+        // NOTE: Cloud download + onboarding materialization are handled by
+        // DataContext, which knows the PRO/trial status. Doing it here would
+        // race with materialization and risk overwriting freshly-created
+        // onboarding habits with an empty cloud snapshot.
         console.log('[AUTH] User has existing session');
-        
-        // Download cloud data to sync across devices
-        downloadFromCloud(existingSession.access_token).then((success) => {
-          if (success) {
-            console.log('[AUTH] Cloud data synced on existing session');
-          }
-        });
-        
+
         // Initial subscription check with slight delay
         setTimeout(() => {
           refreshSubscription(true);
