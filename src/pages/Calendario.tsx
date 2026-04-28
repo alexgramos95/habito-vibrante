@@ -8,6 +8,7 @@ import { toggleDailyLog, getReflectionForDate } from "@/data/storage";
 import { getCompletedHabitsOnDate, getActiveHabits } from "@/logic/computations";
 import { getHabitsSortedForDay } from "@/logic/habitSorting";
 import { Navigation } from "@/components/Layout/Navigation";
+import { PageHeader } from "@/components/Layout/PageHeader";
 import { MonthSelector } from "@/components/Dashboard/MonthSelector";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
