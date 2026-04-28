@@ -275,6 +275,7 @@ const Auth = () => {
     setLoading(true);
     try {
       void track('signup_attempt', { method: 'google' });
+      trackEvent('signup_started', { method: 'google' });
       const { error } = await signInWithGoogle();
       if (error) {
         toast({
