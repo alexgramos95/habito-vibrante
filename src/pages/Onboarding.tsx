@@ -402,21 +402,19 @@ const StepIdentity = ({
 const StepObstacle = ({
   value,
   onChange,
-  onContinue,
 }: {
   value: string | null;
   onChange: (id: string) => void;
-  onContinue: () => void;
 }) => (
-  <div className="flex-1 flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-500">
-    <div className="text-center pt-4 pb-7">
+  <div className="flex-1 flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-300">
+    <div className="text-center pt-4 pb-6">
       <p className="font-mono text-[10px] uppercase tracking-widest text-primary mb-3">
-        // Step 2 · Honest check
+        // Honest check
       </p>
-      <h1 className="type-display text-3xl sm:text-4xl mb-3 leading-tight">
-        What usually<br />gets in your way?
+      <h1 className="type-display text-3xl sm:text-4xl mb-2 leading-tight">
+        What gets<br />in your way?
       </h1>
-      <p className="text-sm text-muted-foreground/85">No judgment. We design around it.</p>
+      <p className="text-sm text-muted-foreground/80">We design around it.</p>
     </div>
 
     <div className="grid gap-2.5 mb-6">
@@ -427,10 +425,10 @@ const StepObstacle = ({
             key={opt.id}
             onClick={() => onChange(opt.id)}
             className={cn(
-              "flex items-center justify-between gap-3 p-4 border-2 text-left transition-all duration-200 active:scale-[0.985] min-h-[60px]",
+              "flex items-center justify-between gap-3 p-4 border-2 text-left transition-all duration-150 active:scale-[0.985] min-h-[60px]",
               selected
-                ? "border-primary bg-primary/[0.08] shadow-[0_0_24px_hsl(var(--neon-toxic)/0.22)]"
-                : "border-foreground/10 hover:border-foreground/25 bg-foreground/[0.015]",
+                ? "border-primary bg-primary/[0.10] shadow-[0_0_28px_hsl(var(--neon-toxic)/0.28)]"
+                : "border-foreground/10 hover:border-foreground/30 bg-foreground/[0.015]",
             )}
           >
             <span className={cn("text-base font-semibold tracking-tight", selected && "text-primary")}>
@@ -445,8 +443,6 @@ const StepObstacle = ({
         );
       })}
     </div>
-
-    <ContinueBar disabled={!value} onClick={onContinue} />
   </div>
 );
 
