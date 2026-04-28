@@ -443,13 +443,14 @@ const Index = () => {
                {sortedTodaySimple.map(habit => {
                 const log = state.dailyLogs.find(l => l.habitId === habit.id && l.date === today && l.done);
                 return (
-                  <MinimalHabitCard
-                    key={habit.id}
-                    habit={habit}
-                    isDone={isSimpleDone(habit.id)}
-                    isLate={!!log?.isLate}
-                    onToggle={() => handleToggleSimple(habit.id)}
-                  />
+                  <div key={habit.id} id={`habit-${habit.id}`}>
+                    <MinimalHabitCard
+                      habit={habit}
+                      isDone={isSimpleDone(habit.id)}
+                      isLate={!!log?.isLate}
+                      onToggle={() => handleToggleSimple(habit.id)}
+                    />
+                  </div>
                 );
               })}
             </div>
