@@ -108,6 +108,12 @@ const Index = () => {
     else if (!isPro && trialStatus.isExpired) navigate("/decision", { replace: true });
   }, [isAuthenticated, isEmailVerified, isPro, trialStatus.isExpired, navigate]);
 
+  // --- Analytics: app_open + return cohort checks (D1/D3/D7) ---
+  useEffect(() => {
+    track("app_open", { route: "/app" });
+    checkReturnEvents();
+  }, []);
+
   // --- Derived data ---
   const today = format(new Date(), "yyyy-MM-dd");
   const dayOfWeek = getDay(new Date());
