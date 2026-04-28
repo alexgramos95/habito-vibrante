@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Crown, Check, RefreshCw, LogIn, Shield, Sparkles } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -46,7 +46,11 @@ export const PaywallModal = ({
 
   const lang = forceLang ?? (locale === "pt-PT" ? "pt" : "en");
   const isPT = lang === "pt";
-  
+
+  useEffect(() => {
+    if (open) void track('paywall_view', { trigger: trigger || null, trialDaysLeft });
+  }, [open, trigger, trialDaysLeft]);
+
   // Use centralized copy
   const headline = PAYWALL_COPY.headline[lang];
   const subheadline = PAYWALL_COPY.subheadline[lang];
