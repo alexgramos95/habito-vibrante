@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useSubscription } from "@/hooks/useSubscription";
 import { PaywallModal } from "@/components/Paywall/PaywallModal";
+import { BecomeLogo } from "@/components/Brand/BecomeLogo";
 
 /**
  * Landing — "Identity OS for ambitious people"
