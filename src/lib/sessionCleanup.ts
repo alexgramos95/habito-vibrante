@@ -22,6 +22,12 @@ const DEVICE_PREFERENCE_KEYS = new Set<string>([
   "become-session-persist",
   "become-pwa-reset",
   "become-chronotype", // user device-level chronotype hint, kept across login on same device
+  // Onboarding draft mirror + timestamp: pre-account state captured BEFORE
+  // signup. Must survive auth transitions so materialization can read it on
+  // the first SIGNED_IN. Cleared explicitly by clearOnboardingDraft() after
+  // successful materialization + cloud upload.
+  "become-onboarding-draft",
+  "become-onboarding-draft-ts",
 ]);
 
 /** Explicit account-scoped keys we know about. Wiped on every auth transition. */
