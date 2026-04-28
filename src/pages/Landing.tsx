@@ -72,9 +72,9 @@ const Landing = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background text-foreground antialiased">
+    <div className="min-h-screen bg-background text-foreground antialiased animate-page-enter">
       {/* ===== NAV ===== */}
-      <nav className="fixed top-0 inset-x-0 z-50 backdrop-blur-xl bg-background/70 border-b border-foreground/[0.06]">
+      <nav className="fixed top-0 inset-x-0 z-50 backdrop-blur-2xl bg-background/60 border-b border-foreground/[0.05]">
         <div className="container max-w-6xl flex items-center justify-between h-16">
           <div className="flex items-center gap-2.5">
             <div className="h-8 w-8 bg-primary flex items-center justify-center">
@@ -116,36 +116,37 @@ const Landing = () => {
         />
 
         <div className="container max-w-5xl relative z-10 text-center px-6">
-          <div className="inline-flex items-center gap-2 mb-8 px-3 py-1.5 border border-foreground/10 bg-foreground/[0.03] backdrop-blur-sm">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-            <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+          <div className="inline-flex items-center gap-2 mb-10 px-3 py-1.5 border border-foreground/10 bg-foreground/[0.03] backdrop-blur-sm">
+            <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_hsl(var(--neon-toxic))]" />
+            <span className="type-eyebrow text-muted-foreground">
               Identity OS · Now in beta
             </span>
           </div>
 
-          <h1 className="text-[40px] sm:text-6xl md:text-7xl lg:text-[88px] font-black italic uppercase tracking-[-0.04em] leading-[0.92] mb-7 animate-fade-in">
+          <h1 className="type-display text-[44px] sm:text-6xl md:text-7xl lg:text-[92px] mb-8 animate-fade-in">
             Become the person<br />
-            <span className="text-primary" style={{ textShadow: "0 0 60px hsl(var(--neon-toxic) / 0.4)" }}>
+            <span className="text-primary" style={{ textShadow: "0 0 60px hsl(var(--neon-toxic) / 0.45)" }}>
               you promised
             </span><br />
             yourself you'd be.
           </h1>
 
-          <p className="text-base md:text-xl text-muted-foreground max-w-xl mx-auto mb-10 leading-relaxed">
-            One system for habits, health, and momentum. Built for people serious about who they're becoming.
+          <p className="type-body text-lg md:text-xl text-muted-foreground max-w-[34ch] mx-auto mb-12">
+            One system for habits, health, and momentum.<br className="hidden md:block" />
+            Built for people serious about who they're becoming.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-6">
-            <Button size="lg" onClick={handleStartTrial} className="gap-2 px-10 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-7">
+            <Button size="lg" onClick={handleStartTrial} className="press-tactile gap-2 px-10 w-full sm:w-auto">
               Start Free
               <ArrowRight className="h-5 w-5" />
             </Button>
-            <Button size="lg" variant="ghost" onClick={() => scrollTo("how")} className="w-full sm:w-auto">
+            <Button size="lg" variant="ghost" onClick={() => scrollTo("how")} className="press-tactile w-full sm:w-auto">
               See How It Works
             </Button>
           </div>
 
-          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60">
+          <p className="type-eyebrow text-muted-foreground/50">
             7 days free · No credit card · Cancel anytime
           </p>
 
@@ -215,20 +216,20 @@ const Landing = () => {
       </section>
 
       {/* ===== WHY USERS FAIL ===== */}
-      <section id="how" className="py-24 md:py-32 border-t border-foreground/[0.06]">
+      <section id="how" className="py-28 md:py-36 border-t border-foreground/[0.05]">
         <div className="container max-w-3xl text-center px-6">
-          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary mb-5">// The problem</p>
-          <h2 className="text-3xl md:text-5xl font-black italic uppercase tracking-tight leading-[1] mb-6">
+          <p className="type-eyebrow text-primary mb-6">// The problem</p>
+          <h2 className="type-display text-3xl md:text-5xl mb-7">
             Most people don't fail<br />because of motivation.
           </h2>
-          <p className="text-lg md:text-xl text-muted-foreground leading-relaxed mb-12">
-            They fail because they don't have <span className="text-foreground">systems</span>.
-            Apps remind them. Coaches push them. But nothing connects who they are today
+          <p className="type-body text-lg md:text-xl text-muted-foreground mb-14 max-w-[44ch] mx-auto">
+            They fail because they don't have <span className="text-foreground font-semibold">systems</span>.
+            Apps remind them. Coaches push them. Nothing connects who they are today
             with who they're trying to become.
           </p>
           <div className="inline-block border-l-2 border-primary pl-6 py-2 text-left max-w-md">
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary mb-2">// Then there's Become</p>
-            <p className="text-base text-foreground leading-relaxed">
+            <p className="type-eyebrow text-primary mb-3">// Then there's Become</p>
+            <p className="type-body text-base text-foreground">
               One operating system for your habits, health, plans and momentum.
               Built for people who are done playing.
             </p>
@@ -237,29 +238,29 @@ const Landing = () => {
       </section>
 
       {/* ===== WHAT'S INSIDE ===== */}
-      <section id="inside" className="py-24 md:py-32 border-t border-foreground/[0.06]">
+      <section id="inside" className="py-28 md:py-36 border-t border-foreground/[0.05]">
         <div className="container max-w-6xl px-6">
-          <div className="text-center mb-16">
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary mb-4">// What's inside</p>
-            <h2 className="text-3xl md:text-5xl font-black italic uppercase tracking-tight leading-[1] mb-4">
+          <div className="text-center mb-20">
+            <p className="type-eyebrow text-primary mb-5">// What's inside</p>
+            <h2 className="type-display text-3xl md:text-5xl mb-5">
               One system. Every lever.
             </h2>
-            <p className="text-muted-foreground max-w-xl mx-auto">
+            <p className="type-body text-muted-foreground max-w-[44ch] mx-auto">
               Stop stitching six apps together. Become unifies the inputs that actually move identity.
             </p>
           </div>
 
-          <div className="grid gap-px bg-foreground/[0.06] border border-foreground/[0.06] md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-px bg-foreground/[0.05] border border-foreground/[0.05] md:grid-cols-2 lg:grid-cols-3">
             {modules.map((m, i) => (
               <div
                 key={i}
-                className="bg-background p-8 group hover:bg-foreground/[0.02] transition-colors"
+                className="bg-background p-9 group hover:bg-foreground/[0.02] transition-colors duration-300"
               >
-                <div className="h-10 w-10 mb-6 flex items-center justify-center border border-foreground/10 group-hover:border-primary/40 group-hover:bg-primary/5 transition-all">
+                <div className="h-11 w-11 mb-7 flex items-center justify-center border border-foreground/10 group-hover:border-primary/40 group-hover:bg-primary/5 transition-all duration-300">
                   <m.icon className="h-5 w-5 text-primary" />
                 </div>
-                <h3 className="text-lg font-bold mb-2 tracking-tight">{m.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{m.desc}</p>
+                <h3 className="text-lg font-bold mb-2.5 tracking-tight">{m.title}</h3>
+                <p className="type-body text-sm text-muted-foreground">{m.desc}</p>
               </div>
             ))}
           </div>
@@ -267,7 +268,7 @@ const Landing = () => {
       </section>
 
       {/* ===== GAMIFICATION ===== */}
-      <section className="py-24 md:py-32 border-t border-foreground/[0.06] relative overflow-hidden">
+      <section className="py-28 md:py-36 border-t border-foreground/[0.05] relative overflow-hidden">
         <div
           className="absolute inset-0 pointer-events-none opacity-40"
           style={{
@@ -276,37 +277,37 @@ const Landing = () => {
           }}
         />
         <div className="container max-w-5xl px-6 relative z-10">
-          <div className="text-center mb-16">
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary mb-4">// Momentum</p>
-            <h2 className="text-3xl md:text-5xl font-black italic uppercase tracking-tight leading-[1] mb-4">
+          <div className="text-center mb-20">
+            <p className="type-eyebrow text-primary mb-5">// Momentum</p>
+            <h2 className="type-display text-3xl md:text-5xl mb-5">
               Progress should feel addictive.
             </h2>
-            <p className="text-muted-foreground max-w-xl mx-auto">
+            <p className="type-body text-muted-foreground max-w-[44ch] mx-auto">
               Streaks, levels and consistency — calibrated for adults. No confetti spam.
             </p>
           </div>
 
-          <div className="grid gap-px bg-foreground/[0.06] border border-foreground/[0.06] md:grid-cols-4">
+          <div className="grid gap-px bg-foreground/[0.05] border border-foreground/[0.05] md:grid-cols-4">
             {[
               { label: "Streak", value: "47", unit: "On fire.", icon: Flame },
               { label: "Level", value: "12", unit: "Next one's close.", icon: TrendingUp },
               { label: "Points", value: "2.4K", unit: "This month.", icon: Sparkles },
               { label: "Consistency", value: "89%", unit: "Real momentum.", icon: Target },
             ].map((s, i) => (
-              <div key={i} className="bg-background p-8 text-center group hover:bg-foreground/[0.015] transition-colors">
-                <s.icon className="h-4 w-4 mx-auto text-primary mb-3 transition-transform group-hover:scale-110" />
-                <p className="type-eyebrow mb-2">{s.label}</p>
-                <p className="text-4xl font-black italic text-primary mb-1.5 tabular-nums" style={{ textShadow: "0 0 24px hsl(var(--neon-toxic) / 0.4)" }}>
+              <div key={i} className="bg-background p-9 text-center group hover:bg-foreground/[0.015] transition-colors duration-300">
+                <s.icon className="h-4 w-4 mx-auto text-primary mb-4 transition-transform duration-300 group-hover:scale-110" />
+                <p className="type-eyebrow mb-3">{s.label}</p>
+                <p className="type-display text-5xl text-primary mb-2 tabular-nums" style={{ textShadow: "0 0 24px hsl(var(--neon-toxic) / 0.45)" }}>
                   {s.value}
                 </p>
-                <p className="text-xs text-muted-foreground/80">{s.unit}</p>
+                <p className="type-body text-xs text-muted-foreground/80">{s.unit}</p>
               </div>
             ))}
           </div>
 
           {/* Consistency strip */}
-          <div className="mt-10 border border-foreground/[0.06] bg-background p-6">
-            <div className="flex items-center justify-between mb-4">
+          <div className="mt-12 border border-foreground/[0.05] bg-background p-7">
+            <div className="flex items-center justify-between mb-5">
               <p className="type-eyebrow">Last 30 days</p>
               <p className="type-eyebrow text-primary">You're building momentum.</p>
             </div>
@@ -316,7 +317,7 @@ const Landing = () => {
                 return (
                   <div
                     key={i}
-                    className="flex-1 h-10 transition-transform hover:scale-y-110 origin-bottom"
+                    className="flex-1 h-10 transition-transform duration-200 hover:scale-y-110 origin-bottom"
                     style={{ background: `hsl(var(--neon-toxic) / ${intensity})` }}
                   />
                 );
@@ -327,16 +328,16 @@ const Landing = () => {
       </section>
 
       {/* ===== DIFFERENTIATION ===== */}
-      <section className="py-24 md:py-32 border-t border-foreground/[0.06]">
+      <section className="py-28 md:py-36 border-t border-foreground/[0.05]">
         <div className="container max-w-3xl px-6 text-center">
-          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary mb-5">// Why Become</p>
-          <h2 className="text-3xl md:text-6xl font-black italic uppercase tracking-tight leading-[1] mb-8">
+          <p className="type-eyebrow text-primary mb-6">// Why Become</p>
+          <h2 className="type-display text-3xl md:text-6xl mb-10">
             Most apps track tasks.<br />
-            <span className="text-primary" style={{ textShadow: "0 0 40px hsl(var(--neon-toxic) / 0.4)" }}>
+            <span className="text-primary" style={{ textShadow: "0 0 40px hsl(var(--neon-toxic) / 0.45)" }}>
               Become tracks transformation.
             </span>
           </h2>
-          <p className="text-lg text-muted-foreground leading-relaxed">
+          <p className="type-body text-lg text-muted-foreground max-w-[48ch] mx-auto">
             Tasks come and go. Identity is what stays. Every check-in inside Become is a vote
             for the version of you that's worth becoming.
           </p>
@@ -344,16 +345,16 @@ const Landing = () => {
       </section>
 
       {/* ===== SOCIAL PROOF ===== */}
-      <section className="py-24 md:py-32 border-t border-foreground/[0.06]">
+      <section className="py-28 md:py-36 border-t border-foreground/[0.05]">
         <div className="container max-w-6xl px-6">
-          <div className="grid gap-px bg-foreground/[0.06] border border-foreground/[0.06] md:grid-cols-3 mb-16">
+          <div className="grid gap-px bg-foreground/[0.05] border border-foreground/[0.05] md:grid-cols-3 mb-20">
             {[
               { value: "12,400+", label: "People in motion" },
               { value: "1.2M", label: "Wins logged" },
               { value: "380K", label: "Days showed up" },
             ].map((s, i) => (
-              <div key={i} className="bg-background p-10 text-center">
-                <p className="text-5xl font-black italic tracking-tight mb-2 tabular-nums">{s.value}</p>
+              <div key={i} className="bg-background p-12 text-center">
+                <p className="type-display text-5xl mb-3 tabular-nums">{s.value}</p>
                 <p className="type-eyebrow">{s.label}</p>
               </div>
             ))}
@@ -386,36 +387,36 @@ const Landing = () => {
       </section>
 
       {/* ===== PRICING ===== */}
-      <section id="pricing" className="py-24 md:py-32 border-t border-foreground/[0.06]">
+      <section id="pricing" className="py-28 md:py-36 border-t border-foreground/[0.05]">
         <div className="container max-w-5xl px-6">
-          <div className="text-center mb-16">
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary mb-4">// Pricing</p>
-            <h2 className="text-3xl md:text-5xl font-black italic uppercase tracking-tight leading-[1] mb-4">
+          <div className="text-center mb-20">
+            <p className="type-eyebrow text-primary mb-5">// Pricing</p>
+            <h2 className="type-display text-3xl md:text-5xl mb-5">
               Start free. Commit when ready.
             </h2>
-            <p className="text-muted-foreground">Same product. Three commitments.</p>
+            <p className="type-body text-muted-foreground">Same product. Three commitments.</p>
           </div>
 
-          <div className="grid gap-px bg-foreground/[0.06] border border-foreground/[0.06] md:grid-cols-3">
+          <div className="grid gap-px bg-foreground/[0.05] border border-foreground/[0.05] md:grid-cols-3">
             {[
               { key: "monthly", label: "Monthly", price: "€7.99", period: "/mo", desc: "Try it. Stay if you love it.", popular: false },
               { key: "yearly", label: "Yearly", price: "€59.99", period: "/yr", desc: "Best value. Save 37%.", popular: true },
               { key: "lifetime", label: "Lifetime", price: "€149", period: "once", desc: "Pay once. Own it forever.", popular: false },
             ].map(p => (
-              <div key={p.key} className={cn("bg-background p-8 relative", p.popular && "bg-foreground/[0.02]")}>
+              <div key={p.key} className={cn("bg-background p-9 relative transition-colors duration-300", p.popular && "bg-foreground/[0.025]")}>
                 {p.popular && (
-                  <div className="absolute top-0 left-0 bg-primary text-primary-foreground font-mono text-[9px] uppercase tracking-widest px-3 py-1">
+                  <div className="absolute top-0 left-0 bg-primary text-primary-foreground type-eyebrow px-3 py-1">
                     Most popular
                   </div>
                 )}
-                <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mb-3 mt-2">{p.label}</p>
-                <div className="flex items-baseline gap-1 mb-2">
-                  <span className="text-5xl font-black italic tracking-tight">{p.price}</span>
+                <p className="type-eyebrow text-muted-foreground mb-4 mt-2">{p.label}</p>
+                <div className="flex items-baseline gap-1 mb-3">
+                  <span className="type-display text-5xl">{p.price}</span>
                   <span className="text-muted-foreground text-sm">{p.period}</span>
                 </div>
-                <p className="text-sm text-muted-foreground mb-8 min-h-[40px]">{p.desc}</p>
+                <p className="type-body text-sm text-muted-foreground mb-9 min-h-[40px]">{p.desc}</p>
                 <Button
-                  className="w-full"
+                  className="press-tactile w-full"
                   variant={p.popular ? "default" : "outline"}
                   onClick={() => { setShowPaywall(true); }}
                 >
@@ -425,7 +426,7 @@ const Landing = () => {
             ))}
           </div>
 
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs text-muted-foreground font-mono uppercase tracking-wider">
+          <div className="mt-12 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 type-eyebrow text-muted-foreground/70">
             <span>✓ Unlimited habits</span>
             <span>✓ AI nutrition</span>
             <span>✓ Full calendar</span>
@@ -436,29 +437,29 @@ const Landing = () => {
       </section>
 
       {/* ===== FAQ ===== */}
-      <section id="faq" className="py-24 md:py-32 border-t border-foreground/[0.06]">
+      <section id="faq" className="py-28 md:py-36 border-t border-foreground/[0.05]">
         <div className="container max-w-3xl px-6">
-          <div className="text-center mb-12">
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary mb-4">// FAQ</p>
-            <h2 className="text-3xl md:text-5xl font-black italic uppercase tracking-tight leading-[1]">
+          <div className="text-center mb-14">
+            <p className="type-eyebrow text-primary mb-5">// FAQ</p>
+            <h2 className="type-display text-3xl md:text-5xl">
               Questions, answered.
             </h2>
           </div>
 
-          <div className="border-t border-foreground/[0.08]">
+          <div className="border-t border-foreground/[0.07]">
             {faqs.map((faq, i) => (
-              <div key={i} className="border-b border-foreground/[0.08]">
+              <div key={i} className="border-b border-foreground/[0.07]">
                 <button
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className="w-full flex items-center justify-between py-6 text-left group"
+                  className="w-full flex items-center justify-between py-7 text-left group"
                 >
-                  <span className="font-semibold text-base md:text-lg pr-4 group-hover:text-primary transition-colors">
+                  <span className="font-semibold text-base md:text-lg pr-4 group-hover:text-primary transition-colors duration-200 tracking-tight">
                     {faq.q}
                   </span>
-                  <ChevronDown className={cn("h-5 w-5 text-muted-foreground shrink-0 transition-transform", openFaq === i && "rotate-180 text-primary")} />
+                  <ChevronDown className={cn("h-5 w-5 text-muted-foreground shrink-0 transition-all duration-300", openFaq === i && "rotate-180 text-primary")} />
                 </button>
                 {openFaq === i && (
-                  <div className="pb-6 text-muted-foreground leading-relaxed animate-fade-in">
+                  <div className="pb-7 type-body text-muted-foreground animate-fade-in max-w-[60ch]">
                     {faq.a}
                   </div>
                 )}
@@ -469,7 +470,7 @@ const Landing = () => {
       </section>
 
       {/* ===== FINAL CTA ===== */}
-      <section className="py-32 md:py-40 border-t border-foreground/[0.06] relative overflow-hidden">
+      <section className="py-32 md:py-44 border-t border-foreground/[0.05] relative overflow-hidden">
         <div
           className="absolute inset-0 pointer-events-none opacity-60"
           style={{
@@ -477,16 +478,16 @@ const Landing = () => {
           }}
         />
         <div className="container max-w-3xl px-6 text-center relative z-10">
-          <h2 className="text-4xl md:text-7xl font-black italic uppercase tracking-tight leading-[0.95] mb-8">
+          <h2 className="type-display text-4xl md:text-7xl mb-10">
             Your future self<br />
-            <span className="text-primary" style={{ textShadow: "0 0 50px hsl(var(--neon-toxic) / 0.5)" }}>
+            <span className="text-primary" style={{ textShadow: "0 0 50px hsl(var(--neon-toxic) / 0.55)" }}>
               starts today.
             </span>
           </h2>
-          <p className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto">
+          <p className="type-body text-lg text-muted-foreground mb-12 max-w-xl mx-auto">
             7 days free. No credit card. Cancel anytime.
           </p>
-          <Button size="lg" onClick={handleStartTrial} className="gap-2 px-12">
+          <Button size="lg" onClick={handleStartTrial} className="press-tactile gap-2 px-12">
             Start Free
             <ArrowRight className="h-5 w-5" />
           </Button>
