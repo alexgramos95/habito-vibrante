@@ -256,6 +256,7 @@ const computeSourceStats = (
 };
 
 
+const Insights = () => {
   const [metrics, setMetrics] = useState<RetentionMetrics>(() => getRetentionMetrics());
   const [showRaw, setShowRaw] = useState(false);
   const log = useMemo(() => getEventLog(), [metrics]);
