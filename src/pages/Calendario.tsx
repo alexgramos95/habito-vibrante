@@ -19,6 +19,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { useData } from "@/contexts/DataContext";
 import { PaywallModal } from "@/components/Paywall/PaywallModal";
 import { TrialBanner } from "@/components/Paywall/TrialBanner";
+import { SegmentedTabs } from "@/components/ui/segmented-tabs";
 
 // --- Circular progress ring (shared pattern) ---
 const CircularProgress = ({ percent, size = 52 }: { percent: number; size?: number }) => {
@@ -363,23 +364,14 @@ const Calendario = () => {
               {locale === 'pt-PT' ? 'Visualiza o teu progresso' : 'View your progress'}
             </p>
           </div>
-          {/* View mode tabs */}
-          <div className="flex items-center gap-2 p-1 bg-secondary/50 rounded-xl">
-            {viewTabs.map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setViewMode(tab.id)}
-                className={cn(
-                  "px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-tight italic transition-all duration-150 touch-target",
-                  viewMode === tab.id
-                    ? "bg-primary text-primary-foreground border-2 border-primary shadow-[4px_4px_0_0_hsl(var(--neon-ultra))]"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary border-2 border-transparent"
-                )}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
+          {/* View mode tabs — unified SegmentedTabs primitive */}
+          <SegmentedTabs
+            size="sm"
+            value={viewMode}
+            onChange={(v) => setViewMode(v as ViewMode)}
+            options={viewTabs.map(t => ({ value: t.id, label: t.label }))}
+            ariaLabel={locale === 'pt-PT' ? 'Modo de visualização' : 'View mode'}
+          />
         </div>
 
         {/* Trial banner */}
