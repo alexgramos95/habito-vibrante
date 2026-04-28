@@ -705,13 +705,6 @@ const StepCommit = ({
    Shared bits
    ============================================================= */
 
-const SummaryRow = ({ label, value }: { label: string; value: string }) => (
-  <div className="flex items-center justify-between gap-4">
-    <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">{label}</p>
-    <p className="text-sm font-bold tracking-tight text-right">{value}</p>
-  </div>
-);
-
 const ContinueBar = ({
   onClick,
   disabled,
