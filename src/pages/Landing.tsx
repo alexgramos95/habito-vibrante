@@ -22,6 +22,7 @@ import {
   PhoneFrame,
   HabitsPreview,
   CalendarPreview,
+  ProgressPreview,
   NutritionPreview,
   ShoppingPreview,
 } from "@/components/Landing/LandingPreviews";
