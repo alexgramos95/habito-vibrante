@@ -264,63 +264,12 @@ const Landing = () => {
             7 days free · No credit card · Cancel anytime
           </p>
 
-          {/* Floating mobile mockup */}
-          <div className="mt-16 md:mt-24 relative max-w-[320px] mx-auto" style={{ animation: "float 6s ease-in-out infinite" }}>
-            <div
-              className="absolute -inset-12 pointer-events-none opacity-70"
-              style={{
-                background: "radial-gradient(closest-side, hsl(var(--neon-toxic) / 0.20), transparent 70%)",
-              }}
-            />
-            <div className="relative rounded-[44px] border border-foreground/15 bg-card p-2.5 shadow-[0_40px_120px_-20px_hsl(var(--neon-ultra)/0.45)]">
-              <div className="rounded-[34px] overflow-hidden bg-background border border-foreground/10">
-                <div className="px-5 pt-6 pb-8">
-                  <div className="flex items-center justify-between mb-5">
-                    <div>
-                      <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">Tuesday · Week 17</p>
-                      <h3 className="text-xl font-black italic uppercase tracking-tight mt-0.5">Today</h3>
-                    </div>
-                    <div className="h-9 w-9 rounded-full bg-primary/15 border border-primary/30 flex items-center justify-center">
-                      <Flame className="h-4 w-4 text-primary" />
-                    </div>
-                  </div>
-
-                  <div className="border border-foreground/10 bg-foreground/[0.02] p-3 mb-2.5 flex items-center gap-3">
-                    <div className="h-7 w-7 border-2 border-primary bg-primary/20 flex items-center justify-center">
-                      <CheckCircle2 className="h-4 w-4 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold">Morning workout</p>
-                      <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider">06:30 · Done</p>
-                    </div>
-                  </div>
-                  <div className="border border-foreground/10 bg-foreground/[0.02] p-3 mb-2.5 flex items-center gap-3">
-                    <div className="h-7 w-7 border-2 border-primary bg-primary/20 flex items-center justify-center">
-                      <CheckCircle2 className="h-4 w-4 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold">Read 20 min</p>
-                      <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider">07:15 · Done</p>
-                    </div>
-                  </div>
-                  <div className="border border-foreground/10 p-3 mb-4 flex items-center gap-3">
-                    <div className="h-7 w-7 border-2 border-foreground/20" />
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold">Deep work · 90 min</p>
-                      <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider">09:00</p>
-                    </div>
-                  </div>
-
-                  <div className="border-t border-foreground/10 pt-4 flex items-center justify-between">
-                    <div>
-                      <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">Streak</p>
-                      <p className="text-xl font-black italic">23 days</p>
-                    </div>
-                    <div>
-                      <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground text-right">Level</p>
-                      <p className="text-xl font-black italic text-primary text-right">07</p>
-                    </div>
-                  </div>
+          {/* Floating mobile mockup — REAL app UI (Habits / Today) */}
+          <div className="mt-16 md:mt-24" style={{ animation: "float 6s ease-in-out infinite" }}>
+            <PhoneFrame>
+              <HabitsPreview />
+            </PhoneFrame>
+          </div>
                 </div>
               </div>
             </div>
