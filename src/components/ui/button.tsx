@@ -19,6 +19,8 @@ const buttonVariants = cva(
           "bg-destructive text-destructive-foreground border-2 border-destructive shadow-[4px_4px_0_0_hsl(var(--neon-ultra))] hover:shadow-[2px_2px_0_0_hsl(var(--neon-ultra))] hover:translate-x-[2px] hover:translate-y-[2px]",
         outline:
           "border-2 border-foreground/20 bg-transparent text-foreground hover:border-primary hover:text-primary hover:bg-primary/5",
+        "outline-soft":
+          "border border-foreground/15 bg-secondary/40 text-foreground/80 hover:border-primary/40 hover:text-primary hover:bg-primary/5",
         secondary:
           "bg-secondary text-secondary-foreground border border-foreground/10 hover:border-foreground/30",
         ghost:
