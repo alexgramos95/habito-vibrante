@@ -341,9 +341,18 @@ const Insights = () => {
               <span><span className="text-muted-foreground">Journey start:</span> <strong className="tabular-nums">{fmtDate(metrics.journeyStart)}</strong></span>
               <span><span className="text-muted-foreground">Days in:</span> <strong className="tabular-nums">{metrics.daysSinceStart ?? "—"}</strong></span>
               <span><span className="text-muted-foreground">Total events:</span> <strong className="tabular-nums">{metrics.totalEvents}</strong></span>
+              {acquisitionMeta && (
+                <span><span className="text-muted-foreground">Source:</span> <strong>{SOURCE_LABEL[acquisitionMeta.source]}</strong></span>
+              )}
             </div>
           </CardContent>
         </Card>
+
+        {/* Source intelligence */}
+        <section>
+          <h2 className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">Source intelligence</h2>
+          <SourceIntelligenceTable rows={sourceStats} />
+        </section>
 
         {/* Alerts — automatic insight engine */}
         {alerts.length > 0 && (
