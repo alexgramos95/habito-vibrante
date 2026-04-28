@@ -344,44 +344,55 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* ===== SOCIAL PROOF ===== */}
-      <section className="py-28 md:py-36 border-t border-foreground/[0.05]">
-        <div className="container max-w-6xl px-6">
-          <div className="grid gap-px bg-foreground/[0.05] border border-foreground/[0.05] md:grid-cols-3 mb-20">
+      {/* ===== CREDIBILITY ===== */}
+      <section className="py-28 md:py-36 border-t border-foreground/[0.05] relative overflow-hidden">
+        <div
+          className="absolute inset-0 pointer-events-none opacity-40"
+          style={{
+            background:
+              "radial-gradient(ellipse at 50% 0%, hsl(var(--neon-ultra) / 0.15), transparent 60%)",
+          }}
+        />
+        <div className="container max-w-6xl px-6 relative">
+          <div className="text-center mb-16 md:mb-20">
+            <p className="type-eyebrow text-primary mb-5">// Built with intent</p>
+            <h2 className="type-display text-3xl md:text-5xl lg:text-6xl mb-6 max-w-[20ch] mx-auto">
+              Built for people who take growth seriously.
+            </h2>
+            <p className="type-body text-muted-foreground max-w-[52ch] mx-auto">
+              No vanity metrics. No fake testimonials. Just a system designed for the
+              long game — measured by what actually matters.
+            </p>
+          </div>
+
+          <div className="grid gap-px bg-foreground/[0.05] border border-foreground/[0.05] md:grid-cols-2 lg:grid-cols-4">
             {[
-              { value: "12,400+", label: "People in motion" },
-              { value: "1.2M", label: "Wins logged" },
-              { value: "380K", label: "Days showed up" },
+              { value: "—", label: "Habits Completed", hint: "All-time check-ins" },
+              { value: "—", label: "Active Streaks", hint: "Operators in motion" },
+              { value: "—", label: "Weekly Consistency", hint: "Avg. completion rate" },
+              { value: "—", label: "Returning Users", hint: "Showing up week after week" },
             ].map((s, i) => (
-              <div key={i} className="bg-background p-12 text-center">
-                <p className="type-display text-5xl mb-3 tabular-nums">{s.value}</p>
-                <p className="type-eyebrow">{s.label}</p>
+              <div
+                key={i}
+                className="group bg-background p-8 md:p-10 transition-colors duration-300 hover:bg-foreground/[0.02]"
+              >
+                <p className="type-display text-5xl md:text-6xl mb-4 tabular-nums text-foreground/90 group-hover:text-primary transition-colors duration-300">
+                  {s.value}
+                </p>
+                <p className="type-eyebrow mb-2">{s.label}</p>
+                <p className="text-xs text-muted-foreground/70 leading-relaxed">{s.hint}</p>
               </div>
             ))}
           </div>
 
-          <div className="grid gap-6 md:grid-cols-3">
-            {[
-              { name: "Alex M.", role: "Founder", text: "I tried 6 productivity apps. Become is the first that didn't feel like a toy. It feels like infrastructure." },
-              { name: "Maria S.", role: "Designer", text: "The nutrition + habits combo is the killer feature. My week is finally one system, not seven tabs." },
-              { name: "James K.", role: "Operator", text: "Weekly cycles changed everything. I stopped chasing perfect days and started compounding." },
-            ].map((t, i) => (
-              <div key={i} className="border border-foreground/[0.08] bg-foreground/[0.02] p-6 hover:border-primary/30 transition-colors">
-                <div className="flex gap-0.5 mb-4">
-                  {[1,2,3,4,5].map(s => <Star key={s} className="h-3.5 w-3.5 fill-primary text-primary" />)}
-                </div>
-                <p className="text-sm leading-relaxed mb-6 text-foreground/90">"{t.text}"</p>
-                <div className="flex items-center gap-3 pt-4 border-t border-foreground/[0.06]">
-                  <div className="h-9 w-9 rounded-full bg-primary/15 border border-primary/30 flex items-center justify-center font-bold text-sm text-primary">
-                    {t.name[0]}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-sm">{t.name}</p>
-                    <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{t.role}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="mt-16 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs font-mono uppercase tracking-widest text-muted-foreground/60">
+            <span>Private by default</span>
+            <span className="h-1 w-1 rounded-full bg-muted-foreground/30" />
+            <span>No ads, ever</span>
+            <span className="h-1 w-1 rounded-full bg-muted-foreground/30" />
+            <span>Encrypted sync</span>
+            <span className="h-1 w-1 rounded-full bg-muted-foreground/30" />
+            <span>Cancel anytime</span>
           </div>
         </div>
       </section>
