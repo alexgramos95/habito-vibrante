@@ -55,135 +55,150 @@ const defaultSubscriptionStatus: SubscriptionStatus = {
 // Minimum time between subscription checks (30 seconds)
 const SUBSCRIPTION_CHECK_COOLDOWN = 30000;
 
-// Onboarding data keys
-const ONBOARDING_DATA_KEY = 'become-onboarding-data';
-
-/**
- * Get per-user materialization key to prevent blocking other users in the same browser
- */
-const getMaterializationKey = (userId: string): string => {
-  return `become-onboarding-materialized-${userId}`;
-};
+import {
+  ONBOARDING_DATA_KEY,
+  readOnboardingDraft,
+  isMaterialized,
+  markMaterialized,
+  getMaterializedKey,
+} from '@/lib/onboardingDraft';
+import { track } from '@/hooks/useAnalytics';
 
 /**
  * Materialize onboarding habits and trackers after successful authentication.
- * This creates the actual objects in localStorage from onboarding selections.
- * Uses per-user keys to support multiple users in the same browser.
- * 
- * IMPORTANT: This is now called from DataContext AFTER checking subscription and cloud data.
- * For PRO users with existing cloud data, this should NOT materialize - cloud is source of truth.
+ *
+ * Returns true when the call resulted in a fully materialized state for this
+ * user (either nothing to do, or habits/trackers were created), false when
+ * materialization should be retried later (e.g. draft missing right now but
+ * the mirror may be restored on a subsequent mount, or a recoverable error).
+ *
+ * Idempotent: name-based dedupe prevents duplicate creates if called twice.
+ *
+ * IMPORTANT: This is now called from DataContext AFTER checking subscription
+ * and cloud data. For PRO users with existing cloud data, this is skipped —
+ * cloud is the source of truth.
  */
-export const materializeOnboardingData = (userId: string, skipIfProWithCloudData: { isPro: boolean; hasCloudData: boolean } | null = null): void => {
+export const materializeOnboardingData = (
+  userId: string,
+  skipIfProWithCloudData: { isPro: boolean; hasCloudData: boolean } | null = null,
+): boolean => {
+  const materializationKey = getMaterializedKey(userId);
+
   try {
-    const materializationKey = getMaterializationKey(userId);
-    
-    // Check if already materialized FOR THIS USER
-    const materialized = localStorage.getItem(materializationKey);
-    if (materialized === 'true') {
+    // Already done for THIS user → nothing to do.
+    if (isMaterialized(userId)) {
       console.log('[ONBOARDING] Already materialized for user:', userId);
-      return;
+      return true;
     }
 
-    // PRO users with cloud data should NOT materialize from onboarding
-    // Their data comes from Supabase as single source of truth
+    // PRO users with cloud data should NOT materialize from onboarding —
+    // their data comes from the cloud. Mark as done so we don't retry.
     if (skipIfProWithCloudData?.isPro && skipIfProWithCloudData?.hasCloudData) {
       console.log('[ONBOARDING] PRO user with cloud data - skipping materialization, marking as done');
-      localStorage.setItem(materializationKey, 'true');
-      localStorage.removeItem(ONBOARDING_DATA_KEY);
-      return;
+      markMaterialized(userId);
+      try { localStorage.removeItem(ONBOARDING_DATA_KEY); } catch { /* ignore */ }
+      return true;
     }
 
-    const data = localStorage.getItem(ONBOARDING_DATA_KEY);
-    if (!data) {
-      console.log('[ONBOARDING] No onboarding data to materialize');
-      return;
+    const parsed = readOnboardingDraft();
+    if (!parsed) {
+      // No draft and no mirror — user signed in without completing onboarding
+      // on this device. Mark done so we stop retrying every render.
+      console.log('[ONBOARDING] No onboarding draft to materialize');
+      markMaterialized(userId);
+      return true;
     }
 
-    const parsed = JSON.parse(data);
     if (!parsed.habitsToCreate && !parsed.trackersToCreate) {
-      console.log('[ONBOARDING] No habits/trackers to create');
-      // Mark as materialized for this user even if no data
-      localStorage.setItem(materializationKey, 'true');
-      return;
+      console.log('[ONBOARDING] Draft contained no habits/trackers to create');
+      markMaterialized(userId);
+      return true;
     }
 
     let state = loadState();
     let habitsCreated = 0;
     let trackersCreated = 0;
 
-    // Create habits
-    if (parsed.habitsToCreate && Array.isArray(parsed.habitsToCreate)) {
+    // Create habits (idempotent via case-insensitive name match)
+    if (Array.isArray(parsed.habitsToCreate)) {
       console.log(`[ONBOARDING] Creating ${parsed.habitsToCreate.length} habits for user ${userId}...`);
-      
-      for (const habit of parsed.habitsToCreate) {
-        // Check if habit with same name already exists
-        const exists = state.habits.some((h: { nome: string }) => 
-          h.nome.toLowerCase() === habit.nome.toLowerCase()
+      for (const habit of parsed.habitsToCreate as Array<Record<string, unknown>>) {
+        const name = String(habit.nome ?? '');
+        if (!name) continue;
+        const exists = state.habits.some((h: { nome: string }) =>
+          h.nome.toLowerCase() === name.toLowerCase(),
         );
-        
         if (!exists) {
           state = addHabit(state, {
-            nome: habit.nome,
-            categoria: habit.categoria,
-            cor: habit.cor,
-            active: habit.active ?? true,
-            scheduledDays: habit.scheduledDays,
-            scheduledTime: habit.scheduledTime,
+            nome: name,
+            categoria: habit.categoria as string,
+            cor: habit.cor as string,
+            active: (habit.active as boolean | undefined) ?? true,
+            scheduledDays: habit.scheduledDays as number[] | undefined,
+            scheduledTime: habit.scheduledTime as string | undefined,
           });
           habitsCreated++;
-          console.log(`[ONBOARDING] Created habit: ${habit.nome}`);
+          console.log(`[ONBOARDING] Created habit: ${name}`);
         }
       }
     }
 
     // Create trackers
-    if (parsed.trackersToCreate && Array.isArray(parsed.trackersToCreate)) {
+    if (Array.isArray(parsed.trackersToCreate)) {
       console.log(`[ONBOARDING] Creating ${parsed.trackersToCreate.length} trackers for user ${userId}...`);
-      
-      for (const tracker of parsed.trackersToCreate) {
-        // Check if tracker with same name already exists
-        const exists = state.trackers.some((t: Tracker) => 
-          t.name.toLowerCase() === tracker.name.toLowerCase()
+      for (const tracker of parsed.trackersToCreate as Array<Record<string, unknown>>) {
+        const name = String(tracker.name ?? '');
+        if (!name) continue;
+        const exists = state.trackers.some((t: Tracker) =>
+          t.name.toLowerCase() === name.toLowerCase(),
         );
-        
         if (!exists) {
           state = addTracker(state, {
-            name: tracker.name,
-            type: tracker.type,
-            inputMode: tracker.inputMode,
-            unitSingular: tracker.unitSingular,
-            unitPlural: tracker.unitPlural,
-            valuePerUnit: tracker.valuePerUnit,
-            baseline: tracker.baseline,
-            dailyGoal: tracker.dailyGoal,
-            includeInFinances: tracker.includeInFinances,
-            active: tracker.active ?? true,
-            icon: tracker.icon,
-            frequency: tracker.frequency,
+            name,
+            type: tracker.type as Tracker['type'],
+            inputMode: tracker.inputMode as Tracker['inputMode'],
+            unitSingular: tracker.unitSingular as string,
+            unitPlural: tracker.unitPlural as string,
+            valuePerUnit: tracker.valuePerUnit as number,
+            baseline: tracker.baseline as number,
+            dailyGoal: tracker.dailyGoal as number | undefined,
+            includeInFinances: tracker.includeInFinances as boolean | undefined,
+            active: (tracker.active as boolean | undefined) ?? true,
+            icon: tracker.icon as string | undefined,
+            frequency: tracker.frequency as Tracker['frequency'],
           });
           trackersCreated++;
-          console.log(`[ONBOARDING] Created tracker: ${tracker.name}`);
+          console.log(`[ONBOARDING] Created tracker: ${name}`);
         }
       }
     }
 
-    // Save updated state to localStorage
     if (habitsCreated > 0 || trackersCreated > 0) {
       saveState(state);
       console.log(`[ONBOARDING] Saved state with ${habitsCreated} habits and ${trackersCreated} trackers`);
     }
 
-    // Mark as materialized FOR THIS USER to prevent duplicate creation
-    localStorage.setItem(materializationKey, 'true');
+    // Mark as materialized so we don't repeat creation. Note: we deliberately
+    // do NOT clear the draft here — DataContext clears it after the cloud
+    // upload completes so a network failure mid-flight can be safely retried.
+    markMaterialized(userId);
     console.log('[ONBOARDING] Marked as materialized for user:', userId);
-    
-    // Clear the shared onboarding data after successful materialization
-    // This prevents the next user from picking up stale data
-    localStorage.removeItem(ONBOARDING_DATA_KEY);
-    console.log('[ONBOARDING] Cleared onboarding data after materialization');
+
+    track('onboarding_materialized_success', {
+      userId: userId.slice(0, 8),
+      habitsCreated,
+      trackersCreated,
+    });
+
+    return true;
   } catch (error) {
     console.error('[ONBOARDING] Error materializing onboarding data:', error);
-    // Do NOT mark as materialized on error - allow retry
+    track('onboarding_materialized_failed', {
+      userId: userId.slice(0, 8),
+      error: (error as Error)?.message ?? 'unknown',
+    });
+    // Do NOT mark as materialized on error — allow retry on next mount.
+    return false;
   }
 };
 

@@ -40,7 +40,11 @@ export type AnalyticsEvent =
   | 'referral_redeemed'
   | 'share_card_opened'
   | 'share_card_shared'
-  | 'share_card_downloaded';
+  | 'share_card_downloaded'
+  // Onboarding materialization
+  | 'onboarding_materialized_success'
+  | 'onboarding_materialized_failed'
+  | 'time_to_first_dashboard_ready';
 
 interface AnalyticsPayload {
   event: AnalyticsEvent;

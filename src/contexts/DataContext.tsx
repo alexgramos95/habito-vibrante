@@ -7,6 +7,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { loadState, saveState as saveToLocalStorage, clearAllData } from '@/data/storage';
 import type { AppState } from '@/data/types';
 import { useAuth, materializeOnboardingData } from '@/contexts/AuthContext';
+import { clearOnboardingDraft, consumeOnboardingDraftAgeMs, readOnboardingDraft } from '@/lib/onboardingDraft';
+import { track } from '@/hooks/useAnalytics';
 
 interface DataContextType {
   state: AppState;
@@ -286,7 +288,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         
         // Materialize onboarding ONLY if PRO user has NO cloud data yet
         // This handles first-time PRO setup after onboarding
-        materializeOnboardingData(user.id, { isPro: true, hasCloudData: Boolean(hasCloudData) });
+        const draftBefore = readOnboardingDraft();
+        const materialized = materializeOnboardingData(user.id, { isPro: true, hasCloudData: Boolean(hasCloudData) });
         
         if (hasCloudData) {
           // Cloud has data - use it EXCLUSIVELY (no merge!)
@@ -303,7 +306,15 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             // First time PRO with local data - migrate local to cloud
             console.log('[DATA] PRO: First sync - uploading local data to cloud');
             setStateInternal(freshLocalState);
-            await uploadToCloud(freshLocalState);
+            const uploadOk = await uploadToCloud(freshLocalState);
+            if (uploadOk && materialized && draftBefore) {
+              // Cloud now reflects materialized state — safe to clear draft.
+              const ageMs = consumeOnboardingDraftAgeMs();
+              clearOnboardingDraft();
+              if (ageMs !== null) {
+                track('time_to_first_dashboard_ready', { ms: ageMs, plan: 'pro' });
+              }
+            }
           } else {
             // No data anywhere - start fresh
             console.log('[DATA] PRO: No data found, starting fresh');
@@ -315,7 +326,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         console.log('[DATA] Non-PRO user - localStorage is primary');
         
         // Materialize onboarding for non-PRO users
-        materializeOnboardingData(user.id, null);
+        const draftBefore = readOnboardingDraft();
+        const materialized = materializeOnboardingData(user.id, null);
         
         // Re-load state after potential materialization
         const freshLocalState = loadState();
@@ -328,6 +340,46 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
           console.log('[DATA] Non-PRO: Merged cloud data with local');
         } else {
           setStateInternal(freshLocalState);
+        }
+
+        // For trial users we still want the materialized habits to show on
+        // other devices, so push to cloud opportunistically. We use the
+        // sync-data edge function via session token (works for any signed-in
+        // user). The draft is only cleared after the upload returns success
+        // so a network failure mid-flight is safely retried on next mount.
+        if (materialized && draftBefore && session?.access_token) {
+          try {
+            const stateToPush = loadState();
+            const { data: syncResult, error: syncErr } = await supabase.functions.invoke('sync-data', {
+              headers: { Authorization: `Bearer ${session.access_token}` },
+              body: {
+                action: 'upload',
+                data: {
+                  habits: stateToPush.habits,
+                  dailyLogs: stateToPush.dailyLogs,
+                  trackerEntries: stateToPush.trackerEntries,
+                  trackers: stateToPush.trackers,
+                  reflections: stateToPush.reflections,
+                  futureSelfEntries: stateToPush.futureSelf,
+                  investmentGoals: stateToPush.investmentGoals,
+                  shoppingItems: stateToPush.shoppingItems,
+                  gamification: stateToPush.gamification,
+                },
+              },
+            });
+            if (!syncErr && syncResult?.success) {
+              const ageMs = consumeOnboardingDraftAgeMs();
+              clearOnboardingDraft();
+              if (ageMs !== null) {
+                track('time_to_first_dashboard_ready', { ms: ageMs, plan: 'trial_or_free' });
+              }
+            } else {
+              // Cloud push failed — keep draft so retry on next mount/login.
+              console.warn('[DATA] Onboarding cloud push failed, keeping draft for retry', syncErr);
+            }
+          } catch (err) {
+            console.warn('[DATA] Onboarding cloud push threw, keeping draft for retry', err);
+          }
         }
       }
 

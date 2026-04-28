@@ -29,6 +29,7 @@ import { useI18n } from "@/i18n/I18nContext";
 import { cn } from "@/lib/utils";
 import { useSubscription } from "@/hooks/useSubscription";
 import { track, trackOnce } from "@/hooks/useAnalytics";
+import { writeOnboardingDraft } from "@/lib/onboardingDraft";
 
 /* =============================================================
    ONBOARDING — Identity Hook → First Win → Commit
@@ -231,7 +232,9 @@ const Onboarding = () => {
     };
 
     try {
-      localStorage.setItem("become-onboarding-data", JSON.stringify(payload));
+      // Persist to BOTH the legacy key and the purge-immune mirror so the
+      // draft survives the auth-transition session purge that fires on signup.
+      writeOnboardingDraft(payload);
       localStorage.setItem("become-onboarding-complete", "true");
       localStorage.setItem("itero-onboarding-complete", "true");
       // First-session flag for activation banner / scroll-to-first-habit
