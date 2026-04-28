@@ -208,6 +208,10 @@ const Insights = () => {
     if (a || b) setHistory(getHistory());
   }, [referralVariants, shareVariants]);
 
+  // ----- Source intelligence (per-source aggregation from event log) -----
+  const acquisitionMeta = useMemo(() => getAcquisitionMeta(), []);
+  const sourceStats = useMemo(() => computeSourceStats(log), [log]);
+
   useEffect(() => {
     const id = setInterval(() => setMetrics(getRetentionMetrics()), 5000);
     return () => clearInterval(id);
