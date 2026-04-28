@@ -43,13 +43,13 @@ export const MinimalHabitCard = ({
     <div
       onClick={() => navigate(`/app/habit/${habit.id}`)}
       className={cn(
-        "relative w-full flex items-center gap-4 p-4 transition-all duration-200 cursor-pointer group min-h-[72px] touch-target border overflow-hidden",
+        "press-tactile relative w-full flex items-center gap-4 p-4 cursor-pointer group min-h-[72px] touch-target border overflow-hidden",
+        "transition-[background-color,border-color,box-shadow] duration-300 ease-out",
         isDone && !isLate
-          ? "bg-primary/8 border-primary/60 shadow-[0_0_20px_hsl(var(--neon-toxic)/0.15)]"
+          ? "bg-primary/[0.06] border-primary/50 shadow-[0_0_24px_hsl(var(--neon-toxic)/0.12)]"
           : isDone && isLate
-          ? "bg-warning/8 border-warning/50"
-          : "bg-card border-foreground/10 hover:border-accent/50 hover:bg-card/60",
-        justCompleted && "scale-[1.015]",
+          ? "bg-warning/[0.06] border-warning/40"
+          : "bg-card border-foreground/[0.08] hover:border-accent/40 hover:bg-card/70",
         !habit.active && "opacity-40 cursor-not-allowed",
       )}
     >
@@ -59,7 +59,7 @@ export const MinimalHabitCard = ({
           aria-hidden
           className={cn(
             "pointer-events-none absolute inset-0 animate-fade-out",
-            isLate ? "bg-warning/20" : "bg-primary/20",
+            isLate ? "bg-warning/20" : "bg-primary/15",
           )}
         />
       )}
@@ -67,12 +67,12 @@ export const MinimalHabitCard = ({
       {/* Color bar */}
       <div
         className={cn(
-          "w-1 h-10 shrink-0 transition-all duration-200",
+          "w-[3px] h-10 shrink-0 transition-all duration-300",
           isDone && "h-12",
         )}
         style={{
           backgroundColor: habit.cor || "hsl(var(--primary))",
-          opacity: isDone ? (isLate ? 0.7 : 1) : 0.6,
+          opacity: isDone ? (isLate ? 0.7 : 1) : 0.55,
           boxShadow: isDone && !isLate ? `0 0 10px ${habit.cor || "hsl(var(--neon-toxic))"}` : undefined,
         }}
       />
@@ -84,17 +84,17 @@ export const MinimalHabitCard = ({
         className={cn(
           "flex items-center justify-center w-11 h-11 border-2 shrink-0 transition-all duration-200",
           isDone && !isLate
-            ? "bg-primary border-primary text-primary-foreground shadow-[0_0_12px_hsl(var(--neon-toxic)/0.6)]"
+            ? "bg-primary border-primary text-primary-foreground shadow-[0_0_14px_hsl(var(--neon-toxic)/0.55)]"
             : isDone && isLate
             ? "bg-warning border-warning text-warning-foreground"
-            : "border-foreground/20 bg-transparent group-hover:border-primary",
-          justCompleted && "animate-scale-in",
+            : "border-foreground/20 bg-transparent group-hover:border-primary group-hover:bg-primary/5",
           !habit.active && "cursor-not-allowed",
         )}
       >
         <Check className={cn(
-          "h-5 w-5 stroke-[3] transition-all duration-200",
-          isDone ? "opacity-100 scale-100" : "opacity-0 scale-75",
+          "h-5 w-5 stroke-[3]",
+          isDone ? "opacity-100" : "opacity-0",
+          justCompleted && "animate-completion-pop",
         )} />
       </button>
 
