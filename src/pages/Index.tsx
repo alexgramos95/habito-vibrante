@@ -29,6 +29,8 @@ import { getContextualHabitFeedback, getHabitFeedbackEnabled } from "@/logic/hab
 import { MotivationCard } from "@/components/Dashboard/MotivationCard";
 import { getDailyMotivation } from "@/logic/dailyMotivation";
 import { JourneyHero } from "@/components/Dashboard/JourneyHero";
+import { ReferralPrompt } from "@/components/Referral/ReferralPrompt";
+import { hasSeenReferralPrompt, markReferralPromptSeen } from "@/lib/referral";
 import { track, trackOnce, checkReturnEvents } from "@/hooks/useAnalytics";
 // HabitCoachTip removed — coach is now on the detail page
 
@@ -85,6 +87,7 @@ const Index = () => {
   const [showFirstSession, setShowFirstSession] = useState<boolean>(() => {
     try { return localStorage.getItem("become-first-session") === "1"; } catch { return false; }
   });
+  const [showReferralPrompt, setShowReferralPrompt] = useState(false);
   const dismissFirstSession = useCallback(() => {
     try { localStorage.removeItem("become-first-session"); } catch { /* ignore */ }
     setShowFirstSession(false);
