@@ -9,6 +9,8 @@ import { loadState, saveState, addHabit, addTracker } from '@/data/storage';
 import type { Tracker } from '@/data/types';
 import { useDataSync } from '@/hooks/useDataSync';
 import { AUTH_RECOVERY_EVENT, isRecoverableAuthError, recoverInvalidSession } from '@/lib/authSessionRecovery';
+import { purgeAccountData, detectAccountSwitchAndPurge } from '@/lib/sessionCleanup';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface SubscriptionStatus {
   subscribed: boolean;
@@ -195,6 +197,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   
   // Data sync hook
   const { downloadFromCloud } = useDataSync();
+  const queryClient = useQueryClient();
   
   // Track last check time to prevent rate limiting
   const lastCheckRef = useRef<number>(0);
@@ -312,6 +315,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       sessionRef.current = null;
       lastCheckRef.current = 0;
       isCheckingRef.current = false;
+      // ACCOUNT-LEAK GUARD: purge local data on forced sign-out so a
+      // recovered/expired session can't leave another user's data behind.
+      purgeAccountData('auth-recovery');
+      try { queryClient.clear(); } catch { /* ignore */ }
       setLoading(false);
     };
 
@@ -343,13 +350,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           return;
         }
         
+        // ACCOUNT-LEAK GUARD: detect account switch on the same browser and
+        // wipe all account-scoped local data BEFORE the new user's data loads.
+        // Also wipe React Query cache so no stale queries leak across accounts.
+        const newUserId = newSession?.user?.id ?? null;
+        const switched = detectAccountSwitchAndPurge(newUserId);
+        if (switched) {
+          try { queryClient.clear(); } catch { /* ignore */ }
+        }
+
         setSession(newSession);
         setUser(newSession?.user ?? null);
         setLoading(false);
-        
+
         // Check subscription on sign in events
         if (newSession?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
           if (event === 'SIGNED_IN') {
+            // On a fresh SIGNED_IN, force-refetch ALL queries so no cached
+            // data from a previous account leaks through.
+            try { queryClient.invalidateQueries(); } catch { /* ignore */ }
             // NOTE: Materialization is now handled by DataContext after checking PRO/cloud status
             // Download cloud data to sync across devices
             downloadFromCloud(newSession.access_token).then((success) => {
@@ -463,21 +482,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     console.log('[AUTH] Signing out...');
-    
+
     // Clear all internal state FIRST
     setUser(null);
     setSession(null);
     setSubscriptionStatus(defaultSubscriptionStatus);
-    
+
     // Reset refs to prevent any pending operations
     sessionRef.current = null;
     lastCheckRef.current = 0;
     isCheckingRef.current = false;
-    
+
+    // ACCOUNT-LEAK GUARD: purge ALL account-scoped local state and any
+    // cached React Query data so the next user on this browser cannot
+    // see anything from this account.
+    purgeAccountData('signOut');
+    try { queryClient.clear(); } catch { /* ignore */ }
+
     try {
       // Sign out with global scope to ensure server-side session is cleared
       const { error } = await supabase.auth.signOut({ scope: 'global' });
-      
+
       if (error) {
         console.error('[AUTH] Error during sign out:', error);
         if (isRecoverableAuthError(error.message)) {
