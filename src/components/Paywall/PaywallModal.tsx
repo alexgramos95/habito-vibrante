@@ -17,6 +17,7 @@ import {
   type PlanType 
 } from "@/config/billing";
 import { PAYWALL_COPY, UPGRADE_COPY } from "@/config/copy";
+import { track } from "@/lib/analytics";
 
 interface PaywallModalProps {
   open: boolean;
@@ -63,6 +64,7 @@ export const PaywallModal = ({
 
     setLoading(true);
     try {
+      void track('checkout_started', { plan: selectedPlan, trigger: trigger || null });
       const { data, error } = await supabase.functions.invoke("create-checkout", {
         body: { priceType: selectedPlan },
         headers: {
@@ -73,6 +75,7 @@ export const PaywallModal = ({
       if (error) throw error;
 
       if (data?.url) {
+        void track('checkout_redirect', { plan: selectedPlan });
         window.open(data.url, "_blank");
         toast({
           title: isPT ? "Checkout aberto" : "Checkout opened",
