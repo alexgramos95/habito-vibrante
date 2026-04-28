@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { format, differenceInCalendarDays, subDays, getDay, parseISO } from "date-fns";
-import { Flame, Sparkles, Target, TrendingUp, Trophy, ChevronRight, Share2 } from "lucide-react";
+import { format, subDays, getDay, parseISO } from "date-fns";
+import { Flame, ArrowRight, Sparkles, Share2, Target, Trophy, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { AppState, Habit } from "@/data/types";
+import { AppState } from "@/data/types";
 import { track } from "@/hooks/useAnalytics";
 import { ShareCard } from "@/components/Referral/ShareCard";
 import { useAuth } from "@/contexts/AuthContext";
@@ -35,27 +35,37 @@ const readOnboarding = (): OnboardingPayload => {
   }
 };
 
-/* Lifecycle is now derived from real account activity (see deriveLifecycle).
-   The previous local-only "journey day" counter was misleading for returning
-   users on new devices/browsers. */
-
 interface JourneyHeroProps {
   state: AppState;
   streak: number;
   totalDone: number;
   totalTracked: number;
   brokeYesterday: boolean;
+  /** Name of the next pending action (habit) — drives clarity */
+  nextActionName?: string;
   locale?: string;
   onPrimaryAction?: () => void;
   primaryActionLabel?: string;
 }
 
+/**
+ * JourneyHero — Unified Clarity Hero
+ *
+ * One panel. Four answers in 2 seconds:
+ *   1. Where am I? (greeting + identity)
+ *   2. What's next? (next action)
+ *   3. How am I doing today? (progress bar + streak)
+ *   4. What do I press? (single primary CTA)
+ *
+ * No double headers, no scattered stat pills, no decorative borders.
+ */
 export const JourneyHero = ({
   state,
   streak,
   totalDone,
   totalTracked,
   brokeYesterday,
+  nextActionName,
   locale = "pt-PT",
   onPrimaryAction,
   primaryActionLabel,
@@ -66,71 +76,52 @@ export const JourneyHero = ({
   const identityKey = onboarding.identityChoice || "disciplined";
   const identityLabel = (IDENTITY_LABELS[identityKey] || IDENTITY_LABELS.disciplined)[isPT ? "pt" : "en"];
 
-  // === Real-account lifecycle state (truthful across devices) ===
   const lifecycle = useMemo(
     () => deriveLifecycle(state, user?.created_at),
     [state, user?.created_at],
   );
-  const day = lifecycle.daysSinceAccount; // for stats window + recap trigger
+  const day = lifecycle.daysSinceAccount;
   const lifecycleState: LifecycleState = lifecycle.state;
 
-  // === Yesterday completion ===
-  const yesterdayStr = format(subDays(new Date(), 1), "yyyy-MM-dd");
-  const yesterdayDow = getDay(subDays(new Date(), 1));
-  const yesterdayHabits = state.habits.filter(h => {
-    if (!h.active || h.mode === "metric") return false;
-    if (!h.scheduledDays || h.scheduledDays.length === 0) return true;
-    return h.scheduledDays.includes(yesterdayDow);
-  });
-  const yesterdayDone = yesterdayHabits.filter(h =>
-    state.dailyLogs.some(l => l.habitId === h.id && l.date === yesterdayStr && l.done)
-  ).length;
-  const yesterdayWin = yesterdayHabits.length > 0 && yesterdayDone === yesterdayHabits.length;
+  // === Greeting based on time of day ===
+  const greeting = useMemo(() => {
+    const h = new Date().getHours();
+    const firstName = (user?.user_metadata?.full_name as string | undefined)?.split(" ")[0]
+      || (user?.email ? user.email.split("@")[0] : "");
+    const name = firstName ? `, ${firstName}` : "";
+    if (isPT) {
+      if (h < 12) return `Bom dia${name}.`;
+      if (h < 19) return `Boa tarde${name}.`;
+      return `Boa noite${name}.`;
+    }
+    if (h < 12) return `Good morning${name}.`;
+    if (h < 19) return `Good afternoon${name}.`;
+    return `Good evening${name}.`;
+  }, [user, isPT]);
 
-  // === Headline copy — driven by lifecycle, NOT just local day counter ===
-  const headline = (() => {
-    if (lifecycleState === "new")
-      return isPT
-        ? "A tua primeira vitória começa hoje."
-        : "Your first win starts today.";
-    if (lifecycleState === "early")
-      return yesterdayWin
-        ? (isPT ? "Ontem contou. Hoje prova-o." : "Yesterday counted. Today proves it.")
-        : (isPT ? "O sistema começa a formar-se." : "The system is forming.");
-    if (lifecycleState === "reengaged")
-      return isPT
-        ? "Bom ver-te de volta. Recomeça forte hoje."
-        : "Good to see you again. Restart strong today.";
-    // active
-    return isPT
-      ? "Bem-vindo de volta. O momentum espera-te."
-      : "Welcome back. Momentum is waiting.";
-  })();
-
+  // === Sub-headline: identity + state ===
   const subline = (() => {
     if (lifecycleState === "new")
-      return isPT
-        ? "A tua primeira vitória está pronta abaixo."
-        : "Your first win is ready below.";
-    if (lifecycleState === "early")
-      return isPT ? "Momentum a formar-se. Continua." : "Momentum is forming. Keep going.";
+      return isPT ? "A tua primeira vitória começa hoje." : "Your first win starts today.";
+    if (brokeYesterday)
+      return isPT ? "Ontem ficou em aberto. Hoje recomeças." : "Yesterday stayed open. Today you restart.";
     if (lifecycleState === "reengaged")
-      return isPT
-        ? `${lifecycle.totalCompletions} vitórias no histórico. Retoma o ritmo.`
-        : `${lifecycle.totalCompletions} wins in your history. Pick the rhythm back up.`;
+      return isPT ? "Bom ver-te. Retoma o ritmo." : "Good to see you. Pick the rhythm back up.";
     return isPT
-      ? `És cada vez mais ${identityLabel}.`
-      : `You are becoming more ${identityLabel}.`;
+      ? `A construir o teu eu ${identityLabel}.`
+      : `Building your ${identityLabel}.`;
   })();
 
-  // === Stats: show as soon as there's any history (not tied to local day) ===
-  const showStats = lifecycle.hasMeaningfulActivity || day >= 2;
+  const allDoneToday = totalTracked > 0 && totalDone >= totalTracked;
+  const progressPercent = totalTracked > 0 ? Math.round((totalDone / totalTracked) * 100) : 0;
+
+  // === 7-day stats — for recap modal only ===
   const last7Stats = useMemo(() => {
     const windowSize = Math.max(1, Math.min(day + 1, 7));
     const days = Array.from({ length: windowSize }, (_, i) => format(subDays(new Date(), i), "yyyy-MM-dd"));
     let scheduled = 0;
     let done = 0;
-    let perDay: Array<{ date: string; done: number; total: number }> = [];
+    const perDay: Array<{ date: string; done: number; total: number }> = [];
     days.forEach(ds => {
       const dow = getDay(parseISO(ds));
       const sched = state.habits.filter(h => {
@@ -172,82 +163,81 @@ export const JourneyHero = ({
     setShowRecap(false);
   };
 
-  // Badge: hide misleading "DIA 1" for active/re-engaged users
-  const dayLabel = (() => {
-    if (lifecycleState === "active") return isPT ? "ATIVO" : "ACTIVE";
-    if (lifecycleState === "reengaged") return isPT ? "REGRESSO" : "RETURNING";
-    if (lifecycleState === "early") return isPT ? `DIA ${day + 1}` : `DAY ${day + 1}`;
-    return isPT ? "COMEÇO" : "START";
-  })();
-  const allDoneToday = totalTracked > 0 && totalDone >= totalTracked;
-
   return (
     <>
-      <div className="relative overflow-hidden border border-primary/30 bg-card p-5 shadow-[4px_4px_0_0_hsl(var(--neon-ultra)/0.35)] animate-in fade-in slide-in-from-top-2 duration-500">
-        {/* Ambient toxic glow */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -top-16 -right-16 h-48 w-48 opacity-60"
-          style={{ background: "radial-gradient(closest-side, hsl(var(--neon-toxic) / 0.18), transparent 70%)" }}
-        />
-
-        {/* Day badge + streak */}
-        <div className="relative flex items-center justify-between mb-3">
-          <span className="mono-label text-primary inline-flex items-center gap-1.5">
-            <span className="size-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_hsl(var(--neon-toxic))]" />
-            // {dayLabel}
-          </span>
+      <section
+        className="relative animate-in fade-in slide-in-from-top-2 duration-500"
+        aria-label={isPT ? "Resumo de hoje" : "Today's summary"}
+      >
+        {/* GREETING + STREAK */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+              {greeting}
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1.5 max-w-[40ch]">
+              {subline}
+            </p>
+          </div>
           {streak > 0 && (
-            <span className="inline-flex items-center gap-1 mono-label text-primary">
-              <Flame className="h-3.5 w-3.5" />
-              {streak}d
-            </span>
+            <div className="shrink-0 flex flex-col items-end">
+              <span className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground">
+                <Flame className="h-3.5 w-3.5 text-primary" />
+                {isPT ? "Streak" : "Streak"}
+              </span>
+              <span className="text-2xl font-bold tabular-nums text-foreground leading-none mt-1">
+                {streak}<span className="text-sm text-muted-foreground font-medium ml-0.5">d</span>
+              </span>
+            </div>
           )}
         </div>
 
-        {/* Headline — display style */}
-        <h2 className="relative display-headline text-2xl sm:text-3xl text-foreground">
-          {headline}
-        </h2>
-        <p className="relative text-sm text-muted-foreground/80 mt-2 max-w-[42ch]">
-          {subline}
-        </p>
-
-        {/* Yesterday celebration */}
-        {(lifecycleState === "early" || lifecycleState === "active") && yesterdayWin && (
-          <div className="relative mt-3 inline-flex items-center gap-2 border border-success/40 bg-success/10 px-3 py-1 mono-label text-success">
-            <Sparkles className="h-3.5 w-3.5" />
-            {isPT ? `Ontem: ${yesterdayDone}/${yesterdayHabits.length}` : `Yesterday: ${yesterdayDone}/${yesterdayHabits.length}`}
+        {/* PROGRESS — calm, single line */}
+        {totalTracked > 0 && (
+          <div className="mt-6">
+            <div className="flex items-baseline justify-between mb-2">
+              <span className="text-sm font-medium text-foreground">
+                {allDoneToday
+                  ? (isPT ? "Dia completo." : "Day complete.")
+                  : (isPT ? "Hoje" : "Today")}
+              </span>
+              <span className="text-sm tabular-nums text-muted-foreground">
+                {Number.isInteger(totalDone) ? totalDone : totalDone.toFixed(1)} / {totalTracked}
+              </span>
+            </div>
+            <div className="h-1.5 w-full bg-foreground/10 overflow-hidden rounded-full">
+              <div
+                className={cn(
+                  "h-full transition-all duration-700 ease-out rounded-full",
+                  allDoneToday ? "bg-success" : "bg-primary",
+                )}
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
           </div>
         )}
 
-        {/* Stats row */}
-        {showStats && last7Stats.scheduled > 0 && (
-          <div className="relative mt-4 grid grid-cols-3 gap-2">
-            <StatPill icon={<Target className="h-3 w-3" />} label={isPT ? "Consistência" : "Consistency"} value={`${last7Stats.consistency}%`} />
-            <StatPill icon={<Trophy className="h-3 w-3" />} label={isPT ? "Vitórias" : "Wins"} value={`${last7Stats.wins}`} />
-            <StatPill icon={<TrendingUp className="h-3 w-3" />} label={isPT ? "Momentum" : "Momentum"} value={`${last7Stats.momentum}`} />
-          </div>
-        )}
-
-        {/* Primary CTA */}
+        {/* PRIMARY CTA — single, clear next action */}
         {onPrimaryAction && !allDoneToday && (
           <Button
             onClick={onPrimaryAction}
-            size="sm"
-            className="relative mt-4 w-full gap-1.5"
+            size="lg"
+            className="mt-5 w-full gap-2 h-12 text-base font-semibold"
           >
-            {primaryActionLabel || (isPT ? "Começar agora" : "Start now")}
-            <ChevronRight className="h-4 w-4" />
+            {primaryActionLabel
+              || (nextActionName
+                ? (isPT ? `Começar: ${nextActionName}` : `Start: ${nextActionName}`)
+                : (isPT ? "Começar agora" : "Start now"))}
+            <ArrowRight className="h-4 w-4" />
           </Button>
         )}
         {allDoneToday && (
-          <div className="relative mt-4 flex items-center justify-center gap-2 border border-success/40 bg-success/10 py-2.5 mono-label text-success">
+          <div className="mt-5 flex items-center justify-center gap-2 py-3 text-sm font-medium text-success">
             <Sparkles className="h-4 w-4" />
-            {isPT ? "Dia completo" : "Day complete"}
+            {isPT ? "Tudo feito hoje. Bem feito." : "All done today. Well done."}
           </div>
         )}
-      </div>
+      </section>
 
       {/* === Day 7 Recap modal === */}
       {showRecap && (
@@ -256,11 +246,11 @@ export const JourneyHero = ({
           onClick={dismissRecap}
         >
           <div
-            className="relative w-full max-w-md rounded-3xl border-2 border-primary/40 bg-card p-6 shadow-[0_0_60px_hsl(var(--neon-toxic)/0.4)] animate-in zoom-in-95 duration-400"
+            className="relative w-full max-w-md rounded-2xl border border-foreground/10 bg-card p-6 shadow-2xl animate-in zoom-in-95 duration-300"
             onClick={(e) => e.stopPropagation()}
           >
-            <p className="font-mono text-[10px] uppercase tracking-widest text-primary mb-1">
-              {isPT ? "// RECAP SEMANAL" : "// WEEKLY RECAP"}
+            <p className="text-xs font-semibold uppercase tracking-wider text-primary mb-2">
+              {isPT ? "Recap semanal" : "Weekly recap"}
             </p>
             <h3 className="text-2xl font-bold tracking-tight">
               {isPT ? "Uma semana. Outra pessoa." : "One week. Different person."}
@@ -273,42 +263,17 @@ export const JourneyHero = ({
 
             <div className="mt-5 grid grid-cols-2 gap-3">
               <RecapStat label={isPT ? "Vitórias" : "Wins"} value={`${last7Stats.wins}`} icon={<Trophy className="h-4 w-4" />} />
-              <RecapStat label={isPT ? "Streak" : "Streak"} value={`${streak}${isPT ? "d" : "d"}`} icon={<Flame className="h-4 w-4" />} />
+              <RecapStat label={isPT ? "Streak" : "Streak"} value={`${streak}d`} icon={<Flame className="h-4 w-4" />} />
               <RecapStat label={isPT ? "Consistência" : "Consistency"} value={`${last7Stats.consistency}%`} icon={<Target className="h-4 w-4" />} />
               <RecapStat label={isPT ? "Momentum" : "Momentum"} value={`${last7Stats.momentum}`} icon={<TrendingUp className="h-4 w-4" />} />
             </div>
 
-            {last7Stats.strongest?.date && (
-              <div className="mt-4 rounded-xl border border-foreground/10 bg-foreground/[0.03] p-3">
-                <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">
-                  {isPT ? "DIA MAIS FORTE" : "STRONGEST DAY"}
-                </p>
-                <p className="text-sm font-bold mt-0.5">
-                  {format(parseISO(last7Stats.strongest.date), "EEEE")} · {last7Stats.strongest.done}/{last7Stats.strongest.total}
-                </p>
-              </div>
-            )}
-
-            <div className="mt-4 rounded-xl border border-primary/30 bg-primary/5 p-3">
-              <p className="font-mono text-[9px] uppercase tracking-widest text-primary">
-                {isPT ? "PRÓXIMO ALVO" : "NEXT TARGET"}
-              </p>
-              <p className="text-sm font-bold mt-0.5">
-                {isPT ? "Semana 2: 80% de consistência" : "Week 2: 80% consistency"}
-              </p>
-            </div>
-
             <div className="mt-5 grid grid-cols-2 gap-2">
-              <Button
-                onClick={() => setShowShareCard(true)}
-                variant="outline"
-                className="w-full rounded-xl gap-1.5"
-                size="lg"
-              >
+              <Button onClick={() => setShowShareCard(true)} variant="outline" className="w-full gap-1.5" size="lg">
                 <Share2 className="h-4 w-4" />
-                {isPT ? "Partilhar" : "Share progress"}
+                {isPT ? "Partilhar" : "Share"}
               </Button>
-              <Button onClick={dismissRecap} className="w-full rounded-xl" size="lg">
+              <Button onClick={dismissRecap} className="w-full" size="lg">
                 {isPT ? "Continuar" : "Continue"}
               </Button>
             </div>
@@ -316,7 +281,6 @@ export const JourneyHero = ({
         </div>
       )}
 
-      {/* === Weekly share card === */}
       <ShareCard
         open={showShareCard}
         onClose={() => setShowShareCard(false)}
@@ -333,21 +297,11 @@ export const JourneyHero = ({
   );
 };
 
-const StatPill = ({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) => (
-  <div className="border border-foreground/10 bg-background/40 p-2.5">
-    <div className="flex items-center gap-1 text-muted-foreground">
-      {icon}
-      <span className="mono-label truncate">{label}</span>
-    </div>
-    <p className="display-headline text-lg tabular-nums mt-1 not-italic">{value}</p>
-  </div>
-);
-
 const RecapStat = ({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) => (
   <div className="rounded-xl border border-foreground/10 bg-foreground/[0.03] p-3">
     <div className="flex items-center gap-1.5 text-muted-foreground">
       {icon}
-      <span className="text-[10px] font-mono uppercase tracking-wider">{label}</span>
+      <span className="text-[10px] font-medium uppercase tracking-wider">{label}</span>
     </div>
     <p className="text-2xl font-bold tabular-nums mt-1 text-foreground">{value}</p>
   </div>
