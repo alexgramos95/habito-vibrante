@@ -387,36 +387,36 @@ const Landing = () => {
       </section>
 
       {/* ===== PRICING ===== */}
-      <section id="pricing" className="py-24 md:py-32 border-t border-foreground/[0.06]">
+      <section id="pricing" className="py-28 md:py-36 border-t border-foreground/[0.05]">
         <div className="container max-w-5xl px-6">
-          <div className="text-center mb-16">
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary mb-4">// Pricing</p>
-            <h2 className="text-3xl md:text-5xl font-black italic uppercase tracking-tight leading-[1] mb-4">
+          <div className="text-center mb-20">
+            <p className="type-eyebrow text-primary mb-5">// Pricing</p>
+            <h2 className="type-display text-3xl md:text-5xl mb-5">
               Start free. Commit when ready.
             </h2>
-            <p className="text-muted-foreground">Same product. Three commitments.</p>
+            <p className="type-body text-muted-foreground">Same product. Three commitments.</p>
           </div>
 
-          <div className="grid gap-px bg-foreground/[0.06] border border-foreground/[0.06] md:grid-cols-3">
+          <div className="grid gap-px bg-foreground/[0.05] border border-foreground/[0.05] md:grid-cols-3">
             {[
               { key: "monthly", label: "Monthly", price: "€7.99", period: "/mo", desc: "Try it. Stay if you love it.", popular: false },
               { key: "yearly", label: "Yearly", price: "€59.99", period: "/yr", desc: "Best value. Save 37%.", popular: true },
               { key: "lifetime", label: "Lifetime", price: "€149", period: "once", desc: "Pay once. Own it forever.", popular: false },
             ].map(p => (
-              <div key={p.key} className={cn("bg-background p-8 relative", p.popular && "bg-foreground/[0.02]")}>
+              <div key={p.key} className={cn("bg-background p-9 relative transition-colors duration-300", p.popular && "bg-foreground/[0.025]")}>
                 {p.popular && (
-                  <div className="absolute top-0 left-0 bg-primary text-primary-foreground font-mono text-[9px] uppercase tracking-widest px-3 py-1">
+                  <div className="absolute top-0 left-0 bg-primary text-primary-foreground type-eyebrow px-3 py-1">
                     Most popular
                   </div>
                 )}
-                <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mb-3 mt-2">{p.label}</p>
-                <div className="flex items-baseline gap-1 mb-2">
-                  <span className="text-5xl font-black italic tracking-tight">{p.price}</span>
+                <p className="type-eyebrow text-muted-foreground mb-4 mt-2">{p.label}</p>
+                <div className="flex items-baseline gap-1 mb-3">
+                  <span className="type-display text-5xl">{p.price}</span>
                   <span className="text-muted-foreground text-sm">{p.period}</span>
                 </div>
-                <p className="text-sm text-muted-foreground mb-8 min-h-[40px]">{p.desc}</p>
+                <p className="type-body text-sm text-muted-foreground mb-9 min-h-[40px]">{p.desc}</p>
                 <Button
-                  className="w-full"
+                  className="press-tactile w-full"
                   variant={p.popular ? "default" : "outline"}
                   onClick={() => { setShowPaywall(true); }}
                 >
@@ -426,7 +426,7 @@ const Landing = () => {
             ))}
           </div>
 
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs text-muted-foreground font-mono uppercase tracking-wider">
+          <div className="mt-12 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 type-eyebrow text-muted-foreground/70">
             <span>✓ Unlimited habits</span>
             <span>✓ AI nutrition</span>
             <span>✓ Full calendar</span>
