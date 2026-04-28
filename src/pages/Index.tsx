@@ -211,6 +211,7 @@ const Index = () => {
 
   // --- Handlers ---
   const handleToggleSimple = useCallback((habitId: string) => {
+    if (showFirstSession) dismissFirstSession();
     const wasDone = isSimpleDone(habitId);
     const habit = state.habits.find(h => h.id === habitId);
     let result: { wasCompleted: boolean; isLate: boolean } | null = null;
