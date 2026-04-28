@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, BarChart3, Flame, Target, MousePointerClick, Trash2, Download } from "lucide-react";
+import {
+  ArrowLeft, BarChart3, Flame, Target, MousePointerClick, Trash2, Download,
+  AlertTriangle, AlertOctagon, CheckCircle2, Lightbulb,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -18,6 +21,148 @@ import {
 
 const fmtPct = (n: number) => `${Math.round(n * 100)}%`;
 const fmtDate = (s: string | null) => (s ? new Date(s).toLocaleString() : "—");
+
+// Day-bucket helper for trends
+const dayKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+interface DayPoint { day: string; label: string; value: number }
+
+/** Buckets events into the last 7 days. `reducer` defines what to count. */
+const trend7 = (
+  log: { event: string; timestamp: string; properties?: any }[],
+  predicate: (e: { event: string; properties?: any }) => boolean,
+): DayPoint[] => {
+  const today = new Date();
+  const buckets: DayPoint[] = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    buckets.push({
+      day: dayKey(d),
+      label: d.toLocaleDateString(undefined, { weekday: "short" }).slice(0, 2),
+      value: 0,
+    });
+  }
+  const idx = new Map(buckets.map((b, i) => [b.day, i]));
+  for (const e of log) {
+    if (!predicate(e)) continue;
+    const k = dayKey(new Date(e.timestamp));
+    const i = idx.get(k);
+    if (i !== undefined) buckets[i].value += 1;
+  }
+  return buckets;
+};
+
+// Alert engine
+type AlertLevel = "critical" | "warning" | "success";
+interface Alert { level: AlertLevel; title: string; detail: string }
+
+const computeAlerts = (m: RetentionMetrics): Alert[] => {
+  const alerts: Alert[] = [];
+  const days = m.daysSinceStart ?? 0;
+
+  // D1 retention
+  if (days >= 1 && m.d1Rate < 0.30) {
+    alerts.push({
+      level: "critical",
+      title: "Day 1 retention weak",
+      detail: `Only ${fmtPct(m.d1Rate)} returned on day 1. Strengthen the day-0 → day-1 hook.`,
+    });
+  }
+
+  // First-win conversion: completed / created
+  const firstWinRate = m.firstHabitCreatedAt
+    ? (m.firstHabitCompletedAt ? 1 : 0)
+    : 0;
+  // Use proxy: if a habit was created but no first completion logged, that's friction.
+  if (m.firstHabitCreatedAt && !m.firstHabitCompletedAt) {
+    alerts.push({
+      level: "warning",
+      title: "First win friction too high",
+      detail: "User created a habit but hasn't completed one yet. Reduce taps to first check-in.",
+    });
+  } else if (firstWinRate < 0.5 && m.firstHabitCreatedAt) {
+    alerts.push({
+      level: "warning",
+      title: "First win friction too high",
+      detail: `First-completion rate looks low.`,
+    });
+  }
+
+  // CTA CTR
+  if (m.ctaImpressions >= 3 && m.ctaCTR < 0.40) {
+    alerts.push({
+      level: "warning",
+      title: "Dashboard CTA weak",
+      detail: `Journey hero CTR is ${fmtPct(m.ctaCTR)}. Test sharper copy or a clearer single action.`,
+    });
+  }
+
+  // D7 success
+  if (days >= 7 && m.d7Rate > 0.20) {
+    alerts.push({
+      level: "success",
+      title: "Strong habit signals",
+      detail: `${fmtPct(m.d7Rate)} D7 retention — early product-market fit signal.`,
+    });
+  }
+
+  return alerts;
+};
+
+interface Recommendation { title: string; rationale: string }
+
+const computeRecommendations = (m: RetentionMetrics, completionsTrend: DayPoint[]): Recommendation[] => {
+  const recs: Recommendation[] = [];
+  const days = m.daysSinceStart ?? 0;
+
+  if (m.ctaImpressions >= 3 && m.ctaCTR < 0.40) {
+    recs.push({
+      title: "Sharpen the Journey CTA",
+      rationale: `CTR is ${fmtPct(m.ctaCTR)} across ${m.ctaImpressions} impressions. Test outcome-led copy ("Start your first action") and remove competing buttons above the fold.`,
+    });
+  }
+  if (days >= 1 && m.d1Rate < 0.30) {
+    recs.push({
+      title: "Strengthen the day-1 return loop",
+      rationale: "Send a single, specific push at the user's chosen time. Lead with their habit name, not the brand.",
+    });
+  }
+  if (m.firstHabitCreatedAt && !m.firstHabitCompletedAt) {
+    recs.push({
+      title: "Reduce friction to first completion",
+      rationale: "Auto-scroll to the first habit immediately after onboarding and pre-expand its check-in affordance.",
+    });
+  }
+  if (m.avgHabitsPerDayFirstWeek > 0 && m.avgHabitsPerDayFirstWeek < 1) {
+    recs.push({
+      title: "Lower the daily completion bar",
+      rationale: `Average is ${m.avgHabitsPerDayFirstWeek}/day. Suggest a single keystone habit instead of multiple during week 1.`,
+    });
+  }
+  const last3 = completionsTrend.slice(-3).reduce((s, d) => s + d.value, 0);
+  const prev3 = completionsTrend.slice(-6, -3).reduce((s, d) => s + d.value, 0);
+  if (prev3 > 0 && last3 < prev3 * 0.6) {
+    recs.push({
+      title: "Completion velocity is dropping",
+      rationale: `Last 3 days dropped ${Math.round((1 - last3 / prev3) * 100)}% vs the prior 3. Trigger a re-engagement nudge or surface the weekly recap early.`,
+    });
+  }
+  if (days >= 7 && m.d7Rate > 0.20 && m.recapCTR < 0.5) {
+    recs.push({
+      title: "Capitalize on D7 success",
+      rationale: "Users are sticking but the weekly recap CTA is under-clicked. Make the recap actionable (set next week's target) instead of summary-only.",
+    });
+  }
+  if (recs.length === 0) {
+    recs.push({
+      title: "No clear signal yet",
+      rationale: "Wait for more events. Revisit once D1 has at least 5 cohort members.",
+    });
+  }
+  return recs;
+};
+
 
 const Insights = () => {
   const [metrics, setMetrics] = useState<RetentionMetrics>(() => getRetentionMetrics());
