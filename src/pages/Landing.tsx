@@ -182,12 +182,7 @@ const Landing = () => {
       {/* ===== NAV ===== */}
       <nav className="fixed top-0 inset-x-0 z-50 backdrop-blur-2xl bg-background/70 border-b border-foreground/[0.05]">
         <div className="container max-w-6xl flex items-center justify-between h-16">
-          <div className="flex items-center gap-2.5">
-            <div className="h-8 w-8 bg-primary flex items-center justify-center">
-              <Flame className="h-4 w-4 text-primary-foreground" />
-            </div>
-            <span className="font-black italic uppercase tracking-tighter text-base">becoMe</span>
-          </div>
+          <BecomeLogo />
           <div className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
             <button onClick={() => scrollTo("inside")} className="hover:text-foreground transition-colors">Product</button>
             <button onClick={() => scrollTo("pricing")} className="hover:text-foreground transition-colors">Pricing</button>
@@ -638,12 +633,7 @@ const Landing = () => {
       <footer className="py-12 border-t border-foreground/[0.06] pb-28 md:pb-12">
         <div className="container max-w-6xl px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-2.5">
-              <div className="h-7 w-7 bg-primary flex items-center justify-center">
-                <Flame className="h-3.5 w-3.5 text-primary-foreground" />
-              </div>
-              <span className="font-black italic uppercase tracking-tighter text-sm">becoMe</span>
-            </div>
+            <BecomeLogo size="sm" />
             <div className="flex items-center gap-8 text-xs font-mono uppercase tracking-wider text-muted-foreground">
               <a href="/privacy" className="hover:text-foreground transition-colors">Privacy</a>
               <a href="/terms" className="hover:text-foreground transition-colors">Terms</a>
