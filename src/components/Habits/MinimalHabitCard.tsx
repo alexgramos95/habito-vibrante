@@ -218,6 +218,6 @@ export const MinimalHabitCard = ({
           </span>
         )}
       </div>
-    </div>
+    </Surface>
   );
 };
