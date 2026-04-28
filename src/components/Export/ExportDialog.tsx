@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { loadState } from "@/data/storage";
+import { useI18n } from "@/i18n/I18nContext";
 
 interface ExportDialogProps {
   open: boolean;
@@ -34,6 +35,8 @@ export const ExportDialog = ({
 }: ExportDialogProps) => {
   const { toast } = useToast();
   const { user, session, subscriptionStatus } = useAuth();
+  const { locale } = useI18n();
+  const isPT = locale === 'pt-PT';
   const [selectedFormat, setSelectedFormat] = useState<string>('json');
   const [exporting, setExporting] = useState(false);
 
@@ -138,16 +141,20 @@ export const ExportDialog = ({
       URL.revokeObjectURL(url);
 
       toast({
-        title: "Export complete",
-        description: "Your data has been downloaded as a JSON file.",
+        title: isPT ? "Exportação concluída" : "Export complete",
+        description: isPT
+          ? "Os teus dados foram transferidos como ficheiro JSON."
+          : "Your data has been downloaded as a JSON file.",
       });
 
       onClose();
     } catch (err) {
       console.error('Export error:', err);
       toast({
-        title: "Export failed",
-        description: "Could not export your data. Please try again.",
+        title: isPT ? "Falha na exportação" : "Export failed",
+        description: isPT
+          ? "Não foi possível exportar os teus dados. Tenta novamente."
+          : "Could not export your data. Please try again.",
         variant: "destructive",
       });
     } finally {

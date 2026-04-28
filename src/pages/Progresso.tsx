@@ -14,6 +14,7 @@ import { addSavingsEntry, deleteSavingsEntry } from "@/data/storage";
 import { getLevelProgress, calculateSavingsSummary } from "@/logic/computations";
 import { useToast } from "@/hooks/use-toast";
 import { useData } from "@/contexts/DataContext";
+import { useI18n } from "@/i18n/I18nContext";
 import { cn } from "@/lib/utils";
 
 // --- Circular progress ring ---
@@ -41,6 +42,8 @@ const CircularProgress = ({ percent, size = 60 }: { percent: number; size?: numb
 const Progresso = () => {
   const { toast } = useToast();
   const { state, setState } = useData();
+  const { locale } = useI18n();
+  const isPT = locale === "pt-PT";
   const [showSavingsForm, setShowSavingsForm] = useState(false);
   const [savingsForm, setSavingsForm] = useState({ amount: "", descricao: "", categoria: "", habitId: "" });
 
@@ -88,8 +91,8 @@ const Progresso = () => {
 
   const handleAddSavings = () => {
     const amount = parseFloat(savingsForm.amount);
-    if (isNaN(amount) || amount <= 0) { toast({ title: "Valor inválido", variant: "destructive" }); return; }
-    if (!savingsForm.descricao.trim()) { toast({ title: "Descrição obrigatória", variant: "destructive" }); return; }
+    if (isNaN(amount) || amount <= 0) { toast({ title: isPT ? "Valor inválido" : "Invalid value", variant: "destructive" }); return; }
+    if (!savingsForm.descricao.trim()) { toast({ title: isPT ? "Descrição obrigatória" : "Description required", variant: "destructive" }); return; }
 
     setState(prev => addSavingsEntry(prev, {
       date: format(today, "yyyy-MM-dd"),
@@ -97,7 +100,7 @@ const Progresso = () => {
       categoria: savingsForm.categoria || undefined,
       habitId: savingsForm.habitId || undefined,
     }));
-    toast({ title: `Poupança de ${amount.toFixed(2)} € registada!` });
+    toast({ title: isPT ? `Poupança de ${amount.toFixed(2)} € registada!` : `Savings of ${amount.toFixed(2)} € logged!` });
     setShowSavingsForm(false);
     setSavingsForm({ amount: "", descricao: "", categoria: "", habitId: "" });
   };
@@ -228,7 +231,7 @@ const Progresso = () => {
                   <span className="text-xs text-muted-foreground truncate flex-1">{entry.descricao}</span>
                   <span className="text-[10px] text-muted-foreground">{format(new Date(entry.date), "dd/MM")}</span>
                   <button
-                    onClick={() => { setState(prev => deleteSavingsEntry(prev, entry.id)); toast({ title: "Removido" }); }}
+                    onClick={() => { setState(prev => deleteSavingsEntry(prev, entry.id)); toast({ title: isPT ? "Removido" : "Removed" }); }}
                     className="h-6 w-6 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-destructive/60 hover:text-destructive"
                   >
                     <Trash2 className="h-3 w-3" />

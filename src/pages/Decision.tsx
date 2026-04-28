@@ -11,12 +11,15 @@ import { generatePDFExport } from "@/lib/pdfExport";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { APP_NAME, FREE_LIMITS } from "@/config/billing";
+import { useI18n } from "@/i18n/I18nContext";
 
 const Decision = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { isAuthenticated, isEmailVerified, user, refreshSubscription } = useAuth();
   const { trialStatus, isPro } = useSubscription();
+  const { locale } = useI18n();
+  const isPT = locale === 'pt-PT';
   
   const [showPaywall, setShowPaywall] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
@@ -62,8 +65,10 @@ const Decision = () => {
       await refreshSubscription();
 
       toast({
-        title: "Plano FREE ativado",
-        description: `Podes usar ${FREE_LIMITS.maxHabits} hábitos. Atualiza a qualquer momento!`,
+        title: isPT ? "Plano FREE ativado" : "FREE plan activated",
+        description: isPT
+          ? `Podes usar ${FREE_LIMITS.maxHabits} hábitos. Atualiza a qualquer momento!`
+          : `You can use up to ${FREE_LIMITS.maxHabits} habits. Upgrade anytime!`,
       });
 
       // Navigate to app after state is updated
@@ -71,8 +76,10 @@ const Decision = () => {
     } catch (err) {
       console.error("Error choosing free:", err);
       toast({
-        title: "Erro",
-        description: "Não foi possível ativar o plano FREE. Tenta novamente.",
+        title: isPT ? "Erro" : "Error",
+        description: isPT
+          ? "Não foi possível ativar o plano FREE. Tenta novamente."
+          : "Could not activate the FREE plan. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -85,14 +92,18 @@ const Decision = () => {
     try {
       await generatePDFExport(user?.email || undefined);
       toast({
-        title: "PDF gerado",
-        description: "O teu progresso está pronto para download.",
+        title: isPT ? "PDF gerado" : "PDF generated",
+        description: isPT
+          ? "O teu progresso está pronto para download."
+          : "Your progress is ready to download.",
       });
     } catch (err) {
       console.error("Error exporting PDF:", err);
       toast({
-        title: "Erro",
-        description: "Não foi possível gerar o PDF. Permite popups e tenta novamente.",
+        title: isPT ? "Erro" : "Error",
+        description: isPT
+          ? "Não foi possível gerar o PDF. Permite popups e tenta novamente."
+          : "Could not generate the PDF. Allow popups and try again.",
         variant: "destructive",
       });
     } finally {

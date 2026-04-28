@@ -80,7 +80,7 @@ const Compras = () => {
   };
 
   const handleSave = () => {
-    if (!formData.nome.trim()) { toast({ title: t.shopping.itemName + " obrigatório", variant: "destructive" }); return; }
+    if (!formData.nome.trim()) { toast({ title: t.shopping.itemName + (locale === 'pt-PT' ? " obrigatório" : " required"), variant: "destructive" }); return; }
     if (editingItem) {
       setState(prev => updateShoppingItem(prev, editingItem.id, {
         nome: formData.nome.trim(), quantidade: formData.quantidade.trim() || undefined,
@@ -111,7 +111,7 @@ const Compras = () => {
         categoria: item.category || undefined, price: item.price,
       }));
     });
-    toast({ title: `${confirmedItems.length} itens adicionados` });
+    toast({ title: locale === 'pt-PT' ? `${confirmedItems.length} itens adicionados` : `${confirmedItems.length} items added` });
     setPendingReceiptItems([]);
   };
 
