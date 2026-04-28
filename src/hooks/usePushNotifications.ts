@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { getVapidPublicKey, VAPID_PUBLIC_KEY } from "@/config/push";
 import { registerPublishedServiceWorker } from "@/lib/pwaRefresh";
+import { isPT } from "@/i18n/getLocale";
 
 export type NotificationMode = 'background' | 'in-app' | 'unsupported' | 'denied';
 
@@ -165,10 +166,13 @@ export function usePushNotifications(userId: string | undefined) {
 
   // Request notification permission
   const requestPermission = useCallback(async (): Promise<NotificationPermission> => {
+    const pt = isPT();
     if (!state.isSupported) {
       toast({
-        title: "Notifications not supported",
-        description: "Your browser doesn't support notifications.",
+        title: pt ? "Notificações não suportadas" : "Notifications not supported",
+        description: pt
+          ? "O teu navegador não suporta notificações."
+          : "Your browser doesn't support notifications.",
         variant: "destructive",
       });
       return 'denied';
@@ -181,14 +185,18 @@ export function usePushNotifications(userId: string | undefined) {
 
       if (permission === 'granted') {
         toast({
-          title: "Notifications enabled",
-          description: "You'll receive reminders for your habits.",
+          title: pt ? "Notificações ativadas" : "Notifications enabled",
+          description: pt
+            ? "Vais receber lembretes para os teus hábitos."
+            : "You'll receive reminders for your habits.",
         });
       } else if (permission === 'denied') {
         setState(prev => ({ ...prev, mode: 'denied' }));
         toast({
-          title: "Notifications blocked",
-          description: "Enable notifications in your browser settings.",
+          title: pt ? "Notificações bloqueadas" : "Notifications blocked",
+          description: pt
+            ? "Ativa as notificações nas definições do navegador."
+            : "Enable notifications in your browser settings.",
           variant: "destructive",
         });
       }
@@ -223,9 +231,12 @@ export function usePushNotifications(userId: string | undefined) {
 
     if (!vapidKey) {
       console.error('[Push] VAPID public key not configured');
+      const pt = isPT();
       toast({
-        title: "Configuration error",
-        description: "Push notifications are not configured. Please contact support.",
+        title: pt ? "Erro de configuração" : "Configuration error",
+        description: pt
+          ? "As notificações push não estão configuradas. Contacta o suporte."
+          : "Push notifications are not configured. Please contact support.",
         variant: "destructive",
       });
       return false;
@@ -312,9 +323,12 @@ export function usePushNotifications(userId: string | undefined) {
 
     } catch (error) {
       console.error('[Push] Error subscribing to push:', error);
+      const pt = isPT();
       toast({
-        title: "Push subscription failed",
-        description: "Background notifications won't work. Using in-app reminders.",
+        title: pt ? "Falha na subscrição push" : "Push subscription failed",
+        description: pt
+          ? "As notificações em segundo plano não vão funcionar. A usar lembretes na app."
+          : "Background notifications won't work. Using in-app reminders.",
         variant: "destructive",
       });
       
