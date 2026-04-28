@@ -20,8 +20,7 @@ import { PaywallModal } from "@/components/Paywall/PaywallModal";
 
 /**
  * Landing — "Identity OS for ambitious people"
- * Premium, mature, conversion-focused. Apple × WHOOP × Nike discipline.
- * Black canvas, neon-lime accent, restrained ultraviolet glow.
+ * Premium, conversion-focused. Apple × WHOOP × Nike discipline.
  */
 const Landing = () => {
   const navigate = useNavigate();
@@ -50,7 +49,7 @@ const Landing = () => {
   const faqs = [
     {
       q: "Is Become just another habit tracker?",
-      a: "No. Habit trackers count check-marks. Become is an operating system for identity — habits, nutrition, planning, metrics and momentum, all in one place.",
+      a: "No. Habit trackers count check-marks. Become is an operating system for identity — habits, nutrition, planning, metrics and momentum, in one place.",
     },
     {
       q: "How does the free trial work?",
@@ -62,7 +61,7 @@ const Landing = () => {
     },
     {
       q: "Can I cancel anytime?",
-      a: "Yes. One click in your account. No emails, no friction. 30-day money-back guarantee on yearly and lifetime.",
+      a: "Yes. One click in your account. 30-day money-back guarantee on yearly and lifetime.",
     },
     {
       q: "Does my data stay private?",
@@ -97,8 +96,8 @@ const Landing = () => {
       </nav>
 
       {/* ===== HERO ===== */}
-      <section className="relative pt-36 pb-24 md:pt-44 md:pb-32 overflow-hidden">
-        {/* Ambient ultraviolet glow */}
+      <section className="relative pt-36 pb-20 md:pt-44 md:pb-28 overflow-hidden">
+        {/* Ambient glows */}
         <div
           className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[900px] pointer-events-none opacity-60"
           style={{
@@ -130,9 +129,9 @@ const Landing = () => {
             yourself you'd be.
           </h1>
 
-          <p className="type-body text-lg md:text-xl text-muted-foreground max-w-[34ch] mx-auto mb-12">
-            One system for habits, health, and momentum.<br className="hidden md:block" />
-            Built for people serious about who they're becoming.
+          <p className="type-body text-lg md:text-xl text-muted-foreground max-w-[40ch] mx-auto mb-12">
+            Habits, progress and discipline<br className="hidden md:block" />
+            in one operating system.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-7">
@@ -159,7 +158,6 @@ const Landing = () => {
             />
             <div className="relative rounded-[44px] border border-foreground/15 bg-card p-2.5 shadow-[0_40px_120px_-20px_hsl(var(--neon-ultra)/0.4)]">
               <div className="rounded-[34px] overflow-hidden bg-background border border-foreground/10">
-                {/* Faux app screen */}
                 <div className="px-5 pt-6 pb-8">
                   <div className="flex items-center justify-between mb-5">
                     <div>
@@ -214,32 +212,25 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* ===== WHY USERS FAIL ===== */}
-      <section id="how" className="py-28 md:py-36 border-t border-foreground/[0.05]">
+      {/* ===== PROBLEM → BECOME (merged) ===== */}
+      <section id="how" className="py-24 md:py-28 border-t border-foreground/[0.05]">
         <div className="container max-w-3xl text-center px-6">
-          <p className="type-eyebrow text-primary mb-6">// The problem</p>
+          <p className="type-eyebrow text-primary mb-6">// The shift</p>
           <h2 className="type-display text-3xl md:text-5xl mb-7">
             Most people don't fail<br />because of motivation.
           </h2>
-          <p className="type-body text-lg md:text-xl text-muted-foreground mb-14 max-w-[44ch] mx-auto">
+          <p className="type-body text-lg md:text-xl text-muted-foreground mb-10 max-w-[44ch] mx-auto">
             They fail because they don't have <span className="text-foreground font-semibold">systems</span>.
-            Apps remind them. Coaches push them. Nothing connects who they are today
-            with who they're trying to become.
+            Become is one operating system for habits, health, plans and momentum —
+            built for people who are done playing.
           </p>
-          <div className="inline-block border-l-2 border-primary pl-6 py-2 text-left max-w-md">
-            <p className="type-eyebrow text-primary mb-3">// Then there's Become</p>
-            <p className="type-body text-base text-foreground">
-              One operating system for your habits, health, plans and momentum.
-              Built for people who are done playing.
-            </p>
-          </div>
         </div>
       </section>
 
-      {/* ===== WHAT'S INSIDE ===== */}
-      <section id="inside" className="py-28 md:py-36 border-t border-foreground/[0.05]">
+      {/* ===== WHAT'S INSIDE + PRODUCT PROOF ===== */}
+      <section id="inside" className="py-24 md:py-28 border-t border-foreground/[0.05]">
         <div className="container max-w-6xl px-6">
-          <div className="text-center mb-20">
+          <div className="text-center mb-16">
             <p className="type-eyebrow text-primary mb-5">// What's inside</p>
             <h2 className="type-display text-3xl md:text-5xl mb-5">
               One system. Every lever.
@@ -249,7 +240,7 @@ const Landing = () => {
             </p>
           </div>
 
-          <div className="grid gap-px bg-foreground/[0.05] border border-foreground/[0.05] md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-px bg-foreground/[0.05] border border-foreground/[0.05] md:grid-cols-2 lg:grid-cols-3 mb-20">
             {modules.map((m, i) => (
               <div
                 key={i}
@@ -263,11 +254,84 @@ const Landing = () => {
               </div>
             ))}
           </div>
+
+          {/* Real product UI previews */}
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* Calendar preview */}
+            <div className="border border-foreground/[0.08] bg-foreground/[0.015] p-7 rounded-sm">
+              <div className="flex items-center justify-between mb-5">
+                <div>
+                  <p className="type-eyebrow text-muted-foreground mb-1">// Calendar</p>
+                  <h3 className="text-base font-bold tracking-tight">April · Week 17</h3>
+                </div>
+                <div className="font-mono text-[10px] uppercase tracking-wider text-primary">
+                  92% consistency
+                </div>
+              </div>
+              <div className="grid grid-cols-7 gap-1.5">
+                {["M","T","W","T","F","S","S"].map((d, i) => (
+                  <p key={i} className="text-center text-[10px] font-mono uppercase text-muted-foreground/60 mb-1">{d}</p>
+                ))}
+                {Array.from({ length: 28 }).map((_, i) => {
+                  const intensities = [0, 0.2, 0.5, 0.85, 1];
+                  const intensity = intensities[Math.floor((Math.sin(i * 1.7) + 1) * 2.4)];
+                  return (
+                    <div
+                      key={i}
+                      className="aspect-square border border-foreground/[0.06] transition-colors duration-200"
+                      style={{ background: `hsl(var(--neon-toxic) / ${intensity})` }}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Nutrition preview */}
+            <div className="border border-foreground/[0.08] bg-foreground/[0.015] p-7 rounded-sm">
+              <div className="flex items-center justify-between mb-5">
+                <div>
+                  <p className="type-eyebrow text-muted-foreground mb-1">// Nutrition</p>
+                  <h3 className="text-base font-bold tracking-tight">Today's plan</h3>
+                </div>
+                <div className="font-mono text-[10px] uppercase tracking-wider text-primary">
+                  2,140 / 2,200 kcal
+                </div>
+              </div>
+              <div className="space-y-2.5">
+                {[
+                  { meal: "Breakfast", item: "Oats, berries, whey", kcal: 420 },
+                  { meal: "Lunch", item: "Chicken, rice, greens", kcal: 680 },
+                  { meal: "Snack", item: "Greek yogurt, almonds", kcal: 320 },
+                  { meal: "Dinner", item: "Salmon, sweet potato", kcal: 720 },
+                ].map((m, i) => (
+                  <div key={i} className="flex items-center justify-between border border-foreground/[0.06] bg-background p-3">
+                    <div>
+                      <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">{m.meal}</p>
+                      <p className="text-sm font-semibold mt-0.5">{m.item}</p>
+                    </div>
+                    <p className="font-mono text-xs text-primary">{m.kcal}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 grid grid-cols-3 gap-2 pt-4 border-t border-foreground/[0.06]">
+                {[
+                  { l: "Protein", v: "168g" },
+                  { l: "Carbs", v: "210g" },
+                  { l: "Fat", v: "72g" },
+                ].map((m, i) => (
+                  <div key={i} className="text-center">
+                    <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">{m.l}</p>
+                    <p className="font-black italic text-base mt-1">{m.v}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* ===== GAMIFICATION ===== */}
-      <section className="py-28 md:py-36 border-t border-foreground/[0.05] relative overflow-hidden">
+      {/* ===== MOMENTUM ===== */}
+      <section className="py-24 md:py-28 border-t border-foreground/[0.05] relative overflow-hidden">
         <div
           className="absolute inset-0 pointer-events-none opacity-40"
           style={{
@@ -276,7 +340,7 @@ const Landing = () => {
           }}
         />
         <div className="container max-w-5xl px-6 relative z-10">
-          <div className="text-center mb-20">
+          <div className="text-center mb-16">
             <p className="type-eyebrow text-primary mb-5">// Momentum</p>
             <h2 className="type-display text-3xl md:text-5xl mb-5">
               Progress should feel addictive.
@@ -303,48 +367,11 @@ const Landing = () => {
               </div>
             ))}
           </div>
-
-          {/* Consistency strip */}
-          <div className="mt-12 border border-foreground/[0.05] bg-background p-7">
-            <div className="flex items-center justify-between mb-5">
-              <p className="type-eyebrow">Last 30 days</p>
-              <p className="type-eyebrow text-primary">You're building momentum.</p>
-            </div>
-            <div className="flex gap-1">
-              {Array.from({ length: 30 }).map((_, i) => {
-                const intensity = [0.15, 0.4, 0.7, 1][Math.floor(Math.random() * 4)];
-                return (
-                  <div
-                    key={i}
-                    className="flex-1 h-10 transition-transform duration-200 hover:scale-y-110 origin-bottom"
-                    style={{ background: `hsl(var(--neon-toxic) / ${intensity})` }}
-                  />
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ===== DIFFERENTIATION ===== */}
-      <section className="py-28 md:py-36 border-t border-foreground/[0.05]">
-        <div className="container max-w-3xl px-6 text-center">
-          <p className="type-eyebrow text-primary mb-6">// Why Become</p>
-          <h2 className="type-display text-3xl md:text-6xl mb-10">
-            Most apps track tasks.<br />
-            <span className="text-primary" style={{ textShadow: "0 0 40px hsl(var(--neon-toxic) / 0.45)" }}>
-              Become tracks transformation.
-            </span>
-          </h2>
-          <p className="type-body text-lg text-muted-foreground max-w-[48ch] mx-auto">
-            Tasks come and go. Identity is what stays. Every check-in inside Become is a vote
-            for the version of you that's worth becoming.
-          </p>
         </div>
       </section>
 
       {/* ===== CREDIBILITY ===== */}
-      <section className="py-28 md:py-36 border-t border-foreground/[0.05] relative overflow-hidden">
+      <section className="py-24 md:py-28 border-t border-foreground/[0.05] relative overflow-hidden">
         <div
           className="absolute inset-0 pointer-events-none opacity-40"
           style={{
@@ -353,14 +380,13 @@ const Landing = () => {
           }}
         />
         <div className="container max-w-6xl px-6 relative">
-          <div className="text-center mb-16 md:mb-20">
+          <div className="text-center mb-14 md:mb-16">
             <p className="type-eyebrow text-primary mb-5">// Built with intent</p>
             <h2 className="type-display text-3xl md:text-5xl lg:text-6xl mb-6 max-w-[20ch] mx-auto">
-              Built for people who take growth seriously.
+              Built for people serious about growth.
             </h2>
             <p className="type-body text-muted-foreground max-w-[52ch] mx-auto">
-              No vanity metrics. No fake testimonials. Just a system designed for the
-              long game — measured by what actually matters.
+              No vanity metrics. No fake testimonials. A system measured by what actually matters.
             </p>
           </div>
 
@@ -369,7 +395,7 @@ const Landing = () => {
               { value: "—", label: "Habits Completed", hint: "All-time check-ins" },
               { value: "—", label: "Active Streaks", hint: "Operators in motion" },
               { value: "—", label: "Weekly Consistency", hint: "Avg. completion rate" },
-              { value: "—", label: "Returning Users", hint: "Showing up week after week" },
+              { value: "—", label: "Daily Sessions", hint: "Showing up, every day" },
             ].map((s, i) => (
               <div
                 key={i}
@@ -384,7 +410,7 @@ const Landing = () => {
             ))}
           </div>
 
-          <div className="mt-16 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs font-mono uppercase tracking-widest text-muted-foreground/60">
+          <div className="mt-14 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs font-mono uppercase tracking-widest text-muted-foreground/60">
             <span>Private by default</span>
             <span className="h-1 w-1 rounded-full bg-muted-foreground/30" />
             <span>No ads, ever</span>
@@ -397,9 +423,9 @@ const Landing = () => {
       </section>
 
       {/* ===== PRICING ===== */}
-      <section id="pricing" className="py-28 md:py-36 border-t border-foreground/[0.05]">
+      <section id="pricing" className="py-24 md:py-28 border-t border-foreground/[0.05]">
         <div className="container max-w-5xl px-6">
-          <div className="text-center mb-20">
+          <div className="text-center mb-16">
             <p className="type-eyebrow text-primary mb-5">// Pricing</p>
             <h2 className="type-display text-3xl md:text-5xl mb-5">
               Start free. Commit when ready.
@@ -428,9 +454,9 @@ const Landing = () => {
                 <Button
                   className="press-tactile w-full"
                   variant={p.popular ? "default" : "outline"}
-                  onClick={() => { setShowPaywall(true); }}
+                  onClick={handleStartTrial}
                 >
-                  {p.key === "lifetime" ? "Get Lifetime" : "Start 7-day Trial"}
+                  Start Free
                 </Button>
               </div>
             ))}
@@ -447,9 +473,9 @@ const Landing = () => {
       </section>
 
       {/* ===== FAQ ===== */}
-      <section id="faq" className="py-28 md:py-36 border-t border-foreground/[0.05]">
+      <section id="faq" className="py-24 md:py-28 border-t border-foreground/[0.05]">
         <div className="container max-w-3xl px-6">
-          <div className="text-center mb-14">
+          <div className="text-center mb-12">
             <p className="type-eyebrow text-primary mb-5">// FAQ</p>
             <h2 className="type-display text-3xl md:text-5xl">
               Questions, answered.
@@ -480,7 +506,7 @@ const Landing = () => {
       </section>
 
       {/* ===== FINAL CTA ===== */}
-      <section className="py-32 md:py-44 border-t border-foreground/[0.05] relative overflow-hidden">
+      <section className="py-28 md:py-36 border-t border-foreground/[0.05] relative overflow-hidden">
         <div
           className="absolute inset-0 pointer-events-none opacity-60"
           style={{
