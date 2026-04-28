@@ -270,10 +270,6 @@ const Landing = () => {
               <HabitsPreview />
             </PhoneFrame>
           </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Float keyframes (scoped) */}
