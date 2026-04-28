@@ -534,13 +534,14 @@ const StepLanguage = ({
   <div className="flex-1 flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-300">
     <div className="text-center pt-4 pb-6">
       <p className="font-mono text-[10px] uppercase tracking-widest text-primary mb-3">
-        // Language
+        // Language · Idioma
       </p>
       <h1 className="type-display text-3xl sm:text-4xl mb-2 leading-tight">
-        Pick your<br />account language.
+        Choose your language<br />
+        <span className="text-muted-foreground/70">Escolhe o teu idioma</span>
       </h1>
       <p className="text-sm text-muted-foreground/80">
-        Used inside the app. Onboarding stays in English.
+        We tailor everything to it · Adaptamos tudo a ele
       </p>
     </div>
 
@@ -561,9 +562,9 @@ const StepLanguage = ({
             <span className="text-2xl shrink-0" aria-hidden>{opt.flag}</span>
             <div className="flex-1 min-w-0">
               <p className={cn("text-base font-bold tracking-tight", selected && "text-primary")}>
-                {opt.label}
+                {opt.native}
               </p>
-              <p className="text-xs text-muted-foreground/75 mt-0.5">{opt.native}</p>
+              <p className="text-xs text-muted-foreground/75 mt-0.5">{opt.label}</p>
             </div>
             {selected && <Check className="h-5 w-5 text-primary shrink-0 animate-completion-pop" />}
           </button>
