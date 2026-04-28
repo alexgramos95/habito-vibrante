@@ -307,6 +307,23 @@ const Insights = () => {
         </section>
 
         {/* Recommendations — generated from data */}
+        {/* A/B test winners */}
+        <section>
+          <h2 className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">A/B test results</h2>
+          <div className="space-y-3">
+            <ABTestCard
+              title="Referral modal headline"
+              metric="CTR (invite sent / shown)"
+              variants={referralVariants}
+            />
+            <ABTestCard
+              title="Share card headline"
+              metric="Share rate (shared / opened)"
+              variants={shareVariants}
+            />
+          </div>
+        </section>
+
         <section>
           <h2 className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">Top recommendations</h2>
           <div className="space-y-2">
