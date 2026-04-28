@@ -343,14 +343,14 @@ export const HabitsPreview = () => {
             <span className="text-sm font-semibold text-foreground tracking-tight">
               A construir momentum.
             </span>
-            <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground/60 tabular-nums">
-              2/4
+            <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground/60 tabular-nums transition-all duration-500">
+              {momentumLabel}
             </span>
           </div>
           <div className="h-1.5 bg-foreground/[0.06] relative overflow-hidden">
             <div
-              className="absolute inset-y-0 left-0 bg-primary shadow-[0_0_12px_hsl(var(--neon-toxic)/0.7)]"
-              style={{ width: "50%" }}
+              className="absolute inset-y-0 left-0 bg-primary shadow-[0_0_12px_hsl(var(--neon-toxic)/0.7)] transition-[width] duration-[900ms] ease-out"
+              style={{ width: `${momentumPct}%` }}
             />
           </div>
         </div>
@@ -396,6 +396,7 @@ export const HabitsPreview = () => {
         <div className="space-y-2">
           <PreviewHabitRow name="Treino matinal" time="06:30" done />
           <PreviewHabitRow name="Ler 20 min" time="07:15" done />
+          <PreviewHabitRow name="Meditar" time="08:00" done={thirdDone} />
           <PreviewHabitRow name="Café" reduce metric={{ count: 3, goal: 5, unit: "chávenas" }} />
         </div>
       </section>
@@ -403,7 +404,8 @@ export const HabitsPreview = () => {
 
     <PreviewBottomNav active="habits" />
   </div>
-);
+  );
+};
 
 /* ════════════════════════════════════════════════════════════════════════
    2. CALENDAR — clone of Calendario monthly view
