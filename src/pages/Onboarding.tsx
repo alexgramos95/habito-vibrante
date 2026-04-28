@@ -1,530 +1,672 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowRight,
   ArrowLeft,
-  Target,
   Sparkles,
-  Globe,
   Flame,
   Dumbbell,
   Brain,
   Heart,
   DollarSign,
   Moon,
-  Coffee,
-  Cigarette,
-  Check,
+  Target,
   Zap,
+  Shield,
+  Wind,
+  Anchor,
+  Check,
+  Plus,
+  Coffee,
+  BookOpen,
+  Droplet,
+  Footprints,
+  Banknote,
+  Sun,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { useI18n } from "@/i18n/I18nContext";
-import { localeNames, currencyNames, type Locale, type Currency } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { useSubscription } from "@/hooks/useSubscription";
-import type { TrackerType, TrackerInputMode, TrackerFrequency } from "@/data/types";
 
-// Improvement areas
-const IMPROVEMENT_AREAS = [
-  { id: "fitness", icon: Dumbbell, label: "Fitness & Exercise" },
-  { id: "mindfulness", icon: Brain, label: "Mindfulness & Focus" },
-  { id: "health", icon: Heart, label: "Health & Nutrition" },
-  { id: "finances", icon: DollarSign, label: "Savings & Finances" },
-  { id: "sleep", icon: Moon, label: "Sleep & Recovery" },
-  { id: "productivity", icon: Target, label: "Productivity" },
+/* =============================================================
+   ONBOARDING — Identity Hook → First Win → Commit
+   Goal: <90s, 1 decision per screen, immediate momentum.
+   ============================================================= */
+
+type Step = "identity" | "obstacle" | "focus" | "first-win" | "commit";
+
+const IDENTITY_OPTIONS = [
+  { id: "disciplined", label: "More disciplined", desc: "Show up. Every day.", icon: Shield },
+  { id: "healthier", label: "Healthier", desc: "Move, eat, sleep better.", icon: Heart },
+  { id: "stronger", label: "Stronger mentally", desc: "Calm under pressure.", icon: Brain },
+  { id: "organized", label: "Financially organized", desc: "In control of my money.", icon: DollarSign },
+  { id: "productive", label: "More productive", desc: "Deep work, less noise.", icon: Target },
+  { id: "consistent", label: "Calm & consistent", desc: "A steadier rhythm.", icon: Anchor },
 ];
 
-// Identity vectors (who you're becoming)
-const IDENTITY_VECTORS = ["Disciplined", "Focused", "Resilient", "Strong", "Calm", "Consistent", "Healthy", "Wealthy"];
-
-// Habit presets based on areas - with full config for creation
-const HABIT_PRESETS = [
-  { id: "meditation", name: "Meditation", category: "mindfulness", icon: "🧘", color: "#8b5cf6" },
-  { id: "exercise", name: "Exercise", category: "fitness", icon: "🏃", color: "#22c55e" },
-  { id: "reading", name: "Reading", category: "productivity", icon: "📚", color: "#3b82f6" },
-  { id: "water", name: "Drink Water", category: "health", icon: "💧", color: "#06b6d4" },
-  { id: "sleep8h", name: "Sleep 8h", category: "sleep", icon: "😴", color: "#6366f1" },
-  { id: "noPhone", name: "No Phone Morning", category: "focus", icon: "📵", color: "#f59e0b" },
+const OBSTACLE_OPTIONS = [
+  { id: "consistency", label: "Lack of consistency" },
+  { id: "motivation", label: "Low motivation" },
+  { id: "forgetfulness", label: "I forget" },
+  { id: "structure", label: "No structure" },
+  { id: "distractions", label: "Too many distractions" },
+  { id: "quit", label: "Start strong, quit later" },
 ];
 
-// Tracker presets - with full config for creation
-const TRACKER_PRESETS: {
-  id: string;
-  name: string;
-  icon: typeof Coffee;
-  type: TrackerType;
-  inputMode: TrackerInputMode;
-  unitSingular: string;
-  unitPlural: string;
-  baseline: number;
-  dailyGoal: number;
-  valuePerUnit: number;
-  frequency: TrackerFrequency;
-}[] = [
-  { id: "coffee", name: "Coffee", icon: Coffee, type: "event", inputMode: "incremental", unitSingular: "cup", unitPlural: "cups", baseline: 3, dailyGoal: 2, valuePerUnit: 3.00, frequency: "daily" },
-  { id: "cigarettes", name: "Cigarettes", icon: Cigarette, type: "reduce", inputMode: "incremental", unitSingular: "cigarette", unitPlural: "cigarettes", baseline: 10, dailyGoal: 0, valuePerUnit: 0.31, frequency: "daily" },
-  { id: "gym", name: "Gym Sessions", icon: Dumbbell, type: "increase", inputMode: "binary", unitSingular: "session", unitPlural: "sessions", baseline: 0, dailyGoal: 1, valuePerUnit: 0, frequency: "daily" },
-  { id: "meditation", name: "Meditation", icon: Brain, type: "increase", inputMode: "manualAmount", unitSingular: "minute", unitPlural: "minutes", baseline: 0, dailyGoal: 10, valuePerUnit: 0, frequency: "daily" },
+const FOCUS_OPTIONS = [
+  { id: "habits", label: "Habits", icon: Flame, desc: "Daily systems." },
+  { id: "fitness", label: "Fitness", icon: Dumbbell, desc: "Move with intent." },
+  { id: "nutrition", label: "Nutrition", icon: Heart, desc: "Eat on protocol." },
+  { id: "productivity", label: "Productivity", icon: Target, desc: "Deep work." },
+  { id: "money", label: "Money", icon: DollarSign, desc: "Save & track." },
+  { id: "reset", label: "Routine reset", icon: Wind, desc: "Sleep & calm." },
 ];
 
-type Step = "welcome" | "areas" | "identity" | "presets" | "settings" | "ready";
+/** Habit suggestions grouped by focus — 1-click adds. */
+const HABIT_SUGGESTIONS: Record<
+  string,
+  { id: string; name: string; icon: any; emoji: string; category: string; color: string }[]
+> = {
+  habits: [
+    { id: "plan-tomorrow", name: "Plan tomorrow tonight", icon: BookOpen, emoji: "🗒️", category: "productivity", color: "#8b5cf6" },
+    { id: "no-phone-am", name: "No phone first hour", icon: Sun, emoji: "📵", category: "focus", color: "#f59e0b" },
+    { id: "read-5", name: "Read 5 pages", icon: BookOpen, emoji: "📚", category: "productivity", color: "#3b82f6" },
+  ],
+  fitness: [
+    { id: "walk-10", name: "10-min walk", icon: Footprints, emoji: "🚶", category: "fitness", color: "#22c55e" },
+    { id: "stretch", name: "5-min stretch", icon: Dumbbell, emoji: "🧘", category: "fitness", color: "#22c55e" },
+    { id: "workout", name: "Train 30 min", icon: Dumbbell, emoji: "🏋️", category: "fitness", color: "#22c55e" },
+  ],
+  nutrition: [
+    { id: "water-am", name: "Drink water on waking", icon: Droplet, emoji: "💧", category: "health", color: "#06b6d4" },
+    { id: "protein", name: "Protein with every meal", icon: Heart, emoji: "🍳", category: "health", color: "#ef4444" },
+    { id: "no-snack", name: "No snacking after 9pm", icon: Heart, emoji: "🌙", category: "health", color: "#6366f1" },
+  ],
+  productivity: [
+    { id: "deep-work", name: "Deep work · 90 min", icon: Target, emoji: "🎯", category: "productivity", color: "#3b82f6" },
+    { id: "single-task", name: "One task before email", icon: BookOpen, emoji: "✅", category: "productivity", color: "#3b82f6" },
+    { id: "shutdown", name: "End-of-day shutdown", icon: Moon, emoji: "🛑", category: "productivity", color: "#64748b" },
+  ],
+  money: [
+    { id: "save-2", name: "Save €2 daily", icon: Banknote, emoji: "💶", category: "finances", color: "#22c55e" },
+    { id: "no-coffee-out", name: "Skip coffee out", icon: Coffee, emoji: "☕", category: "finances", color: "#a16207" },
+    { id: "track-spend", name: "Log one expense", icon: DollarSign, emoji: "📊", category: "finances", color: "#22c55e" },
+  ],
+  reset: [
+    { id: "sleep-12", name: "Sleep before midnight", icon: Moon, emoji: "😴", category: "sleep", color: "#6366f1" },
+    { id: "wake-same", name: "Wake at the same time", icon: Sun, emoji: "🌅", category: "sleep", color: "#f59e0b" },
+    { id: "breath", name: "5 min of breathing", icon: Wind, emoji: "🌬️", category: "mindfulness", color: "#8b5cf6" },
+  ],
+};
+
+/* Map identity choice → identity vector words used elsewhere in app */
+const IDENTITY_TO_VECTORS: Record<string, string[]> = {
+  disciplined: ["Disciplined"],
+  healthier: ["Healthy"],
+  stronger: ["Resilient", "Focused"],
+  organized: ["Wealthy"],
+  productive: ["Focused"],
+  consistent: ["Consistent", "Calm"],
+};
+
+/* =============================================================
+   COMPONENT
+   ============================================================= */
 
 const Onboarding = () => {
   const navigate = useNavigate();
-  const { t, locale, setLocale, currency, setCurrency } = useI18n();
+  const { t } = useI18n();
   const { completeOnboarding } = useSubscription();
 
-  const [step, setStep] = useState<Step>("welcome");
-  const [selectedAreas, setSelectedAreas] = useState<string[]>([]);
-  const [selectedIdentity, setSelectedIdentity] = useState<string[]>([]);
-  const [customIdentity, setCustomIdentity] = useState("");
-  const [selectedPresets, setSelectedPresets] = useState<string[]>([]);
+  const STEPS: Step[] = ["identity", "obstacle", "focus", "first-win", "commit"];
 
-  const steps: Step[] = ["welcome", "areas", "identity", "presets", "settings", "ready"];
-  const currentStepIndex = steps.indexOf(step);
-  const progress = (currentStepIndex / (steps.length - 1)) * 100;
+  const [step, setStep] = useState<Step>("identity");
+  const [identity, setIdentity] = useState<string | null>(null);
+  const [obstacle, setObstacle] = useState<string | null>(null);
+  const [focus, setFocus] = useState<string[]>([]); // max 2
+  const [habits, setHabits] = useState<string[]>([]); // habit ids
 
-  const handleNext = () => {
-    const nextIndex = currentStepIndex + 1;
-    if (nextIndex < steps.length) {
-      setStep(steps[nextIndex]);
-    }
+  const stepIndex = STEPS.indexOf(step);
+  const progress = ((stepIndex + 1) / STEPS.length) * 100;
+
+  const goNext = () => {
+    const i = stepIndex + 1;
+    if (i < STEPS.length) setStep(STEPS[i]);
+  };
+  const goBack = () => {
+    const i = stepIndex - 1;
+    if (i >= 0) setStep(STEPS[i]);
   };
 
-  const handleBack = () => {
-    const prevIndex = currentStepIndex - 1;
-    if (prevIndex >= 0) {
-      setStep(steps[prevIndex]);
-    }
+  /* Suggested habits = union of selected focuses (fallback: habits) */
+  const suggestedHabits = useMemo(() => {
+    const keys = focus.length ? focus : ["habits"];
+    const seen = new Set<string>();
+    const out: typeof HABIT_SUGGESTIONS["habits"] = [];
+    keys.forEach((k) => {
+      (HABIT_SUGGESTIONS[k] || []).forEach((h) => {
+        if (!seen.has(h.id)) {
+          seen.add(h.id);
+          out.push(h);
+        }
+      });
+    });
+    return out.slice(0, 6);
+  }, [focus]);
+
+  const toggleFocus = (id: string) => {
+    setFocus((prev) =>
+      prev.includes(id) ? prev.filter((f) => f !== id) : prev.length < 2 ? [...prev, id] : prev,
+    );
   };
+
+  const toggleHabit = (id: string) => {
+    setHabits((prev) => (prev.includes(id) ? prev.filter((h) => h !== id) : [...prev, id]));
+  };
+
+  /* Map current selections into payload labels for summary */
+  const identityLabel = useMemo(
+    () => IDENTITY_OPTIONS.find((o) => o.id === identity)?.label ?? "",
+    [identity],
+  );
+  const focusLabels = useMemo(
+    () => focus.map((f) => FOCUS_OPTIONS.find((o) => o.id === f)?.label).filter(Boolean) as string[],
+    [focus],
+  );
 
   const handleComplete = () => {
-    // Build habits from selected presets
-    const selectedHabits = HABIT_PRESETS.filter(p => 
-      selectedPresets.includes(`habit-${p.id}`)
-    ).map(preset => ({
-      nome: preset.name,
-      categoria: preset.category,
-      cor: preset.color,
-      active: true,
-      scheduledDays: [], // every day
-    }));
+    // Build habits payload
+    const habitsToCreate = suggestedHabits
+      .filter((h) => habits.includes(h.id))
+      .map((preset) => ({
+        nome: preset.name,
+        categoria: preset.category,
+        cor: preset.color,
+        active: true,
+        scheduledDays: [],
+      }));
 
-    // Build trackers from selected presets
-    const selectedTrackers = TRACKER_PRESETS.filter(p => 
-      selectedPresets.includes(`tracker-${p.id}`)
-    ).map(preset => ({
-      name: preset.name,
-      type: preset.type,
-      inputMode: preset.inputMode,
-      unitSingular: preset.unitSingular,
-      unitPlural: preset.unitPlural,
-      valuePerUnit: preset.valuePerUnit,
-      baseline: preset.baseline,
-      dailyGoal: preset.dailyGoal,
-      includeInFinances: preset.valuePerUnit > 0,
-      active: true,
-      icon: preset.id === "coffee" ? "☕" : preset.id === "cigarettes" ? "🚬" : preset.id === "gym" ? "🏋️" : "🧘",
-      frequency: preset.frequency,
-    }));
+    const identityVectors = identity ? IDENTITY_TO_VECTORS[identity] ?? [identityLabel] : [];
 
-    // Save onboarding data including habits and trackers to create after auth
     const payload = {
-      improvementAreas: selectedAreas,
-      identityVectors: [...selectedIdentity, customIdentity].filter(Boolean),
-      selectedPresets,
-      locale,
-      currency,
-      // NEW: Habits and trackers to create after authentication
-      habitsToCreate: selectedHabits,
-      trackersToCreate: selectedTrackers,
+      improvementAreas: focus, // focus areas
+      identityVectors,
+      selectedPresets: habits.map((id) => `habit-${id}`),
+      identityChoice: identity,
+      obstacle,
+      habitsToCreate,
+      trackersToCreate: [], // none from new flow
     };
 
     try {
       localStorage.setItem("become-onboarding-data", JSON.stringify(payload));
       localStorage.setItem("become-onboarding-complete", "true");
-      // Legacy key compatibility
       localStorage.setItem("itero-onboarding-complete", "true");
     } catch {
-      // If localStorage fails (private mode, etc.), ignore
+      /* ignore */
     }
 
-    // Mark onboarding as completed in subscription state
-    // This sets become-onboarding-state.completed = true
     completeOnboarding({
-      improvementAreas: selectedAreas,
-      identityVectors: [...selectedIdentity, customIdentity].filter(Boolean),
-      selectedPresets,
+      improvementAreas: focus,
+      identityVectors,
+      selectedPresets: habits.map((id) => `habit-${id}`),
     });
 
-    // Navigate to auth - trial starts after login
     navigate("/auth?next=trial");
   };
 
-  const toggleArea = (id: string) => {
-    setSelectedAreas((prev) => (prev.includes(id) ? prev.filter((a) => a !== id) : [...prev, id]));
-  };
-
-  const toggleIdentity = (id: string) => {
-    setSelectedIdentity((prev) =>
-      prev.includes(id) ? prev.filter((a) => a !== id) : prev.length < 3 ? [...prev, id] : prev,
-    );
-  };
-
-  const togglePreset = (id: string) => {
-    setSelectedPresets((prev) => (prev.includes(id) ? prev.filter((a) => a !== id) : [...prev, id]));
-  };
-
-  const addCustomIdentity = () => {
-    if (customIdentity.trim() && !selectedIdentity.includes(customIdentity.trim())) {
-      setSelectedIdentity((prev) => [...prev, customIdentity.trim()]);
-      setCustomIdentity("");
-    }
-  };
-
+  /* ---------- shared layout chrome ---------- */
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Subtle scan grid */}
+    <div className="min-h-screen bg-background text-foreground flex flex-col antialiased relative overflow-hidden">
+      {/* Ambient glow */}
       <div
-        className="fixed inset-0 pointer-events-none opacity-30"
+        className="absolute inset-0 pointer-events-none opacity-60"
         style={{
           background:
-            "linear-gradient(90deg, hsl(var(--neon-ultra) / 0.04) 1px, transparent 1px), linear-gradient(180deg, hsl(var(--neon-ultra) / 0.04) 1px, transparent 1px)",
-          backgroundSize: "40px 40px",
+            "radial-gradient(ellipse 80% 50% at 50% 0%, hsl(var(--neon-ultra) / 0.15), transparent 60%), radial-gradient(ellipse 60% 40% at 50% 100%, hsl(var(--neon-toxic) / 0.08), transparent 60%)",
         }}
       />
 
-      {/* Progress bar */}
-      {step !== "welcome" && step !== "ready" && (
-        <div className="fixed top-0 left-0 right-0 h-1 bg-foreground/10 z-50">
-          <div
-            className="h-full bg-primary transition-all duration-500 shadow-[0_0_8px_hsl(var(--neon-toxic))]"
-            style={{ width: `${progress}%` }}
-          />
+      {/* Top bar: progress + back */}
+      <header className="relative z-20 px-5 pt-[calc(env(safe-area-inset-top)+0.75rem)] pb-3">
+        <div className="max-w-md mx-auto flex items-center gap-3">
+          <button
+            onClick={goBack}
+            disabled={stepIndex === 0}
+            className={cn(
+              "h-9 w-9 -ml-1.5 flex items-center justify-center rounded-full transition-all",
+              stepIndex === 0
+                ? "opacity-0 pointer-events-none"
+                : "text-muted-foreground hover:text-foreground hover:bg-foreground/5 active:scale-95",
+            )}
+            aria-label="Back"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+
+          {/* Segmented progress */}
+          <div className="flex-1 flex items-center gap-1.5">
+            {STEPS.map((_, i) => (
+              <div
+                key={i}
+                className={cn(
+                  "h-1 flex-1 rounded-full transition-all duration-500",
+                  i <= stepIndex
+                    ? "bg-primary shadow-[0_0_8px_hsl(var(--neon-toxic)/0.7)]"
+                    : "bg-foreground/10",
+                )}
+              />
+            ))}
+          </div>
+
+          <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground tabular-nums w-9 text-right">
+            {stepIndex + 1}/{STEPS.length}
+          </span>
         </div>
-      )}
+      </header>
 
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-6">
-        <div className="w-full max-w-md space-y-6">
-          {/* Welcome - Screen 1 */}
-          {step === "welcome" && (
-            <div className="text-center space-y-6 animate-in fade-in duration-500">
-              <div className="inline-flex h-16 w-16 items-center justify-center bg-primary text-primary-foreground font-black italic uppercase tracking-tighter text-2xl border-2 border-primary shadow-[4px_4px_0_0_hsl(var(--neon-ultra))]">
-                B
-              </div>
-              <div>
-                <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mb-2">
-                  // INICIAR PROTOCOLO
-                </p>
-                <h1 className="text-4xl font-black italic uppercase tracking-tighter text-foreground mb-3">
-                  {t.app.name}
-                </h1>
-                <p className="text-base text-muted-foreground whitespace-pre-line">
-                  Consistency doesn't come from force.{"\n"}It comes from the right repetition.
-                </p>
-              </div>
-              <p className="text-muted-foreground max-w-sm mx-auto text-sm">
-                Small actions, done with intention, change everything.
-              </p>
-              <Button onClick={handleNext} size="lg" className="w-full gap-2">
-                Start
-                <ArrowRight className="h-5 w-5" />
-              </Button>
-            </div>
-          )}
-
-          {/* Areas */}
-          {step === "areas" && (
-            <div className="space-y-6 animate-in fade-in duration-500">
-              <div className="text-center">
-                <h2 className="text-2xl font-bold mb-2">What do you want to improve?</h2>
-                <p className="text-muted-foreground">Select the areas that matter most.</p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                {IMPROVEMENT_AREAS.map((area) => {
-                  const Icon = area.icon;
-                  const isSelected = selectedAreas.includes(area.id);
-                  return (
-                    <button
-                      key={area.id}
-                      onClick={() => toggleArea(area.id)}
-                      className={cn(
-                        "relative flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all",
-                        isSelected ? "border-primary bg-primary/10" : "border-border/50 hover:border-border",
-                      )}
-                    >
-                      <div className={cn("p-3 rounded-lg", isSelected ? "bg-primary/20" : "bg-secondary")}>
-                        <Icon className={cn("h-6 w-6", isSelected ? "text-primary" : "text-muted-foreground")} />
-                      </div>
-                      <span className="text-sm font-medium text-center">{area.label}</span>
-                      {isSelected && <Check className="h-4 w-4 text-primary absolute top-2 right-2" />}
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="flex gap-3">
-                <Button variant="ghost" onClick={handleBack} className="flex-1">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back
-                </Button>
-                <Button onClick={handleNext} className="flex-1" disabled={selectedAreas.length === 0}>
-                  Continue
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Identity */}
+      {/* Step content */}
+      <main className="relative z-10 flex-1 flex flex-col px-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)]">
+        <div className="max-w-md w-full mx-auto flex-1 flex flex-col">
           {step === "identity" && (
-            <div className="space-y-6 animate-in fade-in duration-500">
-              <div className="text-center">
-                <h2 className="text-2xl font-bold mb-2">Who are you becoming?</h2>
-                <p className="text-muted-foreground">Select up to 3 identity traits.</p>
-              </div>
-
-              <div className="flex flex-wrap gap-2 justify-center">
-                {IDENTITY_VECTORS.map((trait) => {
-                  const isSelected = selectedIdentity.includes(trait);
-                  return (
-                    <button
-                      key={trait}
-                      onClick={() => toggleIdentity(trait)}
-                      className={cn(
-                        "px-4 py-2 rounded-full border-2 text-sm font-medium transition-all",
-                        isSelected
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "border-border/50 hover:border-border",
-                      )}
-                    >
-                      {trait}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Custom identity input */}
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Or add your own..."
-                  value={customIdentity}
-                  onChange={(e) => setCustomIdentity(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && addCustomIdentity()}
-                  className="flex-1"
-                />
-                <Button variant="outline" onClick={addCustomIdentity} disabled={!customIdentity.trim()}>
-                  Add
-                </Button>
-              </div>
-
-              {selectedIdentity.length > 0 && (
-                <Card className="border-border bg-card shadow-sm">
-                  <CardContent className="p-4">
-                    <p className="text-sm text-muted-foreground mb-2">You're becoming:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedIdentity.map((trait) => (
-                        <Badge key={trait} variant="secondary" className="gap-1">
-                          <Sparkles className="h-3 w-3" />
-                          {trait}
-                        </Badge>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              <div className="flex gap-3">
-                <Button variant="ghost" onClick={handleBack} className="flex-1">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back
-                </Button>
-                <Button onClick={handleNext} className="flex-1" disabled={selectedIdentity.length === 0}>
-                  Continue
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
-              </div>
-            </div>
+            <StepIdentity value={identity} onChange={setIdentity} onContinue={goNext} />
           )}
-
-          {/* Presets */}
-          {step === "presets" && (
-            <div className="space-y-6 animate-in fade-in duration-500">
-              <div className="text-center">
-                <h2 className="text-2xl font-bold mb-2">Start with these?</h2>
-                <p className="text-muted-foreground">Select starter habits & trackers.</p>
-              </div>
-
-              <div>
-                <p className="text-sm font-medium mb-3">Habits</p>
-                <div className="grid grid-cols-2 gap-2">
-                  {HABIT_PRESETS.map((preset) => {
-                    const isSelected = selectedPresets.includes(`habit-${preset.id}`);
-                    return (
-                      <button
-                        key={preset.id}
-                        onClick={() => togglePreset(`habit-${preset.id}`)}
-                        className={cn(
-                          "flex items-center gap-2 p-3 rounded-lg border-2 text-left transition-all",
-                          isSelected ? "border-primary bg-primary/10" : "border-border/50 hover:border-border",
-                        )}
-                      >
-                        <span className="text-lg">{preset.icon}</span>
-                        <span className="text-sm font-medium">{preset.name}</span>
-                        {isSelected && <Check className="h-4 w-4 text-primary ml-auto" />}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div>
-                <p className="text-sm font-medium mb-3">Trackers</p>
-                <div className="grid grid-cols-2 gap-2">
-                  {TRACKER_PRESETS.map((preset) => {
-                    const Icon = preset.icon;
-                    const isSelected = selectedPresets.includes(`tracker-${preset.id}`);
-                    return (
-                      <button
-                        key={preset.id}
-                        onClick={() => togglePreset(`tracker-${preset.id}`)}
-                        className={cn(
-                          "flex items-center gap-2 p-3 rounded-lg border-2 text-left transition-all",
-                          isSelected ? "border-primary bg-primary/10" : "border-border/50 hover:border-border",
-                        )}
-                      >
-                        <Icon className={cn("h-4 w-4", isSelected ? "text-primary" : "text-muted-foreground")} />
-                        <span className="text-sm font-medium">{preset.name}</span>
-                        {isSelected && <Check className="h-4 w-4 text-primary ml-auto" />}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <p className="text-xs text-center text-muted-foreground">You can add more later. Start small.</p>
-
-              <div className="flex gap-3">
-                <Button variant="ghost" onClick={handleBack} className="flex-1">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back
-                </Button>
-                <Button onClick={handleNext} className="flex-1">
-                  Continue
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
-              </div>
-            </div>
+          {step === "obstacle" && (
+            <StepObstacle value={obstacle} onChange={setObstacle} onContinue={goNext} />
           )}
-
-          {/* Settings */}
-          {step === "settings" && (
-            <div className="space-y-6 animate-in fade-in duration-500">
-              <div className="text-center">
-                <Globe className="h-12 w-12 text-primary mx-auto mb-4" />
-                <h2 className="text-2xl font-bold mb-2">Preferences</h2>
-                <p className="text-muted-foreground">Set your language and currency.</p>
-              </div>
-
-              <Card className="glass border-border/30">
-                <CardContent className="p-6 space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Language</label>
-                    <Select value={locale} onValueChange={(value) => setLocale(value as Locale)}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(localeNames).map(([code, name]) => (
-                          <SelectItem key={code} value={code}>
-                            {name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Currency</label>
-                    <Select value={currency} onValueChange={(value) => setCurrency(value as Currency)}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(currencyNames).map(([code, names]) => (
-                          <SelectItem key={code} value={code}>
-                            {names[locale]}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <div className="flex gap-3">
-                <Button variant="ghost" onClick={handleBack} className="flex-1">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back
-                </Button>
-                <Button onClick={handleNext} className="flex-1">
-                  Continue
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
-              </div>
-            </div>
+          {step === "focus" && <StepFocus value={focus} onToggle={toggleFocus} onContinue={goNext} />}
+          {step === "first-win" && (
+            <StepFirstWin
+              suggestions={suggestedHabits}
+              selected={habits}
+              onToggle={toggleHabit}
+              onContinue={goNext}
+            />
           )}
-
-          {/* Ready */}
-          {step === "ready" && (
-            <div className="text-center space-y-8 animate-in fade-in duration-500">
-              <div className="inline-flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-success to-primary">
-                <Zap className="h-10 w-10 text-white" />
-              </div>
-
-              <div>
-                <h2 className="text-3xl font-bold mb-3">becoMe doesn't demand perfection.</h2>
-                <p className="text-lg text-muted-foreground">
-                  It helps you stay present.
-                </p>
-              </div>
-
-              <Card className="glass border-primary/30 bg-primary/5">
-                <CardContent className="p-6">
-                  <div className="flex flex-wrap gap-2 justify-center mb-4">
-                    {selectedIdentity.slice(0, 3).map((trait) => (
-                      <Badge key={trait} className="bg-primary/20 text-primary border-primary/30">
-                        <Sparkles className="h-3 w-3 mr-1" />
-                        {trait}
-                      </Badge>
-                    ))}
-                  </div>
-                  <p className="text-sm text-muted-foreground italic">
-                    "Identity &gt; Intensity. Consistency &gt; Perfection."
-                  </p>
-                </CardContent>
-              </Card>
-
-              <div className="space-y-3">
-                <Button onClick={handleComplete} size="lg" className="w-full gap-2">
-                  <Flame className="h-5 w-5" />
-                  Create my first habit
-                </Button>
-                <p className="text-xs text-muted-foreground">
-                  You can always change your preferences later in Settings.
-                </p>
-              </div>
-            </div>
+          {step === "commit" && (
+            <StepCommit
+              identityLabel={identityLabel}
+              focusLabels={focusLabels}
+              habitCount={habits.length}
+              onStart={handleComplete}
+            />
           )}
         </div>
-      </div>
+      </main>
     </div>
   );
 };
+
+/* =============================================================
+   STEP 1 — Identity Hook
+   ============================================================= */
+
+const StepIdentity = ({
+  value,
+  onChange,
+  onContinue,
+}: {
+  value: string | null;
+  onChange: (id: string) => void;
+  onContinue: () => void;
+}) => (
+  <div className="flex-1 flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-500">
+    <div className="text-center pt-4 pb-7">
+      <p className="font-mono text-[10px] uppercase tracking-widest text-primary mb-3">
+        // Step 1 · Identity
+      </p>
+      <h1 className="type-display text-3xl sm:text-4xl mb-3 leading-tight">
+        Who do you want<br />to become?
+      </h1>
+      <p className="text-sm text-muted-foreground/85">Pick the version of you that matters most.</p>
+    </div>
+
+    <div className="grid gap-2.5 mb-6">
+      {IDENTITY_OPTIONS.map((opt, i) => {
+        const Icon = opt.icon;
+        const selected = value === opt.id;
+        return (
+          <button
+            key={opt.id}
+            onClick={() => onChange(opt.id)}
+            className={cn(
+              "group flex items-center gap-4 p-4 text-left border-2 transition-all duration-200 active:scale-[0.985] min-h-[64px]",
+              selected
+                ? "border-primary bg-primary/[0.08] shadow-[0_0_24px_hsl(var(--neon-toxic)/0.25)]"
+                : "border-foreground/10 hover:border-foreground/25 bg-foreground/[0.015]",
+            )}
+            style={{ animationDelay: `${i * 40}ms` }}
+          >
+            <div
+              className={cn(
+                "h-11 w-11 shrink-0 flex items-center justify-center border transition-all duration-200",
+                selected
+                  ? "border-primary bg-primary/15"
+                  : "border-foreground/10 bg-foreground/[0.03] group-hover:border-foreground/25",
+              )}
+            >
+              <Icon className={cn("h-5 w-5", selected ? "text-primary" : "text-muted-foreground")} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className={cn("text-base font-bold tracking-tight", selected && "text-primary")}>
+                {opt.label}
+              </p>
+              <p className="text-xs text-muted-foreground/80 mt-0.5">{opt.desc}</p>
+            </div>
+            {selected && (
+              <Check className="h-5 w-5 text-primary shrink-0 animate-completion-pop" />
+            )}
+          </button>
+        );
+      })}
+    </div>
+
+    <ContinueBar disabled={!value} onClick={onContinue} />
+  </div>
+);
+
+/* =============================================================
+   STEP 2 — Current Reality (obstacle)
+   ============================================================= */
+
+const StepObstacle = ({
+  value,
+  onChange,
+  onContinue,
+}: {
+  value: string | null;
+  onChange: (id: string) => void;
+  onContinue: () => void;
+}) => (
+  <div className="flex-1 flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-500">
+    <div className="text-center pt-4 pb-7">
+      <p className="font-mono text-[10px] uppercase tracking-widest text-primary mb-3">
+        // Step 2 · Honest check
+      </p>
+      <h1 className="type-display text-3xl sm:text-4xl mb-3 leading-tight">
+        What usually<br />gets in your way?
+      </h1>
+      <p className="text-sm text-muted-foreground/85">No judgment. We design around it.</p>
+    </div>
+
+    <div className="grid gap-2.5 mb-6">
+      {OBSTACLE_OPTIONS.map((opt) => {
+        const selected = value === opt.id;
+        return (
+          <button
+            key={opt.id}
+            onClick={() => onChange(opt.id)}
+            className={cn(
+              "flex items-center justify-between gap-3 p-4 border-2 text-left transition-all duration-200 active:scale-[0.985] min-h-[60px]",
+              selected
+                ? "border-primary bg-primary/[0.08] shadow-[0_0_24px_hsl(var(--neon-toxic)/0.22)]"
+                : "border-foreground/10 hover:border-foreground/25 bg-foreground/[0.015]",
+            )}
+          >
+            <span className={cn("text-base font-semibold tracking-tight", selected && "text-primary")}>
+              {opt.label}
+            </span>
+            {selected ? (
+              <Check className="h-5 w-5 text-primary animate-completion-pop" />
+            ) : (
+              <div className="h-5 w-5 border-2 border-foreground/15" />
+            )}
+          </button>
+        );
+      })}
+    </div>
+
+    <ContinueBar disabled={!value} onClick={onContinue} />
+  </div>
+);
+
+/* =============================================================
+   STEP 3 — Focus (max 2)
+   ============================================================= */
+
+const StepFocus = ({
+  value,
+  onToggle,
+  onContinue,
+}: {
+  value: string[];
+  onToggle: (id: string) => void;
+  onContinue: () => void;
+}) => (
+  <div className="flex-1 flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-500">
+    <div className="text-center pt-4 pb-7">
+      <p className="font-mono text-[10px] uppercase tracking-widest text-primary mb-3">
+        // Step 3 · Focus
+      </p>
+      <h1 className="type-display text-3xl sm:text-4xl mb-3 leading-tight">
+        Choose your<br />first focus.
+      </h1>
+      <p className="text-sm text-muted-foreground/85">Pick up to 2. Less is more.</p>
+    </div>
+
+    <div className="grid grid-cols-2 gap-2.5 mb-6">
+      {FOCUS_OPTIONS.map((opt) => {
+        const Icon = opt.icon;
+        const selected = value.includes(opt.id);
+        const disabled = !selected && value.length >= 2;
+        return (
+          <button
+            key={opt.id}
+            onClick={() => !disabled && onToggle(opt.id)}
+            disabled={disabled}
+            className={cn(
+              "flex flex-col items-start gap-2 p-4 border-2 text-left transition-all duration-200 active:scale-[0.98] min-h-[110px] relative",
+              selected
+                ? "border-primary bg-primary/[0.08] shadow-[0_0_24px_hsl(var(--neon-toxic)/0.22)]"
+                : disabled
+                  ? "border-foreground/5 bg-foreground/[0.01] opacity-40"
+                  : "border-foreground/10 hover:border-foreground/25 bg-foreground/[0.015]",
+            )}
+          >
+            <Icon
+              className={cn(
+                "h-5 w-5 transition-colors",
+                selected ? "text-primary" : "text-muted-foreground",
+              )}
+            />
+            <p className={cn("text-base font-bold tracking-tight", selected && "text-primary")}>
+              {opt.label}
+            </p>
+            <p className="text-xs text-muted-foreground/75">{opt.desc}</p>
+            {selected && (
+              <Check className="h-4 w-4 text-primary absolute top-3 right-3 animate-completion-pop" />
+            )}
+          </button>
+        );
+      })}
+    </div>
+
+    <ContinueBar disabled={value.length === 0} onClick={onContinue} />
+  </div>
+);
+
+/* =============================================================
+   STEP 4 — Build First Win
+   ============================================================= */
+
+const StepFirstWin = ({
+  suggestions,
+  selected,
+  onToggle,
+  onContinue,
+}: {
+  suggestions: { id: string; name: string; emoji: string }[];
+  selected: string[];
+  onToggle: (id: string) => void;
+  onContinue: () => void;
+}) => (
+  <div className="flex-1 flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-500">
+    <div className="text-center pt-4 pb-6">
+      <p className="font-mono text-[10px] uppercase tracking-widest text-primary mb-3">
+        // Step 4 · First win
+      </p>
+      <h1 className="type-display text-3xl sm:text-4xl mb-3 leading-tight">
+        Pick your<br />first habit.
+      </h1>
+      <p className="text-sm text-muted-foreground/85">One tap. We handle the rest.</p>
+    </div>
+
+    <div className="grid gap-2.5 mb-6">
+      {suggestions.map((h) => {
+        const isOn = selected.includes(h.id);
+        return (
+          <button
+            key={h.id}
+            onClick={() => onToggle(h.id)}
+            className={cn(
+              "flex items-center gap-4 p-4 border-2 text-left transition-all duration-200 active:scale-[0.985] min-h-[64px]",
+              isOn
+                ? "border-primary bg-primary/[0.08] shadow-[0_0_24px_hsl(var(--neon-toxic)/0.22)]"
+                : "border-foreground/10 hover:border-foreground/25 bg-foreground/[0.015]",
+            )}
+          >
+            <span className="text-2xl shrink-0" aria-hidden>
+              {h.emoji}
+            </span>
+            <p className={cn("flex-1 text-base font-semibold tracking-tight", isOn && "text-primary")}>
+              {h.name}
+            </p>
+            <div
+              className={cn(
+                "h-9 w-9 shrink-0 flex items-center justify-center border-2 transition-all",
+                isOn ? "border-primary bg-primary text-primary-foreground" : "border-foreground/15 text-muted-foreground",
+              )}
+            >
+              {isOn ? (
+                <Check className="h-4 w-4 animate-completion-pop" />
+              ) : (
+                <Plus className="h-4 w-4" />
+              )}
+            </div>
+          </button>
+        );
+      })}
+    </div>
+
+    <p className="text-center text-xs text-muted-foreground/70 mb-4">
+      You can add more — or skip and start with one. Small wins compound.
+    </p>
+
+    <ContinueBar
+      label={selected.length === 0 ? "Skip for now" : `Continue · ${selected.length} selected`}
+      disabled={false}
+      onClick={onContinue}
+    />
+  </div>
+);
+
+/* =============================================================
+   STEP 5 — Commitment
+   ============================================================= */
+
+const StepCommit = ({
+  identityLabel,
+  focusLabels,
+  habitCount,
+  onStart,
+}: {
+  identityLabel: string;
+  focusLabels: string[];
+  habitCount: number;
+  onStart: () => void;
+}) => (
+  <div className="flex-1 flex flex-col animate-in fade-in zoom-in-95 duration-500">
+    <div className="flex-1 flex flex-col items-center justify-center text-center pt-6 pb-8">
+      <div
+        className="mb-7 h-16 w-16 flex items-center justify-center bg-primary text-primary-foreground border-2 border-primary shadow-[0_0_40px_hsl(var(--neon-toxic)/0.55)]"
+        style={{ animation: "float 4s ease-in-out infinite" }}
+      >
+        <Flame className="h-7 w-7" />
+      </div>
+      <p className="font-mono text-[10px] uppercase tracking-widest text-primary mb-4">
+        // Commitment
+      </p>
+      <h1 className="type-display text-3xl sm:text-4xl mb-4 leading-tight">
+        Small actions.<br />
+        <span className="text-primary" style={{ textShadow: "0 0 40px hsl(var(--neon-toxic) / 0.55)" }}>
+          New identity.
+        </span>
+      </h1>
+      <p className="text-sm text-muted-foreground/85 max-w-[34ch]">
+        This is how everything changes. Quietly. Daily.
+      </p>
+
+      {/* Summary card */}
+      <div className="w-full mt-8 border-2 border-foreground/10 bg-foreground/[0.02] p-5 text-left space-y-4">
+        <SummaryRow label="You're becoming" value={identityLabel || "—"} />
+        <SummaryRow
+          label="First focus"
+          value={focusLabels.length ? focusLabels.join(" + ") : "Habits"}
+        />
+        <SummaryRow
+          label="First habits"
+          value={habitCount > 0 ? `${habitCount} ready to go` : "We'll suggest one"}
+        />
+      </div>
+    </div>
+
+    <div className="space-y-3 pb-2">
+      <Button
+        size="lg"
+        onClick={onStart}
+        className="press-tactile w-full h-14 text-base font-bold gap-2 shadow-[0_0_40px_hsl(var(--neon-toxic)/0.5)] hover:shadow-[0_0_60px_hsl(var(--neon-toxic)/0.75)] hover:scale-[1.02] transition-all duration-300"
+      >
+        Start My Journey
+        <ArrowRight className="h-5 w-5" />
+      </Button>
+      <p className="text-center text-[11px] font-mono uppercase tracking-widest text-muted-foreground/60">
+        7 days free · No card · Cancel anytime
+      </p>
+    </div>
+
+    <style>{`
+      @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+      @media (prefers-reduced-motion: reduce){ [style*="animation: float"]{animation:none!important} }
+    `}</style>
+  </div>
+);
+
+/* =============================================================
+   Shared bits
+   ============================================================= */
+
+const SummaryRow = ({ label, value }: { label: string; value: string }) => (
+  <div className="flex items-center justify-between gap-4">
+    <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">{label}</p>
+    <p className="text-sm font-bold tracking-tight text-right">{value}</p>
+  </div>
+);
+
+const ContinueBar = ({
+  onClick,
+  disabled,
+  label = "Continue",
+}: {
+  onClick: () => void;
+  disabled: boolean;
+  label?: string;
+}) => (
+  <div className="mt-auto pt-2 sticky bottom-0">
+    <Button
+      size="lg"
+      onClick={onClick}
+      disabled={disabled}
+      className={cn(
+        "press-tactile w-full h-14 text-base font-bold gap-2 transition-all duration-300",
+        !disabled &&
+          "shadow-[0_0_36px_hsl(var(--neon-toxic)/0.45)] hover:shadow-[0_0_56px_hsl(var(--neon-toxic)/0.7)] hover:scale-[1.01]",
+      )}
+    >
+      {label}
+      <ArrowRight className="h-5 w-5" />
+    </Button>
+  </div>
+);
 
 export default Onboarding;
