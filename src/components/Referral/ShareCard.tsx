@@ -48,14 +48,14 @@ const drawCard = (
   ctx.textAlign = "center";
   ctx.fillText(isPT ? "// SEMANA COMPLETA" : "// WEEK COMPLETE", W / 2, 120);
 
-  // Identity headline
+  // Headline (A/B variant) — wraps to 2 lines if needed
   ctx.fillStyle = "#f5f1e8";
-  ctx.font = "700 64px ui-sans-serif, system-ui, -apple-system";
+  ctx.font = "700 56px ui-sans-serif, system-ui, -apple-system";
   ctx.textAlign = "center";
-  ctx.fillText(isPT ? "Uma semana." : "One week.", W / 2, 240);
+  wrapText(ctx, headline, W / 2, 240, W - 160, 64);
   ctx.fillStyle = "#a8a29e";
-  ctx.font = "400 38px ui-sans-serif, system-ui, -apple-system";
-  ctx.fillText(isPT ? `Cada vez mais ${identityLabel}.` : `Becoming more ${identityLabel}.`, W / 2, 300);
+  ctx.font = "400 32px ui-sans-serif, system-ui, -apple-system";
+  ctx.fillText(isPT ? `Cada vez mais ${identityLabel}.` : `Becoming more ${identityLabel}.`, W / 2, 340);
 
   // Stats grid (2x2)
   const cardW = 420;
