@@ -136,9 +136,18 @@ export const materializeOnboardingData = (
             active: (habit.active as boolean | undefined) ?? true,
             scheduledDays: habit.scheduledDays as number[] | undefined,
             scheduledTime: habit.scheduledTime as string | undefined,
+            mode: (habit.mode as "simple" | "metric" | undefined) ?? "simple",
+            type: habit.type as any,
+            inputMode: habit.inputMode as any,
+            icon: habit.icon as string | undefined,
+            unitSingular: habit.unitSingular as string | undefined,
+            unitPlural: habit.unitPlural as string | undefined,
+            baseline: habit.baseline as number | undefined,
+            valuePerUnit: habit.valuePerUnit as number | undefined,
+            frequency: habit.frequency as any,
           });
           habitsCreated++;
-          console.log(`[ONBOARDING] Created habit: ${name}`);
+          console.log(`[ONBOARDING] Created habit: ${name} (mode=${habit.mode ?? 'simple'})`);
         }
       }
     }
