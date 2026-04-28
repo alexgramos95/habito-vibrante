@@ -3,6 +3,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Pencil, Trash2 } from "lucide-react";
 import { ShoppingItem } from "@/data/types";
 import { cn } from "@/lib/utils";
+import { Surface } from "@/components/ui/surface";
 
 interface SortableShoppingRowProps {
   item: ShoppingItem;
@@ -42,18 +43,21 @@ export const SortableShoppingRow = ({
     transition: isDragging ? 'none' : transition,
   };
 
+  // Map state → Surface tone
+  const tone =
+    isSelected ? "accent" :
+    item.done   ? "active" :
+    "subtle";
+
   return (
-    <div
+    <Surface
       ref={setNodeRef}
       style={style}
+      tone={tone}
+      size="compact"
       className={cn(
-        "flex items-center gap-1 p-3 rounded-xl border-2 transition-all group select-none",
-        isDragging && "opacity-60 shadow-lg z-10 relative",
-        isSelected
-          ? "bg-primary/5 border-primary/40"
-          : item.done
-          ? "bg-primary/10 border-primary/50 shadow-[0_0_12px_hsl(var(--primary)/0.15)]"
-          : "bg-card/50 border-border/30 hover:bg-secondary/40",
+        "flex items-center gap-1 group select-none",
+        isDragging && "opacity-60 shadow-lg z-10",
       )}
     >
       {/* Tap area for check / long-press selection */}
