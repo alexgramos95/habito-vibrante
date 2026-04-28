@@ -13,6 +13,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { useI18n } from '@/i18n/I18nContext';
 import { z } from 'zod';
 import { lovable } from '@/integrations/lovable/index';
+import { track } from '@/lib/analytics';
 
 const emailSchema = z.string().email('Please enter a valid email address');
 const passwordSchema = z.string().min(6, 'Password must be at least 6 characters');
@@ -186,6 +187,7 @@ const Auth = () => {
             });
           }
         } else {
+          void track('signup', { method: 'email' });
           toast({
             title: isPT ? 'Verifica o teu email' : 'Check your email!',
             description: isPT
