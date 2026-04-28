@@ -293,6 +293,7 @@ const Auth = () => {
   const handleAppleSignIn = async () => {
     setLoading(true);
     try {
+      trackEvent('signup_started', { method: 'apple' });
       const { error } = await lovable.auth.signInWithOAuth('apple', {
         redirect_uri: window.location.origin,
       });
