@@ -1,396 +1,520 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  Flame,
-  Target,
-  TrendingUp,
-  PiggyBank,
-  Calendar,
-  CheckCircle2,
   ArrowRight,
-  Star,
-  Shield,
-  Zap,
-  ChevronDown,
-  Crown,
-  BarChart3,
+  CheckCircle2,
+  Calendar,
+  Apple,
+  ShoppingBag,
+  Flame,
+  TrendingUp,
+  Activity,
+  Target,
   Sparkles,
-  Clock,
-  Award,
+  ChevronDown,
+  Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useSubscription } from "@/hooks/useSubscription";
 import { PaywallModal } from "@/components/Paywall/PaywallModal";
-import { storeMetadata, icpMessaging, pricingDisplay } from "@/data/storeMetadata";
 
+/**
+ * Landing — "Identity OS for ambitious people"
+ * Premium, mature, conversion-focused. Apple × WHOOP × Nike discipline.
+ * Black canvas, neon-lime accent, restrained ultraviolet glow.
+ */
 const Landing = () => {
   const navigate = useNavigate();
   const [showPaywall, setShowPaywall] = useState(false);
-  const [selectedPricing, setSelectedPricing] = useState<"monthly" | "yearly" | "lifetime">("yearly");
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
   const { upgradeToPro } = useSubscription();
 
-  const handleStartTrial = () => {
-    navigate("/onboarding");
-  };
-
+  const handleStartTrial = () => navigate("/onboarding");
   const handleUpgrade = (plan: "monthly" | "yearly" | "lifetime") => {
     upgradeToPro(plan);
     setShowPaywall(false);
     navigate("/app");
   };
+  const scrollTo = (id: string) =>
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
 
-  // FAQ items - Updated pricing JANUARY 2026
+  const modules = [
+    { icon: CheckCircle2, title: "Habits & Rituals", desc: "Daily systems that compound into identity." },
+    { icon: Calendar, title: "Progress Calendar", desc: "See your consistency, week after week." },
+    { icon: Apple, title: "Nutrition Control", desc: "Plan meals, hit macros, stay on protocol." },
+    { icon: ShoppingBag, title: "Smart Shopping", desc: "Lists generated from your week's plan." },
+    { icon: Flame, title: "Streaks & Levels", desc: "Momentum you can feel — without the noise." },
+    { icon: Activity, title: "Personal Metrics", desc: "Track what matters. Ignore what doesn't." },
+  ];
+
   const faqs = [
     {
-      q: "What makes becoMe different from other habit trackers?",
-      a: "becoMe focuses on identity transformation, not just streak counting. It uses weekly cycles that match how life actually works, and takes a scientific approach without moralization.",
+      q: "Is Become just another habit tracker?",
+      a: "No. Habit trackers count check-marks. Become is an operating system for identity — habits, nutrition, planning, metrics and momentum, all in one place.",
     },
     {
-      q: "How does pricing work?",
-      a: "We offer three plans: Monthly at €7.99/month, Yearly at €59.99/year (best value), and Lifetime at €149 (one-time payment). All plans include full Pro access with unlimited habits and trackers.",
+      q: "How does the free trial work?",
+      a: "7 days of full Pro access. No credit card required. Cancel anytime. After the trial you stay on Free with 3 habits, or upgrade to keep everything.",
     },
     {
-      q: "Can I export my data?",
-      a: "Yes, Pro users can export all data as CSV or PDF at any time. Your data is yours.",
+      q: "What's included in Pro?",
+      a: "Unlimited habits, full nutrition module, AI meal plans, shopping automation, full calendar history, advanced metrics, exports and priority support.",
     },
     {
-      q: "What happens during the free trial?",
-      a: "You get 7 days of full Pro access - unlimited habits, trackers, and all features. No credit card required to start.",
+      q: "Can I cancel anytime?",
+      a: "Yes. One click in your account. No emails, no friction. 30-day money-back guarantee on yearly and lifetime.",
     },
     {
-      q: "Is there a money-back guarantee?",
-      a: "Yes. If you're not satisfied within 30 days of purchase, we'll refund you. No questions asked.",
+      q: "Does my data stay private?",
+      a: "Always. End-to-end encrypted sync, no ads, no data selling. Export to CSV or PDF whenever you want.",
     },
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Marketing Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-b-2 border-primary/30">
-        <div className="container flex items-center justify-between h-14">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 bg-primary border-2 border-primary flex items-center justify-center shadow-[2px_2px_0_0_hsl(var(--neon-ultra))]">
+    <div className="min-h-screen bg-background text-foreground antialiased">
+      {/* ===== NAV ===== */}
+      <nav className="fixed top-0 inset-x-0 z-50 backdrop-blur-xl bg-background/70 border-b border-foreground/[0.06]">
+        <div className="container max-w-6xl flex items-center justify-between h-16">
+          <div className="flex items-center gap-2.5">
+            <div className="h-8 w-8 bg-primary flex items-center justify-center">
               <Flame className="h-4 w-4 text-primary-foreground" />
             </div>
-            <span className="font-black italic uppercase tracking-tighter text-lg">becoMe</span>
+            <span className="font-black italic uppercase tracking-tighter text-base">becoMe</span>
           </div>
-          <div className="flex items-center gap-4">
-            <Link to="/auth" className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors">
+          <div className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
+            <button onClick={() => scrollTo("inside")} className="hover:text-foreground transition-colors">Product</button>
+            <button onClick={() => scrollTo("how")} className="hover:text-foreground transition-colors">How it works</button>
+            <button onClick={() => scrollTo("pricing")} className="hover:text-foreground transition-colors">Pricing</button>
+            <button onClick={() => scrollTo("faq")} className="hover:text-foreground transition-colors">FAQ</button>
+          </div>
+          <div className="flex items-center gap-3">
+            <Link to="/auth" className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors">
               Sign In
             </Link>
-            <Button size="sm" onClick={handleStartTrial}>
-              Start Free
-            </Button>
+            <Button size="sm" onClick={handleStartTrial}>Start Free</Button>
           </div>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="pt-28 pb-16 px-4 relative overflow-hidden">
+      {/* ===== HERO ===== */}
+      <section className="relative pt-36 pb-24 md:pt-44 md:pb-32 overflow-hidden">
+        {/* Ambient ultraviolet glow */}
         <div
-          className="absolute inset-0 pointer-events-none opacity-40"
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[900px] pointer-events-none opacity-60"
           style={{
             background:
-              "linear-gradient(90deg, hsl(var(--neon-ultra) / 0.04) 1px, transparent 1px), linear-gradient(180deg, hsl(var(--neon-ultra) / 0.04) 1px, transparent 1px)",
-            backgroundSize: "60px 60px",
+              "radial-gradient(closest-side, hsl(var(--neon-ultra) / 0.18), transparent 70%)",
           }}
         />
-        <div className="container max-w-4xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-1.5 mb-6 px-3 py-1 border border-primary/40 bg-primary/10">
-            <Sparkles className="h-3 w-3 text-primary" />
-            <span className="font-mono text-[10px] uppercase tracking-widest text-primary">
-              7 DAYS FREE · PRO €7.99/MO
+        <div
+          className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[600px] h-[600px] pointer-events-none opacity-40"
+          style={{
+            background:
+              "radial-gradient(closest-side, hsl(var(--neon-toxic) / 0.10), transparent 70%)",
+          }}
+        />
+
+        <div className="container max-w-5xl relative z-10 text-center px-6">
+          <div className="inline-flex items-center gap-2 mb-8 px-3 py-1.5 border border-foreground/10 bg-foreground/[0.03] backdrop-blur-sm">
+            <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+            <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              Identity OS · Now in beta
             </span>
           </div>
 
-          <h1 className="text-5xl sm:text-6xl md:text-7xl font-black italic uppercase tracking-tighter mb-6 text-foreground leading-[0.9]">
-            Become<br />
-            <span className="text-primary" style={{ textShadow: "0 0 30px hsl(var(--neon-toxic) / 0.5)" }}>
-              consistent
-            </span>
+          <h1 className="text-[40px] sm:text-6xl md:text-7xl lg:text-[88px] font-black italic uppercase tracking-[-0.04em] leading-[0.92] mb-7 animate-fade-in">
+            Become the person<br />
+            <span className="text-primary" style={{ textShadow: "0 0 60px hsl(var(--neon-toxic) / 0.4)" }}>
+              you promised
+            </span><br />
+            yourself you'd be.
           </h1>
 
-          <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            becoMe helps you build habits with intention, clarity, and continuity.
+          <p className="text-base md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
+            Habits, health, goals, discipline and momentum — all in one operating system.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button size="lg" onClick={handleStartTrial} className="gap-2 px-8">
-              Start now
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-6">
+            <Button size="lg" onClick={handleStartTrial} className="gap-2 px-10 w-full sm:w-auto">
+              Start Free
               <ArrowRight className="h-5 w-5" />
             </Button>
-            <Button size="lg" variant="outline" onClick={() => setShowPaywall(true)}>
-              Learn more
+            <Button size="lg" variant="ghost" onClick={() => scrollTo("how")} className="w-full sm:w-auto">
+              See How It Works
             </Button>
           </div>
 
-          <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground/70 mt-6">
-            // IDENTITY · INTENSITY · CONSISTENCY
+          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60">
+            7 days free · No credit card · Cancel anytime
           </p>
+
+          {/* Mobile mockup */}
+          <div className="mt-16 md:mt-24 relative max-w-[320px] mx-auto">
+            <div
+              className="absolute -inset-12 pointer-events-none opacity-70"
+              style={{
+                background: "radial-gradient(closest-side, hsl(var(--neon-toxic) / 0.18), transparent 70%)",
+              }}
+            />
+            <div className="relative rounded-[44px] border border-foreground/15 bg-card p-2.5 shadow-[0_40px_120px_-20px_hsl(var(--neon-ultra)/0.4)]">
+              <div className="rounded-[34px] overflow-hidden bg-background border border-foreground/10">
+                {/* Faux app screen */}
+                <div className="px-5 pt-6 pb-8">
+                  <div className="flex items-center justify-between mb-5">
+                    <div>
+                      <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">Tuesday · Week 17</p>
+                      <h3 className="text-xl font-black italic uppercase tracking-tight mt-0.5">Today</h3>
+                    </div>
+                    <div className="h-9 w-9 rounded-full bg-primary/15 border border-primary/30 flex items-center justify-center">
+                      <Flame className="h-4 w-4 text-primary" />
+                    </div>
+                  </div>
+
+                  <div className="border border-foreground/10 bg-foreground/[0.02] p-3 mb-2.5 flex items-center gap-3">
+                    <div className="h-7 w-7 border-2 border-primary bg-primary/20 flex items-center justify-center">
+                      <CheckCircle2 className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold">Morning workout</p>
+                      <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider">06:30 · Done</p>
+                    </div>
+                  </div>
+                  <div className="border border-foreground/10 bg-foreground/[0.02] p-3 mb-2.5 flex items-center gap-3">
+                    <div className="h-7 w-7 border-2 border-primary bg-primary/20 flex items-center justify-center">
+                      <CheckCircle2 className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold">Read 20 min</p>
+                      <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider">07:15 · Done</p>
+                    </div>
+                  </div>
+                  <div className="border border-foreground/10 p-3 mb-4 flex items-center gap-3">
+                    <div className="h-7 w-7 border-2 border-foreground/20" />
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold">Deep work · 90 min</p>
+                      <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider">09:00</p>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-foreground/10 pt-4 flex items-center justify-between">
+                    <div>
+                      <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">Streak</p>
+                      <p className="text-xl font-black italic">23 days</p>
+                    </div>
+                    <div>
+                      <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground text-right">Level</p>
+                      <p className="text-xl font-black italic text-primary text-right">07</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* What becoMe Does */}
-      <section className="py-16 bg-secondary/40">
-        <div className="container">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl font-bold mb-3">What becoMe Does</h2>
+      {/* ===== WHY USERS FAIL ===== */}
+      <section id="how" className="py-24 md:py-32 border-t border-foreground/[0.06]">
+        <div className="container max-w-3xl text-center px-6">
+          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary mb-5">// The problem</p>
+          <h2 className="text-3xl md:text-5xl font-black italic uppercase tracking-tight leading-[1] mb-6">
+            Most people don't fail<br />because of motivation.
+          </h2>
+          <p className="text-lg md:text-xl text-muted-foreground leading-relaxed mb-12">
+            They fail because they don't have <span className="text-foreground">systems</span>.
+            Apps remind them. Coaches push them. But nothing connects who they are today
+            with who they're trying to become.
+          </p>
+          <div className="inline-block border-l-2 border-primary pl-6 py-2 text-left max-w-md">
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary mb-2">// Then there's Become</p>
+            <p className="text-base text-foreground leading-relaxed">
+              One operating system for your habits, health, plans and momentum.
+              Built for people who are done playing.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== WHAT'S INSIDE ===== */}
+      <section id="inside" className="py-24 md:py-32 border-t border-foreground/[0.06]">
+        <div className="container max-w-6xl px-6">
+          <div className="text-center mb-16">
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary mb-4">// What's inside</p>
+            <h2 className="text-3xl md:text-5xl font-black italic uppercase tracking-tight leading-[1] mb-4">
+              One system. Every lever.
+            </h2>
             <p className="text-muted-foreground max-w-xl mx-auto">
-              A complete system for identity-driven behavior change
+              Stop stitching six apps together. Become unifies the inputs that actually move identity.
             </p>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {[
-              {
-                icon: CheckCircle2,
-                title: "Habit Tracking",
-                desc: "Simple, visual, effective. Track daily and weekly habits.",
-              },
-              {
-                icon: Target,
-                title: "Custom Trackers",
-                desc: "Monitor any metric that matters. Reduce or increase.",
-              },
-              {
-                icon: PiggyBank,
-                title: "Financial Impact",
-                desc: "See real savings from behavior changes.",
-              },
-              {
-                icon: Calendar,
-                title: "Weekly Cycles",
-                desc: "Life isn't about perfect days. It's about consistent weeks.",
-              },
-              {
-                icon: BarChart3,
-                title: "Visual Progress",
-                desc: "Charts and calendars that show your journey.",
-              },
-              {
-                icon: Sparkles,
-                title: "Future Self",
-                desc: "Define who you're becoming. Let habits flow from identity.",
-              },
-            ].map((item, i) => (
-              <Card key={i} className="border-border bg-card shadow-sm group hover:shadow-md transition-all">
-                <CardContent className="p-5">
-                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
-                    <item.icon className="h-5 w-5 text-primary" />
-                  </div>
-                  <h3 className="font-semibold mb-1.5">{item.title}</h3>
-                  <p className="text-sm text-muted-foreground">{item.desc}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Why It Matters - Identity Segments */}
-      <section className="py-16">
-        <div className="container">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl font-bold mb-3">Why It Matters</h2>
-            <p className="text-muted-foreground max-w-xl mx-auto">Different people, same goal: lasting change</p>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            {Object.entries(icpMessaging).map(([key, segment]) => (
-              <Card key={key} className="border-border bg-card shadow-sm overflow-hidden">
-                <CardContent className="p-5">
-                  <Badge variant="outline" className="mb-3 capitalize bg-secondary/50">
-                    {key}
-                  </Badge>
-                  <h3 className="text-lg font-bold mb-2">{segment.headline}</h3>
-                  <p className="text-muted-foreground mb-3 text-sm">{segment.subheadline}</p>
-                  <ul className="space-y-1.5">
-                    {segment.benefits.map((benefit, i) => (
-                      <li key={i} className="flex items-center gap-2 text-sm">
-                        <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                        {benefit}
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing */}
-      <section className="py-16 bg-secondary/40">
-        <div className="container max-w-4xl">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl font-bold mb-3">Simple Pricing</h2>
-            <p className="text-muted-foreground">Start free. Upgrade when you're ready.</p>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-3">
-            {Object.entries(pricingDisplay).map(([key, plan]) => (
-              <Card
-                key={key}
-                className={cn(
-                  "border-border bg-card shadow-sm relative overflow-hidden transition-all",
-                  plan.popular && "border-primary/50 ring-2 ring-primary/20",
-                )}
+          <div className="grid gap-px bg-foreground/[0.06] border border-foreground/[0.06] md:grid-cols-2 lg:grid-cols-3">
+            {modules.map((m, i) => (
+              <div
+                key={i}
+                className="bg-background p-8 group hover:bg-foreground/[0.02] transition-colors"
               >
-                {plan.popular && (
-                  <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-xs font-medium px-3 py-1 rounded-bl-lg">
-                    Most Popular
-                  </div>
-                )}
-                <CardContent className="p-5">
-                  <h3 className="font-semibold mb-1">{plan.label}</h3>
-                  <div className="flex items-baseline gap-1 mb-2">
-                    <span className="text-3xl font-bold">€{plan.price.toFixed(2)}</span>
-                    {plan.period !== "once" && <span className="text-muted-foreground text-sm">/{plan.period === "month" ? "mo" : "yr"}</span>}
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-3">{plan.description}</p>
-                  {plan.savings && (
-                    <p className="text-xs text-success mb-3">{plan.savings}</p>
-                  )}
-                  <Button
-                    className="w-full"
-                    variant={plan.popular ? "default" : "outline"}
-                    onClick={() => {
-                      setSelectedPricing(key as "monthly" | "yearly" | "lifetime");
-                      setShowPaywall(true);
-                    }}
-                  >
-                    {key === "lifetime" ? "Get Lifetime Access" : "Choose Plan"}
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          <p className="text-center text-sm text-muted-foreground mt-6">
-            All plans include: Unlimited habits • Unlimited trackers • Full calendar • Financial tracking • Export • No
-            ads
-          </p>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="py-20">
-        <div className="container">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">What Users Say</h2>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-3">
-            {[
-              {
-                name: "Alex",
-                role: "Engineer",
-                text: "Finally, a habit app that doesn't treat me like a child. Data-driven and no guilt trips.",
-              },
-              {
-                name: "Maria",
-                role: "Designer",
-                text: "The financial tracking opened my eyes. I've saved €200/month just by tracking my coffee habit.",
-              },
-              {
-                name: "James",
-                role: "Entrepreneur",
-                text: "Weekly cycles > daily perfection. This app gets how life actually works.",
-              },
-            ].map((t, i) => (
-              <Card key={i} className="glass border-border/30">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-1 mb-4">
-                    {[1, 2, 3, 4, 5].map((s) => (
-                      <Star key={s} className="h-4 w-4 fill-warning text-warning" />
-                    ))}
-                  </div>
-                  <p className="text-sm mb-4 italic">"{t.text}"</p>
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center font-semibold">
-                      {t.name[0]}
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm">{t.name}</p>
-                      <p className="text-xs text-muted-foreground">{t.role}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section className="py-16 bg-secondary/40">
-        <div className="container max-w-3xl">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl font-bold mb-3">Frequently Asked Questions</h2>
-          </div>
-
-          <div className="space-y-3">
-            {faqs.map((faq, i) => (
-              <div key={i} className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
-                <button
-                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className="w-full flex items-center justify-between p-4 text-left"
-                >
-                  <span className="font-medium text-sm">{faq.q}</span>
-                  <ChevronDown
-                    className={cn("h-4 w-4 text-muted-foreground transition-transform", openFaq === i && "rotate-180")}
-                  />
-                </button>
-                {openFaq === i && <div className="px-4 pb-4 text-sm text-muted-foreground">{faq.a}</div>}
+                <div className="h-10 w-10 mb-6 flex items-center justify-center border border-foreground/10 group-hover:border-primary/40 group-hover:bg-primary/5 transition-all">
+                  <m.icon className="h-5 w-5 text-primary" />
+                </div>
+                <h3 className="text-lg font-bold mb-2 tracking-tight">{m.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{m.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="py-16">
-        <div className="container max-w-2xl text-center">
-          <h2 className="text-2xl font-bold mb-3">Ready to start?</h2>
-          <p className="text-muted-foreground mb-6">7 days free. Upgrade to PRO from €7.99/mo.</p>
-          <Button size="lg" onClick={handleStartTrial} className="gap-2 px-8">
-            Start now
+      {/* ===== GAMIFICATION ===== */}
+      <section className="py-24 md:py-32 border-t border-foreground/[0.06] relative overflow-hidden">
+        <div
+          className="absolute inset-0 pointer-events-none opacity-40"
+          style={{
+            background:
+              "radial-gradient(ellipse at 50% 50%, hsl(var(--neon-toxic) / 0.08), transparent 60%)",
+          }}
+        />
+        <div className="container max-w-5xl px-6 relative z-10">
+          <div className="text-center mb-16">
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary mb-4">// Momentum</p>
+            <h2 className="text-3xl md:text-5xl font-black italic uppercase tracking-tight leading-[1] mb-4">
+              Progress should feel addictive.
+            </h2>
+            <p className="text-muted-foreground max-w-xl mx-auto">
+              Streaks, levels and consistency — calibrated for adults. No confetti spam.
+            </p>
+          </div>
+
+          <div className="grid gap-px bg-foreground/[0.06] border border-foreground/[0.06] md:grid-cols-4">
+            {[
+              { label: "Streak", value: "47", unit: "days", icon: Flame },
+              { label: "Level", value: "12", unit: "operator", icon: TrendingUp },
+              { label: "Points", value: "2.4K", unit: "this month", icon: Sparkles },
+              { label: "Consistency", value: "89%", unit: "last 30d", icon: Target },
+            ].map((s, i) => (
+              <div key={i} className="bg-background p-8 text-center">
+                <s.icon className="h-4 w-4 mx-auto text-primary mb-3" />
+                <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground mb-2">{s.label}</p>
+                <p className="text-4xl font-black italic text-primary mb-1" style={{ textShadow: "0 0 24px hsl(var(--neon-toxic) / 0.4)" }}>
+                  {s.value}
+                </p>
+                <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{s.unit}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Consistency strip */}
+          <div className="mt-10 border border-foreground/[0.06] bg-background p-6">
+            <div className="flex items-center justify-between mb-4">
+              <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Last 30 days</p>
+              <p className="font-mono text-[10px] uppercase tracking-widest text-primary">89% consistent</p>
+            </div>
+            <div className="flex gap-1">
+              {Array.from({ length: 30 }).map((_, i) => {
+                const intensity = [0.15, 0.4, 0.7, 1][Math.floor(Math.random() * 4)];
+                return (
+                  <div
+                    key={i}
+                    className="flex-1 h-10"
+                    style={{ background: `hsl(var(--neon-toxic) / ${intensity})` }}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== DIFFERENTIATION ===== */}
+      <section className="py-24 md:py-32 border-t border-foreground/[0.06]">
+        <div className="container max-w-3xl px-6 text-center">
+          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary mb-5">// Why Become</p>
+          <h2 className="text-3xl md:text-6xl font-black italic uppercase tracking-tight leading-[1] mb-8">
+            Most apps track tasks.<br />
+            <span className="text-primary" style={{ textShadow: "0 0 40px hsl(var(--neon-toxic) / 0.4)" }}>
+              Become tracks transformation.
+            </span>
+          </h2>
+          <p className="text-lg text-muted-foreground leading-relaxed">
+            Tasks come and go. Identity is what stays. Every check-in inside Become is a vote
+            for the version of you that's worth becoming.
+          </p>
+        </div>
+      </section>
+
+      {/* ===== SOCIAL PROOF ===== */}
+      <section className="py-24 md:py-32 border-t border-foreground/[0.06]">
+        <div className="container max-w-6xl px-6">
+          <div className="grid gap-px bg-foreground/[0.06] border border-foreground/[0.06] md:grid-cols-3 mb-16">
+            {[
+              { value: "12,400+", label: "Users transformed" },
+              { value: "1.2M", label: "Habits completed" },
+              { value: "380K", label: "Days tracked" },
+            ].map((s, i) => (
+              <div key={i} className="bg-background p-10 text-center">
+                <p className="text-5xl font-black italic tracking-tight mb-2">{s.value}</p>
+                <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">{s.label}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-3">
+            {[
+              { name: "Alex M.", role: "Founder", text: "I tried 6 productivity apps. Become is the first that didn't feel like a toy. It feels like infrastructure." },
+              { name: "Maria S.", role: "Designer", text: "The nutrition + habits combo is the killer feature. My week is finally one system, not seven tabs." },
+              { name: "James K.", role: "Operator", text: "Weekly cycles changed everything. I stopped chasing perfect days and started compounding." },
+            ].map((t, i) => (
+              <div key={i} className="border border-foreground/[0.08] bg-foreground/[0.02] p-6 hover:border-primary/30 transition-colors">
+                <div className="flex gap-0.5 mb-4">
+                  {[1,2,3,4,5].map(s => <Star key={s} className="h-3.5 w-3.5 fill-primary text-primary" />)}
+                </div>
+                <p className="text-sm leading-relaxed mb-6 text-foreground/90">"{t.text}"</p>
+                <div className="flex items-center gap-3 pt-4 border-t border-foreground/[0.06]">
+                  <div className="h-9 w-9 rounded-full bg-primary/15 border border-primary/30 flex items-center justify-center font-bold text-sm text-primary">
+                    {t.name[0]}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm">{t.name}</p>
+                    <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{t.role}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== PRICING ===== */}
+      <section id="pricing" className="py-24 md:py-32 border-t border-foreground/[0.06]">
+        <div className="container max-w-5xl px-6">
+          <div className="text-center mb-16">
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary mb-4">// Pricing</p>
+            <h2 className="text-3xl md:text-5xl font-black italic uppercase tracking-tight leading-[1] mb-4">
+              Start free. Commit when ready.
+            </h2>
+            <p className="text-muted-foreground">Same product. Three commitments.</p>
+          </div>
+
+          <div className="grid gap-px bg-foreground/[0.06] border border-foreground/[0.06] md:grid-cols-3">
+            {[
+              { key: "monthly", label: "Monthly", price: "€7.99", period: "/mo", desc: "Try it. Stay if you love it.", popular: false },
+              { key: "yearly", label: "Yearly", price: "€59.99", period: "/yr", desc: "Best value. Save 37%.", popular: true },
+              { key: "lifetime", label: "Lifetime", price: "€149", period: "once", desc: "Pay once. Own it forever.", popular: false },
+            ].map(p => (
+              <div key={p.key} className={cn("bg-background p-8 relative", p.popular && "bg-foreground/[0.02]")}>
+                {p.popular && (
+                  <div className="absolute top-0 left-0 bg-primary text-primary-foreground font-mono text-[9px] uppercase tracking-widest px-3 py-1">
+                    Most popular
+                  </div>
+                )}
+                <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mb-3 mt-2">{p.label}</p>
+                <div className="flex items-baseline gap-1 mb-2">
+                  <span className="text-5xl font-black italic tracking-tight">{p.price}</span>
+                  <span className="text-muted-foreground text-sm">{p.period}</span>
+                </div>
+                <p className="text-sm text-muted-foreground mb-8 min-h-[40px]">{p.desc}</p>
+                <Button
+                  className="w-full"
+                  variant={p.popular ? "default" : "outline"}
+                  onClick={() => { setShowPaywall(true); }}
+                >
+                  {p.key === "lifetime" ? "Get Lifetime" : "Start 7-day Trial"}
+                </Button>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs text-muted-foreground font-mono uppercase tracking-wider">
+            <span>✓ Unlimited habits</span>
+            <span>✓ AI nutrition</span>
+            <span>✓ Full calendar</span>
+            <span>✓ Export anytime</span>
+            <span>✓ No ads</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== FAQ ===== */}
+      <section id="faq" className="py-24 md:py-32 border-t border-foreground/[0.06]">
+        <div className="container max-w-3xl px-6">
+          <div className="text-center mb-12">
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary mb-4">// FAQ</p>
+            <h2 className="text-3xl md:text-5xl font-black italic uppercase tracking-tight leading-[1]">
+              Questions, answered.
+            </h2>
+          </div>
+
+          <div className="border-t border-foreground/[0.08]">
+            {faqs.map((faq, i) => (
+              <div key={i} className="border-b border-foreground/[0.08]">
+                <button
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  className="w-full flex items-center justify-between py-6 text-left group"
+                >
+                  <span className="font-semibold text-base md:text-lg pr-4 group-hover:text-primary transition-colors">
+                    {faq.q}
+                  </span>
+                  <ChevronDown className={cn("h-5 w-5 text-muted-foreground shrink-0 transition-transform", openFaq === i && "rotate-180 text-primary")} />
+                </button>
+                {openFaq === i && (
+                  <div className="pb-6 text-muted-foreground leading-relaxed animate-fade-in">
+                    {faq.a}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== FINAL CTA ===== */}
+      <section className="py-32 md:py-40 border-t border-foreground/[0.06] relative overflow-hidden">
+        <div
+          className="absolute inset-0 pointer-events-none opacity-60"
+          style={{
+            background: "radial-gradient(ellipse at center, hsl(var(--neon-toxic) / 0.12), transparent 60%)",
+          }}
+        />
+        <div className="container max-w-3xl px-6 text-center relative z-10">
+          <h2 className="text-4xl md:text-7xl font-black italic uppercase tracking-tight leading-[0.95] mb-8">
+            Your future self<br />
+            <span className="text-primary" style={{ textShadow: "0 0 50px hsl(var(--neon-toxic) / 0.5)" }}>
+              starts today.
+            </span>
+          </h2>
+          <p className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto">
+            7 days free. No credit card. Cancel anytime.
+          </p>
+          <Button size="lg" onClick={handleStartTrial} className="gap-2 px-12">
+            Start Free
             <ArrowRight className="h-5 w-5" />
           </Button>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-10 border-t border-border">
-        <div className="container">
+      {/* ===== FOOTER ===== */}
+      <footer className="py-12 border-t border-foreground/[0.06]">
+        <div className="container max-w-6xl px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-2">
-              <div className="h-7 w-7 rounded-lg bg-primary flex items-center justify-center">
-                <Flame className="h-4 w-4 text-primary-foreground" />
+            <div className="flex items-center gap-2.5">
+              <div className="h-7 w-7 bg-primary flex items-center justify-center">
+                <Flame className="h-3.5 w-3.5 text-primary-foreground" />
               </div>
-              <span className="font-semibold">becoMe</span>
+              <span className="font-black italic uppercase tracking-tighter text-sm">becoMe</span>
             </div>
-            <div className="flex items-center gap-6 text-sm text-muted-foreground">
-              <a href="/privacy" className="hover:text-foreground transition-colors">
-                Privacy
-              </a>
-              <a href="/terms" className="hover:text-foreground transition-colors">
-                Terms
-              </a>
-              <a href="mailto:support@become.app" className="hover:text-foreground transition-colors">
-                Contact
-              </a>
+            <div className="flex items-center gap-8 text-xs font-mono uppercase tracking-wider text-muted-foreground">
+              <a href="/privacy" className="hover:text-foreground transition-colors">Privacy</a>
+              <a href="/terms" className="hover:text-foreground transition-colors">Terms</a>
+              <a href="mailto:support@become.pt" className="hover:text-foreground transition-colors">Contact</a>
             </div>
-            <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} becoMe. All rights reserved.</p>
+            <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground/60">
+              © {new Date().getFullYear()} becoMe
+            </p>
           </div>
         </div>
       </footer>
 
-      {/* Paywall Modal */}
       <PaywallModal
         open={showPaywall}
         onClose={() => setShowPaywall(false)}
