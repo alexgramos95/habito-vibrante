@@ -164,6 +164,7 @@ const MyHabits = () => {
             ))}
           </ul>
         )}
+        </div>
       </main>
     </div>
   );
