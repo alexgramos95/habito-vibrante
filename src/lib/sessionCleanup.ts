@@ -66,6 +66,7 @@ const ACCOUNT_SCOPED_KEYS: string[] = [
 /** Prefix patterns for account-scoped keys we may not know the exact name of. */
 const ACCOUNT_SCOPED_PREFIXES: string[] = [
   "become-onboarding-materialized-", // per-user materialization flag
+  "become-onboarding-materializing-", // per-user in-flight materialization guard
   "become-ab-",                       // any A/B test assignment / promoted variant
   "become:ab:",
 ];
