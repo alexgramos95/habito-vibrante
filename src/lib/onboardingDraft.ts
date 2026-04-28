@@ -26,6 +26,7 @@ export const ONBOARDING_MATERIALIZED_PREFIX = "become-onboarding-materialized-";
 export const ONBOARDING_MATERIALIZING_PREFIX = "become-onboarding-materializing-";
 
 export interface OnboardingDraft {
+  locale?: string;
   improvementAreas?: string[];
   identityVectors?: string[];
   selectedPresets?: string[];
