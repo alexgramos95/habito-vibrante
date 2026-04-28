@@ -799,5 +799,79 @@ const SuggestedTestCard = ({ test }: { test: { id: string; area: string; hypothe
 );
 
 
+const SourceIntelligenceTable = ({ rows }: { rows: SourceRow[] }) => {
+  if (rows.length === 0) {
+    return (
+      <Card>
+        <CardContent className="p-4">
+          <p className="text-xs text-muted-foreground italic">
+            No traffic attributed yet. Sources are captured on first visit and stamped on every event.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+  const best = rows[0]; // already sorted by qualityScore
+  return (
+    <Card>
+      <CardContent className="p-0">
+        {/* Best source highlight */}
+        <div className="p-4 border-b border-foreground/10 bg-primary/5 flex items-center gap-3">
+          <Trophy className="h-4 w-4 text-primary shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-mono uppercase tracking-wider text-primary">Best quality source</p>
+            <p className="text-sm font-bold">
+              {SOURCE_LABEL[best.source]}{" "}
+              <span className="text-muted-foreground font-normal">· quality {Math.round(best.qualityScore * 100)}</span>
+            </p>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="text-muted-foreground border-b border-foreground/10">
+                <th className="text-left font-mono font-normal uppercase tracking-wider px-3 py-2 text-[10px]">Source</th>
+                <th className="text-right font-mono font-normal uppercase tracking-wider px-2 py-2 text-[10px]">Users</th>
+                <th className="text-right font-mono font-normal uppercase tracking-wider px-2 py-2 text-[10px]">D1</th>
+                <th className="text-right font-mono font-normal uppercase tracking-wider px-2 py-2 text-[10px]">D7</th>
+                <th className="text-right font-mono font-normal uppercase tracking-wider px-2 py-2 text-[10px]">Avg habits</th>
+                <th className="text-right font-mono font-normal uppercase tracking-wider px-2 py-2 text-[10px]">Ref. CTR</th>
+                <th className="text-right font-mono font-normal uppercase tracking-wider px-3 py-2 text-[10px]">Quality</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map(r => {
+                const isBest = r.source === best.source;
+                return (
+                  <tr key={r.source} className={`border-b border-foreground/5 last:border-0 ${isBest ? "bg-primary/5" : ""}`}>
+                    <td className="px-3 py-2.5">
+                      <span className={`flex items-center gap-1.5 ${isBest ? "text-primary font-bold" : "font-medium"}`}>
+                        {isBest && <Trophy className="h-3 w-3 shrink-0" />}
+                        {SOURCE_LABEL[r.source]}
+                      </span>
+                    </td>
+                    <td className="px-2 py-2.5 text-right tabular-nums">{r.users}</td>
+                    <td className="px-2 py-2.5 text-right tabular-nums">{fmtPct(r.d1Rate)}</td>
+                    <td className="px-2 py-2.5 text-right tabular-nums">{fmtPct(r.d7Rate)}</td>
+                    <td className="px-2 py-2.5 text-right tabular-nums">{r.avgHabits}</td>
+                    <td className="px-2 py-2.5 text-right tabular-nums">{r.referralPromptsShown > 0 ? fmtPct(r.referralCTR) : "—"}</td>
+                    <td className={`px-3 py-2.5 text-right tabular-nums font-bold ${isBest ? "text-primary" : ""}`}>
+                      {Math.round(r.qualityScore * 100)}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        <p className="px-3 py-2 text-[10px] font-mono text-muted-foreground border-t border-foreground/10">
+          Quality = 0.45·D7 + 0.25·D1 + 0.20·avg-habits + 0.10·referral-CTR
+        </p>
+      </CardContent>
+    </Card>
+  );
+};
 
 export default Insights;
