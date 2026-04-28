@@ -322,15 +322,34 @@ const Insights = () => {
           <h2 className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">A/B test results</h2>
           <div className="space-y-3">
             <ABTestCard
+              testKey={REFERRAL_HEADLINE_TEST}
               title="Referral modal headline"
               metric="CTR (invite sent / shown)"
               variants={referralVariants}
             />
             <ABTestCard
+              testKey={SHARE_HEADLINE_TEST}
               title="Share card headline"
               metric="Share rate (shared / opened)"
               variants={shareVariants}
             />
+          </div>
+        </section>
+
+        {/* Experiment history */}
+        <section>
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Experiment history</h2>
+            <span className="text-[10px] font-mono text-muted-foreground tabular-nums">{history.length} winner{history.length === 1 ? "" : "s"}</span>
+          </div>
+          <HistoryList history={history} />
+        </section>
+
+        {/* Suggested next experiments */}
+        <section>
+          <h2 className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">Suggested next tests</h2>
+          <div className="space-y-2">
+            {SUGGESTED_TESTS.map(t => <SuggestedTestCard key={t.id} test={t} />)}
           </div>
         </section>
 
