@@ -408,12 +408,25 @@ const Onboarding = () => {
     navigate("/auth?next=trial&firstSession=1");
   };
 
+  const selectedHabitNames = useMemo(() => {
+    const names = suggestedHabits
+      .filter((h) => habits.includes(h.id))
+      .map((h) => pick(h.name, accountLocale));
+    if (customHabit.trim()) names.push(customHabit.trim());
+    return names;
+  }, [suggestedHabits, habits, customHabit, accountLocale]);
+
+  const selectedMetricNames = useMemo(() => {
+    const names = METRIC_SUGGESTIONS
+      .filter((m) => metrics.includes(m.id))
+      .map((m) => pick(m.name, accountLocale));
+    if (customMetric.trim()) names.push(customMetric.trim());
+    return names;
+  }, [metrics, customMetric, accountLocale]);
+
   const firstHabitName =
-    customHabit.trim() ||
-    (() => {
-      const preset = suggestedHabits.find((h) => habits.includes(h.id)) || suggestedHabits[0];
-      return preset ? pick(preset.name, accountLocale) : pick(UI.yourFirstHabit, accountLocale);
-    })();
+    selectedHabitNames[0] ??
+    (suggestedHabits[0] ? pick(suggestedHabits[0].name, accountLocale) : pick(UI.yourFirstHabit, accountLocale));
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col antialiased relative overflow-hidden">
