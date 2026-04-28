@@ -40,10 +40,14 @@ import { writeOnboardingDraft } from "@/lib/onboardingDraft";
    materialized record names follow the user's selected app language.
    ============================================================= */
 
-type Step = "identity" | "obstacle" | "focus" | "first-win" | "metric" | "commit";
+type Step = "language" | "identity" | "obstacle" | "focus" | "first-win" | "metric" | "commit";
 
 type Bilingual = { "pt-PT": string; "en-US": string };
 const pick = (b: Bilingual, locale: Locale) => b[locale] ?? b["en-US"];
+
+/** Onboarding UI is ALWAYS English. Language picked here only sets the
+ *  account language used for materialized habit/metric names + app locale. */
+const UI_LOCALE: Locale = "en-US";
 
 /* ---------- IDENTITY ---------- */
 const IDENTITY_OPTIONS: { id: string; label: Bilingual; desc: Bilingual; icon: any }[] = [
