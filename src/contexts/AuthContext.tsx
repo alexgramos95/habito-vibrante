@@ -478,21 +478,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     console.log('[AUTH] Signing out...');
-    
+
     // Clear all internal state FIRST
     setUser(null);
     setSession(null);
     setSubscriptionStatus(defaultSubscriptionStatus);
-    
+
     // Reset refs to prevent any pending operations
     sessionRef.current = null;
     lastCheckRef.current = 0;
     isCheckingRef.current = false;
-    
+
+    // ACCOUNT-LEAK GUARD: purge ALL account-scoped local state and any
+    // cached React Query data so the next user on this browser cannot
+    // see anything from this account.
+    purgeAccountData('signOut');
+    try { queryClient.clear(); } catch { /* ignore */ }
+
     try {
       // Sign out with global scope to ensure server-side session is cleared
       const { error } = await supabase.auth.signOut({ scope: 'global' });
-      
+
       if (error) {
         console.error('[AUTH] Error during sign out:', error);
         if (isRecoverableAuthError(error.message)) {
