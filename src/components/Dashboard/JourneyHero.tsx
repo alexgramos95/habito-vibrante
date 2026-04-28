@@ -183,61 +183,68 @@ export const JourneyHero = ({
 
   return (
     <>
-      <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/[0.08] via-primary/[0.03] to-transparent p-5 animate-in fade-in slide-in-from-top-2 duration-500">
+      <div className="relative overflow-hidden border border-primary/30 bg-card p-5 shadow-[4px_4px_0_0_hsl(var(--neon-ultra)/0.35)] animate-in fade-in slide-in-from-top-2 duration-500">
+        {/* Ambient toxic glow */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-16 -right-16 h-48 w-48 opacity-60"
+          style={{ background: "radial-gradient(closest-side, hsl(var(--neon-toxic) / 0.18), transparent 70%)" }}
+        />
+
         {/* Day badge + streak */}
-        <div className="flex items-center justify-between mb-3">
-          <span className="font-mono text-[10px] uppercase tracking-widest text-primary inline-flex items-center gap-1.5">
+        <div className="relative flex items-center justify-between mb-3">
+          <span className="mono-label text-primary inline-flex items-center gap-1.5">
             <span className="size-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_hsl(var(--neon-toxic))]" />
-            {dayLabel}
+            // {dayLabel}
           </span>
           {streak > 0 && (
-            <span className="inline-flex items-center gap-1 text-xs font-bold text-primary">
+            <span className="inline-flex items-center gap-1 mono-label text-primary">
               <Flame className="h-3.5 w-3.5" />
-              {streak}{isPT ? "d" : "d"}
+              {streak}d
             </span>
           )}
         </div>
 
-        {/* Headline */}
-        <h2 className="text-xl font-bold tracking-tight text-foreground leading-tight">
+        {/* Headline — display style */}
+        <h2 className="relative display-headline text-2xl sm:text-3xl text-foreground">
           {headline}
         </h2>
-        <p className="text-sm text-muted-foreground mt-1">
+        <p className="relative text-sm text-muted-foreground/80 mt-2 max-w-[42ch]">
           {subline}
         </p>
 
-        {/* Yesterday celebration — for early users with a yesterday-win */}
+        {/* Yesterday celebration */}
         {(lifecycleState === "early" || lifecycleState === "active") && yesterdayWin && (
-          <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-success/30 bg-success/10 px-3 py-1 text-xs font-semibold text-success">
+          <div className="relative mt-3 inline-flex items-center gap-2 border border-success/40 bg-success/10 px-3 py-1 mono-label text-success">
             <Sparkles className="h-3.5 w-3.5" />
-            {isPT ? `Ontem: ${yesterdayDone}/${yesterdayHabits.length} completo` : `Yesterday: ${yesterdayDone}/${yesterdayHabits.length} complete`}
+            {isPT ? `Ontem: ${yesterdayDone}/${yesterdayHabits.length}` : `Yesterday: ${yesterdayDone}/${yesterdayHabits.length}`}
           </div>
         )}
 
-        {/* Day 3+ Stats row */}
+        {/* Stats row */}
         {showStats && last7Stats.scheduled > 0 && (
-          <div className="mt-4 grid grid-cols-3 gap-2">
+          <div className="relative mt-4 grid grid-cols-3 gap-2">
             <StatPill icon={<Target className="h-3 w-3" />} label={isPT ? "Consistência" : "Consistency"} value={`${last7Stats.consistency}%`} />
             <StatPill icon={<Trophy className="h-3 w-3" />} label={isPT ? "Vitórias" : "Wins"} value={`${last7Stats.wins}`} />
             <StatPill icon={<TrendingUp className="h-3 w-3" />} label={isPT ? "Momentum" : "Momentum"} value={`${last7Stats.momentum}`} />
           </div>
         )}
 
-        {/* Primary CTA — one main action */}
+        {/* Primary CTA */}
         {onPrimaryAction && !allDoneToday && (
           <Button
             onClick={onPrimaryAction}
             size="sm"
-            className="mt-4 w-full gap-1.5 rounded-xl shadow-[0_0_24px_hsl(var(--neon-toxic)/0.35)]"
+            className="relative mt-4 w-full gap-1.5"
           >
             {primaryActionLabel || (isPT ? "Começar agora" : "Start now")}
             <ChevronRight className="h-4 w-4" />
           </Button>
         )}
         {allDoneToday && (
-          <div className="mt-4 flex items-center justify-center gap-2 rounded-xl border border-success/30 bg-success/10 py-2.5 text-sm font-bold text-success">
+          <div className="relative mt-4 flex items-center justify-center gap-2 border border-success/40 bg-success/10 py-2.5 mono-label text-success">
             <Sparkles className="h-4 w-4" />
-            {isPT ? "Dia completo. Bem feito." : "Day complete. Well done."}
+            {isPT ? "Dia completo" : "Day complete"}
           </div>
         )}
       </div>
@@ -327,12 +334,12 @@ export const JourneyHero = ({
 };
 
 const StatPill = ({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) => (
-  <div className="rounded-xl border border-foreground/10 bg-background/40 p-2.5">
+  <div className="border border-foreground/10 bg-background/40 p-2.5">
     <div className="flex items-center gap-1 text-muted-foreground">
       {icon}
-      <span className="text-[9px] font-mono uppercase tracking-wider truncate">{label}</span>
+      <span className="mono-label truncate">{label}</span>
     </div>
-    <p className="text-base font-bold tabular-nums mt-0.5">{value}</p>
+    <p className="display-headline text-lg tabular-nums mt-1 not-italic">{value}</p>
   </div>
 );
 
