@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Globe, RotateCcw, Trash2, Coins, ArrowLeft, Bell, RefreshCw, Settings } from "lucide-react";
+import { Globe, RotateCcw, Trash2, Coins, Bell, RefreshCw, Settings } from "lucide-react";
 import { NotificationSetup } from "@/components/Habits/NotificationSetup";
 import { useI18n } from "@/i18n/I18nContext";
 import { localeNames, currencyNames, type Locale, type Currency } from "@/i18n";

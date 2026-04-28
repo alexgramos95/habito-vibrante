@@ -1,7 +1,7 @@
 import { useMemo, useCallback, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format, subDays, getDay } from "date-fns";
-import { ArrowLeft, Flame, CalendarDays, Lightbulb, BarChart3, CheckCircle2, Pencil, Trash2, Plus, Check } from "lucide-react";
+import { Flame, CalendarDays, Lightbulb, BarChart3, CheckCircle2, Pencil, Trash2, Plus, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useData } from "@/contexts/DataContext";
 import { useI18n } from "@/i18n/I18nContext";
