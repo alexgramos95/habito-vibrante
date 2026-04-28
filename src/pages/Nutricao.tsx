@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n/I18nContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Navigation } from "@/components/Layout/Navigation";
+import { PageHeader } from "@/components/Layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -1249,30 +1250,25 @@ const Nutricao = () => {
     <div className="page-container">
       <Navigation />
       <div className="page-content pb-24 md:pb-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-xl font-bold flex items-center gap-2">
-              <Leaf className="h-5 w-5 text-primary" />
-              {lang === "pt" ? "Nutrição" : "Nutrition"}
-            </h1>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {lang === "pt" ? "Plano semanal personalizado" : "Personalized weekly plan"}
-            </p>
-          </div>
-          <div className="flex gap-1.5">
-            <Button size="sm" className="gap-1.5 rounded-xl h-9 px-3" onClick={() => setShowProfile(true)}>
-              <Settings2 className="h-4 w-4" />
-              <span className="hidden sm:inline">{lang === "pt" ? "Perfil" : "Profile"}</span>
-            </Button>
-            {plan && (
-              <Button size="sm" className="gap-1.5 rounded-xl h-9 px-3" onClick={() => setShowShopping(true)}>
-                <ShoppingBasket className="h-4 w-4" />
-                <span className="hidden sm:inline">{lang === "pt" ? "Compras" : "Shopping"}</span>
+        <PageHeader
+          title={lang === "pt" ? "Nutrição" : "Nutrition"}
+          subtitle={lang === "pt" ? "Plano semanal personalizado" : "Personalized weekly plan"}
+          icon={Leaf}
+          actions={
+            <>
+              <Button size="sm" className="gap-1.5 rounded-xl h-9 px-3" onClick={() => setShowProfile(true)}>
+                <Settings2 className="h-4 w-4" />
+                <span className="hidden sm:inline">{lang === "pt" ? "Perfil" : "Profile"}</span>
               </Button>
-            )}
-          </div>
-        </div>
+              {plan && (
+                <Button size="sm" className="gap-1.5 rounded-xl h-9 px-3" onClick={() => setShowShopping(true)}>
+                  <ShoppingBasket className="h-4 w-4" />
+                  <span className="hidden sm:inline">{lang === "pt" ? "Compras" : "Shopping"}</span>
+                </Button>
+              )}
+            </>
+          }
+        />
 
         {/* Profile summary chips */}
         <div className="flex flex-wrap gap-1.5 mb-4">

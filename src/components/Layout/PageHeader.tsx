@@ -1,71 +1,111 @@
-import { LucideIcon } from "lucide-react";
+import { LucideIcon, ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-interface PageHeaderProps {
+/**
+ * PageHeader — canonical header for every authenticated page.
+ *
+ * Goals:
+ *  - One title hierarchy (h1 + optional subtitle)
+ *  - One back-button pattern (ghost icon, h-9 w-9, ArrowLeft)
+ *  - One vertical rhythm (mb-5 between header and content)
+ *  - Optional sticky behavior with backdrop blur
+ *  - `actions` slot for right-side controls (buttons, SegmentedTabs, ...)
+ *  - `meta` slot for content immediately under the header (chips, banners)
+ *
+ * Usage:
+ *   <PageHeader title="Calendar" subtitle="View your progress" icon={Calendar}
+ *               actions={<SegmentedTabs ... />} />
+ *
+ *   <PageHeader title="Account" icon={User} backTo={-1} sticky />
+ */
+export interface PageHeaderProps {
   title: string;
   subtitle?: string;
   icon?: LucideIcon;
-  action?: {
-    label?: string;
-    icon?: LucideIcon;
-    onClick: () => void;
-    variant?: "default" | "outline" | "ghost";
-  };
-  children?: React.ReactNode;
+  /** Show a back button. `true` → navigate(-1). String → navigate(path). Number → navigate(n). */
+  backTo?: boolean | string | number;
+  backLabel?: string;
+  /** Right-aligned slot (buttons, SegmentedTabs, etc.) */
+  actions?: React.ReactNode;
+  /** Optional row rendered under the header (chips, banner). */
+  meta?: React.ReactNode;
+  /** Make the header sticky to the top of the scroll container. */
+  sticky?: boolean;
   className?: string;
-  /** Use compact mode for consistent mobile density */
-  compact?: boolean;
 }
 
 export const PageHeader = ({
   title,
   subtitle,
   icon: Icon,
-  action,
-  children,
+  backTo,
+  backLabel,
+  actions,
+  meta,
+  sticky = false,
   className,
-  compact = true,
 }: PageHeaderProps) => {
+  const navigate = useNavigate();
+
+  const handleBack = () => {
+    if (backTo === true || backTo === undefined) {
+      navigate(-1);
+    } else if (typeof backTo === "number") {
+      navigate(backTo);
+    } else if (typeof backTo === "string") {
+      navigate(backTo);
+    }
+  };
+
   return (
-    <header className={cn(
-      "page-header",
-      className
-    )}>
-      <div className="flex items-center gap-2.5 min-w-0">
-        {Icon && (
-          <div className={cn(
-            "flex shrink-0 items-center justify-center rounded-xl bg-primary/10",
-            compact ? "h-9 w-9" : "h-10 w-10"
-          )}>
-            <Icon className={cn("text-primary", compact ? "h-4 w-4" : "h-5 w-5")} />
-          </div>
-        )}
-        <div className="min-w-0">
-          <h1 className="page-title truncate">{title}</h1>
-          {subtitle && (
-            <p className="page-subtitle truncate">{subtitle}</p>
+    <header
+      className={cn(
+        "mb-5",
+        sticky &&
+          "sticky top-0 z-20 -mx-4 md:-mx-0 px-4 md:px-0 py-3 md:py-0 bg-background/85 backdrop-blur-md border-b border-foreground/10 md:border-0 md:bg-transparent md:backdrop-blur-0",
+        className
+      )}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+          {backTo !== undefined && backTo !== false && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 shrink-0 -ml-1"
+              onClick={handleBack}
+              aria-label={backLabel || "Voltar"}
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
           )}
-        </div>
-      </div>
-      
-      <div className="flex items-center gap-2 shrink-0">
-        {children}
-        {action && (
-          <Button
-            onClick={action.onClick}
-            variant={action.variant || "default"}
-            size="sm"
-            className={cn(
-              "rounded-xl",
-              action.label ? "gap-1.5 h-9 px-3" : "h-9 w-9"
+          {Icon && !backTo && (
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+              <Icon className="h-4 w-4 text-primary" />
+            </div>
+          )}
+          <div className="min-w-0">
+            <h1 className="text-lg md:text-xl font-semibold tracking-tight text-foreground truncate flex items-center gap-2">
+              {Icon && backTo && <Icon className="h-5 w-5 text-primary shrink-0" />}
+              <span className="truncate">{title}</span>
+            </h1>
+            {subtitle && (
+              <p className="text-xs md:text-[13px] text-muted-foreground/80 mt-0.5 truncate">
+                {subtitle}
+              </p>
             )}
-          >
-            {action.icon && <action.icon className="h-4 w-4" />}
-            {action.label && <span className="hidden sm:inline">{action.label}</span>}
-          </Button>
+          </div>
+        </div>
+
+        {actions && (
+          <div className="flex items-center gap-1.5 shrink-0">{actions}</div>
         )}
       </div>
+
+      {meta && <div className="mt-3">{meta}</div>}
     </header>
   );
 };

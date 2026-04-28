@@ -1,11 +1,12 @@
 import { useMemo, useCallback, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format, subDays, getDay } from "date-fns";
-import { ArrowLeft, Flame, CalendarDays, Lightbulb, BarChart3, CheckCircle2, Pencil, Trash2, Plus, Check } from "lucide-react";
+import { Flame, CalendarDays, Lightbulb, BarChart3, CheckCircle2, Pencil, Trash2, Plus, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useData } from "@/contexts/DataContext";
 import { useI18n } from "@/i18n/I18nContext";
 import { Navigation } from "@/components/Layout/Navigation";
+import { PageHeader } from "@/components/Layout/PageHeader";
 import { cn } from "@/lib/utils";
 import { HabitForm } from "@/components/Habits/HabitForm";
 import { TrackerEditDialog } from "@/components/Trackers/TrackerEditDialog";
@@ -281,22 +282,23 @@ const HabitDetail = () => {
     <div className="page-container">
       <Navigation />
       <main className="page-content max-w-xl mx-auto space-y-5">
-        {/* Back + actions */}
-        <div className="flex items-center justify-between">
-          <button onClick={() => navigate("/app")} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="h-4 w-4" /> Voltar
-          </button>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="gap-1.5 h-8"
-              onClick={() => isMetric ? setShowEditMetric(true) : setShowEditSimple(true)}>
-              <Pencil className="h-3.5 w-3.5" /> Editar
-            </Button>
-            <Button variant="outline" size="sm" className="gap-1.5 h-8 text-destructive hover:text-destructive"
-              onClick={() => setShowDeleteConfirm(true)}>
-              <Trash2 className="h-3.5 w-3.5" /> Eliminar
-            </Button>
-          </div>
-        </div>
+        <PageHeader
+          title={habit.nome}
+          subtitle={habit.categoria || undefined}
+          backTo="/app"
+          actions={
+            <>
+              <Button variant="outline-soft" size="sm" className="gap-1.5 h-9"
+                onClick={() => isMetric ? setShowEditMetric(true) : setShowEditSimple(true)}>
+                <Pencil className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Editar</span>
+              </Button>
+              <Button variant="outline-soft" size="sm" className="gap-1.5 h-9 text-destructive hover:text-destructive"
+                onClick={() => setShowDeleteConfirm(true)}>
+                <Trash2 className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Eliminar</span>
+              </Button>
+            </>
+          }
+        />
 
         {/* Hero */}
         <div className="rounded-2xl border border-primary/15 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 p-5">

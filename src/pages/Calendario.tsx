@@ -8,6 +8,7 @@ import { toggleDailyLog, getReflectionForDate } from "@/data/storage";
 import { getCompletedHabitsOnDate, getActiveHabits } from "@/logic/computations";
 import { getHabitsSortedForDay } from "@/logic/habitSorting";
 import { Navigation } from "@/components/Layout/Navigation";
+import { PageHeader } from "@/components/Layout/PageHeader";
 import { MonthSelector } from "@/components/Dashboard/MonthSelector";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -353,26 +354,20 @@ const Calendario = () => {
       <Navigation />
 
       <main className="page-content max-w-xl mx-auto space-y-5">
-        {/* ═══ Page Header ═══ */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
-              <CalendarIcon className="h-5 w-5 text-primary" />
-              {t.calendar.title}
-            </h1>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {locale === 'pt-PT' ? 'Visualiza o teu progresso' : 'View your progress'}
-            </p>
-          </div>
-          {/* View mode tabs — unified SegmentedTabs primitive */}
-          <SegmentedTabs
-            size="sm"
-            value={viewMode}
-            onChange={(v) => setViewMode(v as ViewMode)}
-            options={viewTabs.map(t => ({ value: t.id, label: t.label }))}
-            ariaLabel={locale === 'pt-PT' ? 'Modo de visualização' : 'View mode'}
-          />
-        </div>
+        <PageHeader
+          title={t.calendar.title}
+          subtitle={locale === 'pt-PT' ? 'Visualiza o teu progresso' : 'View your progress'}
+          icon={CalendarIcon}
+          actions={
+            <SegmentedTabs
+              size="sm"
+              value={viewMode}
+              onChange={(v) => setViewMode(v as ViewMode)}
+              options={viewTabs.map(t => ({ value: t.id, label: t.label }))}
+              ariaLabel={locale === 'pt-PT' ? 'Modo de visualização' : 'View mode'}
+            />
+          }
+        />
 
         {/* Trial banner */}
         {trialStatus.isActive && (

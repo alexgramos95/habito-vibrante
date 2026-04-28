@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, ChevronRight, Pencil, Power, Search, ListChecks } from "lucide-react";
+import { ChevronRight, Pencil, Power, Search, ListChecks } from "lucide-react";
 import { Navigation } from "@/components/Layout/Navigation";
+import { PageHeader } from "@/components/Layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -54,29 +55,17 @@ const MyHabits = () => {
   return (
     <div className="min-h-screen pb-24">
       <Navigation />
-      <main className="max-w-2xl mx-auto px-4 pt-6 space-y-5">
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-9 w-9"
-            onClick={() => navigate(-1)}
-            aria-label={isPT ? "Voltar" : "Back"}
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
-              <ListChecks className="h-5 w-5 text-primary" />
-              {isPT ? "Meus hábitos" : "My habits"}
-            </h1>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {counts.all} {counts.all === 1
-                ? isPT ? "hábito no total" : "habit in total"
-                : isPT ? "hábitos no total" : "habits in total"}
-            </p>
-          </div>
-        </div>
+      <main className="max-w-2xl mx-auto px-4 pt-6">
+        <PageHeader
+          title={isPT ? "Meus hábitos" : "My habits"}
+          subtitle={`${counts.all} ${counts.all === 1
+            ? isPT ? "hábito no total" : "habit in total"
+            : isPT ? "hábitos no total" : "habits in total"}`}
+          icon={ListChecks}
+          backTo
+          backLabel={isPT ? "Voltar" : "Back"}
+        />
+        <div className="space-y-5">
 
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -176,6 +165,7 @@ const MyHabits = () => {
             ))}
           </ul>
         )}
+        </div>
       </main>
     </div>
   );
