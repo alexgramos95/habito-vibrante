@@ -120,13 +120,28 @@ serve(async (req) => {
         throw new Error("Invalid input: data is required for upload");
       }
       if (action === 'materialize_onboarding' && parseResult.data.profile?.language) {
-        const { error: profileUpdateError } = await supabaseClient
+        const { data: existingProfile, error: profileFetchError } = await supabaseClient
           .from('profiles')
-          .update({
-            language: parseResult.data.profile.language,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('user_id', user.id);
+          .select('id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        if (profileFetchError) throw new Error(`Profile fetch failed: ${profileFetchError.message}`);
+
+        const profilePayload = {
+          user_id: user.id,
+          display_name: user.user_metadata?.display_name ?? null,
+          language: parseResult.data.profile.language,
+          updated_at: new Date().toISOString(),
+        };
+        const profileQuery = existingProfile
+          ? supabaseClient
+          .from('profiles')
+              .update({ language: profilePayload.language, updated_at: profilePayload.updated_at })
+              .eq('id', existingProfile.id)
+          : supabaseClient
+              .from('profiles')
+              .insert(profilePayload);
+        const { error: profileUpdateError } = await profileQuery;
         if (profileUpdateError) throw new Error(`Profile update failed: ${profileUpdateError.message}`);
       }
       
