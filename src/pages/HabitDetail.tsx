@@ -29,7 +29,7 @@ function getCoachTips(params: {
     if (currentStreak >= 21) tips.push("Isto já faz parte de quem és. A identidade constrói-se com repetição.");
     else if (currentStreak >= 7) tips.push(`${currentStreak} dias seguidos — o teu cérebro está a formar uma via neural dedicada a isto.`);
     if (rate7 >= 80) tips.push("Consistência forte esta semana. Estás a construir identidade, não apenas hábitos.");
-    if (currentStreak > 0 && currentStreak === bestStreak) tips.push("🏆 Estás no teu melhor streak de sempre! Não pares agora.");
+    if (currentStreak > 0 && currentStreak === bestStreak) tips.push("É a tua melhor sequência até hoje. Reconhece o que foi preciso para chegar aqui.");
     if (tips.length === 0) tips.push("Feito! Cada repetição conta mais do que parece.");
   } else {
     if (rate7 < 30) {
@@ -319,9 +319,9 @@ const HabitDetail = () => {
               <div className="flex items-center gap-1 text-2xl font-bold text-foreground">
                 <Flame className="h-5 w-5 text-primary" /> {stats.currentStreak}
               </div>
-              <span className="text-xs text-muted-foreground">Streak</span>
+              <span className="text-xs text-muted-foreground">{locale === 'pt-PT' ? 'Sequência' : 'Streak'}</span>
             </div>
-            <ProgressRing percent={stats.completionRate30d * 100} label="30 dias" />
+            <ProgressRing percent={stats.completionRate30d * 100} label={locale === 'pt-PT' ? '30 dias' : '30 days'} />
           </div>
         </div>
 
@@ -341,7 +341,7 @@ const HabitDetail = () => {
           </div>
           <div className="rounded-xl border border-border/40 bg-card/60 p-4 text-center">
             <p className="text-2xl font-bold text-foreground">{stats.bestStreak}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Melhor streak</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{locale === 'pt-PT' ? 'Melhor sequência' : 'Best streak'}</p>
           </div>
           {isMetric && (
             <>
