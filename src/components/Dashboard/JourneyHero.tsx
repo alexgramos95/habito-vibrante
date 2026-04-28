@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { format, differenceInCalendarDays, subDays, getDay, parseISO } from "date-fns";
-import { Flame, Sparkles, Target, TrendingUp, Trophy, ChevronRight } from "lucide-react";
+import { Flame, Sparkles, Target, TrendingUp, Trophy, ChevronRight, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { AppState, Habit } from "@/data/types";
 import { track } from "@/hooks/useAnalytics";
+import { ShareCard } from "@/components/Referral/ShareCard";
 
 const JOURNEY_KEY = "become-journey-start";
 const RECAP_KEY = "become-week1-recap-seen";
