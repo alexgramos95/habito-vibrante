@@ -23,6 +23,7 @@ export const ONBOARDING_DATA_KEY = "become-onboarding-data";
 export const ONBOARDING_DRAFT_MIRROR_KEY = "become-onboarding-draft"; // purge-immune
 export const ONBOARDING_DRAFT_TS_KEY = "become-onboarding-draft-ts"; // time-to-ready
 export const ONBOARDING_MATERIALIZED_PREFIX = "become-onboarding-materialized-";
+export const ONBOARDING_MATERIALIZING_PREFIX = "become-onboarding-materializing-";
 
 export interface OnboardingDraft {
   improvementAreas?: string[];
@@ -121,6 +122,33 @@ export const isMaterialized = (userId: string): boolean => {
 export const markMaterialized = (userId: string): void => {
   try {
     localStorage.setItem(getMaterializedKey(userId), "true");
+  } catch {
+    /* ignore */
+  }
+};
+
+export const getMaterializingKey = (userId: string): string =>
+  `${ONBOARDING_MATERIALIZING_PREFIX}${userId}`;
+
+export const isMaterializing = (userId: string): boolean => {
+  try {
+    return localStorage.getItem(getMaterializingKey(userId)) === "true";
+  } catch {
+    return false;
+  }
+};
+
+export const markMaterializing = (userId: string): void => {
+  try {
+    localStorage.setItem(getMaterializingKey(userId), "true");
+  } catch {
+    /* ignore */
+  }
+};
+
+export const clearMaterializing = (userId: string): void => {
+  try {
+    localStorage.removeItem(getMaterializingKey(userId));
   } catch {
     /* ignore */
   }
