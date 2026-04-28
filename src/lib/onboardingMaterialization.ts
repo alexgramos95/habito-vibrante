@@ -201,11 +201,11 @@ export const runOnboardingMaterialization = async ({
     }
 
     saveState(confirmedState);
+    const ageMs = consumeOnboardingDraftAgeMs();
     markMaterialized(userId);
     clearOnboardingDraft();
     clearMaterializing(userId);
 
-    const ageMs = consumeOnboardingDraftAgeMs();
     track("onboarding_materialization_success", { userId: userId.slice(0, 8), created, duplicatePrevented });
     track("onboarding_materialized_success", { userId: userId.slice(0, 8), habitsCreated: created, trackersCreated: 0 });
     if (ageMs !== null) track("time_to_first_dashboard_ready", { ms: ageMs });
