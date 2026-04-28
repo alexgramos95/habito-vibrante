@@ -110,6 +110,16 @@ const IDENTITY_TO_VECTORS: Record<string, string[]> = {
   consistent: ["Consistent", "Calm"],
 };
 
+/** Dynamic identity tagline — drives emotional buy-in on the final screen. */
+const IDENTITY_TAGLINE: Record<string, string> = {
+  disciplined: "Built for disciplined people.",
+  healthier: "Built for stronger bodies.",
+  stronger: "Built for steadier minds.",
+  organized: "Built for clear-headed money.",
+  productive: "Built for ambitious growth.",
+  consistent: "Built for stronger routines.",
+};
+
 /* =============================================================
    COMPONENT
    ============================================================= */
@@ -155,6 +165,21 @@ const Onboarding = () => {
     return out.slice(0, 6);
   }, [focus]);
 
+  /* Preselect first suggested habit so user never lands on commit empty-handed */
+  const ensureDefaultHabit = (list: typeof suggestedHabits) => {
+    setHabits((prev) => (prev.length === 0 && list[0] ? [list[0].id] : prev));
+  };
+
+  /* Auto-advance after a single-select tap (saves a tap on identity & obstacle) */
+  const pickIdentity = (id: string) => {
+    setIdentity(id);
+    window.setTimeout(() => setStep("obstacle"), 220);
+  };
+  const pickObstacle = (id: string) => {
+    setObstacle(id);
+    window.setTimeout(() => setStep("focus"), 220);
+  };
+
   const toggleFocus = (id: string) => {
     setFocus((prev) =>
       prev.includes(id) ? prev.filter((f) => f !== id) : prev.length < 2 ? [...prev, id] : prev,
@@ -174,11 +199,15 @@ const Onboarding = () => {
     () => focus.map((f) => FOCUS_OPTIONS.find((o) => o.id === f)?.label).filter(Boolean) as string[],
     [focus],
   );
+  const tagline = identity
+    ? IDENTITY_TAGLINE[identity] ?? "Built for the person you're becoming."
+    : "Built for the person you're becoming.";
 
   const handleComplete = () => {
-    // Build habits payload
+    // Build habits payload — fall back to first suggestion so user lands with momentum
+    const finalHabitIds = habits.length > 0 ? habits : suggestedHabits[0] ? [suggestedHabits[0].id] : [];
     const habitsToCreate = suggestedHabits
-      .filter((h) => habits.includes(h.id))
+      .filter((h) => finalHabitIds.includes(h.id))
       .map((preset) => ({
         nome: preset.name,
         categoria: preset.category,
@@ -190,19 +219,22 @@ const Onboarding = () => {
     const identityVectors = identity ? IDENTITY_TO_VECTORS[identity] ?? [identityLabel] : [];
 
     const payload = {
-      improvementAreas: focus, // focus areas
+      improvementAreas: focus,
       identityVectors,
-      selectedPresets: habits.map((id) => `habit-${id}`),
+      selectedPresets: finalHabitIds.map((id) => `habit-${id}`),
       identityChoice: identity,
       obstacle,
+      tagline,
       habitsToCreate,
-      trackersToCreate: [], // none from new flow
+      trackersToCreate: [],
     };
 
     try {
       localStorage.setItem("become-onboarding-data", JSON.stringify(payload));
       localStorage.setItem("become-onboarding-complete", "true");
       localStorage.setItem("itero-onboarding-complete", "true");
+      // First-session flag for activation banner / scroll-to-first-habit
+      localStorage.setItem("become-first-session", "1");
     } catch {
       /* ignore */
     }
@@ -210,10 +242,10 @@ const Onboarding = () => {
     completeOnboarding({
       improvementAreas: focus,
       identityVectors,
-      selectedPresets: habits.map((id) => `habit-${id}`),
+      selectedPresets: finalHabitIds.map((id) => `habit-${id}`),
     });
 
-    navigate("/auth?next=trial");
+    navigate("/auth?next=trial&firstSession=1");
   };
 
   /* ---------- shared layout chrome ---------- */
@@ -270,12 +302,12 @@ const Onboarding = () => {
       <main className="relative z-10 flex-1 flex flex-col px-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)]">
         <div className="max-w-md w-full mx-auto flex-1 flex flex-col">
           {step === "identity" && (
-            <StepIdentity value={identity} onChange={setIdentity} onContinue={goNext} />
+            <StepIdentity value={identity} onChange={pickIdentity} />
           )}
           {step === "obstacle" && (
-            <StepObstacle value={obstacle} onChange={setObstacle} onContinue={goNext} />
+            <StepObstacle value={obstacle} onChange={pickObstacle} />
           )}
-          {step === "focus" && <StepFocus value={focus} onToggle={toggleFocus} onContinue={goNext} />}
+          {step === "focus" && <StepFocus value={focus} onToggle={toggleFocus} onContinue={() => { ensureDefaultHabit(suggestedHabits); goNext(); }} />}
           {step === "first-win" && (
             <StepFirstWin
               suggestions={suggestedHabits}
@@ -289,6 +321,10 @@ const Onboarding = () => {
               identityLabel={identityLabel}
               focusLabels={focusLabels}
               habitCount={habits.length}
+              firstHabitName={
+                (suggestedHabits.find((h) => habits.includes(h.id)) || suggestedHabits[0])?.name ?? "Your first habit"
+              }
+              tagline={tagline}
               onStart={handleComplete}
             />
           )}
@@ -305,25 +341,23 @@ const Onboarding = () => {
 const StepIdentity = ({
   value,
   onChange,
-  onContinue,
 }: {
   value: string | null;
   onChange: (id: string) => void;
-  onContinue: () => void;
 }) => (
-  <div className="flex-1 flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-500">
-    <div className="text-center pt-4 pb-7">
+  <div className="flex-1 flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-300">
+    <div className="text-center pt-4 pb-6">
       <p className="font-mono text-[10px] uppercase tracking-widest text-primary mb-3">
-        // Step 1 · Identity
+        // Identity
       </p>
-      <h1 className="type-display text-3xl sm:text-4xl mb-3 leading-tight">
+      <h1 className="type-display text-3xl sm:text-4xl mb-2 leading-tight">
         Who do you want<br />to become?
       </h1>
-      <p className="text-sm text-muted-foreground/85">Pick the version of you that matters most.</p>
+      <p className="text-sm text-muted-foreground/80">Pick one. Tap to continue.</p>
     </div>
 
     <div className="grid gap-2.5 mb-6">
-      {IDENTITY_OPTIONS.map((opt, i) => {
+      {IDENTITY_OPTIONS.map((opt) => {
         const Icon = opt.icon;
         const selected = value === opt.id;
         return (
@@ -331,19 +365,18 @@ const StepIdentity = ({
             key={opt.id}
             onClick={() => onChange(opt.id)}
             className={cn(
-              "group flex items-center gap-4 p-4 text-left border-2 transition-all duration-200 active:scale-[0.985] min-h-[64px]",
+              "group flex items-center gap-4 p-4 text-left border-2 transition-all duration-150 active:scale-[0.985] min-h-[64px]",
               selected
-                ? "border-primary bg-primary/[0.08] shadow-[0_0_24px_hsl(var(--neon-toxic)/0.25)]"
-                : "border-foreground/10 hover:border-foreground/25 bg-foreground/[0.015]",
+                ? "border-primary bg-primary/[0.10] shadow-[0_0_28px_hsl(var(--neon-toxic)/0.3)]"
+                : "border-foreground/10 hover:border-foreground/30 bg-foreground/[0.015]",
             )}
-            style={{ animationDelay: `${i * 40}ms` }}
           >
             <div
               className={cn(
-                "h-11 w-11 shrink-0 flex items-center justify-center border transition-all duration-200",
+                "h-11 w-11 shrink-0 flex items-center justify-center border transition-all duration-150",
                 selected
                   ? "border-primary bg-primary/15"
-                  : "border-foreground/10 bg-foreground/[0.03] group-hover:border-foreground/25",
+                  : "border-foreground/10 bg-foreground/[0.03] group-hover:border-foreground/30",
               )}
             >
               <Icon className={cn("h-5 w-5", selected ? "text-primary" : "text-muted-foreground")} />
@@ -352,17 +385,13 @@ const StepIdentity = ({
               <p className={cn("text-base font-bold tracking-tight", selected && "text-primary")}>
                 {opt.label}
               </p>
-              <p className="text-xs text-muted-foreground/80 mt-0.5">{opt.desc}</p>
+              <p className="text-xs text-muted-foreground/75 mt-0.5">{opt.desc}</p>
             </div>
-            {selected && (
-              <Check className="h-5 w-5 text-primary shrink-0 animate-completion-pop" />
-            )}
+            {selected && <Check className="h-5 w-5 text-primary shrink-0 animate-completion-pop" />}
           </button>
         );
       })}
     </div>
-
-    <ContinueBar disabled={!value} onClick={onContinue} />
   </div>
 );
 
@@ -373,21 +402,19 @@ const StepIdentity = ({
 const StepObstacle = ({
   value,
   onChange,
-  onContinue,
 }: {
   value: string | null;
   onChange: (id: string) => void;
-  onContinue: () => void;
 }) => (
-  <div className="flex-1 flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-500">
-    <div className="text-center pt-4 pb-7">
+  <div className="flex-1 flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-300">
+    <div className="text-center pt-4 pb-6">
       <p className="font-mono text-[10px] uppercase tracking-widest text-primary mb-3">
-        // Step 2 · Honest check
+        // Honest check
       </p>
-      <h1 className="type-display text-3xl sm:text-4xl mb-3 leading-tight">
-        What usually<br />gets in your way?
+      <h1 className="type-display text-3xl sm:text-4xl mb-2 leading-tight">
+        What gets<br />in your way?
       </h1>
-      <p className="text-sm text-muted-foreground/85">No judgment. We design around it.</p>
+      <p className="text-sm text-muted-foreground/80">We design around it.</p>
     </div>
 
     <div className="grid gap-2.5 mb-6">
@@ -398,10 +425,10 @@ const StepObstacle = ({
             key={opt.id}
             onClick={() => onChange(opt.id)}
             className={cn(
-              "flex items-center justify-between gap-3 p-4 border-2 text-left transition-all duration-200 active:scale-[0.985] min-h-[60px]",
+              "flex items-center justify-between gap-3 p-4 border-2 text-left transition-all duration-150 active:scale-[0.985] min-h-[60px]",
               selected
-                ? "border-primary bg-primary/[0.08] shadow-[0_0_24px_hsl(var(--neon-toxic)/0.22)]"
-                : "border-foreground/10 hover:border-foreground/25 bg-foreground/[0.015]",
+                ? "border-primary bg-primary/[0.10] shadow-[0_0_28px_hsl(var(--neon-toxic)/0.28)]"
+                : "border-foreground/10 hover:border-foreground/30 bg-foreground/[0.015]",
             )}
           >
             <span className={cn("text-base font-semibold tracking-tight", selected && "text-primary")}>
@@ -416,8 +443,6 @@ const StepObstacle = ({
         );
       })}
     </div>
-
-    <ContinueBar disabled={!value} onClick={onContinue} />
   </div>
 );
 
@@ -562,86 +587,123 @@ const StepFirstWin = ({
 );
 
 /* =============================================================
-   STEP 5 — Commitment
+   STEP 5 — System Online (high-energy activation)
    ============================================================= */
 
 const StepCommit = ({
   identityLabel,
   focusLabels,
   habitCount,
+  firstHabitName,
+  tagline,
   onStart,
 }: {
   identityLabel: string;
   focusLabels: string[];
   habitCount: number;
+  firstHabitName: string;
+  tagline: string;
   onStart: () => void;
-}) => (
-  <div className="flex-1 flex flex-col animate-in fade-in zoom-in-95 duration-500">
-    <div className="flex-1 flex flex-col items-center justify-center text-center pt-6 pb-8">
-      <div
-        className="mb-7 h-16 w-16 flex items-center justify-center bg-primary text-primary-foreground border-2 border-primary shadow-[0_0_40px_hsl(var(--neon-toxic)/0.55)]"
-        style={{ animation: "float 4s ease-in-out infinite" }}
-      >
-        <Flame className="h-7 w-7" />
+}) => {
+  const stats = [
+    { label: "First streak", value: "Active", icon: Flame },
+    { label: "Level", value: "01", icon: Sparkles },
+    { label: "First habit", value: "Ready", icon: Check },
+    { label: "Momentum", value: "Today", icon: Zap },
+  ];
+
+  return (
+    <div className="flex-1 flex flex-col animate-in fade-in zoom-in-95 duration-500">
+      <div className="flex-1 flex flex-col items-center text-center pt-4 pb-6">
+        {/* Pulse beacon */}
+        <div className="relative mb-6">
+          <div
+            className="absolute inset-0 -m-3 rounded-full bg-primary/20 blur-2xl animate-pulse"
+            aria-hidden
+          />
+          <div
+            className="relative h-16 w-16 flex items-center justify-center bg-primary text-primary-foreground border-2 border-primary shadow-[0_0_50px_hsl(var(--neon-toxic)/0.7)]"
+            style={{ animation: "float 4s ease-in-out infinite" }}
+          >
+            <Flame className="h-7 w-7" />
+          </div>
+        </div>
+
+        <p className="font-mono text-[10px] uppercase tracking-widest text-primary mb-3">
+          // System online
+        </p>
+        <h1 className="type-display text-3xl sm:text-4xl mb-3 leading-tight">
+          Your new system<br />
+          <span className="text-primary" style={{ textShadow: "0 0 40px hsl(var(--neon-toxic) / 0.6)" }}>
+            starts now.
+          </span>
+        </h1>
+        <p className="text-sm text-muted-foreground/85 max-w-[32ch] italic">
+          {tagline}
+        </p>
+
+        {/* Activation grid */}
+        <div className="w-full mt-7 grid grid-cols-2 gap-px bg-foreground/10 border border-foreground/10">
+          {stats.map((s, i) => (
+            <div
+              key={s.label}
+              className="bg-background p-4 flex flex-col items-start gap-2 animate-in fade-in slide-in-from-bottom-1"
+              style={{ animationDelay: `${120 + i * 90}ms`, animationFillMode: "both" }}
+            >
+              <s.icon className="h-4 w-4 text-primary" />
+              <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">
+                {s.label}
+              </p>
+              <p className="text-base font-black italic uppercase tracking-tight text-foreground">
+                {s.value}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {/* First habit teaser */}
+        <div
+          className="w-full mt-4 border-2 border-primary/40 bg-primary/[0.06] p-4 text-left flex items-center gap-3 animate-in fade-in slide-in-from-bottom-1"
+          style={{ animationDelay: "520ms", animationFillMode: "both" }}
+        >
+          <div className="h-9 w-9 shrink-0 border-2 border-primary bg-primary/15 flex items-center justify-center">
+            <Flame className="h-4 w-4 text-primary" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-mono text-[9px] uppercase tracking-widest text-primary mb-0.5">
+              Up next · Today
+            </p>
+            <p className="text-sm font-bold tracking-tight truncate">{firstHabitName}</p>
+          </div>
+          <ArrowRight className="h-4 w-4 text-primary shrink-0" />
+        </div>
       </div>
-      <p className="font-mono text-[10px] uppercase tracking-widest text-primary mb-4">
-        // Commitment
-      </p>
-      <h1 className="type-display text-3xl sm:text-4xl mb-4 leading-tight">
-        Small actions.<br />
-        <span className="text-primary" style={{ textShadow: "0 0 40px hsl(var(--neon-toxic) / 0.55)" }}>
-          New identity.
-        </span>
-      </h1>
-      <p className="text-sm text-muted-foreground/85 max-w-[34ch]">
-        This is how everything changes. Quietly. Daily.
-      </p>
 
-      {/* Summary card */}
-      <div className="w-full mt-8 border-2 border-foreground/10 bg-foreground/[0.02] p-5 text-left space-y-4">
-        <SummaryRow label="You're becoming" value={identityLabel || "—"} />
-        <SummaryRow
-          label="First focus"
-          value={focusLabels.length ? focusLabels.join(" + ") : "Habits"}
-        />
-        <SummaryRow
-          label="First habits"
-          value={habitCount > 0 ? `${habitCount} ready to go` : "We'll suggest one"}
-        />
+      <div className="space-y-2 pb-2">
+        <Button
+          size="lg"
+          onClick={onStart}
+          className="press-tactile w-full h-14 text-base font-bold gap-2 shadow-[0_0_44px_hsl(var(--neon-toxic)/0.55)] hover:shadow-[0_0_64px_hsl(var(--neon-toxic)/0.8)] hover:scale-[1.02] transition-all duration-300"
+        >
+          Enter Become
+          <ArrowRight className="h-5 w-5" />
+        </Button>
+        <p className="text-center text-[11px] font-mono uppercase tracking-widest text-muted-foreground/60">
+          7 days free · No card · Cancel anytime
+        </p>
       </div>
-    </div>
 
-    <div className="space-y-3 pb-2">
-      <Button
-        size="lg"
-        onClick={onStart}
-        className="press-tactile w-full h-14 text-base font-bold gap-2 shadow-[0_0_40px_hsl(var(--neon-toxic)/0.5)] hover:shadow-[0_0_60px_hsl(var(--neon-toxic)/0.75)] hover:scale-[1.02] transition-all duration-300"
-      >
-        Start My Journey
-        <ArrowRight className="h-5 w-5" />
-      </Button>
-      <p className="text-center text-[11px] font-mono uppercase tracking-widest text-muted-foreground/60">
-        7 days free · No card · Cancel anytime
-      </p>
+      <style>{`
+        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+        @media (prefers-reduced-motion: reduce){ [style*="animation: float"]{animation:none!important} }
+      `}</style>
     </div>
-
-    <style>{`
-      @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
-      @media (prefers-reduced-motion: reduce){ [style*="animation: float"]{animation:none!important} }
-    `}</style>
-  </div>
-);
+  );
+};
 
 /* =============================================================
    Shared bits
    ============================================================= */
-
-const SummaryRow = ({ label, value }: { label: string; value: string }) => (
-  <div className="flex items-center justify-between gap-4">
-    <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">{label}</p>
-    <p className="text-sm font-bold tracking-tight text-right">{value}</p>
-  </div>
-);
 
 const ContinueBar = ({
   onClick,
