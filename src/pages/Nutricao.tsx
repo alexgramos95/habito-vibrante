@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n/I18nContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Navigation } from "@/components/Layout/Navigation";
+import { PageHeader } from "@/components/Layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

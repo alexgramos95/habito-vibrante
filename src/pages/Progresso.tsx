@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { Star, Trophy, Medal, Target, PiggyBank, Plus, Trash2, TrendingUp, Flame, Sparkles } from "lucide-react";
 import { format, subDays } from "date-fns";
 import { Navigation } from "@/components/Layout/Navigation";
+import { PageHeader } from "@/components/Layout/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";

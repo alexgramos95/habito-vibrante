@@ -6,6 +6,7 @@ import { useI18n } from "@/i18n/I18nContext";
 import { localeNames, currencyNames, type Locale, type Currency } from "@/i18n";
 import { resetMonth } from "@/data/storage";
 import { Navigation } from "@/components/Layout/Navigation";
+import { PageHeader } from "@/components/Layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";

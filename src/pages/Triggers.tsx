@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Bell, Clock, Zap, Plus, Trash2, Power, Link2, Edit2, Check, X } from "lucide-react";
 import { Navigation } from "@/components/Layout/Navigation";
+import { PageHeader } from "@/components/Layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
