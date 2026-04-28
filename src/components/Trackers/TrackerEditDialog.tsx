@@ -20,7 +20,7 @@ interface TrackerEditDialogProps {
   onDelete?: () => void;
 }
 
-const WEEKDAYS = [
+const WEEKDAYS_EN = [
   { value: 0, label: "Sun" },
   { value: 1, label: "Mon" },
   { value: 2, label: "Tue" },
@@ -28,6 +28,16 @@ const WEEKDAYS = [
   { value: 4, label: "Thu" },
   { value: 5, label: "Fri" },
   { value: 6, label: "Sat" },
+];
+
+const WEEKDAYS_PT = [
+  { value: 0, label: "Dom" },
+  { value: 1, label: "Seg" },
+  { value: 2, label: "Ter" },
+  { value: 3, label: "Qua" },
+  { value: 4, label: "Qui" },
+  { value: 5, label: "Sex" },
+  { value: 6, label: "Sáb" },
 ];
 
 const TRACKER_ICONS = ["🎯", "📊", "💪", "🏃", "💧", "🧘", "📚", "☕", "🍺", "💊", "⏰", "🍎", "💰", "🛒", "😴"];
