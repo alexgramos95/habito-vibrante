@@ -104,28 +104,69 @@ serve(async (req) => {
         case "checkout.session.completed": {
           const session = event.data.object as Stripe.Checkout.Session;
           await handleCheckoutCompleted(supabaseClient, stripe, session);
+          await logRevenueEvent(supabaseClient, stripe, event, {
+            eventType: "checkout_completed",
+            customerId: session.customer as string | null,
+            amountCents: session.amount_total ?? null,
+            currency: session.currency ?? "eur",
+            status: session.payment_status ?? null,
+            clientReferenceId: session.client_reference_id,
+            metadata: session.metadata as Record<string, string> | null,
+            customerEmail: session.customer_email || session.customer_details?.email,
+          });
           break;
         }
         case "customer.subscription.created":
         case "customer.subscription.updated": {
           const subscription = event.data.object as Stripe.Subscription;
           await handleSubscriptionUpdate(supabaseClient, stripe, subscription);
+          await logRevenueEvent(supabaseClient, stripe, event, {
+            eventType: event.type === "customer.subscription.created" ? "subscription_created" : "subscription_updated",
+            customerId: subscription.customer as string,
+            amountCents: subscription.items.data[0]?.price?.unit_amount ?? null,
+            currency: subscription.currency ?? "eur",
+            status: subscription.status,
+            plan: subscription.items.data[0]?.price?.id ? PRICE_TO_PLAN[subscription.items.data[0].price.id] : null,
+            metadata: subscription.metadata as Record<string, string> | null,
+          });
           break;
         }
         case "customer.subscription.deleted": {
           const subscription = event.data.object as Stripe.Subscription;
           await handleSubscriptionDeleted(supabaseClient, stripe, subscription);
+          await logRevenueEvent(supabaseClient, stripe, event, {
+            eventType: "subscription_canceled",
+            customerId: subscription.customer as string,
+            currency: subscription.currency ?? "eur",
+            status: "canceled",
+            plan: subscription.items.data[0]?.price?.id ? PRICE_TO_PLAN[subscription.items.data[0].price.id] : null,
+            metadata: subscription.metadata as Record<string, string> | null,
+          });
           break;
         }
         case "invoice.paid":
         case "invoice.payment_succeeded": {
           const invoice = event.data.object as Stripe.Invoice;
           await handleInvoicePaid(supabaseClient, stripe, invoice);
+          await logRevenueEvent(supabaseClient, stripe, event, {
+            eventType: "invoice_paid",
+            customerId: invoice.customer as string,
+            amountCents: invoice.amount_paid ?? invoice.total ?? null,
+            currency: invoice.currency ?? "eur",
+            status: invoice.status ?? "paid",
+          });
           break;
         }
         case "invoice.payment_failed": {
           const invoice = event.data.object as Stripe.Invoice;
           await handlePaymentFailed(supabaseClient, stripe, invoice);
+          await logRevenueEvent(supabaseClient, stripe, event, {
+            eventType: "invoice_payment_failed",
+            customerId: invoice.customer as string,
+            amountCents: invoice.amount_due ?? null,
+            currency: invoice.currency ?? "eur",
+            status: "failed",
+          });
           break;
         }
         case "payment_intent.succeeded": {
@@ -488,5 +529,50 @@ async function upsertSubscription(supabase: any, userId: string, customerId: str
     logStep("ERROR upserting subscription", { error: error.message });
   } else {
     logStep("Subscription upserted successfully", { userId, plan, status });
+  }
+}
+
+// ---------- Revenue analytics ----------
+// deno-lint-ignore no-explicit-any
+async function logRevenueEvent(
+  supabase: any,
+  stripe: Stripe,
+  event: Stripe.Event,
+  opts: {
+    eventType: string;
+    customerId?: string | null;
+    amountCents?: number | null;
+    currency?: string | null;
+    status?: string | null;
+    plan?: string | null;
+    clientReferenceId?: string | null;
+    metadata?: Record<string, string> | null;
+    customerEmail?: string | null;
+  },
+) {
+  try {
+    const userId = await resolveUserId(supabase, stripe, {
+      clientReferenceId: opts.clientReferenceId ?? null,
+      metadata: opts.metadata ?? null,
+      customerId: opts.customerId ?? null,
+      customerEmail: opts.customerEmail ?? null,
+    });
+
+    const { error } = await supabase.from("revenue_events").insert({
+      stripe_event_id: event.id,
+      stripe_customer_id: opts.customerId ?? null,
+      event_type: opts.eventType,
+      amount_cents: opts.amountCents ?? null,
+      currency: (opts.currency || "eur").toLowerCase(),
+      status: opts.status ?? null,
+      plan: opts.plan ?? null,
+      user_id: userId,
+      occurred_at: new Date(event.created * 1000).toISOString(),
+      raw: { type: event.type, id: event.id },
+    });
+    if (error) logStep("ERROR inserting revenue_event", { error: error.message });
+  } catch (e) {
+    const m = e instanceof Error ? e.message : String(e);
+    logStep("ERROR logRevenueEvent", { error: m });
   }
 }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Crown, Check, RefreshCw, LogIn, Shield, Sparkles } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import {
   type PlanType 
 } from "@/config/billing";
 import { PAYWALL_COPY, UPGRADE_COPY } from "@/config/copy";
+import { track } from "@/lib/analytics";
 
 interface PaywallModalProps {
   open: boolean;
@@ -45,7 +46,11 @@ export const PaywallModal = ({
 
   const lang = forceLang ?? (locale === "pt-PT" ? "pt" : "en");
   const isPT = lang === "pt";
-  
+
+  useEffect(() => {
+    if (open) void track('paywall_view', { trigger: trigger || null, trialDaysLeft });
+  }, [open, trigger, trialDaysLeft]);
+
   // Use centralized copy
   const headline = PAYWALL_COPY.headline[lang];
   const subheadline = PAYWALL_COPY.subheadline[lang];
@@ -63,6 +68,7 @@ export const PaywallModal = ({
 
     setLoading(true);
     try {
+      void track('checkout_started', { plan: selectedPlan, trigger: trigger || null });
       const { data, error } = await supabase.functions.invoke("create-checkout", {
         body: { priceType: selectedPlan },
         headers: {
@@ -73,6 +79,7 @@ export const PaywallModal = ({
       if (error) throw error;
 
       if (data?.url) {
+        void track('checkout_redirect', { plan: selectedPlan });
         window.open(data.url, "_blank");
         toast({
           title: isPT ? "Checkout aberto" : "Checkout opened",
