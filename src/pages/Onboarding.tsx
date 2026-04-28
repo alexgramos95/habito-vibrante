@@ -285,7 +285,7 @@ const Onboarding = () => {
   const identityLabel = useMemo(
     () => {
       const opt = IDENTITY_OPTIONS.find((o) => o.id === identity);
-      return opt ? pick(opt.label, UI_LOCALE) : "";
+      return opt ? pick(opt.label, accountLocale) : "";
     },
     [identity],
   );
@@ -293,12 +293,12 @@ const Onboarding = () => {
     () => focus
       .map((f) => FOCUS_OPTIONS.find((o) => o.id === f))
       .filter(Boolean)
-      .map((o) => pick(o!.label, UI_LOCALE)),
+      .map((o) => pick(o!.label, accountLocale)),
     [focus],
   );
   const tagline = identity
-    ? pick(IDENTITY_TAGLINE[identity] ?? UI.taglineFallback, UI_LOCALE)
-    : pick(UI.taglineFallback, UI_LOCALE);
+    ? pick(IDENTITY_TAGLINE[identity] ?? UI.taglineFallback, accountLocale)
+    : pick(UI.taglineFallback, accountLocale);
 
   const handleComplete = () => {
     // Habits payload — localized names
@@ -407,7 +407,7 @@ const Onboarding = () => {
     customHabit.trim() ||
     (() => {
       const preset = suggestedHabits.find((h) => habits.includes(h.id)) || suggestedHabits[0];
-      return preset ? pick(preset.name, UI_LOCALE) : pick(UI.yourFirstHabit, UI_LOCALE);
+      return preset ? pick(preset.name, accountLocale) : pick(UI.yourFirstHabit, accountLocale);
     })();
 
   return (
@@ -431,7 +431,7 @@ const Onboarding = () => {
                 ? "opacity-0 pointer-events-none"
                 : "text-muted-foreground hover:text-foreground hover:bg-foreground/5 active:scale-95",
             )}
-            aria-label={pick(UI.back, UI_LOCALE)}
+            aria-label={pick(UI.back, accountLocale)}
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
@@ -462,14 +462,14 @@ const Onboarding = () => {
             <StepLanguage value={accountLocale} onChange={pickLanguage} />
           )}
           {step === "identity" && (
-            <StepIdentity locale={UI_LOCALE} value={identity} onChange={pickIdentity} />
+            <StepIdentity locale={accountLocale} value={identity} onChange={pickIdentity} />
           )}
           {step === "obstacle" && (
-            <StepObstacle locale={UI_LOCALE} value={obstacle} onChange={pickObstacle} />
+            <StepObstacle locale={accountLocale} value={obstacle} onChange={pickObstacle} />
           )}
           {step === "focus" && (
             <StepFocus
-              locale={UI_LOCALE}
+              locale={accountLocale}
               value={focus}
               onToggle={toggleFocus}
               onContinue={() => {
@@ -480,7 +480,7 @@ const Onboarding = () => {
           )}
           {step === "first-win" && (
             <StepFirstWin
-              locale={UI_LOCALE}
+              locale={accountLocale}
               suggestions={suggestedHabits}
               selected={habits}
               onToggle={toggleHabit}
@@ -491,7 +491,7 @@ const Onboarding = () => {
           )}
           {step === "metric" && (
             <StepMetric
-              locale={UI_LOCALE}
+              locale={accountLocale}
               selected={metrics}
               onToggle={toggleMetric}
               customValue={customMetric}
@@ -501,7 +501,7 @@ const Onboarding = () => {
           )}
           {step === "commit" && (
             <StepCommit
-              locale={UI_LOCALE}
+              locale={accountLocale}
               identityLabel={identityLabel}
               focusLabels={focusLabels}
               habitCount={habits.length + (customHabit.trim() ? 1 : 0)}
