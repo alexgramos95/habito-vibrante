@@ -287,20 +287,20 @@ const Onboarding = () => {
   const identityLabel = useMemo(
     () => {
       const opt = IDENTITY_OPTIONS.find((o) => o.id === identity);
-      return opt ? pick(opt.label, locale) : "";
+      return opt ? pick(opt.label, UI_LOCALE) : "";
     },
-    [identity, locale],
+    [identity],
   );
   const focusLabels = useMemo(
     () => focus
       .map((f) => FOCUS_OPTIONS.find((o) => o.id === f))
       .filter(Boolean)
-      .map((o) => pick(o!.label, locale)),
-    [focus, locale],
+      .map((o) => pick(o!.label, UI_LOCALE)),
+    [focus],
   );
   const tagline = identity
-    ? pick(IDENTITY_TAGLINE[identity] ?? UI.taglineFallback, locale)
-    : pick(UI.taglineFallback, locale);
+    ? pick(IDENTITY_TAGLINE[identity] ?? UI.taglineFallback, UI_LOCALE)
+    : pick(UI.taglineFallback, UI_LOCALE);
 
   const handleComplete = () => {
     // Habits payload — localized names
