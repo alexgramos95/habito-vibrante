@@ -302,12 +302,37 @@ export const JourneyHero = ({
               </p>
             </div>
 
-            <Button onClick={dismissRecap} className="mt-5 w-full rounded-xl" size="lg">
-              {isPT ? "Continuar a jornada" : "Continue the journey"}
-            </Button>
+            <div className="mt-5 grid grid-cols-2 gap-2">
+              <Button
+                onClick={() => setShowShareCard(true)}
+                variant="outline"
+                className="w-full rounded-xl gap-1.5"
+                size="lg"
+              >
+                <Share2 className="h-4 w-4" />
+                {isPT ? "Partilhar" : "Share progress"}
+              </Button>
+              <Button onClick={dismissRecap} className="w-full rounded-xl" size="lg">
+                {isPT ? "Continuar" : "Continue"}
+              </Button>
+            </div>
           </div>
         </div>
       )}
+
+      {/* === Weekly share card === */}
+      <ShareCard
+        open={showShareCard}
+        onClose={() => setShowShareCard(false)}
+        stats={{
+          streak,
+          wins: last7Stats.wins,
+          consistency: last7Stats.consistency,
+          level: Math.max(1, Math.floor((state.gamification?.pontos || 0) / 100) + 1),
+        }}
+        identityLabel={identityLabel}
+        isPT={isPT}
+      />
     </>
   );
 };
