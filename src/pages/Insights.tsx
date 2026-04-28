@@ -14,11 +14,13 @@ import {
 } from "@/hooks/useAnalytics";
 import {
   computeVariantStats,
-  REFERRAL_HEADLINE_TEST, REFERRAL_HEADLINE_VARIANTS,
-  SHARE_HEADLINE_TEST, SHARE_HEADLINE_VARIANTS,
-  type VariantStats,
+  REFERRAL_HEADLINE_TEST, REFERRAL_HEADLINE_NAME, REFERRAL_HEADLINE_VARIANTS,
+  SHARE_HEADLINE_TEST, SHARE_HEADLINE_NAME, SHARE_HEADLINE_VARIANTS,
+  CONFIDENCE_LABEL, getHistory, maybeAutoPromote, getPromotedVariant,
+  SUGGESTED_TESTS,
+  type VariantStats, type Confidence, type HistoryEntry,
 } from "@/lib/abTest";
-import { Trophy } from "lucide-react";
+import { Trophy, History, FlaskConical, Zap } from "lucide-react";
 
 /* =============================================================
    RETENTION INSIGHTS — local-first analytics dashboard
@@ -195,6 +197,14 @@ const Insights = () => {
     [log],
   );
 
+  // Auto-promote strong winners and refresh history
+  const [history, setHistory] = useState<HistoryEntry[]>(() => getHistory());
+  useEffect(() => {
+    const a = maybeAutoPromote(REFERRAL_HEADLINE_TEST, REFERRAL_HEADLINE_NAME, referralVariants);
+    const b = maybeAutoPromote(SHARE_HEADLINE_TEST, SHARE_HEADLINE_NAME, shareVariants);
+    if (a || b) setHistory(getHistory());
+  }, [referralVariants, shareVariants]);
+
   useEffect(() => {
     const id = setInterval(() => setMetrics(getRetentionMetrics()), 5000);
     return () => clearInterval(id);
@@ -312,15 +322,34 @@ const Insights = () => {
           <h2 className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">A/B test results</h2>
           <div className="space-y-3">
             <ABTestCard
+              testKey={REFERRAL_HEADLINE_TEST}
               title="Referral modal headline"
               metric="CTR (invite sent / shown)"
               variants={referralVariants}
             />
             <ABTestCard
+              testKey={SHARE_HEADLINE_TEST}
               title="Share card headline"
               metric="Share rate (shared / opened)"
               variants={shareVariants}
             />
+          </div>
+        </section>
+
+        {/* Experiment history */}
+        <section>
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Experiment history</h2>
+            <span className="text-[10px] font-mono text-muted-foreground tabular-nums">{history.length} winner{history.length === 1 ? "" : "s"}</span>
+          </div>
+          <HistoryList history={history} />
+        </section>
+
+        {/* Suggested next experiments */}
+        <section>
+          <h2 className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">Suggested next tests</h2>
+          <div className="space-y-2">
+            {SUGGESTED_TESTS.map(t => <SuggestedTestCard key={t.id} test={t} />)}
           </div>
         </section>
 
@@ -518,13 +547,27 @@ const RecommendationCard = ({ index, rec }: { index: number; rec: Recommendation
 );
 
 
-const ABTestCard = ({ title, metric, variants }: { title: string; metric: string; variants: VariantStats[] }) => {
+const CONFIDENCE_STYLE: Record<Confidence, string> = {
+  low_sample: "border-foreground/15 bg-foreground/[0.04] text-muted-foreground",
+  emerging_leader: "border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400",
+  likely_winner: "border-primary/40 bg-primary/10 text-primary",
+  strong_winner: "border-emerald-500/50 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+  trailing: "border-foreground/10 bg-foreground/[0.02] text-muted-foreground",
+  tied: "border-foreground/10 bg-foreground/[0.02] text-muted-foreground",
+};
+
+const ConfidenceBadge = ({ c }: { c: Confidence }) => (
+  <span className={`text-[9px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded border ${CONFIDENCE_STYLE[c]}`}>
+    {CONFIDENCE_LABEL[c]}
+  </span>
+);
+
+const ABTestCard = ({
+  testKey, title, metric, variants,
+}: { testKey: string; title: string; metric: string; variants: VariantStats[] }) => {
   const totalImpressions = variants.reduce((s, v) => s + v.impressions, 0);
-  const eligible = variants.filter(v => v.impressions >= 1);
-  const winner = eligible.length > 0
-    ? eligible.reduce((best, v) => (v.rate > best.rate ? v : best))
-    : null;
   const sorted = [...variants].sort((a, b) => b.rate - a.rate);
+  const promotedId = getPromotedVariant(testKey);
 
   return (
     <Card>
@@ -533,32 +576,54 @@ const ABTestCard = ({ title, metric, variants }: { title: string; metric: string
           <p className="text-sm font-bold">{title}</p>
           <span className="text-[10px] font-mono tabular-nums text-muted-foreground">{totalImpressions} impr.</span>
         </div>
-        <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground mb-3">{metric}</p>
+        <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground mb-1">{metric}</p>
+        {promotedId && (
+          <p className="text-[10px] font-mono text-primary mb-2 flex items-center gap-1">
+            <Zap className="h-3 w-3" />
+            Auto-promoted: Variant {promotedId} · 80/20 split
+          </p>
+        )}
 
         {totalImpressions === 0 ? (
-          <p className="text-xs text-muted-foreground italic">No data yet — variants assigned on next exposure.</p>
+          <p className="text-xs text-muted-foreground italic mt-2">No data yet — variants assigned on next exposure.</p>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-2 mt-2">
             {sorted.map(v => {
-              const isWinner = winner?.id === v.id && v.impressions >= 3 && v.rate > 0;
+              const isLeader = v.isLeader;
+              const isPromoted = promotedId === v.id;
               return (
                 <div
                   key={v.id}
-                  className={`rounded-lg border p-2.5 ${isWinner ? "border-primary/50 bg-primary/5" : "border-foreground/10 bg-foreground/[0.02]"}`}
+                  className={`rounded-lg border p-2.5 ${isLeader ? "border-primary/50 bg-primary/5" : "border-foreground/10 bg-foreground/[0.02]"}`}
                 >
-                  <div className="flex items-center justify-between gap-2 mb-1">
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      {isWinner && <Trophy className="h-3 w-3 text-primary shrink-0" />}
-                      <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Variant {v.id}</span>
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
+                      {isLeader && <Trophy className="h-3 w-3 text-primary shrink-0" />}
+                      <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                        Variant {v.id}
+                      </span>
+                      <ConfidenceBadge c={v.confidence} />
+                      {isPromoted && (
+                        <span className="text-[9px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded border border-primary/40 bg-primary/10 text-primary">
+                          Promoted
+                        </span>
+                      )}
                     </div>
-                    <span className={`text-sm font-bold tabular-nums ${isWinner ? "text-primary" : ""}`}>
+                    <span className={`text-sm font-bold tabular-nums ${isLeader ? "text-primary" : ""}`}>
                       {fmtPct(v.rate)}
                     </span>
                   </div>
                   <p className="text-xs text-foreground/80 leading-snug">{v.copy}</p>
-                  <p className="text-[10px] font-mono tabular-nums text-muted-foreground mt-1">
-                    {v.conversions} / {v.impressions}
-                  </p>
+                  <div className="flex items-center justify-between mt-1">
+                    <p className="text-[10px] font-mono tabular-nums text-muted-foreground">
+                      {v.conversions} / {v.impressions}
+                    </p>
+                    {isLeader && v.liftVsRunnerUp > 0 && (
+                      <p className="text-[10px] font-mono tabular-nums text-emerald-500">
+                        +{Math.round(v.liftVsRunnerUp * 100)}% vs runner-up
+                      </p>
+                    )}
+                  </div>
                 </div>
               );
             })}
@@ -568,5 +633,75 @@ const ABTestCard = ({ title, metric, variants }: { title: string; metric: string
     </Card>
   );
 };
+
+const HistoryList = ({ history }: { history: HistoryEntry[] }) => {
+  if (history.length === 0) {
+    return (
+      <Card>
+        <CardContent className="p-4 flex items-center gap-3">
+          <History className="h-4 w-4 text-muted-foreground shrink-0" />
+          <p className="text-xs text-muted-foreground">
+            No winners promoted yet. A variant must reach <strong>Strong winner</strong> to be auto-promoted.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+  const sorted = [...history].sort((a, b) => b.promotedAt.localeCompare(a.promotedAt));
+  return (
+    <div className="space-y-2">
+      {sorted.map((h, i) => (
+        <Card key={i}>
+          <CardContent className="p-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <Trophy className="h-3.5 w-3.5 text-primary shrink-0" />
+                <p className="text-sm font-bold truncate">{h.testName} Winner</p>
+              </div>
+              <span className="text-[10px] font-mono tabular-nums text-muted-foreground shrink-0">
+                {new Date(h.promotedAt).toLocaleDateString()}
+              </span>
+            </div>
+            <p className="text-xs text-foreground/80 mt-1 leading-snug">
+              <span className="font-mono text-[10px] text-muted-foreground mr-1.5">Variant {h.variantId}</span>
+              {h.copy}
+            </p>
+            <p className="text-[10px] font-mono tabular-nums text-muted-foreground mt-1">
+              {fmtPct(h.rate)} · {h.conversions}/{h.impressions} · +{Math.round(h.liftVsRunnerUp * 100)}% lift
+            </p>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+};
+
+const EFFORT_STYLE: Record<"low" | "medium" | "high", string> = {
+  low: "text-emerald-500",
+  medium: "text-amber-500",
+  high: "text-destructive",
+};
+
+const SuggestedTestCard = ({ test }: { test: { id: string; area: string; hypothesis: string; variants: string[]; effort: "low" | "medium" | "high" } }) => (
+  <div className="rounded-xl border border-foreground/10 bg-foreground/[0.02] p-3 flex gap-3 items-start">
+    <div className="mt-0.5 shrink-0 h-6 w-6 rounded-full bg-primary/15 text-primary flex items-center justify-center">
+      <FlaskConical className="h-3.5 w-3.5" />
+    </div>
+    <div className="flex-1 min-w-0">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-sm font-bold leading-snug">
+          <span className="font-mono text-[10px] text-muted-foreground mr-1.5 uppercase">{test.area}</span>
+          {test.variants.join("  vs  ")}
+        </p>
+        <span className={`text-[9px] font-mono uppercase tracking-wider ${EFFORT_STYLE[test.effort]}`}>
+          {test.effort}
+        </span>
+      </div>
+      <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{test.hypothesis}</p>
+    </div>
+  </div>
+);
+
+
 
 export default Insights;
