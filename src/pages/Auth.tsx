@@ -268,6 +268,7 @@ const Auth = () => {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
+      void track('signup_attempt', { method: 'google' });
       const { error } = await signInWithGoogle();
       if (error) {
         toast({
