@@ -39,7 +39,8 @@ export const TrackerEditDialog = ({
   onSave,
   onDelete
 }: TrackerEditDialogProps) => {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const isPT = locale === "pt-PT";
   const isEditing = !!tracker;
 
   const [formData, setFormData] = useState({
