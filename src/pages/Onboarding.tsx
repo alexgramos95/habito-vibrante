@@ -165,6 +165,21 @@ const Onboarding = () => {
     return out.slice(0, 6);
   }, [focus]);
 
+  /* Preselect first suggested habit so user never lands on commit empty-handed */
+  const ensureDefaultHabit = (list: typeof suggestedHabits) => {
+    setHabits((prev) => (prev.length === 0 && list[0] ? [list[0].id] : prev));
+  };
+
+  /* Auto-advance after a single-select tap (saves a tap on identity & obstacle) */
+  const pickIdentity = (id: string) => {
+    setIdentity(id);
+    window.setTimeout(() => setStep("obstacle"), 220);
+  };
+  const pickObstacle = (id: string) => {
+    setObstacle(id);
+    window.setTimeout(() => setStep("focus"), 220);
+  };
+
   const toggleFocus = (id: string) => {
     setFocus((prev) =>
       prev.includes(id) ? prev.filter((f) => f !== id) : prev.length < 2 ? [...prev, id] : prev,
@@ -184,11 +199,15 @@ const Onboarding = () => {
     () => focus.map((f) => FOCUS_OPTIONS.find((o) => o.id === f)?.label).filter(Boolean) as string[],
     [focus],
   );
+  const tagline = identity
+    ? IDENTITY_TAGLINE[identity] ?? "Built for the person you're becoming."
+    : "Built for the person you're becoming.";
 
   const handleComplete = () => {
-    // Build habits payload
+    // Build habits payload — fall back to first suggestion so user lands with momentum
+    const finalHabitIds = habits.length > 0 ? habits : suggestedHabits[0] ? [suggestedHabits[0].id] : [];
     const habitsToCreate = suggestedHabits
-      .filter((h) => habits.includes(h.id))
+      .filter((h) => finalHabitIds.includes(h.id))
       .map((preset) => ({
         nome: preset.name,
         categoria: preset.category,
@@ -200,19 +219,22 @@ const Onboarding = () => {
     const identityVectors = identity ? IDENTITY_TO_VECTORS[identity] ?? [identityLabel] : [];
 
     const payload = {
-      improvementAreas: focus, // focus areas
+      improvementAreas: focus,
       identityVectors,
-      selectedPresets: habits.map((id) => `habit-${id}`),
+      selectedPresets: finalHabitIds.map((id) => `habit-${id}`),
       identityChoice: identity,
       obstacle,
+      tagline,
       habitsToCreate,
-      trackersToCreate: [], // none from new flow
+      trackersToCreate: [],
     };
 
     try {
       localStorage.setItem("become-onboarding-data", JSON.stringify(payload));
       localStorage.setItem("become-onboarding-complete", "true");
       localStorage.setItem("itero-onboarding-complete", "true");
+      // First-session flag for activation banner / scroll-to-first-habit
+      localStorage.setItem("become-first-session", "1");
     } catch {
       /* ignore */
     }
@@ -220,10 +242,10 @@ const Onboarding = () => {
     completeOnboarding({
       improvementAreas: focus,
       identityVectors,
-      selectedPresets: habits.map((id) => `habit-${id}`),
+      selectedPresets: finalHabitIds.map((id) => `habit-${id}`),
     });
 
-    navigate("/auth?next=trial");
+    navigate("/auth?next=trial&firstSession=1");
   };
 
   /* ---------- shared layout chrome ---------- */
