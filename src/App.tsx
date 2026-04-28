@@ -13,6 +13,7 @@ import { DataProvider } from "@/contexts/DataContext";
 import { GatedPage } from "@/components/Premium/GatedPage";
 import { PWAUpdateToast, usePWAUpdate } from "@/components/PWA/PWAUpdateToast";
 import ScrollToTop from "@/components/ScrollToTop";
+import { AnalyticsBridge } from "@/components/Analytics/AnalyticsBridge";
 
 // Lazy load pages (except Onboarding, que importamos diretamente)
 const Index = lazy(() => import("./pages/Index"));
@@ -34,6 +35,7 @@ const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Insights = lazy(() => import("./pages/Insights"));
+const AdminAnalytics = lazy(() => import("./pages/AdminAnalytics"));
 
 // Onboarding importado de forma direta (sem React.lazy)
 import Onboarding from "./pages/Onboarding";
@@ -106,6 +108,7 @@ const AppRoutes = () => (
         <Route path="/app/level" element={<LevelProgress />} />
         <Route path="/app/insights" element={<Insights />} />
         <Route path="/insights" element={<Insights />} />
+        <Route path="/admin/analytics" element={<AdminAnalytics />} />
 
         {/* PRO-only pages: Shopping, Progress, Settings, Nutrition */}
         <Route path="/app/shopping" element={<GatedShopping />} />
@@ -159,6 +162,7 @@ const App = () => (
             <TooltipProvider>
               <Toaster />
               <Sonner />
+              <AnalyticsBridge />
               <AppRoutes />
             </TooltipProvider>
           </DataProvider>
