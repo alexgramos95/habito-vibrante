@@ -379,6 +379,7 @@ const Onboarding = () => {
     const identityVectors = identity ? IDENTITY_TO_VECTORS[identity] ?? [identityLabel] : [];
 
     const payload = {
+      locale: accountLocale,
       improvementAreas: focus,
       identityVectors,
       selectedPresets: finalHabitIds.map((id) => `habit-${id}`),
@@ -403,7 +404,7 @@ const Onboarding = () => {
       obstacle,
       focusCount: focus.length,
       habitsSeeded: habitsToCreate.length,
-      metricsSeeded: trackersToCreate.length,
+      metricsSeeded: habitsToCreate.filter((h) => h.mode === "metric").length,
       customHabit: !!customHabitName,
       customMetric: !!customMetricName,
       locale: accountLocale,

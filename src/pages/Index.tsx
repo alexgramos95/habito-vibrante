@@ -379,6 +379,21 @@ const Index = () => {
     };
   }, [state.trackerEntries, metricHabits, getTodayCount]);
 
+  if (isLoading) {
+    return (
+      <div className="page-container">
+        <Navigation />
+        <main className="page-content max-w-xl mx-auto flex min-h-[60vh] flex-col items-center justify-center px-6 text-center">
+          <div className="mb-5 h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">A preparar o teu sistema...</h1>
+          <p className="mt-2 max-w-[280px] text-sm text-muted-foreground">
+            Estamos a organizar os hábitos e métricas que escolheste.
+          </p>
+        </main>
+      </div>
+    );
+  }
+
   // --- Render ---
   return (
     <div className="page-container">

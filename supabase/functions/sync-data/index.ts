@@ -40,8 +40,11 @@ const SyncDataSchema = z.object({
 });
 
 const SyncRequestSchema = z.object({
-  action: z.enum(["upload", "download"]),
+  action: z.enum(["upload", "download", "materialize_onboarding"]),
   data: SyncDataSchema.optional(),
+  profile: z.object({
+    language: z.string().min(2).max(12).optional(),
+  }).optional(),
 });
 
 // Safe error mapping
@@ -106,15 +109,40 @@ serve(async (req) => {
 
     const isPro = subData?.plan === 'pro';
     
-    // Download is available for ALL users, upload requires Pro
+    // Download + onboarding materialization are available for ALL users; manual upload remains Pro-only.
     if (action === 'upload' && !isPro) {
       throw new Error("Sync requires Pro subscription");
     }
     logStep("Authorization verified", { action, isPro });
 
-    if (action === 'upload') {
+    if (action === 'upload' || action === 'materialize_onboarding') {
       if (!data) {
         throw new Error("Invalid input: data is required for upload");
+      }
+      if (action === 'materialize_onboarding' && parseResult.data.profile?.language) {
+        const { data: existingProfile, error: profileFetchError } = await supabaseClient
+          .from('profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        if (profileFetchError) throw new Error(`Profile fetch failed: ${profileFetchError.message}`);
+
+        const profilePayload = {
+          user_id: user.id,
+          display_name: user.user_metadata?.display_name ?? null,
+          language: parseResult.data.profile.language,
+          updated_at: new Date().toISOString(),
+        };
+        const profileQuery = existingProfile
+          ? supabaseClient
+          .from('profiles')
+              .update({ language: profilePayload.language, updated_at: profilePayload.updated_at })
+              .eq('id', existingProfile.id)
+          : supabaseClient
+              .from('profiles')
+              .insert(profilePayload);
+        const { error: profileUpdateError } = await profileQuery;
+        if (profileUpdateError) throw new Error(`Profile update failed: ${profileUpdateError.message}`);
       }
       
       // Upload local data to cloud
@@ -135,9 +163,9 @@ serve(async (req) => {
         }, { onConflict: 'user_id' });
 
       if (upsertError) throw new Error(`Sync upload failed: ${upsertError.message}`);
-      logStep("Data uploaded successfully");
+      logStep(action === 'materialize_onboarding' ? "Onboarding materialized successfully" : "Data uploaded successfully");
 
-      return new Response(JSON.stringify({ success: true, action: 'uploaded' }), {
+      return new Response(JSON.stringify({ success: true, action: action === 'materialize_onboarding' ? 'materialized' : 'uploaded' }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });
