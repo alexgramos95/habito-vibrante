@@ -6,8 +6,9 @@ import { createContext, useContext, useEffect, useState, useCallback, useRef, Re
 import { supabase } from '@/integrations/supabase/client';
 import { loadState, saveState as saveToLocalStorage, clearAllData } from '@/data/storage';
 import type { AppState } from '@/data/types';
-import { useAuth, materializeOnboardingData } from '@/contexts/AuthContext';
-import { clearOnboardingDraft, consumeOnboardingDraftAgeMs, readOnboardingDraft } from '@/lib/onboardingDraft';
+import { useAuth } from '@/contexts/AuthContext';
+import { isMaterialized, readOnboardingDraft } from '@/lib/onboardingDraft';
+import { runOnboardingMaterialization } from '@/lib/onboardingMaterialization';
 import { track } from '@/hooks/useAnalytics';
 
 interface DataContextType {
@@ -55,6 +56,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
+  const [materializationRetryTick, setMaterializationRetryTick] = useState(0);
   
   const isPro = subscriptionStatus.plan === 'pro';
   const hasInitializedRef = useRef(false);
@@ -250,13 +252,33 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       // Wait for subscription status to be fully loaded (planStatus must be set)
       if (subscriptionStatus.planStatus === null) {
         console.log('[DATA] Waiting for subscription status to be loaded...');
-        // Load local state temporarily while waiting
-        if (!hasInitializedRef.current) {
+        const pendingDraft = readOnboardingDraft();
+        const hasPendingDraft = Boolean(pendingDraft && ((pendingDraft.habitsToCreate?.length ?? 0) > 0 || (pendingDraft.trackersToCreate?.length ?? 0) > 0));
+        if (!hasPendingDraft && !hasInitializedRef.current) {
           const localState = loadState();
           setStateInternal(localState);
           console.log('[DATA] Loaded local state temporarily while waiting for subscription');
         }
         return;
+      }
+
+      const pendingDraft = readOnboardingDraft();
+      const hasPendingDraft = Boolean(pendingDraft && ((pendingDraft.habitsToCreate?.length ?? 0) > 0 || (pendingDraft.trackersToCreate?.length ?? 0) > 0));
+      if (hasPendingDraft && !isMaterialized(user.id)) {
+        console.log('[DATA] Onboarding draft found — gating dashboard until materialization completes');
+        setIsLoading(true);
+        try {
+          const result = await runOnboardingMaterialization({ userId: user.id, accessToken: session.access_token });
+          setStateInternal(result.state);
+          hasInitializedRef.current = true;
+          lastProStatusRef.current = isPro;
+          setIsLoading(false);
+          return;
+        } catch (err) {
+          console.warn('[DATA] Onboarding materialization failed; retrying before dashboard load', err);
+          window.setTimeout(() => setMaterializationRetryTick((v) => v + 1), 1500);
+          return;
+        }
       }
 
       // Now we have the real subscription status
@@ -286,11 +308,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         
         const hasCloudData = cloudState && (cloudState.habits.length > 0 || cloudState.trackers.length > 0);
         
-        // Materialize onboarding ONLY if PRO user has NO cloud data yet
-        // This handles first-time PRO setup after onboarding
-        const draftBefore = readOnboardingDraft();
-        const materialized = materializeOnboardingData(user.id, { isPro: true, hasCloudData: Boolean(hasCloudData) });
-        
         if (hasCloudData) {
           // Cloud has data - use it EXCLUSIVELY (no merge!)
           console.log('[DATA] PRO: Using cloud state exclusively:', {
@@ -306,15 +323,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             // First time PRO with local data - migrate local to cloud
             console.log('[DATA] PRO: First sync - uploading local data to cloud');
             setStateInternal(freshLocalState);
-            const uploadOk = await uploadToCloud(freshLocalState);
-            if (uploadOk && materialized && draftBefore) {
-              // Cloud now reflects materialized state — safe to clear draft.
-              const ageMs = consumeOnboardingDraftAgeMs();
-              clearOnboardingDraft();
-              if (ageMs !== null) {
-                track('time_to_first_dashboard_ready', { ms: ageMs, plan: 'pro' });
-              }
-            }
+            await uploadToCloud(freshLocalState);
           } else {
             // No data anywhere - start fresh
             console.log('[DATA] PRO: No data found, starting fresh');
@@ -325,11 +334,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         // Non-PRO user: localStorage is primary, can merge with cloud
         console.log('[DATA] Non-PRO user - localStorage is primary');
         
-        // Materialize onboarding for non-PRO users
-        const draftBefore = readOnboardingDraft();
-        const materialized = materializeOnboardingData(user.id, null);
-        
-        // Re-load state after potential materialization
         const freshLocalState = loadState();
         const cloudState = await downloadFromCloud();
         
@@ -342,45 +346,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
           setStateInternal(freshLocalState);
         }
 
-        // For trial users we still want the materialized habits to show on
-        // other devices, so push to cloud opportunistically. We use the
-        // sync-data edge function via session token (works for any signed-in
-        // user). The draft is only cleared after the upload returns success
-        // so a network failure mid-flight is safely retried on next mount.
-        if (materialized && draftBefore && session?.access_token) {
-          try {
-            const stateToPush = loadState();
-            const { data: syncResult, error: syncErr } = await supabase.functions.invoke('sync-data', {
-              headers: { Authorization: `Bearer ${session.access_token}` },
-              body: {
-                action: 'upload',
-                data: {
-                  habits: stateToPush.habits,
-                  dailyLogs: stateToPush.dailyLogs,
-                  trackerEntries: stateToPush.trackerEntries,
-                  trackers: stateToPush.trackers,
-                  reflections: stateToPush.reflections,
-                  futureSelfEntries: stateToPush.futureSelf,
-                  investmentGoals: stateToPush.investmentGoals,
-                  shoppingItems: stateToPush.shoppingItems,
-                  gamification: stateToPush.gamification,
-                },
-              },
-            });
-            if (!syncErr && syncResult?.success) {
-              const ageMs = consumeOnboardingDraftAgeMs();
-              clearOnboardingDraft();
-              if (ageMs !== null) {
-                track('time_to_first_dashboard_ready', { ms: ageMs, plan: 'trial_or_free' });
-              }
-            } else {
-              // Cloud push failed — keep draft so retry on next mount/login.
-              console.warn('[DATA] Onboarding cloud push failed, keeping draft for retry', syncErr);
-            }
-          } catch (err) {
-            console.warn('[DATA] Onboarding cloud push threw, keeping draft for retry', err);
-          }
-        }
+        track('dashboard_loaded_before_materialization', { blocked: false });
       }
 
       setIsLoading(false);
@@ -389,7 +355,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     };
 
     initializeData();
-  }, [session?.access_token, user?.id, isPro, subscriptionStatus.planStatus, authLoading]);
+  }, [session?.access_token, user?.id, isPro, subscriptionStatus.planStatus, authLoading, materializationRetryTick]);
 
   /**
    * Custom setState that also syncs to cloud for PRO users - IMMEDIATE UPLOAD
