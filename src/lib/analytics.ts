@@ -32,11 +32,54 @@ export const initAnalytics = () => {
   try {
     posthog.init(POSTHOG_KEY, {
       api_host: POSTHOG_HOST,
-      capture_pageview: false, // we drive this manually
+      capture_pageview: false, // we drive page views manually
       capture_pageleave: true,
       person_profiles: "identified_only",
-      autocapture: false,
+      // Autocapture ON, but heavily filtered to keep canonical events as the source of truth.
+      autocapture: {
+        // Only capture meaningful interactive elements
+        dom_event_allowlist: ["click", "submit", "change"],
+        element_allowlist: ["a", "button", "form", "input", "select", "textarea"],
+        // Skip anything explicitly opted out via class/attribute
+        css_selector_allowlist: undefined,
+      },
+      // Hard exclusions: never autocapture inside known noisy regions
+      // (toasts, tooltips, navigation chrome). Anything that should be a
+      // canonical event already calls track() — this prevents duplicates.
+      mask_all_text: false,
+      mask_all_element_attributes: false,
       disable_session_recording: true,
+      loaded: (ph) => {
+        // Filter out high-frequency / non-meaningful autocaptured events.
+        ph.opt_in_capturing();
+      },
+      before_send: (event) => {
+        if (!event) return event;
+        // Drop autocaptured events that duplicate something we track manually,
+        // or that fire from chrome (nav, toasts, tooltips).
+        if (event.event === "$autocapture") {
+          const els: any[] = (event.properties?.$elements as any[]) || [];
+          const NOISY_SELECTORS = [
+            "data-sonner-toast", "data-radix-toast", "data-radix-tooltip",
+            "data-no-track",
+          ];
+          const NOISY_CLASSES = [
+            "sonner-toast", "toaster", "tooltip", "navigation", "nav-link",
+            "page-header", "sidebar",
+          ];
+          const isNoisy = els.some((el) => {
+            const attr = el?.attributes || {};
+            const cls = (el?.attr__class || "") as string;
+            if (NOISY_SELECTORS.some((s) => s in attr)) return true;
+            if (NOISY_CLASSES.some((c) => cls.includes(c))) return true;
+            // Buttons/links inside opted-out regions
+            if ((el?.attr__["data-no-track"] as any) != null) return true;
+            return false;
+          });
+          if (isNoisy) return null;
+        }
+        return event;
+      },
     });
     initialized = true;
   } catch (e) {
@@ -47,11 +90,14 @@ export const initAnalytics = () => {
 
 export const identifyUser = (userId: string, traits?: Record<string, any>) => {
   if (!initialized) initAnalytics();
-  try { posthog.identify(userId, traits); } catch { /* ignore */ }
+  try {
+    posthog.identify(userId, traits);
+    if (traits) posthog.people?.set?.(traits);
+  } catch { /* ignore */ }
 };
 
 export const resetAnalyticsUser = () => {
-  try { posthog.reset(); } catch { /* ignore */ }
+  try { posthog.reset(true); } catch { /* ignore */ }
   try { sessionStorage.removeItem("become-session-id"); } catch { /* ignore */ }
   sessionId = null;
 };
