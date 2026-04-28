@@ -18,6 +18,13 @@ import { cn } from "@/lib/utils";
 import { useSubscription } from "@/hooks/useSubscription";
 import { PaywallModal } from "@/components/Paywall/PaywallModal";
 import { BecomeLogo } from "@/components/Brand/BecomeLogo";
+import {
+  PhoneFrame,
+  HabitsPreview,
+  CalendarPreview,
+  NutritionPreview,
+  ShoppingPreview,
+} from "@/components/Landing/LandingPreviews";
 
 /**
  * Landing — "Identity OS for ambitious people"
@@ -257,66 +264,11 @@ const Landing = () => {
             7 days free · No credit card · Cancel anytime
           </p>
 
-          {/* Floating mobile mockup */}
-          <div className="mt-16 md:mt-24 relative max-w-[320px] mx-auto" style={{ animation: "float 6s ease-in-out infinite" }}>
-            <div
-              className="absolute -inset-12 pointer-events-none opacity-70"
-              style={{
-                background: "radial-gradient(closest-side, hsl(var(--neon-toxic) / 0.20), transparent 70%)",
-              }}
-            />
-            <div className="relative rounded-[44px] border border-foreground/15 bg-card p-2.5 shadow-[0_40px_120px_-20px_hsl(var(--neon-ultra)/0.45)]">
-              <div className="rounded-[34px] overflow-hidden bg-background border border-foreground/10">
-                <div className="px-5 pt-6 pb-8">
-                  <div className="flex items-center justify-between mb-5">
-                    <div>
-                      <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">Tuesday · Week 17</p>
-                      <h3 className="text-xl font-black italic uppercase tracking-tight mt-0.5">Today</h3>
-                    </div>
-                    <div className="h-9 w-9 rounded-full bg-primary/15 border border-primary/30 flex items-center justify-center">
-                      <Flame className="h-4 w-4 text-primary" />
-                    </div>
-                  </div>
-
-                  <div className="border border-foreground/10 bg-foreground/[0.02] p-3 mb-2.5 flex items-center gap-3">
-                    <div className="h-7 w-7 border-2 border-primary bg-primary/20 flex items-center justify-center">
-                      <CheckCircle2 className="h-4 w-4 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold">Morning workout</p>
-                      <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider">06:30 · Done</p>
-                    </div>
-                  </div>
-                  <div className="border border-foreground/10 bg-foreground/[0.02] p-3 mb-2.5 flex items-center gap-3">
-                    <div className="h-7 w-7 border-2 border-primary bg-primary/20 flex items-center justify-center">
-                      <CheckCircle2 className="h-4 w-4 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold">Read 20 min</p>
-                      <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider">07:15 · Done</p>
-                    </div>
-                  </div>
-                  <div className="border border-foreground/10 p-3 mb-4 flex items-center gap-3">
-                    <div className="h-7 w-7 border-2 border-foreground/20" />
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold">Deep work · 90 min</p>
-                      <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider">09:00</p>
-                    </div>
-                  </div>
-
-                  <div className="border-t border-foreground/10 pt-4 flex items-center justify-between">
-                    <div>
-                      <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">Streak</p>
-                      <p className="text-xl font-black italic">23 days</p>
-                    </div>
-                    <div>
-                      <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground text-right">Level</p>
-                      <p className="text-xl font-black italic text-primary text-right">07</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+          {/* Floating mobile mockup — REAL app UI (Habits / Today) */}
+          <div className="mt-16 md:mt-24" style={{ animation: "float 6s ease-in-out infinite" }}>
+            <PhoneFrame>
+              <HabitsPreview />
+            </PhoneFrame>
           </div>
         </div>
 
@@ -361,76 +313,61 @@ const Landing = () => {
             ))}
           </div>
 
-          {/* Real product UI previews */}
-          <div className="grid gap-6 md:grid-cols-2">
+          {/* Real product UI previews — every screen below is the real
+              logged-in app, not a marketing mock-up. */}
+          <div className="grid gap-10 md:gap-8 md:grid-cols-2 lg:grid-cols-4">
             <Reveal>
-              <div className="border border-foreground/[0.08] bg-foreground/[0.015] p-7 rounded-sm">
-                <div className="flex items-center justify-between mb-5">
-                  <div>
-                    <p className="type-eyebrow text-muted-foreground mb-1">// Calendar</p>
-                    <h3 className="text-base font-bold tracking-tight">April · Week 17</h3>
-                  </div>
-                  <div className="font-mono text-[10px] uppercase tracking-wider text-primary">
-                    92% consistency
-                  </div>
-                </div>
-                <div className="grid grid-cols-7 gap-1.5">
-                  {["M","T","W","T","F","S","S"].map((d, i) => (
-                    <p key={i} className="text-center text-[10px] font-mono uppercase text-muted-foreground/60 mb-1">{d}</p>
-                  ))}
-                  {Array.from({ length: 28 }).map((_, i) => {
-                    const intensities = [0, 0.2, 0.5, 0.85, 1];
-                    const intensity = intensities[Math.floor((Math.sin(i * 1.7) + 1) * 2.4)];
-                    return (
-                      <div
-                        key={i}
-                        className="aspect-square border border-foreground/[0.06] transition-colors duration-200"
-                        style={{ background: `hsl(var(--neon-toxic) / ${intensity})` }}
-                      />
-                    );
-                  })}
+              <div className="space-y-4">
+                <PhoneFrame>
+                  <CalendarPreview />
+                </PhoneFrame>
+                <div className="text-center">
+                  <p className="type-eyebrow text-primary mb-1">// Calendário</p>
+                  <p className="text-sm text-muted-foreground/80 max-w-[28ch] mx-auto">
+                    Dias perfeitos, sequências, peak.
+                  </p>
                 </div>
               </div>
             </Reveal>
 
-            <Reveal delay={120}>
-              <div className="border border-foreground/[0.08] bg-foreground/[0.015] p-7 rounded-sm">
-                <div className="flex items-center justify-between mb-5">
-                  <div>
-                    <p className="type-eyebrow text-muted-foreground mb-1">// Nutrition</p>
-                    <h3 className="text-base font-bold tracking-tight">Today's plan</h3>
-                  </div>
-                  <div className="font-mono text-[10px] uppercase tracking-wider text-primary">
-                    2,140 / 2,200 kcal
-                  </div>
+            <Reveal delay={80}>
+              <div className="space-y-4">
+                <PhoneFrame>
+                  <NutritionPreview />
+                </PhoneFrame>
+                <div className="text-center">
+                  <p className="type-eyebrow text-primary mb-1">// Nutrição</p>
+                  <p className="text-sm text-muted-foreground/80 max-w-[28ch] mx-auto">
+                    Plano semanal, macros, refeições.
+                  </p>
                 </div>
-                <div className="space-y-2.5">
-                  {[
-                    { meal: "Breakfast", item: "Oats, berries, whey", kcal: 420 },
-                    { meal: "Lunch", item: "Chicken, rice, greens", kcal: 680 },
-                    { meal: "Snack", item: "Greek yogurt, almonds", kcal: 320 },
-                    { meal: "Dinner", item: "Salmon, sweet potato", kcal: 720 },
-                  ].map((m, i) => (
-                    <div key={i} className="flex items-center justify-between border border-foreground/[0.06] bg-background p-3">
-                      <div>
-                        <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">{m.meal}</p>
-                        <p className="text-sm font-semibold mt-0.5">{m.item}</p>
-                      </div>
-                      <p className="font-mono text-xs text-primary">{m.kcal}</p>
-                    </div>
-                  ))}
+              </div>
+            </Reveal>
+
+            <Reveal delay={160}>
+              <div className="space-y-4">
+                <PhoneFrame>
+                  <ShoppingPreview />
+                </PhoneFrame>
+                <div className="text-center">
+                  <p className="type-eyebrow text-primary mb-1">// Compras</p>
+                  <p className="text-sm text-muted-foreground/80 max-w-[28ch] mx-auto">
+                    Lista gerada do plano da semana.
+                  </p>
                 </div>
-                <div className="mt-4 grid grid-cols-3 gap-2 pt-4 border-t border-foreground/[0.06]">
-                  {[
-                    { l: "Protein", v: "168g" },
-                    { l: "Carbs", v: "210g" },
-                    { l: "Fat", v: "72g" },
-                  ].map((m, i) => (
-                    <div key={i} className="text-center">
-                      <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">{m.l}</p>
-                      <p className="font-black italic text-base mt-1">{m.v}</p>
-                    </div>
-                  ))}
+              </div>
+            </Reveal>
+
+            <Reveal delay={240}>
+              <div className="space-y-4">
+                <PhoneFrame>
+                  <HabitsPreview />
+                </PhoneFrame>
+                <div className="text-center">
+                  <p className="type-eyebrow text-primary mb-1">// Hábitos</p>
+                  <p className="text-sm text-muted-foreground/80 max-w-[28ch] mx-auto">
+                    Diretivas diárias, métricas e ritmo.
+                  </p>
                 </div>
               </div>
             </Reveal>
