@@ -385,24 +385,25 @@ const Index = () => {
       <Navigation />
 
       <main className="page-content max-w-xl mx-auto space-y-5">
-        {/* ═══ Page Header (top) ═══ */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
-              <LayoutDashboard className="h-5 w-5 text-primary" />
+        {/* ═══ Page Header — Arcade Overdrive ═══ */}
+        <div className="flex items-end justify-between gap-3">
+          <div className="min-w-0">
+            <p className="mono-label text-muted-foreground/70 mb-1.5">// Today</p>
+            <h1 className="display-headline text-3xl sm:text-4xl text-foreground flex items-center gap-2.5">
+              <LayoutDashboard className="h-6 w-6 text-primary not-italic" />
               Hábitos
             </h1>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {totalTracked} {totalTracked === 1 ? "hábito hoje" : "hábitos hoje"}
-              {!isPro && simpleHabits.length < FREE_LIMIT && ` · ${FREE_LIMIT - simpleHabits.length} disponíveis`}
+            <p className="mono-label text-muted-foreground/60 mt-1.5">
+              {totalTracked} {totalTracked === 1 ? "ritual" : "rituais"}
+              {!isPro && simpleHabits.length < FREE_LIMIT && ` · ${FREE_LIMIT - simpleHabits.length} livres`}
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Button size="sm" className="gap-1.5 rounded-xl h-9 px-3" onClick={() => setShowMyHabits(true)}>
+          <div className="flex items-center gap-2 shrink-0">
+            <Button size="sm" variant="outline" className="gap-1.5 h-9 px-3" onClick={() => setShowMyHabits(true)}>
               <ListChecks className="h-4 w-4" />
-              <span className="hidden sm:inline">Meus hábitos</span>
+              <span className="hidden sm:inline">Meus</span>
             </Button>
-            <Button size="sm" className="gap-1.5 rounded-xl h-9 px-3" onClick={() => setShowModeSelector(true)}>
+            <Button size="sm" className="gap-1.5 h-9 px-3" onClick={() => setShowModeSelector(true)}>
               <Plus className="h-4 w-4" />
               <span className="hidden sm:inline">Novo</span>
             </Button>
@@ -444,25 +445,30 @@ const Index = () => {
 
         <NotificationSetup />
 
-        {/* ═══ Daily Progress Hero — hidden on Day 0/1 to keep ONE main action ═══ */}
+        {/* ═══ Daily Progress Hero — sharp Arcade panel ═══ */}
         {!isEarlyDay && state.habits.length > 0 && totalTracked > 0 && (
-          <div className="rounded-2xl border border-primary/15 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 p-5">
-            <div className="flex items-center gap-5">
+          <div className="relative border border-primary/30 bg-card p-5 shadow-[4px_4px_0_0_hsl(var(--neon-ultra)/0.35)] overflow-hidden">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -inset-12 opacity-60"
+              style={{ background: "radial-gradient(closest-side, hsl(var(--neon-toxic) / 0.08), transparent 70%)" }}
+            />
+            <div className="relative flex items-center gap-5">
               <CircularProgress percent={progressPercent} />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-muted-foreground">Progresso de hoje</p>
-                <p className="text-2xl font-bold text-foreground tracking-tight">
-                  {Number.isInteger(totalDone) ? totalDone : totalDone.toFixed(1)}<span className="text-muted-foreground font-normal text-lg">/{totalTracked}</span>
+                <p className="mono-label text-muted-foreground/70">// Progresso</p>
+                <p className="display-headline text-3xl text-foreground mt-1">
+                  {Number.isInteger(totalDone) ? totalDone : totalDone.toFixed(1)}<span className="text-muted-foreground/60 font-black not-italic text-xl">/{totalTracked}</span>
                 </p>
-                <div className="flex items-center gap-3 mt-1">
+                <div className="flex items-center gap-3 mt-2">
                   {streak > 0 && (
-                    <span className="flex items-center gap-1 text-xs font-semibold text-primary">
-                      <Flame className="h-3.5 w-3.5" /> {streak} {streak === 1 ? "dia" : "dias"}
+                    <span className="inline-flex items-center gap-1 mono-label text-primary">
+                      <Flame className="h-3.5 w-3.5" /> {streak}d
                     </span>
                   )}
                   {progressPercent >= 100 && (
-                    <span className="flex items-center gap-1 text-xs font-semibold text-success">
-                      <Sparkles className="h-3.5 w-3.5" /> Completo!
+                    <span className="inline-flex items-center gap-1 mono-label text-success">
+                      <Sparkles className="h-3.5 w-3.5" /> Completo
                     </span>
                   )}
                 </div>
@@ -475,29 +481,29 @@ const Index = () => {
         {!isEarlyDay && state.habits.length > 0 && <MotivationCard card={motivationCard} />}
 
 
-        {/* ═══ Empty state ═══ */}
+        {/* ═══ Empty state — Arcade Overdrive ═══ */}
         {state.habits.length === 0 && (
-          <Card className="border-dashed border-border/40 bg-card/30">
-            <CardContent className="flex flex-col items-center py-12 text-center">
-              <CheckCircle2 className="h-10 w-10 text-muted-foreground/30 mb-3" />
-              <p className="font-medium text-foreground/80">Começa com um hábito simples</p>
-              <p className="text-sm text-muted-foreground mt-1 max-w-[240px]">
-                A consistência constrói-se passo a passo. Um hábito basta para começar.
-              </p>
-              <Button onClick={() => setShowModeSelector(true)} variant="default" size="sm" className="mt-4 gap-1.5">
-                <Plus className="h-4 w-4" /> Criar hábito
-              </Button>
-            </CardContent>
-          </Card>
+          <div className="border-2 border-dashed border-foreground/15 bg-card/40 p-10 text-center">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center border border-primary/30 bg-primary/5">
+              <CheckCircle2 className="h-5 w-5 text-primary" />
+            </div>
+            <p className="mono-label text-primary mb-2">// Começa aqui</p>
+            <h3 className="display-headline text-2xl text-foreground">Um ritual basta.</h3>
+            <p className="text-sm text-muted-foreground/80 mt-2 max-w-[260px] mx-auto">
+              Identidade constrói-se um dia de cada vez.
+            </p>
+            <Button onClick={() => setShowModeSelector(true)} size="sm" className="mt-5 gap-1.5">
+              <Plus className="h-4 w-4" /> Criar hábito
+            </Button>
+          </div>
         )}
 
         {/* ═══ Simple Habits Section ═══ */}
         {sortedTodaySimple.length > 0 && (
           <div className="space-y-2">
             <div className="flex items-center justify-between px-1">
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Rituais · {doneSimple}/{todaySimple.length}
-              </h2>
+              <h2 className="mono-label text-primary">// Rituais</h2>
+              <span className="mono-label text-muted-foreground/60 tabular-nums">{doneSimple}/{todaySimple.length}</span>
             </div>
             <div className="space-y-1.5">
                {sortedTodaySimple.map(habit => {
@@ -521,9 +527,8 @@ const Index = () => {
         {activeMetrics.length > 0 && (
           <div className="space-y-2">
             <div className="flex items-center justify-between px-1">
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Métricas · {onTrackMetrics}/{activeMetrics.length} on track
-              </h2>
+              <h2 className="mono-label text-accent">// Métricas</h2>
+              <span className="mono-label text-muted-foreground/60 tabular-nums">{onTrackMetrics}/{activeMetrics.length} on track</span>
             </div>
             <div className="space-y-2">
               {activeMetrics.map(habit => {
@@ -539,36 +544,39 @@ const Index = () => {
                     <button
                       onClick={() => navigate(`/app/habit/${habit.id}`)}
                       className={cn(
-                        "w-full flex items-center gap-3.5 p-4 rounded-2xl border transition-all duration-300 text-left group",
-                        "hover:shadow-sm hover:border-primary/20",
+                        "press-tactile w-full flex items-center gap-3.5 p-4 border text-left group min-h-[72px]",
+                        "transition-[background-color,border-color,box-shadow] duration-300 ease-out",
                         isOnTrack
-                          ? "border-success/20 bg-success/5"
-                          : "border-border/40 bg-card/60"
+                          ? "border-success/40 bg-success/[0.06] shadow-[0_0_18px_hsl(var(--success)/0.12)]"
+                          : "border-foreground/[0.08] bg-card hover:border-accent/40 hover:bg-card/70"
                       )}
                     >
                       <div className={cn(
-                        "h-11 w-11 rounded-xl flex items-center justify-center text-lg shrink-0 border transition-colors",
+                        "h-11 w-11 flex items-center justify-center text-lg shrink-0 border-2 transition-colors",
                         isOnTrack
-                          ? "border-success/20 bg-success/8"
+                          ? "border-success/50 bg-success/10"
                           : habit.type === "reduce"
-                            ? "border-warning/20 bg-warning/8"
-                            : "border-primary/20 bg-primary/8"
+                            ? "border-warning/40 bg-warning/10"
+                            : "border-primary/40 bg-primary/10"
                       )}>
                         {habit.icon || "📊"}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate text-foreground">{habit.nome}</p>
+                        <p className="font-bold uppercase tracking-tight text-[14px] truncate text-foreground">{habit.nome}</p>
                         <div className="flex items-center gap-2 mt-1.5">
-                          <div className="flex-1 h-1.5 rounded-full bg-muted/60 overflow-hidden">
+                          <div className="flex-1 h-1 bg-foreground/10 overflow-hidden">
                             <div
                               className={cn(
-                                "h-full rounded-full transition-all duration-700 ease-out",
+                                "h-full transition-all duration-700 ease-out",
                                 isOnTrack ? "bg-success" : habit.type === "reduce" ? "bg-warning" : "bg-primary"
                               )}
-                              style={{ width: `${Math.min(100, prog)}%` }}
+                              style={{
+                                width: `${Math.min(100, prog)}%`,
+                                boxShadow: isOnTrack || habit.type !== "reduce" ? "0 0 8px hsl(var(--neon-toxic) / 0.5)" : undefined,
+                              }}
                             />
                           </div>
-                          <span className="text-xs font-mono text-muted-foreground whitespace-nowrap">
+                          <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground/80 whitespace-nowrap tabular-nums">
                             {count}/{goal}
                           </span>
                         </div>
@@ -577,11 +585,10 @@ const Index = () => {
                         <div
                           onClick={e => { e.stopPropagation(); handleAddMetricEntry(habit.id, 1); }}
                           className={cn(
-                            "h-10 w-10 rounded-xl flex items-center justify-center shrink-0 border transition-all",
-                            "hover:shadow-md active:scale-95",
+                            "h-10 w-10 flex items-center justify-center shrink-0 border-2 transition-all active:scale-95",
                             habit.type === "reduce"
-                              ? "border-warning/30 bg-warning/10 text-warning hover:bg-warning/20"
-                              : "border-primary/30 bg-primary/10 text-primary hover:bg-primary/20"
+                              ? "border-warning/50 bg-warning/10 text-warning hover:bg-warning/20"
+                              : "border-primary/50 bg-primary/10 text-primary hover:bg-primary/20 hover:shadow-[0_0_14px_hsl(var(--neon-toxic)/0.45)]"
                           )}
                         >
                           <Plus className="h-4 w-4" />
@@ -592,7 +599,6 @@ const Index = () => {
                           onClick={e => {
                             e.stopPropagation();
                             if (isOnTrack && count > 0) {
-                              // Uncheck: remove today's entries for this metric
                               const todayEntries = state.trackerEntries.filter(
                                 en => en.trackerId === habit.id && en.date === today
                               );
@@ -602,11 +608,10 @@ const Index = () => {
                             }
                           }}
                           className={cn(
-                            "h-10 w-10 rounded-xl flex items-center justify-center shrink-0 border transition-all",
-                            "hover:shadow-md active:scale-95",
+                            "h-10 w-10 flex items-center justify-center shrink-0 border-2 transition-all active:scale-95",
                             isOnTrack && count > 0
-                              ? "border-success/30 bg-success/10 text-success"
-                              : "border-primary/30 bg-primary/10 text-primary hover:bg-primary/20"
+                              ? "border-success/50 bg-success/10 text-success"
+                              : "border-primary/50 bg-primary/10 text-primary hover:bg-primary/20 hover:shadow-[0_0_14px_hsl(var(--neon-toxic)/0.45)]"
                           )}
                         >
                           <Check className="h-4 w-4" />
@@ -641,41 +646,42 @@ const Index = () => {
       <Dialog open={showModeSelector} onOpenChange={setShowModeSelector}>
         <DialogContent className="w-[90vw] max-w-sm">
           <DialogHeader>
-            <DialogTitle>Novo hábito</DialogTitle>
-            <DialogDescription>Escolhe o tipo de hábito que queres criar.</DialogDescription>
+            <p className="mono-label text-primary mb-1">// Novo</p>
+            <DialogTitle className="display-headline text-2xl">Escolhe o tipo</DialogTitle>
+            <DialogDescription>Ritual diário ou métrica que cresce ao longo do dia.</DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-3 py-4">
             <button
               onClick={() => { setShowModeSelector(false); setEditingHabit(null); setShowHabitForm(true); }}
               disabled={!canAddSimple}
               className={cn(
-                "flex flex-col items-center gap-2 p-5 rounded-xl border-2 transition-all text-center",
+                "press-tactile flex flex-col items-center gap-2.5 p-5 border-2 transition-all text-center",
                 canAddSimple
-                  ? "border-primary/20 hover:border-primary/40 hover:bg-primary/5"
-                  : "border-muted opacity-50 cursor-not-allowed"
+                  ? "border-primary/40 bg-primary/[0.04] hover:bg-primary/10 hover:shadow-[0_0_18px_hsl(var(--neon-toxic)/0.35)]"
+                  : "border-foreground/10 opacity-40 cursor-not-allowed"
               )}
             >
-              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+              <div className="h-12 w-12 border-2 border-primary bg-primary/15 flex items-center justify-center">
                 <CheckCircle2 className="h-6 w-6 text-primary" />
               </div>
-              <span className="font-semibold text-sm">Simples</span>
-              <span className="text-xs text-muted-foreground">Checkbox diário</span>
+              <span className="font-bold uppercase italic tracking-tight text-sm">Simples</span>
+              <span className="mono-label text-muted-foreground/70">Checkbox</span>
             </button>
             <button
               onClick={() => { setShowModeSelector(false); setEditingHabit(null); setShowMetricForm(true); }}
               disabled={!canAddMetric}
               className={cn(
-                "flex flex-col items-center gap-2 p-5 rounded-xl border-2 transition-all text-center",
+                "press-tactile flex flex-col items-center gap-2.5 p-5 border-2 transition-all text-center",
                 canAddMetric
-                  ? "border-accent/20 hover:border-accent/40 hover:bg-accent/5"
-                  : "border-muted opacity-50 cursor-not-allowed"
+                  ? "border-accent/40 bg-accent/[0.04] hover:bg-accent/10 hover:shadow-[0_0_18px_hsl(var(--neon-ultra)/0.35)]"
+                  : "border-foreground/10 opacity-40 cursor-not-allowed"
               )}
             >
-              <div className="h-12 w-12 rounded-full bg-accent/10 flex items-center justify-center">
+              <div className="h-12 w-12 border-2 border-accent bg-accent/15 flex items-center justify-center">
                 <TrendingUp className="h-6 w-6 text-accent" />
               </div>
-              <span className="font-semibold text-sm">Métrica</span>
-              <span className="text-xs text-muted-foreground">{canAddMetric ? "Rastrear valores" : "Requer PRO"}</span>
+              <span className="font-bold uppercase italic tracking-tight text-sm">Métrica</span>
+              <span className="mono-label text-muted-foreground/70">{canAddMetric ? "Valores" : "PRO"}</span>
             </button>
           </div>
         </DialogContent>
