@@ -12,6 +12,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { DataProvider } from "@/contexts/DataContext";
 import { GatedPage } from "@/components/Premium/GatedPage";
 import { PWAUpdateToast, usePWAUpdate } from "@/components/PWA/PWAUpdateToast";
+import ScrollToTop from "@/components/ScrollToTop";
 
 // Lazy load pages (except Onboarding, que importamos diretamente)
 const Index = lazy(() => import("./pages/Index"));
@@ -151,6 +152,7 @@ const AppRoutes = () => (
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <BrowserRouter>
+      <ScrollToTop />
       <I18nProvider>
         <AuthProvider>
           <DataProvider>
