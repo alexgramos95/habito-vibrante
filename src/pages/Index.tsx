@@ -32,6 +32,7 @@ import { JourneyHero } from "@/components/Dashboard/JourneyHero";
 import { ReferralPrompt } from "@/components/Referral/ReferralPrompt";
 import { hasSeenReferralPrompt, markReferralPromptSeen } from "@/lib/referral";
 import { track, trackOnce, checkReturnEvents } from "@/hooks/useAnalytics";
+import { trackEvent } from "@/lib/canonicalEvents";
 // HabitCoachTip removed — coach is now on the detail page
 
 // --- Circular progress ring ---
@@ -116,6 +117,20 @@ const Index = () => {
   useEffect(() => {
     track("app_open", { route: "/app" });
     checkReturnEvents();
+    // Mirror retention milestones to canonical event stream (PostHog + Supabase)
+    try {
+      const start = localStorage.getItem("become-journey-start");
+      if (start) {
+        const startDate = new Date(start);
+        if (!isNaN(startDate.getTime())) {
+          const diff = Math.round(
+            (Date.now() - startDate.getTime()) / 86_400_000
+          );
+          if (diff >= 1) trackEvent("day1_return", { dayOffset: diff });
+          if (diff >= 7) trackEvent("day7_return", { dayOffset: diff });
+        }
+      }
+    } catch { /* ignore */ }
 
     // Referee XP reward — if user signed up via ?ref= link, grant once.
     import("@/lib/referral").then(({ consumePendingRefForReward, REFERRAL_XP_REWARD }) => {
@@ -266,7 +281,7 @@ const Index = () => {
     });
     if (!wasDone && habit && result) {
       // Analytics: every completion + first-ever completion (one-shot)
-      track("habit_completed", { habitId, isLate: result.isLate });
+      trackEvent("habit_completed", { habitId, isLate: result.isLate });
       trackOnce("first_habit_completed", "first_habit_completed", { habitId, isLate: result.isLate });
 
       // Late completion → editorial notice; on-time → contextual feedback (if enabled)
@@ -318,7 +333,7 @@ const Index = () => {
     } else {
       if (!canAddSimple) { setShowPaywall(true); return; }
       setState(prev => addHabit(prev, { ...data, mode: "simple" }));
-      track("habit_created", { mode: "simple" });
+      trackEvent("habit_created", { mode: "simple", source: "manual" });
       trackOnce("first_habit_created", "first_habit_created", { source: "manual", mode: "simple" });
       toast({ title: t.habits.habitCreated });
     }
@@ -343,7 +358,8 @@ const Index = () => {
     } else {
       if (!canAddMetric) { setShowPaywall(true); return; }
       setState(prev => addHabit(prev, habitData as Omit<Habit, "id" | "createdAt">));
-      track("habit_created", { mode: "metric" });
+      trackEvent("habit_created", { mode: "metric", source: "manual" });
+      trackEvent("metric_created", { source: "manual", unit: trackerData.unitSingular });
       trackOnce("first_habit_created", "first_habit_created", { source: "manual", mode: "metric" });
       toast({ title: isPT ? "Métrica criada" : "Metric created" });
     }

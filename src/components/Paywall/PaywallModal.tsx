@@ -18,6 +18,7 @@ import {
 } from "@/config/billing";
 import { PAYWALL_COPY, UPGRADE_COPY } from "@/config/copy";
 import { track } from "@/lib/analytics";
+import { trackEvent } from "@/lib/canonicalEvents";
 
 interface PaywallModalProps {
   open: boolean;
@@ -48,7 +49,10 @@ export const PaywallModal = ({
   const isPT = lang === "pt";
 
   useEffect(() => {
-    if (open) void track('paywall_view', { trigger: trigger || null, trialDaysLeft });
+    if (open) {
+      void track('paywall_view', { trigger: trigger || null, trialDaysLeft });
+      trackEvent('paywall_viewed', { trigger: trigger || null, trialDaysLeft });
+    }
   }, [open, trigger, trialDaysLeft]);
 
   // Use centralized copy
@@ -69,6 +73,7 @@ export const PaywallModal = ({
     setLoading(true);
     try {
       void track('checkout_started', { plan: selectedPlan, trigger: trigger || null });
+      trackEvent('checkout_started', { plan: selectedPlan, trigger: trigger || null });
       const { data, error } = await supabase.functions.invoke("create-checkout", {
         body: { priceType: selectedPlan },
         headers: {

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowRight,
@@ -32,6 +32,7 @@ import { useI18n, type Locale } from "@/i18n/I18nContext";
 import { cn } from "@/lib/utils";
 import { useSubscription } from "@/hooks/useSubscription";
 import { track, trackOnce } from "@/hooks/useAnalytics";
+import { trackEvent } from "@/lib/canonicalEvents";
 import { writeOnboardingDraft } from "@/lib/onboardingDraft";
 
 /* =============================================================
@@ -233,6 +234,11 @@ const Onboarding = () => {
   const [metrics, setMetrics] = useState<string[]>([]);
   const [customMetric, setCustomMetric] = useState<string>("");
 
+  // Fire onboarding_started once per session
+  useEffect(() => {
+    trackEvent("onboarding_started", { source: "web" });
+  }, []);
+
   const stepIndex = STEPS.indexOf(step);
 
   const goNext = () => {
@@ -408,6 +414,14 @@ const Onboarding = () => {
       metricsSeeded: habitsToCreate.filter((h) => h.mode === "metric").length,
       customHabit: !!customHabitName,
       customMetric: !!customMetricName,
+      locale: accountLocale,
+    });
+    trackEvent("onboarding_completed", {
+      identity,
+      obstacle,
+      focusCount: focus.length,
+      habitsSeeded: habitsToCreate.length,
+      metricsSeeded: habitsToCreate.filter((h) => h.mode === "metric").length,
       locale: accountLocale,
     });
     if (habitsToCreate.length > 0) {

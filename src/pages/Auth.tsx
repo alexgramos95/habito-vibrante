@@ -14,6 +14,7 @@ import { useI18n } from '@/i18n/I18nContext';
 import { z } from 'zod';
 import { lovable } from '@/integrations/lovable/index';
 import { track } from '@/lib/analytics';
+import { trackEvent } from '@/lib/canonicalEvents';
 
 const emailSchema = z.string().email('Please enter a valid email address');
 const passwordSchema = z.string().min(6, 'Password must be at least 6 characters');
@@ -169,6 +170,7 @@ const Auth = () => {
     try {
       const isPT = locale === 'pt-PT';
       if (mode === 'signup') {
+        trackEvent('signup_started', { method: 'email' });
         const { error } = await signUp(email, password, displayName);
         if (error) {
           if (error.message.includes('already registered')) {
@@ -188,6 +190,7 @@ const Auth = () => {
           }
         } else {
           void track('signup', { method: 'email' });
+          trackEvent('signup_completed', { method: 'email' });
           toast({
             title: isPT ? 'Verifica o teu email' : 'Check your email!',
             description: isPT
@@ -198,6 +201,9 @@ const Auth = () => {
         }
       } else if (mode === 'signin') {
         const { error } = await signIn(email, password);
+        if (!error) {
+          trackEvent('login_completed', { method: 'email' });
+        }
         if (error) {
           if (error.message.includes('Invalid login')) {
             toast({
@@ -269,6 +275,7 @@ const Auth = () => {
     setLoading(true);
     try {
       void track('signup_attempt', { method: 'google' });
+      trackEvent('signup_started', { method: 'google' });
       const { error } = await signInWithGoogle();
       if (error) {
         toast({
@@ -286,6 +293,7 @@ const Auth = () => {
   const handleAppleSignIn = async () => {
     setLoading(true);
     try {
+      trackEvent('signup_started', { method: 'apple' });
       const { error } = await lovable.auth.signInWithOAuth('apple', {
         redirect_uri: window.location.origin,
       });
