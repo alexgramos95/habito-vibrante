@@ -115,7 +115,26 @@ const Index = () => {
   useEffect(() => {
     track("app_open", { route: "/app" });
     checkReturnEvents();
-  }, []);
+
+    // Referee XP reward — if user signed up via ?ref= link, grant once.
+    import("@/lib/referral").then(({ consumePendingRefForReward, REFERRAL_XP_REWARD }) => {
+      const reward = consumePendingRefForReward();
+      if (reward) {
+        setState(prev => ({
+          ...prev,
+          gamification: {
+            ...prev.gamification,
+            pontos: (prev.gamification?.pontos || 0) + REFERRAL_XP_REWARD,
+          },
+        }));
+        toast({
+          title: `+${REFERRAL_XP_REWARD} XP`,
+          description: "Welcome bonus from your invite. Build something.",
+          duration: 3500,
+        });
+      }
+    });
+  }, [setState, toast]);
 
   // --- Derived data ---
   const today = format(new Date(), "yyyy-MM-dd");
@@ -715,6 +734,9 @@ const Index = () => {
 
       {/* ═══ Paywall ═══ */}
       <PaywallModal open={showPaywall} onClose={() => setShowPaywall(false)} onUpgrade={upgradeToPro} trialDaysLeft={trialStatus.daysRemaining} />
+
+      {/* ═══ Referral milestone prompt ═══ */}
+      <ReferralPrompt open={showReferralPrompt} onClose={() => setShowReferralPrompt(false)} variant="milestone" />
     </div>
   );
 };
