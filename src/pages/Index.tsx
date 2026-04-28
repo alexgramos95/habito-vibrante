@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { format, getDay, subDays } from "date-fns";
-import { Plus, CheckCircle2, Flame, Sparkles, TrendingUp, TrendingDown, Check, ChevronRight, ListChecks, LayoutDashboard } from "lucide-react";
+import { Plus, CheckCircle2, Check, ListChecks, TrendingUp } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { useI18n } from "@/i18n/I18nContext";
 import { Habit, Tracker, TrackerEntry } from "@/data/types";
@@ -384,40 +384,8 @@ const Index = () => {
     <div className="page-container">
       <Navigation />
 
-      <main className="page-content max-w-xl mx-auto space-y-5">
-        {/* ═══ Page Header — Arcade Overdrive ═══ */}
-        <div className="flex items-end justify-between gap-3">
-          <div className="min-w-0">
-            <p className="mono-label text-muted-foreground/70 mb-1.5">// Today</p>
-            <h1 className="display-headline text-3xl sm:text-4xl text-foreground flex items-center gap-2.5">
-              <LayoutDashboard className="h-6 w-6 text-primary not-italic" />
-              Hábitos
-            </h1>
-            <p className="mono-label text-muted-foreground/60 mt-1.5">
-              {totalTracked} {totalTracked === 1 ? "ritual" : "rituais"}
-              {!isPro && simpleHabits.length < FREE_LIMIT && ` · ${FREE_LIMIT - simpleHabits.length} livres`}
-            </p>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <Button size="sm" variant="outline" className="gap-1.5 h-9 px-3" onClick={() => setShowMyHabits(true)}>
-              <ListChecks className="h-4 w-4" />
-              <span className="hidden sm:inline">Meus</span>
-            </Button>
-            <Button size="sm" className="gap-1.5 h-9 px-3" onClick={() => setShowModeSelector(true)}>
-              <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">Novo</span>
-            </Button>
-          </div>
-        </div>
-
-        {/* Trial banner */}
-        {trialStatus.isActive && (
-          <div className="flex justify-center">
-            <TrialBanner daysRemaining={trialStatus.daysRemaining} onUpgrade={() => setShowPaywall(true)} />
-          </div>
-        )}
-
-        {/* ═══ Journey Hero — adapts to days 0/1/3/7+ ═══ */}
+      <main className="page-content max-w-xl mx-auto space-y-8">
+        {/* ═══ UNIFIED HERO — greeting, progress, streak, next-action CTA ═══ */}
         {state.habits.length > 0 && (
           <JourneyHero
             state={state}
@@ -426,7 +394,7 @@ const Index = () => {
             totalTracked={totalTracked}
             brokeYesterday={brokeYesterday}
             locale="pt-PT"
-            primaryActionLabel={sortedTodaySimple.length > 0 ? "Começar primeira ação" : undefined}
+            nextActionName={sortedTodaySimple.find(h => !isSimpleDone(h.id))?.nome}
             onPrimaryAction={
               sortedTodaySimple.length > 0
                 ? () => {
@@ -443,140 +411,121 @@ const Index = () => {
           />
         )}
 
-        <NotificationSetup />
-
-        {/* ═══ Daily Progress Hero — sharp Arcade panel ═══ */}
-        {!isEarlyDay && state.habits.length > 0 && totalTracked > 0 && (
-          <div className="relative border border-primary/30 bg-card p-5 shadow-[4px_4px_0_0_hsl(var(--neon-ultra)/0.35)] overflow-hidden">
-            <div
-              aria-hidden
-              className="pointer-events-none absolute -inset-12 opacity-60"
-              style={{ background: "radial-gradient(closest-side, hsl(var(--neon-toxic) / 0.08), transparent 70%)" }}
-            />
-            <div className="relative flex items-center gap-5">
-              <CircularProgress percent={progressPercent} />
-              <div className="flex-1 min-w-0">
-                <p className="mono-label text-muted-foreground/70">// Progresso</p>
-                <p className="display-headline text-3xl text-foreground mt-1">
-                  {Number.isInteger(totalDone) ? totalDone : totalDone.toFixed(1)}<span className="text-muted-foreground/60 font-black not-italic text-xl">/{totalTracked}</span>
-                </p>
-                <div className="flex items-center gap-3 mt-2">
-                  {streak > 0 && (
-                    <span className="inline-flex items-center gap-1 mono-label text-primary">
-                      <Flame className="h-3.5 w-3.5" /> {streak}d
-                    </span>
-                  )}
-                  {progressPercent >= 100 && (
-                    <span className="inline-flex items-center gap-1 mono-label text-success">
-                      <Sparkles className="h-3.5 w-3.5" /> Completo
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
+        {/* Trial banner — calm, single line */}
+        {trialStatus.isActive && (
+          <TrialBanner daysRemaining={trialStatus.daysRemaining} onUpgrade={() => setShowPaywall(true)} />
         )}
 
-        {/* ═══ Daily Motivation Card — hidden on Day 0/1 (declutter) ═══ */}
+        <NotificationSetup />
+
+        {/* ═══ Daily Motivation — only past early days, calm spacing ═══ */}
         {!isEarlyDay && state.habits.length > 0 && <MotivationCard card={motivationCard} />}
 
-
-        {/* ═══ Empty state — Arcade Overdrive ═══ */}
+        {/* ═══ Empty state — minimal, inviting ═══ */}
         {state.habits.length === 0 && (
-          <div className="border-2 border-dashed border-foreground/15 bg-card/40 p-10 text-center">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center border border-primary/30 bg-primary/5">
-              <CheckCircle2 className="h-5 w-5 text-primary" />
+          <div className="border border-dashed border-foreground/15 bg-card/40 p-10 text-center rounded-2xl">
+            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
+              <CheckCircle2 className="h-6 w-6 text-primary" />
             </div>
-            <p className="mono-label text-primary mb-2">// Começa aqui</p>
-            <h3 className="display-headline text-2xl text-foreground">Um ritual basta.</h3>
-            <p className="text-sm text-muted-foreground/80 mt-2 max-w-[260px] mx-auto">
+            <h3 className="text-2xl font-bold tracking-tight text-foreground">Um hábito basta.</h3>
+            <p className="text-sm text-muted-foreground mt-2 max-w-[280px] mx-auto">
               Identidade constrói-se um dia de cada vez.
             </p>
-            <Button onClick={() => setShowModeSelector(true)} size="sm" className="mt-5 gap-1.5">
-              <Plus className="h-4 w-4" /> Criar hábito
+            <Button onClick={() => setShowModeSelector(true)} size="lg" className="mt-6 gap-2">
+              <Plus className="h-4 w-4" /> Criar primeiro hábito
             </Button>
           </div>
         )}
 
-        {/* ═══ Simple Habits Section ═══ */}
-        {sortedTodaySimple.length > 0 && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between px-1">
-              <h2 className="mono-label text-primary">// Rituais</h2>
-              <span className="mono-label text-muted-foreground/60 tabular-nums">{doneSimple}/{todaySimple.length}</span>
+        {/* ═══ Hoje (rituals + metrics) — single section, clear hierarchy ═══ */}
+        {(sortedTodaySimple.length > 0 || activeMetrics.length > 0) && (
+          <section className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-baseline gap-2">
+                <h2 className="text-base font-semibold tracking-tight text-foreground">Hoje</h2>
+                {totalTracked > 0 && (
+                  <span className="text-xs tabular-nums text-muted-foreground">
+                    {Math.round(totalDone)}/{totalTracked}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-1">
+                <Button size="sm" variant="ghost" className="h-8 px-2.5 text-muted-foreground hover:text-foreground" onClick={() => setShowMyHabits(true)}>
+                  <ListChecks className="h-4 w-4" />
+                  <span className="ml-1.5 hidden sm:inline text-xs">Todos</span>
+                </Button>
+                <Button size="sm" variant="ghost" className="h-8 px-2.5 text-muted-foreground hover:text-foreground" onClick={() => setShowModeSelector(true)}>
+                  <Plus className="h-4 w-4" />
+                  <span className="ml-1.5 hidden sm:inline text-xs">Novo</span>
+                </Button>
+              </div>
             </div>
-            <div className="space-y-1.5">
-               {sortedTodaySimple.map(habit => {
-                const log = state.dailyLogs.find(l => l.habitId === habit.id && l.date === today && l.done);
-                return (
-                  <div key={habit.id} id={`habit-${habit.id}`}>
-                    <MinimalHabitCard
-                      habit={habit}
-                      isDone={isSimpleDone(habit.id)}
-                      isLate={!!log?.isLate}
-                      onToggle={() => handleToggleSimple(habit.id)}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
 
-        {/* ═══ Metric Habits Section ═══ */}
-        {activeMetrics.length > 0 && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between px-1">
-              <h2 className="mono-label text-accent">// Métricas</h2>
-              <span className="mono-label text-muted-foreground/60 tabular-nums">{onTrackMetrics}/{activeMetrics.length} on track</span>
-            </div>
-            <div className="space-y-2">
-              {activeMetrics.map(habit => {
-                const count = getTodayCount(habit.id);
-                const goal = habit.dailyGoal ?? habit.baseline ?? 1;
-                const prog = habit.type === "reduce"
-                  ? Math.max(0, 100 - (count / Math.max(goal, 1)) * 100)
-                  : Math.min(100, (count / Math.max(goal, 1)) * 100);
-                const isOnTrack = habit.type === "reduce" ? count <= goal : count >= goal;
+            {/* Simple habits */}
+            {sortedTodaySimple.length > 0 && (
+              <div className="space-y-1.5">
+                {sortedTodaySimple.map(habit => {
+                  const log = state.dailyLogs.find(l => l.habitId === habit.id && l.date === today && l.done);
+                  return (
+                    <div key={habit.id} id={`habit-${habit.id}`}>
+                      <MinimalHabitCard
+                        habit={habit}
+                        isDone={isSimpleDone(habit.id)}
+                        isLate={!!log?.isLate}
+                        onToggle={() => handleToggleSimple(habit.id)}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
-                return (
-                  <div key={habit.id}>
+            {/* Metrics — quieter, calmer rows */}
+            {activeMetrics.length > 0 && (
+              <div className="space-y-1.5 pt-1">
+                {activeMetrics.map(habit => {
+                  const count = getTodayCount(habit.id);
+                  const goal = habit.dailyGoal ?? habit.baseline ?? 1;
+                  const prog = habit.type === "reduce"
+                    ? Math.max(0, 100 - (count / Math.max(goal, 1)) * 100)
+                    : Math.min(100, (count / Math.max(goal, 1)) * 100);
+                  const isOnTrack = habit.type === "reduce" ? count <= goal : count >= goal;
+
+                  return (
                     <button
+                      key={habit.id}
                       onClick={() => navigate(`/app/habit/${habit.id}`)}
                       className={cn(
-                        "press-tactile w-full flex items-center gap-3.5 p-4 border text-left group min-h-[72px]",
-                        "transition-[background-color,border-color,box-shadow] duration-300 ease-out",
+                        "press-tactile w-full flex items-center gap-3 p-4 border text-left min-h-[72px] rounded-xl",
+                        "transition-[background-color,border-color] duration-200",
                         isOnTrack
-                          ? "border-success/40 bg-success/[0.06] shadow-[0_0_18px_hsl(var(--success)/0.12)]"
-                          : "border-foreground/[0.08] bg-card hover:border-accent/40 hover:bg-card/70"
+                          ? "border-success/30 bg-success/[0.04]"
+                          : "border-foreground/[0.08] bg-card hover:border-foreground/15"
                       )}
                     >
                       <div className={cn(
-                        "h-11 w-11 flex items-center justify-center text-lg shrink-0 border-2 transition-colors",
+                        "h-10 w-10 flex items-center justify-center text-base shrink-0 rounded-lg",
                         isOnTrack
-                          ? "border-success/50 bg-success/10"
+                          ? "bg-success/10 text-success"
                           : habit.type === "reduce"
-                            ? "border-warning/40 bg-warning/10"
-                            : "border-primary/40 bg-primary/10"
+                            ? "bg-warning/10 text-warning"
+                            : "bg-primary/10 text-primary"
                       )}>
                         {habit.icon || "📊"}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-bold uppercase tracking-tight text-[14px] truncate text-foreground">{habit.nome}</p>
+                        <p className="font-medium text-sm truncate text-foreground">{habit.nome}</p>
                         <div className="flex items-center gap-2 mt-1.5">
-                          <div className="flex-1 h-1 bg-foreground/10 overflow-hidden">
+                          <div className="flex-1 h-1 bg-foreground/8 overflow-hidden rounded-full">
                             <div
                               className={cn(
-                                "h-full transition-all duration-700 ease-out",
+                                "h-full transition-all duration-500 ease-out rounded-full",
                                 isOnTrack ? "bg-success" : habit.type === "reduce" ? "bg-warning" : "bg-primary"
                               )}
-                              style={{
-                                width: `${Math.min(100, prog)}%`,
-                                boxShadow: isOnTrack || habit.type !== "reduce" ? "0 0 8px hsl(var(--neon-toxic) / 0.5)" : undefined,
-                              }}
+                              style={{ width: `${Math.min(100, prog)}%` }}
                             />
                           </div>
-                          <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground/80 whitespace-nowrap tabular-nums">
+                          <span className="text-[11px] text-muted-foreground whitespace-nowrap tabular-nums">
                             {count}/{goal}
                           </span>
                         </div>
@@ -585,10 +534,10 @@ const Index = () => {
                         <div
                           onClick={e => { e.stopPropagation(); handleAddMetricEntry(habit.id, 1); }}
                           className={cn(
-                            "h-10 w-10 flex items-center justify-center shrink-0 border-2 transition-all active:scale-95",
+                            "h-9 w-9 flex items-center justify-center shrink-0 rounded-lg transition-all active:scale-95",
                             habit.type === "reduce"
-                              ? "border-warning/50 bg-warning/10 text-warning hover:bg-warning/20"
-                              : "border-primary/50 bg-primary/10 text-primary hover:bg-primary/20 hover:shadow-[0_0_14px_hsl(var(--neon-toxic)/0.45)]"
+                              ? "bg-warning/10 text-warning hover:bg-warning/20"
+                              : "bg-primary/10 text-primary hover:bg-primary/20"
                           )}
                         >
                           <Plus className="h-4 w-4" />
@@ -608,32 +557,28 @@ const Index = () => {
                             }
                           }}
                           className={cn(
-                            "h-10 w-10 flex items-center justify-center shrink-0 border-2 transition-all active:scale-95",
+                            "h-9 w-9 flex items-center justify-center shrink-0 rounded-lg transition-all active:scale-95",
                             isOnTrack && count > 0
-                              ? "border-success/50 bg-success/10 text-success"
-                              : "border-primary/50 bg-primary/10 text-primary hover:bg-primary/20 hover:shadow-[0_0_14px_hsl(var(--neon-toxic)/0.45)]"
+                              ? "bg-success/15 text-success"
+                              : "bg-primary/10 text-primary hover:bg-primary/20"
                           )}
                         >
                           <Check className="h-4 w-4" />
                         </div>
                       )}
-                      <ChevronRight className="h-4 w-4 text-muted-foreground/30 shrink-0" />
                     </button>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
         )}
 
-        {/* ═══ Outros hábitos (não agendados para hoje / inativos) ═══ */}
-        {/* "Outros hábitos" removido — agora acessível via botão "Meus hábitos" → /app/habits */}
-
-        {/* PRO upsell */}
+        {/* PRO upsell — calm, single line */}
         {!isPro && simpleHabits.length >= FREE_LIMIT && (
-          <div className="text-center py-3">
+          <div className="text-center py-2">
             <p className="text-sm text-muted-foreground mb-2">
-              Limite gratuito atingido. Hábitos ilimitados + métricas na PRO.
+              Limite gratuito atingido. Hábitos ilimitados na PRO.
             </p>
             <Link to="/decision">
               <Button variant="outline" size="sm">Desbloquear PRO</Button>
