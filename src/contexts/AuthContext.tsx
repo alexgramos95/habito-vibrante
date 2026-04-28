@@ -5,8 +5,6 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef, ReactNode } from 'react';
 import { User, Session, Provider } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { loadState, saveState, addHabit, addTracker } from '@/data/storage';
-import type { Tracker } from '@/data/types';
 import { useDataSync } from '@/hooks/useDataSync';
 import { AUTH_RECOVERY_EVENT, isRecoverableAuthError, recoverInvalidSession } from '@/lib/authSessionRecovery';
 import { purgeAccountData, detectAccountSwitchAndPurge } from '@/lib/sessionCleanup';
@@ -55,161 +53,11 @@ const defaultSubscriptionStatus: SubscriptionStatus = {
 // Minimum time between subscription checks (30 seconds)
 const SUBSCRIPTION_CHECK_COOLDOWN = 30000;
 
-import {
-  ONBOARDING_DATA_KEY,
-  readOnboardingDraft,
-  isMaterialized,
-  markMaterialized,
-  getMaterializedKey,
-} from '@/lib/onboardingDraft';
-import { track } from '@/hooks/useAnalytics';
+// Note: onboarding materialization is now handled by DataContext via
+// `runOnboardingMaterialization` (see src/lib/onboardingMaterialization.ts).
+// The legacy materializer that lived here was removed to avoid double-runs
+// that could create duplicate habits or wipe selected metrics.
 
-/**
- * Materialize onboarding habits and trackers after successful authentication.
- *
- * Returns true when the call resulted in a fully materialized state for this
- * user (either nothing to do, or habits/trackers were created), false when
- * materialization should be retried later (e.g. draft missing right now but
- * the mirror may be restored on a subsequent mount, or a recoverable error).
- *
- * Idempotent: name-based dedupe prevents duplicate creates if called twice.
- *
- * IMPORTANT: This is now called from DataContext AFTER checking subscription
- * and cloud data. For PRO users with existing cloud data, this is skipped —
- * cloud is the source of truth.
- */
-export const materializeOnboardingData = (
-  userId: string,
-  skipIfProWithCloudData: { isPro: boolean; hasCloudData: boolean } | null = null,
-): boolean => {
-  const materializationKey = getMaterializedKey(userId);
-
-  try {
-    // Already done for THIS user → nothing to do.
-    if (isMaterialized(userId)) {
-      console.log('[ONBOARDING] Already materialized for user:', userId);
-      return true;
-    }
-
-    // PRO users with cloud data should NOT materialize from onboarding —
-    // their data comes from the cloud. Mark as done so we don't retry.
-    if (skipIfProWithCloudData?.isPro && skipIfProWithCloudData?.hasCloudData) {
-      console.log('[ONBOARDING] PRO user with cloud data - skipping materialization, marking as done');
-      markMaterialized(userId);
-      try { localStorage.removeItem(ONBOARDING_DATA_KEY); } catch { /* ignore */ }
-      return true;
-    }
-
-    const parsed = readOnboardingDraft();
-    if (!parsed) {
-      // No draft and no mirror — user signed in without completing onboarding
-      // on this device. Mark done so we stop retrying every render.
-      console.log('[ONBOARDING] No onboarding draft to materialize');
-      markMaterialized(userId);
-      return true;
-    }
-
-    if (!parsed.habitsToCreate && !parsed.trackersToCreate) {
-      console.log('[ONBOARDING] Draft contained no habits/trackers to create');
-      markMaterialized(userId);
-      return true;
-    }
-
-    let state = loadState();
-    let habitsCreated = 0;
-    let trackersCreated = 0;
-
-    // Create habits (idempotent via case-insensitive name match)
-    if (Array.isArray(parsed.habitsToCreate)) {
-      console.log(`[ONBOARDING] Creating ${parsed.habitsToCreate.length} habits for user ${userId}...`);
-      for (const habit of parsed.habitsToCreate as Array<Record<string, unknown>>) {
-        const name = String(habit.nome ?? '');
-        if (!name) continue;
-        const exists = state.habits.some((h: { nome: string }) =>
-          h.nome.toLowerCase() === name.toLowerCase(),
-        );
-        if (!exists) {
-          state = addHabit(state, {
-            nome: name,
-            categoria: habit.categoria as string,
-            cor: habit.cor as string,
-            active: (habit.active as boolean | undefined) ?? true,
-            scheduledDays: habit.scheduledDays as number[] | undefined,
-            scheduledTime: habit.scheduledTime as string | undefined,
-            mode: (habit.mode as "simple" | "metric" | undefined) ?? "simple",
-            type: habit.type as any,
-            inputMode: habit.inputMode as any,
-            icon: habit.icon as string | undefined,
-            unitSingular: habit.unitSingular as string | undefined,
-            unitPlural: habit.unitPlural as string | undefined,
-            baseline: habit.baseline as number | undefined,
-            valuePerUnit: habit.valuePerUnit as number | undefined,
-            frequency: habit.frequency as any,
-          });
-          habitsCreated++;
-          console.log(`[ONBOARDING] Created habit: ${name} (mode=${habit.mode ?? 'simple'})`);
-        }
-      }
-    }
-
-    // Create trackers
-    if (Array.isArray(parsed.trackersToCreate)) {
-      console.log(`[ONBOARDING] Creating ${parsed.trackersToCreate.length} trackers for user ${userId}...`);
-      for (const tracker of parsed.trackersToCreate as Array<Record<string, unknown>>) {
-        const name = String(tracker.name ?? '');
-        if (!name) continue;
-        const exists = state.trackers.some((t: Tracker) =>
-          t.name.toLowerCase() === name.toLowerCase(),
-        );
-        if (!exists) {
-          state = addTracker(state, {
-            name,
-            type: tracker.type as Tracker['type'],
-            inputMode: tracker.inputMode as Tracker['inputMode'],
-            unitSingular: tracker.unitSingular as string,
-            unitPlural: tracker.unitPlural as string,
-            valuePerUnit: tracker.valuePerUnit as number,
-            baseline: tracker.baseline as number,
-            dailyGoal: tracker.dailyGoal as number | undefined,
-            includeInFinances: tracker.includeInFinances as boolean | undefined,
-            active: (tracker.active as boolean | undefined) ?? true,
-            icon: tracker.icon as string | undefined,
-            frequency: tracker.frequency as Tracker['frequency'],
-          });
-          trackersCreated++;
-          console.log(`[ONBOARDING] Created tracker: ${name}`);
-        }
-      }
-    }
-
-    if (habitsCreated > 0 || trackersCreated > 0) {
-      saveState(state);
-      console.log(`[ONBOARDING] Saved state with ${habitsCreated} habits and ${trackersCreated} trackers`);
-    }
-
-    // Mark as materialized so we don't repeat creation. Note: we deliberately
-    // do NOT clear the draft here — DataContext clears it after the cloud
-    // upload completes so a network failure mid-flight can be safely retried.
-    markMaterialized(userId);
-    console.log('[ONBOARDING] Marked as materialized for user:', userId);
-
-    track('onboarding_materialized_success', {
-      userId: userId.slice(0, 8),
-      habitsCreated,
-      trackersCreated,
-    });
-
-    return true;
-  } catch (error) {
-    console.error('[ONBOARDING] Error materializing onboarding data:', error);
-    track('onboarding_materialized_failed', {
-      userId: userId.slice(0, 8),
-      error: (error as Error)?.message ?? 'unknown',
-    });
-    // Do NOT mark as materialized on error — allow retry on next mount.
-    return false;
-  }
-};
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
