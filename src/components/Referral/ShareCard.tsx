@@ -26,6 +26,7 @@ const drawCard = (
   stats: ShareCardProps["stats"],
   identityLabel: string,
   isPT: boolean,
+  headline: string,
 ) => {
   // Background gradient — premium dark warm
   const grad = ctx.createLinearGradient(0, 0, W, H);
