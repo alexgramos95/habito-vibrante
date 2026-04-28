@@ -146,16 +146,21 @@ const wrapText = (
 export const ShareCard = ({ open, onClose, stats, identityLabel = "disciplined self", isPT = true }: ShareCardProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [shared, setShared] = useState(false);
+  const headlineVariant = useMemo(
+    () => pickVariant(SHARE_HEADLINE_TEST, SHARE_HEADLINE_VARIANTS),
+    [],
+  );
+  const abProps = { testKey: SHARE_HEADLINE_TEST, variant: headlineVariant.id };
 
   useEffect(() => {
     if (!open) return;
-    track("share_card_opened", stats);
+    track("share_card_opened", { ...stats, ...abProps });
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    drawCard(ctx, stats, identityLabel, isPT);
-  }, [open, stats, identityLabel, isPT]);
+    drawCard(ctx, stats, identityLabel, isPT, headlineVariant.copy);
+  }, [open, stats, identityLabel, isPT, headlineVariant.copy]);
 
   if (!open) return null;
 
@@ -181,7 +186,7 @@ export const ShareCard = ({ open, onClose, stats, identityLabel = "disciplined s
       }
     } catch { /* cancelled */ }
     if (ok) {
-      track("share_card_shared", stats);
+      track("share_card_shared", { ...stats, ...abProps });
       setShared(true);
       setTimeout(() => setShared(false), 1800);
     }
@@ -196,7 +201,7 @@ export const ShareCard = ({ open, onClose, stats, identityLabel = "disciplined s
     a.download = `become-week-${new Date().toISOString().slice(0, 10)}.png`;
     a.click();
     URL.revokeObjectURL(url);
-    track("share_card_downloaded", stats);
+    track("share_card_downloaded", { ...stats, ...abProps });
   };
 
   return (
