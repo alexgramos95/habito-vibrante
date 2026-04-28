@@ -28,6 +28,7 @@ import { MyHabitsDialog } from "@/components/Habits/MyHabitsDialog";
 import { getContextualHabitFeedback, getHabitFeedbackEnabled } from "@/logic/habitFeedback";
 import { MotivationCard } from "@/components/Dashboard/MotivationCard";
 import { getDailyMotivation } from "@/logic/dailyMotivation";
+import { JourneyHero } from "@/components/Dashboard/JourneyHero";
 // HabitCoachTip removed — coach is now on the detail page
 
 // --- Circular progress ring ---
@@ -87,6 +88,17 @@ const Index = () => {
     try { localStorage.removeItem("become-first-session"); } catch { /* ignore */ }
     setShowFirstSession(false);
   }, []);
+
+  // Journey day (0 = signup day) — drives early-day decluttering
+  const journeyDay = useMemo(() => {
+    try {
+      const start = localStorage.getItem("become-journey-start");
+      if (!start) return 0;
+      const ms = new Date().setHours(0,0,0,0) - new Date(start).setHours(0,0,0,0);
+      return Math.max(0, Math.floor(ms / 86400000));
+    } catch { return 0; }
+  }, []);
+  const isEarlyDay = journeyDay <= 1; // Day 0 & 1 → minimal dashboard
 
   // Auth guard
   useEffect(() => {
@@ -357,41 +369,35 @@ const Index = () => {
           </div>
         )}
 
-        {/* First-session activation — fires once after onboarding */}
-        {showFirstSession && sortedTodaySimple.length > 0 && (
-          <div
-            className="relative overflow-hidden rounded-2xl border-2 border-primary/40 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-4 animate-in fade-in slide-in-from-top-2 duration-500 shadow-[0_0_40px_hsl(var(--neon-toxic)/0.25)]"
-          >
-            <div className="flex items-start gap-3">
-              <div className="h-10 w-10 shrink-0 flex items-center justify-center bg-primary text-primary-foreground border-2 border-primary shadow-[0_0_24px_hsl(var(--neon-toxic)/0.55)]">
-                <Flame className="h-5 w-5" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-mono text-[10px] uppercase tracking-widest text-primary mb-0.5">
-                  // Day 1 · Welcome
-                </p>
-                <p className="text-sm font-bold tracking-tight">
-                  One tap to start your streak.
-                </p>
-                <p className="text-xs text-muted-foreground/85 mt-0.5">
-                  Tap your first habit below. That's how everything begins.
-                </p>
-              </div>
-              <button
-                onClick={dismissFirstSession}
-                className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors px-2 py-1"
-                aria-label="Dismiss"
-              >
-                Got it
-              </button>
-            </div>
-          </div>
+        {/* ═══ Journey Hero — adapts to days 0/1/3/7+ ═══ */}
+        {state.habits.length > 0 && (
+          <JourneyHero
+            state={state}
+            streak={streak}
+            totalDone={totalDone}
+            totalTracked={totalTracked}
+            brokeYesterday={brokeYesterday}
+            locale="pt-PT"
+            primaryActionLabel={sortedTodaySimple.length > 0 ? "Começar primeira ação" : undefined}
+            onPrimaryAction={
+              sortedTodaySimple.length > 0
+                ? () => {
+                    if (showFirstSession) dismissFirstSession();
+                    const first = sortedTodaySimple.find(h => !isSimpleDone(h.id));
+                    if (first) {
+                      const el = document.getElementById(`habit-${first.id}`);
+                      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+                    }
+                  }
+                : undefined
+            }
+          />
         )}
 
         <NotificationSetup />
 
-        {/* ═══ Daily Progress Hero ═══ */}
-        {state.habits.length > 0 && totalTracked > 0 && (
+        {/* ═══ Daily Progress Hero — hidden on Day 0/1 to keep ONE main action ═══ */}
+        {!isEarlyDay && state.habits.length > 0 && totalTracked > 0 && (
           <div className="rounded-2xl border border-primary/15 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 p-5">
             <div className="flex items-center gap-5">
               <CircularProgress percent={progressPercent} />
@@ -417,8 +423,9 @@ const Index = () => {
           </div>
         )}
 
-        {/* ═══ Daily Motivation Card ═══ */}
-        {state.habits.length > 0 && <MotivationCard card={motivationCard} />}
+        {/* ═══ Daily Motivation Card — hidden on Day 0/1 (declutter) ═══ */}
+        {!isEarlyDay && state.habits.length > 0 && <MotivationCard card={motivationCard} />}
+
 
         {/* ═══ Empty state ═══ */}
         {state.habits.length === 0 && (
@@ -448,13 +455,14 @@ const Index = () => {
                {sortedTodaySimple.map(habit => {
                 const log = state.dailyLogs.find(l => l.habitId === habit.id && l.date === today && l.done);
                 return (
-                  <MinimalHabitCard
-                    key={habit.id}
-                    habit={habit}
-                    isDone={isSimpleDone(habit.id)}
-                    isLate={!!log?.isLate}
-                    onToggle={() => handleToggleSimple(habit.id)}
-                  />
+                  <div key={habit.id} id={`habit-${habit.id}`}>
+                    <MinimalHabitCard
+                      habit={habit}
+                      isDone={isSimpleDone(habit.id)}
+                      isLate={!!log?.isLate}
+                      onToggle={() => handleToggleSimple(habit.id)}
+                    />
+                  </div>
                 );
               })}
             </div>
