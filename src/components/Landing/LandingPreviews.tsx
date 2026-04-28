@@ -115,7 +115,7 @@ const PreviewTopBar = () => (
 const PreviewBottomNav = ({
   active,
 }: {
-  active: "habits" | "calendar" | "nutrition" | "shopping" | "profile";
+  active: "habits" | "calendar" | "nutrition" | "shopping" | "profile" | "none";
 }) => {
   const items = [
     { id: "habits",    label: "Hábitos",    icon: LayoutDashboard },
