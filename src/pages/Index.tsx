@@ -526,10 +526,13 @@ const Index = () => {
                 {activeMetrics.map(habit => {
                   const count = getTodayCount(habit.id);
                   const goal = habit.dailyGoal ?? habit.baseline ?? 1;
-                  const prog = habit.type === "reduce"
-                    ? Math.max(0, 100 - (count / Math.max(goal, 1)) * 100)
-                    : Math.min(100, (count / Math.max(goal, 1)) * 100);
-                  const isOnTrack = habit.type === "reduce" ? count <= goal : count >= goal;
+                  const isReduce = habit.type === "reduce";
+                  const isExceeded = isReduce && goal > 0 && count > goal;
+                  const isOnTrack = isReduce ? count <= goal : count >= goal;
+                  // For reduce: bar shows how much of the limit is consumed (clamped at 100%);
+                  // when count > goal, card switches to "exceeded" visual state.
+                  // For increase: bar shows progress toward goal.
+                  const prog = Math.min(100, (count / Math.max(goal, 1)) * 100);
 
                   return (
                     <button
@@ -537,36 +540,51 @@ const Index = () => {
                       onClick={() => navigate(`/app/habit/${habit.id}`)}
                       className={cn(
                         "press-tactile w-full flex items-center gap-3 p-4 border text-left min-h-[72px] rounded-xl",
-                        "transition-[background-color,border-color] duration-200",
-                        isOnTrack
+                        "transition-[background-color,border-color,box-shadow] duration-200",
+                        isExceeded
+                          ? "border-destructive/60 bg-destructive/[0.08] shadow-[0_0_18px_hsl(var(--destructive)/0.15)]"
+                          : isOnTrack
                           ? "border-success/30 bg-success/[0.04]"
+                          : isReduce
+                          ? "border-warning/30 bg-warning/[0.04]"
                           : "border-foreground/[0.08] bg-card hover:border-foreground/15"
                       )}
                     >
                       <div className={cn(
                         "h-10 w-10 flex items-center justify-center text-base shrink-0 rounded-lg",
-                        isOnTrack
+                        isExceeded
+                          ? "bg-destructive/15 text-destructive"
+                          : isOnTrack
                           ? "bg-success/10 text-success"
-                          : habit.type === "reduce"
+                          : isReduce
                             ? "bg-warning/10 text-warning"
                             : "bg-primary/10 text-primary"
                       )}>
                         {habit.icon || "📊"}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate text-foreground">{habit.nome}</p>
+                        <p className={cn(
+                          "font-medium text-sm truncate",
+                          isExceeded ? "text-destructive" : "text-foreground"
+                        )}>{habit.nome}</p>
                         <div className="flex items-center gap-2 mt-1.5">
                           <div className="flex-1 h-1 bg-foreground/8 overflow-hidden rounded-full">
                             <div
                               className={cn(
                                 "h-full transition-all duration-500 ease-out rounded-full",
-                                isOnTrack ? "bg-success" : habit.type === "reduce" ? "bg-warning" : "bg-primary"
+                                isExceeded ? "bg-destructive" :
+                                isOnTrack ? "bg-success" :
+                                isReduce ? "bg-warning" : "bg-primary"
                               )}
-                              style={{ width: `${Math.min(100, prog)}%` }}
+                              style={{ width: `${prog}%` }}
                             />
                           </div>
-                          <span className="text-[11px] text-muted-foreground whitespace-nowrap tabular-nums">
+                          <span className={cn(
+                            "text-[11px] whitespace-nowrap tabular-nums font-mono",
+                            isExceeded ? "text-destructive font-semibold" : "text-muted-foreground"
+                          )}>
                             {count}/{goal}
+                            {isExceeded && <span className="ml-1">· +{count - goal}</span>}
                           </span>
                         </div>
                       </div>
