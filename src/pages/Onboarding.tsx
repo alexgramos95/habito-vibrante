@@ -259,6 +259,11 @@ const Onboarding = () => {
     setHabits((prev) => (prev.length === 0 && list[0] ? [list[0].id] : prev));
   };
 
+  const pickLanguage = (lng: Locale) => {
+    setAccountLocale(lng);
+    try { setLocale(lng); } catch { /* ignore */ }
+    window.setTimeout(() => setStep("identity"), 220);
+  };
   const pickIdentity = (id: string) => {
     setIdentity(id);
     window.setTimeout(() => setStep("obstacle"), 220);
