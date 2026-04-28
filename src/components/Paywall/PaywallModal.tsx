@@ -49,7 +49,10 @@ export const PaywallModal = ({
   const isPT = lang === "pt";
 
   useEffect(() => {
-    if (open) void track('paywall_view', { trigger: trigger || null, trialDaysLeft });
+    if (open) {
+      void track('paywall_view', { trigger: trigger || null, trialDaysLeft });
+      trackEvent('paywall_viewed', { trigger: trigger || null, trialDaysLeft });
+    }
   }, [open, trigger, trialDaysLeft]);
 
   // Use centralized copy
