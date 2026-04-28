@@ -110,6 +110,16 @@ const IDENTITY_TO_VECTORS: Record<string, string[]> = {
   consistent: ["Consistent", "Calm"],
 };
 
+/** Dynamic identity tagline — drives emotional buy-in on the final screen. */
+const IDENTITY_TAGLINE: Record<string, string> = {
+  disciplined: "Built for disciplined people.",
+  healthier: "Built for stronger bodies.",
+  stronger: "Built for steadier minds.",
+  organized: "Built for clear-headed money.",
+  productive: "Built for ambitious growth.",
+  consistent: "Built for stronger routines.",
+};
+
 /* =============================================================
    COMPONENT
    ============================================================= */
