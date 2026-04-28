@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tracker, TrackerType, TrackerFrequency, TrackerInputMode, TRACKER_TEMPLATES } from "@/data/types";
 import { useI18n } from "@/i18n/I18nContext";
-import { cn } from "@/lib/utils";
+
 
 interface TrackerEditDialogProps {
   open: boolean;
