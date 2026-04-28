@@ -388,12 +388,32 @@ const Index = () => {
     return (
       <div className="page-container">
         <Navigation />
-        <main className="page-content max-w-xl mx-auto flex min-h-[60vh] flex-col items-center justify-center px-6 text-center">
-          <div className="mb-5 h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">A preparar o teu sistema...</h1>
-          <p className="mt-2 max-w-[280px] text-sm text-muted-foreground">
-            Estamos a organizar os hábitos e métricas que escolheste.
-          </p>
+        <main className="page-content max-w-xl mx-auto space-y-8" aria-busy="true" aria-live="polite">
+          {/* Skeleton: Hero */}
+          <div className="rounded-2xl border border-border/40 bg-card/40 p-5 space-y-3 animate-pulse">
+            <div className="h-3 w-24 rounded bg-muted/60" />
+            <div className="h-7 w-3/4 rounded bg-muted/60" />
+            <div className="h-2 w-full rounded bg-muted/40" />
+            <div className="flex gap-3 pt-1">
+              <div className="h-12 flex-1 rounded-xl bg-muted/40" />
+              <div className="h-12 flex-1 rounded-xl bg-muted/40" />
+              <div className="h-12 flex-1 rounded-xl bg-muted/40" />
+            </div>
+          </div>
+          {/* Skeleton: Habit list */}
+          <div className="space-y-3">
+            <div className="h-3 w-32 rounded bg-muted/60 animate-pulse" />
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="rounded-xl border border-border/40 bg-card/30 p-4 flex items-center gap-3 animate-pulse">
+                <div className="h-10 w-10 rounded-full bg-muted/60" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-3 w-2/3 rounded bg-muted/60" />
+                  <div className="h-2 w-1/3 rounded bg-muted/40" />
+                </div>
+              </div>
+            ))}
+          </div>
+          <span className="sr-only">{locale === 'pt-PT' ? 'A preparar o teu sistema…' : 'Preparing your system…'}</span>
         </main>
       </div>
     );
