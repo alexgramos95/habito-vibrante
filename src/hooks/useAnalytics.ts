@@ -88,23 +88,29 @@ const writeFired = (m: Record<string, true>) => {
 };
 
 // ---------- core API ----------
+const readSource = (): string | undefined => {
+  try { return localStorage.getItem('become-acquisition-source') || undefined; } catch { return undefined; }
+};
+
 export const track = (event: AnalyticsEvent, properties?: Record<string, any>) => {
+  const source = readSource();
+  const enriched = source ? { source, ...(properties || {}) } : properties;
   const payload: AnalyticsPayload = {
     event,
-    properties,
+    properties: enriched,
     timestamp: new Date().toISOString(),
   };
   const log = readLog();
   log.push(payload);
   writeLog(log);
 
-  if (DEBUG) console.log('[Analytics]', event, properties || '');
+  if (DEBUG) console.log('[Analytics]', event, enriched || '');
 
   // Optional GTM passthrough if dataLayer exists
   try {
     const w = window as any;
     if (w.dataLayer && Array.isArray(w.dataLayer)) {
-      w.dataLayer.push({ event, ...(properties || {}), ts: payload.timestamp });
+      w.dataLayer.push({ event, ...(enriched || {}), ts: payload.timestamp });
     }
   } catch { /* ignore */ }
 };

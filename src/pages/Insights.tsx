@@ -21,6 +21,9 @@ import {
   type VariantStats, type Confidence, type HistoryEntry,
 } from "@/lib/abTest";
 import { Trophy, History, FlaskConical, Zap } from "lucide-react";
+import {
+  getAcquisitionMeta, SOURCE_LABEL, type AcquisitionSource,
+} from "@/lib/acquisition";
 
 /* =============================================================
    RETENTION INSIGHTS — local-first analytics dashboard
@@ -172,6 +175,86 @@ const computeRecommendations = (m: RetentionMetrics, completionsTrend: DayPoint[
   return recs;
 };
 
+interface SourceRow {
+  source: AcquisitionSource;
+  users: number;          // distinct sessions/cohorts seen with this source
+  appOpens: number;
+  habitsCompleted: number;
+  d1Returned: number;
+  d7Returned: number;
+  referralInvites: number;
+  referralPromptsShown: number;
+  avgHabits: number;      // habits completed per cohort user
+  d1Rate: number;
+  d7Rate: number;
+  referralCTR: number;
+  qualityScore: number;   // composite 0..1
+}
+
+const SOURCE_KEYS: AcquisitionSource[] = [
+  "direct", "instagram", "tiktok", "twitter", "reddit",
+  "facebook", "youtube", "linkedin", "referral",
+  "organic_search", "paid_ads", "email", "other",
+];
+
+const computeSourceStats = (
+  log: { event: string; timestamp: string; properties?: any }[],
+): SourceRow[] => {
+  // Bucket by source. "users" is approximated by counting distinct
+  // acquisition_captured events per source (one per browser/cohort).
+  const buckets = new Map<AcquisitionSource, {
+    users: number; appOpens: number; habitsCompleted: number;
+    d1: number; d7: number; invites: number; prompts: number;
+  }>();
+  const ensure = (s: AcquisitionSource) => {
+    if (!buckets.has(s)) buckets.set(s, {
+      users: 0, appOpens: 0, habitsCompleted: 0, d1: 0, d7: 0, invites: 0, prompts: 0,
+    });
+    return buckets.get(s)!;
+  };
+
+  for (const e of log) {
+    const s = (e.properties?.source as AcquisitionSource) || "direct";
+    const b = ensure(s);
+    if (e.event === "acquisition_captured") b.users += 1;
+    else if (e.event === "app_open") b.appOpens += 1;
+    else if (e.event === "habit_completed" || e.event === "first_habit_completed") b.habitsCompleted += 1;
+    else if (e.event === "day1_return") b.d1 += 1;
+    else if (e.event === "day7_return") b.d7 += 1;
+    else if (e.event === "referral_invite_sent") b.invites += 1;
+    else if (e.event === "referral_prompt_shown") b.prompts += 1;
+  }
+
+  const rows: SourceRow[] = [];
+  for (const source of SOURCE_KEYS) {
+    const b = buckets.get(source);
+    if (!b) continue;
+    // If no acquisition_captured event yet, infer 1 user from any activity.
+    const users = Math.max(b.users, b.appOpens > 0 || b.habitsCompleted > 0 ? 1 : 0);
+    if (users === 0) continue;
+    const avgHabits = +(b.habitsCompleted / users).toFixed(2);
+    const d1Rate = users > 0 ? b.d1 / users : 0;
+    const d7Rate = users > 0 ? b.d7 / users : 0;
+    const referralCTR = b.prompts > 0 ? b.invites / b.prompts : 0;
+    // Composite quality: weighted blend (D7 is the strongest retention signal)
+    const qualityScore = +(
+      0.45 * d7Rate +
+      0.25 * d1Rate +
+      0.20 * Math.min(1, avgHabits / 5) +
+      0.10 * referralCTR
+    ).toFixed(3);
+    rows.push({
+      source, users,
+      appOpens: b.appOpens,
+      habitsCompleted: b.habitsCompleted,
+      d1Returned: b.d1, d7Returned: b.d7,
+      referralInvites: b.invites, referralPromptsShown: b.prompts,
+      avgHabits, d1Rate, d7Rate, referralCTR, qualityScore,
+    });
+  }
+  return rows.sort((a, b) => b.qualityScore - a.qualityScore);
+};
+
 
 const Insights = () => {
   const [metrics, setMetrics] = useState<RetentionMetrics>(() => getRetentionMetrics());
@@ -204,6 +287,10 @@ const Insights = () => {
     const b = maybeAutoPromote(SHARE_HEADLINE_TEST, SHARE_HEADLINE_NAME, shareVariants);
     if (a || b) setHistory(getHistory());
   }, [referralVariants, shareVariants]);
+
+  // ----- Source intelligence (per-source aggregation from event log) -----
+  const acquisitionMeta = useMemo(() => getAcquisitionMeta(), []);
+  const sourceStats = useMemo(() => computeSourceStats(log), [log]);
 
   useEffect(() => {
     const id = setInterval(() => setMetrics(getRetentionMetrics()), 5000);
@@ -254,9 +341,18 @@ const Insights = () => {
               <span><span className="text-muted-foreground">Journey start:</span> <strong className="tabular-nums">{fmtDate(metrics.journeyStart)}</strong></span>
               <span><span className="text-muted-foreground">Days in:</span> <strong className="tabular-nums">{metrics.daysSinceStart ?? "—"}</strong></span>
               <span><span className="text-muted-foreground">Total events:</span> <strong className="tabular-nums">{metrics.totalEvents}</strong></span>
+              {acquisitionMeta && (
+                <span><span className="text-muted-foreground">Source:</span> <strong>{SOURCE_LABEL[acquisitionMeta.source]}</strong></span>
+              )}
             </div>
           </CardContent>
         </Card>
+
+        {/* Source intelligence */}
+        <section>
+          <h2 className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">Source intelligence</h2>
+          <SourceIntelligenceTable rows={sourceStats} />
+        </section>
 
         {/* Alerts — automatic insight engine */}
         {alerts.length > 0 && (
@@ -703,5 +799,79 @@ const SuggestedTestCard = ({ test }: { test: { id: string; area: string; hypothe
 );
 
 
+const SourceIntelligenceTable = ({ rows }: { rows: SourceRow[] }) => {
+  if (rows.length === 0) {
+    return (
+      <Card>
+        <CardContent className="p-4">
+          <p className="text-xs text-muted-foreground italic">
+            No traffic attributed yet. Sources are captured on first visit and stamped on every event.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+  const best = rows[0]; // already sorted by qualityScore
+  return (
+    <Card>
+      <CardContent className="p-0">
+        {/* Best source highlight */}
+        <div className="p-4 border-b border-foreground/10 bg-primary/5 flex items-center gap-3">
+          <Trophy className="h-4 w-4 text-primary shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-mono uppercase tracking-wider text-primary">Best quality source</p>
+            <p className="text-sm font-bold">
+              {SOURCE_LABEL[best.source]}{" "}
+              <span className="text-muted-foreground font-normal">· quality {Math.round(best.qualityScore * 100)}</span>
+            </p>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="text-muted-foreground border-b border-foreground/10">
+                <th className="text-left font-mono font-normal uppercase tracking-wider px-3 py-2 text-[10px]">Source</th>
+                <th className="text-right font-mono font-normal uppercase tracking-wider px-2 py-2 text-[10px]">Users</th>
+                <th className="text-right font-mono font-normal uppercase tracking-wider px-2 py-2 text-[10px]">D1</th>
+                <th className="text-right font-mono font-normal uppercase tracking-wider px-2 py-2 text-[10px]">D7</th>
+                <th className="text-right font-mono font-normal uppercase tracking-wider px-2 py-2 text-[10px]">Avg habits</th>
+                <th className="text-right font-mono font-normal uppercase tracking-wider px-2 py-2 text-[10px]">Ref. CTR</th>
+                <th className="text-right font-mono font-normal uppercase tracking-wider px-3 py-2 text-[10px]">Quality</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map(r => {
+                const isBest = r.source === best.source;
+                return (
+                  <tr key={r.source} className={`border-b border-foreground/5 last:border-0 ${isBest ? "bg-primary/5" : ""}`}>
+                    <td className="px-3 py-2.5">
+                      <span className={`flex items-center gap-1.5 ${isBest ? "text-primary font-bold" : "font-medium"}`}>
+                        {isBest && <Trophy className="h-3 w-3 shrink-0" />}
+                        {SOURCE_LABEL[r.source]}
+                      </span>
+                    </td>
+                    <td className="px-2 py-2.5 text-right tabular-nums">{r.users}</td>
+                    <td className="px-2 py-2.5 text-right tabular-nums">{fmtPct(r.d1Rate)}</td>
+                    <td className="px-2 py-2.5 text-right tabular-nums">{fmtPct(r.d7Rate)}</td>
+                    <td className="px-2 py-2.5 text-right tabular-nums">{r.avgHabits}</td>
+                    <td className="px-2 py-2.5 text-right tabular-nums">{r.referralPromptsShown > 0 ? fmtPct(r.referralCTR) : "—"}</td>
+                    <td className={`px-3 py-2.5 text-right tabular-nums font-bold ${isBest ? "text-primary" : ""}`}>
+                      {Math.round(r.qualityScore * 100)}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        <p className="px-3 py-2 text-[10px] font-mono text-muted-foreground border-t border-foreground/10">
+          Quality = 0.45·D7 + 0.25·D1 + 0.20·avg-habits + 0.10·referral-CTR
+        </p>
+      </CardContent>
+    </Card>
+  );
+};
 
 export default Insights;

@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect } from "react"
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { captureRefFromUrl } from "@/lib/referral";
+import { captureAcquisitionSource } from "@/lib/acquisition";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { Toaster } from "@/components/ui/toaster";
@@ -72,8 +73,11 @@ const GatedSettings = () => (
 const PWAUpdateWrapper = ({ children }: { children: React.ReactNode }) => {
   const { showUpdateToast, applyUpdate, dismissUpdate } = usePWAUpdate();
 
-  // Capture ?ref= once per session, regardless of entry route.
-  useEffect(() => { captureRefFromUrl(); }, []);
+  // Capture acquisition source first, then referral ?ref= code.
+  useEffect(() => {
+    captureAcquisitionSource();
+    captureRefFromUrl();
+  }, []);
 
   return (
     <>
