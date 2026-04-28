@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Copy, Check, Send, Sparkles, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -6,6 +6,7 @@ import {
   incInvitesSent, REFERRAL_XP_REWARD,
 } from "@/lib/referral";
 import { track } from "@/hooks/useAnalytics";
+import { pickVariant, REFERRAL_HEADLINE_TEST, REFERRAL_HEADLINE_VARIANTS } from "@/lib/abTest";
 
 interface ReferralPromptProps {
   open: boolean;
@@ -17,19 +18,31 @@ interface ReferralPromptProps {
 export const ReferralPrompt = ({ open, onClose, variant = "milestone" }: ReferralPromptProps) => {
   const [copied, setCopied] = useState(false);
   const link = buildReferralLink();
+  const headlineVariant = useMemo(
+    () => pickVariant(REFERRAL_HEADLINE_TEST, REFERRAL_HEADLINE_VARIANTS),
+    [],
+  );
 
   useEffect(() => {
-    if (open) track("referral_prompt_shown", { variant });
-  }, [open, variant]);
+    if (open) {
+      track("referral_prompt_shown", {
+        variant,
+        testKey: REFERRAL_HEADLINE_TEST,
+        variant_id: headlineVariant.id,
+      });
+    }
+  }, [open, variant, headlineVariant.id]);
 
   if (!open) return null;
+
+  const abProps = { testKey: REFERRAL_HEADLINE_TEST, variant: headlineVariant.id };
 
   const handleCopy = async () => {
     const ok = await copyToClipboard(link);
     if (ok) {
       setCopied(true);
-      track("referral_link_copied", { variant });
-      incInvitesSent("copy");
+      track("referral_link_copied", { variant, ...abProps });
+      incInvitesSent("copy", abProps);
       setTimeout(() => setCopied(false), 1800);
     }
   };
@@ -40,11 +53,11 @@ export const ReferralPrompt = ({ open, onClose, variant = "milestone" }: Referra
       text: getInviteMessage(),
       url: link,
     });
-    if (ok) incInvitesSent("native_share");
+    if (ok) incInvitesSent("native_share", abProps);
   };
 
   const dismiss = () => {
-    track("referral_prompt_dismissed", { variant });
+    track("referral_prompt_dismissed", { variant, ...abProps });
     onClose();
   };
 
@@ -73,11 +86,11 @@ export const ReferralPrompt = ({ open, onClose, variant = "milestone" }: Referra
           {variant === "milestone" ? "// 3 WINS UNLOCKED" : "// INVITE"}
         </p>
         <h3 className="text-2xl font-bold tracking-tight leading-tight">
-          Know someone building discipline too?
+          {headlineVariant.copy}
         </h3>
         <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-          Invite a friend to Become. Both of you get{" "}
-          <strong className="text-foreground">+{REFERRAL_XP_REWARD} XP</strong> when they join.
+          Invite a friend and both earn{" "}
+          <strong className="text-foreground">+{REFERRAL_XP_REWARD} XP</strong>.
         </p>
 
         {/* Link preview */}

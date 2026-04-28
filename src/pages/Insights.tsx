@@ -12,6 +12,13 @@ import {
   clearAnalyticsLog,
   type RetentionMetrics,
 } from "@/hooks/useAnalytics";
+import {
+  computeVariantStats,
+  REFERRAL_HEADLINE_TEST, REFERRAL_HEADLINE_VARIANTS,
+  SHARE_HEADLINE_TEST, SHARE_HEADLINE_VARIANTS,
+  type VariantStats,
+} from "@/lib/abTest";
+import { Trophy } from "lucide-react";
 
 /* =============================================================
    RETENTION INSIGHTS — local-first analytics dashboard
@@ -178,6 +185,16 @@ const Insights = () => {
   const alerts = useMemo(() => computeAlerts(metrics), [metrics]);
   const recommendations = useMemo(() => computeRecommendations(metrics, trendCompletions), [metrics, trendCompletions]);
 
+  // A/B test results — recompute alongside metrics tick
+  const referralVariants = useMemo(
+    () => computeVariantStats(REFERRAL_HEADLINE_TEST, REFERRAL_HEADLINE_VARIANTS, "referral_prompt_shown", "referral_invite_sent"),
+    [log],
+  );
+  const shareVariants = useMemo(
+    () => computeVariantStats(SHARE_HEADLINE_TEST, SHARE_HEADLINE_VARIANTS, "share_card_opened", "share_card_shared"),
+    [log],
+  );
+
   useEffect(() => {
     const id = setInterval(() => setMetrics(getRetentionMetrics()), 5000);
     return () => clearInterval(id);
@@ -290,6 +307,23 @@ const Insights = () => {
         </section>
 
         {/* Recommendations — generated from data */}
+        {/* A/B test winners */}
+        <section>
+          <h2 className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">A/B test results</h2>
+          <div className="space-y-3">
+            <ABTestCard
+              title="Referral modal headline"
+              metric="CTR (invite sent / shown)"
+              variants={referralVariants}
+            />
+            <ABTestCard
+              title="Share card headline"
+              metric="Share rate (shared / opened)"
+              variants={shareVariants}
+            />
+          </div>
+        </section>
+
         <section>
           <h2 className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">Top recommendations</h2>
           <div className="space-y-2">
@@ -482,5 +516,57 @@ const RecommendationCard = ({ index, rec }: { index: number; rec: Recommendation
     </div>
   </div>
 );
+
+
+const ABTestCard = ({ title, metric, variants }: { title: string; metric: string; variants: VariantStats[] }) => {
+  const totalImpressions = variants.reduce((s, v) => s + v.impressions, 0);
+  const eligible = variants.filter(v => v.impressions >= 1);
+  const winner = eligible.length > 0
+    ? eligible.reduce((best, v) => (v.rate > best.rate ? v : best))
+    : null;
+  const sorted = [...variants].sort((a, b) => b.rate - a.rate);
+
+  return (
+    <Card>
+      <CardContent className="p-4">
+        <div className="flex items-baseline justify-between gap-2 mb-1">
+          <p className="text-sm font-bold">{title}</p>
+          <span className="text-[10px] font-mono tabular-nums text-muted-foreground">{totalImpressions} impr.</span>
+        </div>
+        <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground mb-3">{metric}</p>
+
+        {totalImpressions === 0 ? (
+          <p className="text-xs text-muted-foreground italic">No data yet — variants assigned on next exposure.</p>
+        ) : (
+          <div className="space-y-2">
+            {sorted.map(v => {
+              const isWinner = winner?.id === v.id && v.impressions >= 3 && v.rate > 0;
+              return (
+                <div
+                  key={v.id}
+                  className={`rounded-lg border p-2.5 ${isWinner ? "border-primary/50 bg-primary/5" : "border-foreground/10 bg-foreground/[0.02]"}`}
+                >
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      {isWinner && <Trophy className="h-3 w-3 text-primary shrink-0" />}
+                      <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Variant {v.id}</span>
+                    </div>
+                    <span className={`text-sm font-bold tabular-nums ${isWinner ? "text-primary" : ""}`}>
+                      {fmtPct(v.rate)}
+                    </span>
+                  </div>
+                  <p className="text-xs text-foreground/80 leading-snug">{v.copy}</p>
+                  <p className="text-[10px] font-mono tabular-nums text-muted-foreground mt-1">
+                    {v.conversions} / {v.impressions}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
 
 export default Insights;

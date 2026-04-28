@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Share2, Download, X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { nativeShare, buildReferralLink } from "@/lib/referral";
 import { track } from "@/hooks/useAnalytics";
+import { pickVariant, SHARE_HEADLINE_TEST, SHARE_HEADLINE_VARIANTS } from "@/lib/abTest";
 
 interface ShareCardProps {
   open: boolean;
@@ -25,6 +26,7 @@ const drawCard = (
   stats: ShareCardProps["stats"],
   identityLabel: string,
   isPT: boolean,
+  headline: string,
 ) => {
   // Background gradient — premium dark warm
   const grad = ctx.createLinearGradient(0, 0, W, H);
@@ -46,14 +48,14 @@ const drawCard = (
   ctx.textAlign = "center";
   ctx.fillText(isPT ? "// SEMANA COMPLETA" : "// WEEK COMPLETE", W / 2, 120);
 
-  // Identity headline
+  // Headline (A/B variant) — wraps to 2 lines if needed
   ctx.fillStyle = "#f5f1e8";
-  ctx.font = "700 64px ui-sans-serif, system-ui, -apple-system";
+  ctx.font = "700 56px ui-sans-serif, system-ui, -apple-system";
   ctx.textAlign = "center";
-  ctx.fillText(isPT ? "Uma semana." : "One week.", W / 2, 240);
+  wrapText(ctx, headline, W / 2, 240, W - 160, 64);
   ctx.fillStyle = "#a8a29e";
-  ctx.font = "400 38px ui-sans-serif, system-ui, -apple-system";
-  ctx.fillText(isPT ? `Cada vez mais ${identityLabel}.` : `Becoming more ${identityLabel}.`, W / 2, 300);
+  ctx.font = "400 32px ui-sans-serif, system-ui, -apple-system";
+  ctx.fillText(isPT ? `Cada vez mais ${identityLabel}.` : `Becoming more ${identityLabel}.`, W / 2, 340);
 
   // Stats grid (2x2)
   const cardW = 420;
@@ -117,19 +119,48 @@ const roundRect = (ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
   ctx.closePath();
 };
 
+const wrapText = (
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  cx: number,
+  startY: number,
+  maxWidth: number,
+  lineHeight: number,
+) => {
+  const words = text.split(" ");
+  const lines: string[] = [];
+  let cur = "";
+  for (const w of words) {
+    const test = cur ? `${cur} ${w}` : w;
+    if (ctx.measureText(test).width > maxWidth && cur) {
+      lines.push(cur);
+      cur = w;
+    } else {
+      cur = test;
+    }
+  }
+  if (cur) lines.push(cur);
+  lines.forEach((l, i) => ctx.fillText(l, cx, startY + i * lineHeight));
+};
+
 export const ShareCard = ({ open, onClose, stats, identityLabel = "disciplined self", isPT = true }: ShareCardProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [shared, setShared] = useState(false);
+  const headlineVariant = useMemo(
+    () => pickVariant(SHARE_HEADLINE_TEST, SHARE_HEADLINE_VARIANTS),
+    [],
+  );
+  const abProps = { testKey: SHARE_HEADLINE_TEST, variant: headlineVariant.id };
 
   useEffect(() => {
     if (!open) return;
-    track("share_card_opened", stats);
+    track("share_card_opened", { ...stats, ...abProps });
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    drawCard(ctx, stats, identityLabel, isPT);
-  }, [open, stats, identityLabel, isPT]);
+    drawCard(ctx, stats, identityLabel, isPT, headlineVariant.copy);
+  }, [open, stats, identityLabel, isPT, headlineVariant.copy]);
 
   if (!open) return null;
 
@@ -155,7 +186,7 @@ export const ShareCard = ({ open, onClose, stats, identityLabel = "disciplined s
       }
     } catch { /* cancelled */ }
     if (ok) {
-      track("share_card_shared", stats);
+      track("share_card_shared", { ...stats, ...abProps });
       setShared(true);
       setTimeout(() => setShared(false), 1800);
     }
@@ -170,7 +201,7 @@ export const ShareCard = ({ open, onClose, stats, identityLabel = "disciplined s
     a.download = `become-week-${new Date().toISOString().slice(0, 10)}.png`;
     a.click();
     URL.revokeObjectURL(url);
-    track("share_card_downloaded", stats);
+    track("share_card_downloaded", { ...stats, ...abProps });
   };
 
   return (
