@@ -201,6 +201,9 @@ const Auth = () => {
         }
       } else if (mode === 'signin') {
         const { error } = await signIn(email, password);
+        if (!error) {
+          trackEvent('login_completed', { method: 'email' });
+        }
         if (error) {
           if (error.message.includes('Invalid login')) {
             toast({
