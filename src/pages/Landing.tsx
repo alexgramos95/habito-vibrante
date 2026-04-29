@@ -448,8 +448,8 @@ const Landing = () => {
                 desc: "Lists generated from your week's plan. Spend with intention, not autopilot.",
               },
             ].map(({ Comp, label, outcome, desc }, i) => (
-              <Reveal key={label} delay={i * 80}>
-                <div className="bg-background p-6 md:p-8 h-full flex flex-col gap-5">
+              <Reveal key={label} delay={i * 80} className="h-full">
+                <div className="bg-background p-6 md:p-8 h-full w-full flex flex-col gap-5">
                   <div className="text-center">
                     <p className="type-eyebrow text-primary mb-2">// {label}</p>
                     <h4 className="type-display text-xl md:text-2xl mb-2 leading-tight">
