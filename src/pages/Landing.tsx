@@ -363,7 +363,7 @@ const Landing = () => {
               </div>
             </Reveal>
 
-            <Reveal delay={160}>
+            <Reveal delay={80}>
               <div className="space-y-4">
                 <PhoneFrame>
                   <ProgressPreview />
