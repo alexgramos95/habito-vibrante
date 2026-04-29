@@ -349,7 +349,7 @@ const Landing = () => {
               destaque no hero, por isso aqui mostramos os outros 4 módulos. */}
           <div className="grid gap-10 md:gap-8 sm:grid-cols-2 lg:grid-cols-4">
 
-            <Reveal delay={80}>
+            <Reveal>
               <div className="space-y-4">
                 <PhoneFrame>
                   <CalendarPreview />
