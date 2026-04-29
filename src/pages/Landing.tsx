@@ -432,8 +432,8 @@ const Landing = () => {
 
           <div className="grid gap-px bg-foreground/[0.05] border border-foreground/[0.05] md:grid-cols-2 max-w-[960px] mx-auto">
             {[
+              { Comp: HabitsPreview, label: "Habits", desc: "Daily systems that compound into identity." },
               { Comp: CalendarPreview, label: "Calendar", desc: "Perfect days, streaks, peak weeks." },
-              { Comp: ProgressPreview, label: "Progress", desc: "Cycle reading, no noise." },
               { Comp: NutritionPreview, label: "Nutrition", desc: "Weekly plan, macros, meals." },
               { Comp: ShoppingPreview, label: "Shopping", desc: "List generated from your week's plan." },
             ].map(({ Comp, label, desc }, i) => (
