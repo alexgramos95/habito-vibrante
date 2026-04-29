@@ -208,8 +208,8 @@ const Landing = () => {
         </div>
       </nav>
 
-      {/* ===== HERO ===== */}
-      <section className="relative pt-36 pb-20 md:pt-44 md:pb-28 overflow-hidden">
+      {/* ===== HERO — preview above the fold (desktop split, mobile stacked) ===== */}
+      <section className="relative pt-24 pb-12 md:pt-28 md:pb-16 overflow-hidden">
         {/* Ambient glows */}
         <div
           className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[900px] pointer-events-none opacity-60"
@@ -226,50 +226,64 @@ const Landing = () => {
           }}
         />
 
-        <div className="container max-w-5xl relative z-10 text-center px-6">
-          <div className="inline-flex items-center gap-2 mb-10 px-3 py-1.5 border border-foreground/10 bg-foreground/[0.03] backdrop-blur-sm animate-fade-in">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_hsl(var(--neon-toxic))]" />
-            <span className="type-eyebrow text-muted-foreground">
-              Identity OS · Now in beta
-            </span>
-          </div>
+        <div className="container max-w-6xl relative z-10 px-6">
+          <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-10 lg:gap-14 items-center">
+            {/* Copy */}
+            <div className="text-center lg:text-left">
+              <div className="inline-flex items-center gap-2 mb-6 px-3 py-1.5 border border-foreground/10 bg-foreground/[0.03] backdrop-blur-sm animate-fade-in">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_hsl(var(--neon-toxic))]" />
+                <span className="type-eyebrow text-muted-foreground">
+                  Identity OS · Now in beta
+                </span>
+              </div>
 
-          <h1 className="type-display text-[44px] sm:text-6xl md:text-7xl lg:text-[92px] mb-8 animate-fade-in">
-            Become the person<br />
-            <span className="text-primary" style={{ textShadow: "0 0 60px hsl(var(--neon-toxic) / 0.5)" }}>
-              you promised
-            </span><br />
-            yourself you'd be.
-          </h1>
+              <h1 className="type-display text-[44px] sm:text-6xl md:text-7xl lg:text-[80px] leading-[0.95] mb-6 animate-fade-in">
+                Become the person<br />
+                <span className="text-primary" style={{ textShadow: "0 0 60px hsl(var(--neon-toxic) / 0.5)" }}>
+                  you promised
+                </span><br />
+                yourself you'd be.
+              </h1>
 
-          <p className="type-body text-lg md:text-xl text-muted-foreground/90 max-w-[42ch] mx-auto mb-12 animate-fade-in">
-            Habits, progress and discipline<br className="hidden md:block" />
-            in one operating system.
-          </p>
+              <p className="type-body text-base md:text-lg text-muted-foreground/90 max-w-[42ch] mx-auto lg:mx-0 mb-8 animate-fade-in">
+                Habits, progress and discipline in one operating system.
+              </p>
 
-          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-7">
-            <Button
-              size="lg"
-              onClick={handleStartTrial}
-              className="gap-2 px-12 w-full sm:w-auto"
-            >
-              Start Free
-              <ArrowRight className="h-5 w-5" />
-            </Button>
-            <Button size="lg" variant="outline" onClick={() => scrollTo("inside")} className="w-full sm:w-auto">
-              See How It Works
-            </Button>
-          </div>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start items-center mb-5">
+                <Button
+                  size="lg"
+                  onClick={handleStartTrial}
+                  className="gap-2 px-12 w-full sm:w-auto"
+                >
+                  Start Free
+                  <ArrowRight className="h-5 w-5" />
+                </Button>
+                <Button size="lg" variant="outline" onClick={() => scrollTo("inside")} className="w-full sm:w-auto">
+                  See How It Works
+                </Button>
+              </div>
 
-          <p className="type-eyebrow text-muted-foreground/50">
-            7 days free · No credit card · Cancel anytime
-          </p>
+              <p className="type-eyebrow text-muted-foreground/50">
+                7 days free · No credit card · Cancel anytime
+              </p>
+            </div>
 
-          {/* Floating mobile mockup — REAL app UI (Habits / Today) */}
-          <div className="mt-16 md:mt-24" style={{ animation: "float 6s ease-in-out infinite" }}>
-            <PhoneFrame>
-              <HabitsPreview />
-            </PhoneFrame>
+            {/* Real product preview — above the fold */}
+            <div className="relative mx-auto w-full max-w-[360px] lg:max-w-none" style={{ animation: "float 6s ease-in-out infinite" }}>
+              {/* Glow halo */}
+              <div
+                className="absolute -inset-8 pointer-events-none opacity-70 blur-2xl"
+                style={{
+                  background:
+                    "radial-gradient(closest-side, hsl(var(--neon-toxic) / 0.25), transparent 70%)",
+                }}
+              />
+              <div className="relative">
+                <PhoneFrame>
+                  <HabitsPreview />
+                </PhoneFrame>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -285,8 +299,24 @@ const Landing = () => {
         `}</style>
       </section>
 
+      {/* ===== PROBLEM (story step 1) ===== */}
+      <section className="py-16 md:py-20 border-t border-foreground/[0.05]">
+        <div className="container max-w-3xl px-6 text-center">
+          <Reveal>
+            <p className="type-eyebrow text-primary mb-5">// The problem</p>
+            <h2 className="type-display text-3xl md:text-5xl mb-6">
+              Six apps. Zero identity.
+            </h2>
+            <p className="type-body text-base md:text-lg text-muted-foreground/85 max-w-[52ch] mx-auto">
+              Habits in one app. Meals in another. Calendar somewhere else.
+              You don't need more tools — you need one system that compounds.
+            </p>
+          </Reveal>
+        </div>
+      </section>
+
       {/* ===== WHAT'S INSIDE + PRODUCT PROOF ===== */}
-      <section id="inside" className="py-24 md:py-28 border-t border-foreground/[0.05]">
+      <section id="inside" className="py-16 md:py-20 border-t border-foreground/[0.05]">
         <div className="container max-w-6xl px-6">
           <Reveal>
             <div className="text-center mb-16">
