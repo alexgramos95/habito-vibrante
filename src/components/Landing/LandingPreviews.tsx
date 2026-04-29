@@ -421,12 +421,12 @@ export const CalendarPreview = () => {
       <div className="px-4 pt-5 pb-4 space-y-4">
         <PreviewPageHeader
           icon={CalendarIcon}
-          title="Calendário"
-          subtitle="Visualiza o teu progresso"
+          title="Calendar"
+          subtitle="Track your progress"
           actions={
             <div className="inline-flex items-center gap-1 p-1 bg-secondary/60 border border-foreground/10 rounded-xl">
-              {["DIA", "SEMANA", "MÊS"].map((label) => {
-                const isActive = label === "MÊS";
+              {["DAY", "WEEK", "MONTH"].map((label) => {
+                const isActive = label === "MONTH";
                 return (
                   <span
                     key={label}
@@ -448,7 +448,7 @@ export const CalendarPreview = () => {
         {/* Cycle hero */}
         <div className="border-2 border-primary/50 bg-card shadow-[4px_4px_0_0_hsl(var(--neon-ultra)/0.4)] p-4">
           <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mb-3">
-            // CICLO · ABR 2026
+            // CYCLE · APR 2026
           </p>
           <div className="flex items-center gap-4">
             <div className="relative h-[60px] w-[60px] shrink-0">
@@ -467,7 +467,7 @@ export const CalendarPreview = () => {
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-                DIAS PERFEITOS
+                PERFECT DAYS
               </p>
               <p className="font-black italic tracking-tighter text-3xl tabular-nums leading-none mt-1">
                 16<span className="text-muted-foreground/50 text-base">/29</span>
@@ -483,10 +483,10 @@ export const CalendarPreview = () => {
           </div>
           <div className="flex flex-1 flex-col items-center justify-center text-center">
             <span className="font-mono text-[8px] uppercase tracking-widest text-muted-foreground/70">
-              // CICLO
+              // CYCLE
             </span>
             <h2 className="font-black italic uppercase tracking-tighter text-base leading-none text-foreground">
-              ABRIL <span className="text-primary">2026</span>
+              APRIL <span className="text-primary">2026</span>
             </h2>
           </div>
           <div className="flex h-8 w-8 items-center justify-center border border-foreground/20 bg-background/50">
@@ -494,14 +494,14 @@ export const CalendarPreview = () => {
           </div>
           <div className="flex h-8 items-center gap-1 border-2 border-primary/50 bg-primary/10 px-2 font-mono text-[9px] font-bold uppercase tracking-widest text-primary">
             <CalendarIcon className="h-2.5 w-2.5" />
-            HOJE
+            TODAY
           </div>
         </div>
 
         {/* Calendar grid */}
         <div>
           <div className="mb-1.5 grid grid-cols-7 gap-1">
-            {["SEG", "TER", "QUA", "QUI", "SEX", "SÁB", "DOM"].map((d, i) => (
+            {["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"].map((d, i) => (
               <div key={i} className="py-1 text-center font-mono text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60">
                 {d}
               </div>
@@ -540,10 +540,10 @@ export const CalendarPreview = () => {
           </div>
           <div className="mt-3 flex items-center justify-center gap-4 text-[10px]">
             <span className="flex items-center gap-1.5 text-muted-foreground">
-              <span className="size-1.5 rounded-full bg-primary" /> Completo
+              <span className="size-1.5 rounded-full bg-primary" /> Complete
             </span>
             <span className="flex items-center gap-1.5 text-muted-foreground">
-              <span className="size-1.5 rounded-full bg-primary/40" /> Parcial
+              <span className="size-1.5 rounded-full bg-primary/40" /> Partial
             </span>
           </div>
         </div>
