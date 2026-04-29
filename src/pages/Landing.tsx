@@ -831,11 +831,11 @@ const Landing = () => {
           onClick={handleStartTrial}
           className="w-full gap-2"
         >
-          Start Free
+          {hero.cta}
           <ArrowRight className="h-5 w-5" />
         </Button>
         <p className="text-center type-eyebrow text-muted-foreground/50 mt-2">
-          7 days free · No card
+          1-tap with Google or Apple · No card
         </p>
       </div>
 
