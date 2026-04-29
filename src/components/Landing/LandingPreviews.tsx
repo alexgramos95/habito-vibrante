@@ -20,6 +20,7 @@ import {
   Zap,
   ListChecks,
   Trophy,
+  Camera,
 } from "lucide-react";
 import { Surface } from "@/components/ui/surface";
 import { Button } from "@/components/ui/button";
