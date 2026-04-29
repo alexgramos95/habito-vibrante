@@ -459,7 +459,7 @@ const Landing = () => {
                       {desc}
                     </p>
                   </div>
-                  <div className="w-full max-w-[360px] mx-auto opacity-90">
+                  <div className="w-full max-w-[300px] sm:max-w-[340px] md:max-w-[360px] mx-auto opacity-90">
                     <PhoneFrame>
                       <Comp />
                     </PhoneFrame>
