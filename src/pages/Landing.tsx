@@ -377,7 +377,7 @@ const Landing = () => {
               </div>
             </Reveal>
 
-            <Reveal delay={240}>
+            <Reveal delay={160}>
               <div className="space-y-4">
                 <PhoneFrame>
                   <NutritionPreview />
