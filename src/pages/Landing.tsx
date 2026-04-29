@@ -344,7 +344,7 @@ const Landing = () => {
             </div>
 
             {/* Real product preview — above the fold */}
-            <div className="relative mx-auto w-full max-w-[360px] lg:max-w-[380px]" style={{ animation: "float 6s ease-in-out infinite" }}>
+            <div className="relative mx-auto w-full max-w-[380px]" style={{ animation: "float 6s ease-in-out infinite" }}>
               {/* Glow halo */}
               <div
                 className="absolute -inset-8 pointer-events-none opacity-70 blur-2xl"
@@ -430,7 +430,7 @@ const Landing = () => {
             </div>
           </Reveal>
 
-          <div className="grid gap-px bg-foreground/[0.05] border border-foreground/[0.05] sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-px bg-foreground/[0.05] border border-foreground/[0.05] md:grid-cols-2 max-w-[960px] mx-auto">
             {[
               { Comp: CalendarPreview, label: "Calendar", desc: "Perfect days, streaks, peak weeks." },
               { Comp: ProgressPreview, label: "Progress", desc: "Cycle reading, no noise." },
@@ -438,7 +438,7 @@ const Landing = () => {
               { Comp: ShoppingPreview, label: "Shopping", desc: "List generated from your week's plan." },
             ].map(({ Comp, label, desc }, i) => (
               <Reveal key={label} delay={i * 80}>
-                <div className="bg-background p-6 h-full flex flex-col items-center gap-4">
+                <div className="bg-background p-6 md:p-8 h-full flex flex-col items-center gap-4">
                   <div className="w-full max-w-[380px]">
                     <PhoneFrame>
                       <Comp />
