@@ -655,13 +655,13 @@ export const NutritionPreview = () => (
 export const ShoppingPreview = () => {
   const extraDone = useDelayedToggle(2000);
   const baseItems = [
-    { name: "Peito de frango", qty: "1.2 kg", cat: "Talho", done: true },
-    { name: "Salmão fresco", qty: "600 g", cat: "Peixaria", done: true },
-    { name: "Batata-doce", qty: "1 kg", cat: "Frutas e Legumes", done: false, animate: true },
-    { name: "Brócolos", qty: "2 un", cat: "Frutas e Legumes", done: false },
-    { name: "Iogurte grego", qty: "4 un", cat: "Lacticínios", done: false },
-    { name: "Amêndoas", qty: "200 g", cat: "Mercearia", done: false },
-    { name: "Aveia integral", qty: "500 g", cat: "Mercearia", done: true },
+    { name: "Chicken breast",   qty: "1.2 kg", cat: "Butcher",     done: true },
+    { name: "Fresh salmon",     qty: "600 g",  cat: "Fishmonger",  done: true },
+    { name: "Sweet potato",     qty: "1 kg",   cat: "Produce",     done: false, animate: true },
+    { name: "Broccoli",         qty: "2 pcs",  cat: "Produce",     done: false },
+    { name: "Greek yogurt",     qty: "4 pcs",  cat: "Dairy",       done: false },
+    { name: "Almonds",          qty: "200 g",  cat: "Pantry",      done: false },
+    { name: "Rolled oats",      qty: "500 g",  cat: "Pantry",      done: true },
   ];
   const items = baseItems.map((it) =>
     it.animate ? { ...it, done: extraDone } : it,
@@ -677,15 +677,15 @@ export const ShoppingPreview = () => {
       <div className="px-4 pt-5 pb-4 space-y-3">
         <PreviewPageHeader
           icon={ShoppingCart}
-          title="Compras"
-          subtitle="Lista da semana"
+          title="Shopping"
+          subtitle="This week's list"
           actions={<NeonIconButton icon={Plus} />}
         />
 
         <Surface tone="subtle" size="compact" className="flex items-center justify-between">
           <div>
             <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">
-              PROGRESSO
+              PROGRESS
             </p>
             <p className="text-base font-black italic tabular-nums transition-all duration-500">
               {completed}<span className="text-muted-foreground/50 text-xs">/{total}</span>
