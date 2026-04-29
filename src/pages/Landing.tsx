@@ -440,66 +440,75 @@ const Landing = () => {
             ))}
           </div>
 
-          {/* Real product UI previews — every screen below is the real
-              logged-in app, not a marketing mock-up. Hábitos já está em
-              destaque no hero, por isso aqui mostramos os outros 4 módulos. */}
-          <div className="grid gap-10 md:gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          {/* Unified product grid — Habits is the core engine, anchored as
+              the featured hero card directly above the connected secondary
+              grid. Every screen below is the real logged-in app. */}
+          <div className="relative">
+            {/* Connecting spine — visually ties Habits to the rest of the modules */}
+            <div
+              aria-hidden
+              className="hidden lg:block absolute left-1/2 -translate-x-1/2 top-[55%] bottom-0 w-px bg-gradient-to-b from-primary/40 via-foreground/10 to-transparent pointer-events-none"
+            />
 
+            {/* Featured: Habits — the core engine */}
             <Reveal>
-              <div className="space-y-4">
-                <PhoneFrame>
-                  <CalendarPreview />
-                </PhoneFrame>
-                <div className="text-center">
-                  <p className="type-eyebrow text-primary mb-1">// Calendar</p>
-                  <p className="text-sm text-muted-foreground/80 max-w-[28ch] mx-auto">
-                    Perfect days, streaks, peak weeks.
+              <div className="relative grid gap-8 lg:gap-10 lg:grid-cols-[auto,1fr] items-center mb-10 lg:mb-12 p-6 md:p-8 border border-foreground/[0.08] bg-foreground/[0.015]">
+                <div className="absolute top-0 left-0 px-3 py-1 bg-primary text-primary-foreground type-eyebrow text-[10px]">
+                  // Core engine
+                </div>
+                <div className="mx-auto lg:mx-0 w-full max-w-[300px]">
+                  <PhoneFrame>
+                    <HabitsPreview />
+                  </PhoneFrame>
+                </div>
+                <div className="text-center lg:text-left max-w-[44ch] mx-auto lg:mx-0">
+                  <p className="type-eyebrow text-primary mb-2">// Habits</p>
+                  <h3 className="type-display text-2xl md:text-3xl mb-3">
+                    The engine that powers everything.
+                  </h3>
+                  <p className="type-body text-sm md:text-base text-muted-foreground/85 mb-4">
+                    Every other module — Calendar, Progress, Nutrition, Shopping —
+                    feeds off the actions you commit to here. One identity, one loop.
                   </p>
+                  <div className="flex flex-wrap gap-2 justify-center lg:justify-start">
+                    {["Calendar", "Progress", "Nutrition", "Shopping"].map((m) => (
+                      <span
+                        key={m}
+                        className="px-2.5 py-1 text-[11px] font-medium border border-foreground/10 text-muted-foreground/80"
+                      >
+                        → {m}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
             </Reveal>
 
-            <Reveal delay={80}>
-              <div className="space-y-4">
-                <PhoneFrame>
-                  <ProgressPreview />
-                </PhoneFrame>
-                <div className="text-center">
-                  <p className="type-eyebrow text-primary mb-1">// Progress</p>
-                  <p className="text-sm text-muted-foreground/80 max-w-[28ch] mx-auto">
-                    Cycle reading, no noise.
-                  </p>
-                </div>
-              </div>
-            </Reveal>
-
-            <Reveal delay={160}>
-              <div className="space-y-4">
-                <PhoneFrame>
-                  <NutritionPreview />
-                </PhoneFrame>
-                <div className="text-center">
-                  <p className="type-eyebrow text-primary mb-1">// Nutrition</p>
-                  <p className="text-sm text-muted-foreground/80 max-w-[28ch] mx-auto">
-                    Weekly plan, macros, meals.
-                  </p>
-                </div>
-              </div>
-            </Reveal>
-
-            <Reveal delay={240}>
-              <div className="space-y-4">
-                <PhoneFrame>
-                  <ShoppingPreview />
-                </PhoneFrame>
-                <div className="text-center">
-                  <p className="type-eyebrow text-primary mb-1">// Shopping</p>
-                  <p className="text-sm text-muted-foreground/80 max-w-[28ch] mx-auto">
-                    List generated from your week's plan.
-                  </p>
-                </div>
-              </div>
-            </Reveal>
+            {/* Secondary connected grid — modules powered by Habits */}
+            <div className="grid gap-px bg-foreground/[0.05] border border-foreground/[0.05] sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                { Comp: CalendarPreview, label: "Calendar", desc: "Perfect days, streaks, peak weeks." },
+                { Comp: ProgressPreview, label: "Progress", desc: "Cycle reading, no noise." },
+                { Comp: NutritionPreview, label: "Nutrition", desc: "Weekly plan, macros, meals." },
+                { Comp: ShoppingPreview, label: "Shopping", desc: "List generated from your week's plan." },
+              ].map(({ Comp, label, desc }, i) => (
+                <Reveal key={label} delay={i * 80}>
+                  <div className="bg-background p-6 h-full flex flex-col items-center gap-4">
+                    <div className="w-full max-w-[240px]">
+                      <PhoneFrame>
+                        <Comp />
+                      </PhoneFrame>
+                    </div>
+                    <div className="text-center">
+                      <p className="type-eyebrow text-primary mb-1">// {label}</p>
+                      <p className="text-sm text-muted-foreground/80 max-w-[24ch] mx-auto">
+                        {desc}
+                      </p>
+                    </div>
+                  </div>
+                </Reveal>
+              ))}
+            </div>
           </div>
 
           {/* Inline CTA after proof */}
