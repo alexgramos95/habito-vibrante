@@ -421,7 +421,7 @@ const Landing = () => {
             </div>
           </Reveal>
 
-          <div className="mx-auto grid gap-6 md:gap-px md:bg-foreground/[0.05] md:border md:border-foreground/[0.05] md:grid-cols-2 w-full max-w-[960px]">
+          <div className="mx-auto grid gap-4 md:gap-px md:bg-foreground/[0.05] md:border md:border-foreground/[0.05] md:grid-cols-2 w-full max-w-[960px]">
             {[
               {
                 Comp: HabitsPreview,
@@ -449,7 +449,7 @@ const Landing = () => {
               },
             ].map(({ Comp, label, outcome, desc }, i) => (
               <Reveal key={label} delay={i * 80} className="h-full">
-                <div className="bg-background p-6 md:p-8 h-full w-full flex flex-col gap-5">
+                <div className="bg-background border border-foreground/10 md:border-0 p-6 md:p-8 h-full w-full flex flex-col gap-5">
                   <div className="text-center">
                     <p className="type-eyebrow text-primary mb-2">// {label}</p>
                     <h4 className="type-display text-xl md:text-2xl mb-2 leading-tight">
