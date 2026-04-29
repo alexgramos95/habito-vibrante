@@ -15,19 +15,18 @@ import {
   Plus,
   ChevronLeft,
   ChevronRight,
-  Zap,
   Activity,
   Target,
+  Zap,
+  ListChecks,
+  Trophy,
 } from "lucide-react";
 import { Surface } from "@/components/ui/surface";
 import { Button } from "@/components/ui/button";
 import { BecomeLogo } from "@/components/Brand/BecomeLogo";
 import { cn } from "@/lib/utils";
 
-/* ───────── Shared micro-motion hooks ─────────
- * Loops every ~5–7s so previews feel alive without becoming distracting.
- * Respects prefers-reduced-motion via CSS in animations themselves.
- */
+/* ───────── Shared micro-motion hooks ───────── */
 const useLoopedToggle = (period = 5200, initial = false) => {
   const [on, setOn] = useState(initial);
   useEffect(() => {
@@ -47,19 +46,13 @@ const useDelayedToggle = (delay: number, initial = false) => {
 };
 
 /**
- * Landing previews — Truthful clones of the logged-in PRO experience.
+ * Landing previews — Truthful clones of the real mobile PRO experience.
  *
- * Hard rules:
- *  - Reuse real primitives (Surface, Button, BecomeLogo).
- *  - Mirror the real mobile chrome: BecomeLogo top bar (h-14 + container),
- *    PageHeader-style screen titles, and the actual bottom Navigation.
- *  - Copy the real directives, momentum copy, and metric card chrome from
- *    DayView + MinimalHabitCard.
- *  - Always render the PRO bottom nav (5 items) — landing sells PRO.
- *  - PT-PT only.
- *
- * If a primitive changes in the app (Surface tones, button radii, neon glow,
- * BecomeLogo lockup), these previews follow automatically.
+ * These mirror the mobile shell exactly as captured in production
+ * screenshots: a single brand row at the top, followed by a horizontal
+ * icon-over-label nav row that includes Perfil. There is NO bottom nav
+ * in the previews because the previews represent the mobile in-app top
+ * navigation users see after login.
  */
 
 /* ───────── Phone frame (marketing chrome only) ───────── */
@@ -86,74 +79,58 @@ export const PhoneFrame = ({ children, className }: PhoneFrameProps) => (
   </div>
 );
 
-/* ───────── Real app top navigation (clone of Navigation desktop chrome:
-              BecomeLogo lockup + inline nav items + secondary Profile). The
-              real app uses this top bar across all viewports; mobile also
-              shows a bottom tab bar but the previews mirror the desktop
-              chrome so the menu lives at the top, exactly like the
-              logged-in product. ───────── */
+/* ───────── Real mobile top navigation (1:1 with screenshots) ─────────
+ * Row 1: BecomeLogo lockup ("B + BECOME") only — no profile chip.
+ * Row 2: 5 nav items (Hábitos, Calendário, Nutrição, Compras, Perfil),
+ *        icon-stacked-over-label, with a top neon underline + neon glow on
+ *        the active item.
+ */
 
 const PreviewTopNav = ({
   active,
 }: {
   active: "habits" | "calendar" | "nutrition" | "shopping" | "profile" | "none";
 }) => {
-  const mainItems = [
-    { id: "habits",    label: "Hábitos",    icon: LayoutDashboard },
-    { id: "calendar",  label: "Calendário", icon: CalendarIcon },
-    { id: "nutrition", label: "Nutrição",   icon: Leaf },
-    { id: "shopping",  label: "Compras",    icon: ShoppingCart },
+  const items = [
+    { id: "habits",    label: "HÁBITOS",    icon: LayoutDashboard },
+    { id: "calendar",  label: "CALENDÁ...", icon: CalendarIcon },
+    { id: "nutrition", label: "NUTRIÇÃO",   icon: Leaf },
+    { id: "shopping",  label: "COMPRAS",    icon: ShoppingCart },
+    { id: "profile",   label: "PERFIL",     icon: User },
   ] as const;
 
   return (
-    <div className="border-b border-foreground/10 bg-background/95 backdrop-blur-xl">
+    <div className="bg-background">
       {/* Brand row */}
-      <div className="flex h-12 items-center justify-between px-3">
-        <div className="flex items-center gap-2">
-          <BecomeLogo compact size="sm" />
-          <div className="flex flex-col leading-tight">
-            <span className="text-[12px] font-black uppercase italic tracking-tighter text-foreground">
-              becoMe
-            </span>
-            <span className="font-mono text-[8px] uppercase tracking-widest text-muted-foreground/60">
-              Operador
-            </span>
-          </div>
-        </div>
-        <div
-          className={cn(
-            "flex items-center gap-1.5 px-2 py-1 text-[9px] font-bold uppercase italic tracking-wider border-2",
-            active === "profile"
-              ? "border-accent text-accent bg-accent/10"
-              : "border-transparent text-muted-foreground",
-          )}
-        >
-          <User className="h-3 w-3 not-italic" />
-          <span>Perfil</span>
-        </div>
+      <div className="flex items-center px-4 pt-4 pb-3">
+        <BecomeLogo compact size="sm" />
+        <span className="ml-2 text-base font-black uppercase italic tracking-tighter text-foreground">
+          BECOME
+        </span>
       </div>
 
-      {/* Inline nav row (mirror of Navigation desktopMainItems) */}
-      <div className="flex items-center gap-0.5 px-2 pb-1.5">
-        {mainItems.map((item) => {
+      {/* Nav row */}
+      <div className="flex items-stretch border-b border-foreground/10 px-1">
+        {items.map((item) => {
           const isActive = item.id === active;
           return (
             <div
               key={item.id}
               className={cn(
-                "flex items-center gap-1 px-2 py-1 text-[9px] font-bold uppercase italic tracking-wider border-2 transition-colors",
-                isActive
-                  ? "border-primary text-primary bg-primary/10 shadow-[0_0_8px_hsl(var(--neon-toxic)/0.3)]"
-                  : "border-transparent text-muted-foreground",
+                "relative flex-1 flex flex-col items-center gap-1 py-2 text-[9px] font-black italic uppercase tracking-wider",
+                isActive ? "text-primary" : "text-muted-foreground/80",
               )}
             >
+              {isActive && (
+                <span className="absolute inset-x-2 -top-px h-0.5 bg-primary shadow-[0_0_8px_hsl(var(--neon-toxic))]" />
+              )}
               <item.icon
                 className={cn(
-                  "h-3 w-3 not-italic",
-                  isActive && "drop-shadow-[0_0_4px_hsl(var(--neon-toxic))]",
+                  "h-5 w-5 not-italic",
+                  isActive && "drop-shadow-[0_0_6px_hsl(var(--neon-toxic))]",
                 )}
               />
-              <span>{item.label}</span>
+              <span className="truncate max-w-full px-0.5">{item.label}</span>
             </div>
           );
         })}
@@ -162,7 +139,6 @@ const PreviewTopNav = ({
   );
 };
 
-
 /* ───────── PageHeader replica (icon tile + title + subtitle + actions) ───────── */
 
 const PreviewPageHeader = ({
@@ -170,33 +146,44 @@ const PreviewPageHeader = ({
   title,
   subtitle,
   actions,
+  iconColor = "text-primary",
 }: {
   icon: React.ComponentType<{ className?: string }>;
   title: string;
   subtitle?: string;
   actions?: React.ReactNode;
+  iconColor?: string;
 }) => (
-  <header className="mb-5 flex items-center justify-between gap-3">
+  <header className="mb-4 flex items-start justify-between gap-3">
     <div className="flex items-center gap-2.5 min-w-0 flex-1">
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-        <Icon className="h-4 w-4 text-primary" />
-      </div>
+      <Icon className={cn("h-6 w-6 shrink-0", iconColor)} />
       <div className="min-w-0">
-        <h1 className="text-lg font-semibold tracking-tight text-foreground truncate">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground truncate leading-none">
           {title}
         </h1>
         {subtitle && (
-          <p className="text-[12px] text-muted-foreground/80 mt-0.5 truncate">
+          <p className="text-[12px] text-muted-foreground/80 mt-1 truncate">
             {subtitle}
           </p>
         )}
       </div>
     </div>
-    {actions && <div className="flex items-center gap-1.5 shrink-0">{actions}</div>}
+    {actions && <div className="flex items-center gap-2 shrink-0">{actions}</div>}
   </header>
 );
 
-/* ───────── Reusable real-shape habit row (mirror of MinimalHabitCard) ───────── */
+/* ───────── Neon yellow icon button (real app action chip) ───────── */
+const NeonIconButton = ({
+  icon: Icon,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+}) => (
+  <button className="flex items-center justify-center h-10 w-12 rounded-xl bg-primary text-primary-foreground border-2 border-primary shadow-[3px_3px_0_0_hsl(var(--neon-ultra))]">
+    <Icon className="h-4 w-4" />
+  </button>
+);
+
+/* ───────── Habit row (mirror of MinimalHabitCard) ───────── */
 
 const PreviewHabitRow = ({
   name,
@@ -205,6 +192,7 @@ const PreviewHabitRow = ({
   metric,
   reduce = false,
   color = "hsl(var(--primary))",
+  highlightActive = false,
 }: {
   name: string;
   time?: string;
@@ -212,13 +200,14 @@ const PreviewHabitRow = ({
   metric?: { count: number; goal: number; unit: string };
   reduce?: boolean;
   color?: string;
+  highlightActive?: boolean;
 }) => {
   const isMetric = !!metric;
   const fillPct = isMetric ? Math.min(100, (metric!.count / metric!.goal) * 100) : 0;
   const goalReached = isMetric && !reduce && metric!.count >= metric!.goal;
   const tone =
     isMetric ? (reduce ? "warning" : goalReached ? "active" : "default")
-    : done ? "active"
+    : done || highlightActive ? "active"
     : "default";
 
   return (
@@ -283,10 +272,11 @@ const PreviewHabitRow = ({
         <span
           className={cn(
             "text-left font-bold uppercase tracking-tight text-[14px] leading-tight",
-            done ? "text-primary line-through decoration-primary/40" : "text-foreground",
+            done ? "text-primary" : "text-foreground",
+            time && done && "text-primary",
           )}
         >
-          {name}
+          {name}{time && <span className="ml-2">{time}</span>}
         </span>
         {isMetric ? (
           <span
@@ -298,132 +288,132 @@ const PreviewHabitRow = ({
             {metric!.count}
             <span className="opacity-50">/{metric!.goal}</span> {metric!.unit}
           </span>
-        ) : time ? (
-          <span className="font-mono text-[10px] text-muted-foreground">{time}</span>
         ) : null}
       </div>
     </Surface>
   );
 };
 
-/* ════════════════════════════════════════════════════════════════════════
-   1. HABITS / TODAY — clone of DayView (operator telemetry + directive +
-   subsystems)
-   ════════════════════════════════════════════════════════════════════════ */
+/* ────────────────────────────────────────────────────────────────────
+   1. HABITS — clone of real mobile Hábitos page
+   ──────────────────────────────────────────────────────────────────── */
 
 export const HabitsPreview = () => {
-  // Micro-motion: third habit auto-completes ~1.6s after mount,
-  // momentum bar then advances 50% → 75%.
-  const thirdDone = useDelayedToggle(1600);
-  const momentumPct = thirdDone ? 75 : 50;
-  const momentumLabel = thirdDone ? "3/4" : "2/4";
+  // Micro-motion: second habit auto-completes ~1.6s after mount.
+  const secondDone = useDelayedToggle(1600);
+  const ritualsDone = secondDone ? 2 : 1;
+
   return (
-  <div className="flex flex-col">
-    <PreviewTopNav active="habits" />
+    <div className="flex flex-col">
+      <PreviewTopNav active="habits" />
 
-    <div className="px-4 pt-5 pb-4 space-y-7">
-      {/* Operator telemetry header */}
-      <header className="space-y-5 border-b border-foreground/10 pb-6">
-        <div className="flex items-center gap-3">
-          <span className="size-2 bg-primary animate-pulse shadow-[0_0_8px_hsl(var(--neon-toxic))]" />
-          <span className="font-mono text-[10px] uppercase tracking-widest text-primary">
-            SISTEMA ATIVO · TERÇA, 28 DE ABRIL
-          </span>
-        </div>
+      <div className="px-4 pt-5 pb-4 space-y-5">
+        <PreviewPageHeader
+          icon={LayoutDashboard}
+          title="Hábitos"
+          subtitle="5 hábitos hoje"
+          actions={
+            <>
+              <NeonIconButton icon={ListChecks} />
+              <NeonIconButton icon={Plus} />
+            </>
+          }
+        />
 
-        <div className="flex items-end justify-between gap-4">
-          <h1 className="text-4xl font-black uppercase italic tracking-tighter leading-none">
-            NÍVEL{" "}
-            <span className="text-primary drop-shadow-[0_0_8px_hsl(var(--neon-toxic))] tabular-nums">
-              07
-            </span>
-          </h1>
-          <div className="text-right">
-            <div className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground/60">
-              STREAK
-            </div>
-            <div className="text-2xl font-black italic tabular-nums text-accent drop-shadow-[0_0_8px_hsl(var(--neon-ultra))]">
-              23<span className="text-xs text-muted-foreground/60 ml-1 not-italic">D</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <div className="flex justify-between items-baseline">
-            <span className="text-sm font-semibold text-foreground tracking-tight">
-              A construir momentum.
-            </span>
-            <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground/60 tabular-nums transition-all duration-500">
-              {momentumLabel}
+        {/* Welcome / momentum hero */}
+        <Surface tone="hero" size="hero" className="space-y-4">
+          <div className="flex items-center gap-2">
+            <span className="size-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_hsl(var(--neon-toxic))]" />
+            <span className="font-mono text-[10px] uppercase tracking-widest text-primary">
+              ATIVO
             </span>
           </div>
-          <div className="h-1.5 bg-foreground/[0.06] relative overflow-hidden">
-            <div
-              className="absolute inset-y-0 left-0 bg-primary shadow-[0_0_12px_hsl(var(--neon-toxic)/0.7)] transition-[width] duration-[900ms] ease-out"
-              style={{ width: `${momentumPct}%` }}
-            />
-          </div>
-        </div>
-      </header>
 
-      {/* Directive — main mission */}
-      <section className="relative">
-        <div className="absolute -top-3 left-4 bg-background px-2 z-10">
-          <span className="font-mono text-[10px] uppercase tracking-widest text-primary">
-            DIRETIVA_MATINAL
-          </span>
-        </div>
-        <div className="border-2 border-primary/50 bg-card shadow-[4px_4px_0_0_hsl(var(--neon-ultra)/0.4)] p-5 space-y-4">
-          <div className="flex items-start justify-between gap-4">
-            <div className="space-y-2 flex-1">
-              <span className="inline-block bg-primary text-primary-foreground px-2 py-0.5 font-mono text-[9px] uppercase tracking-widest">
-                PRIORIDADE
-              </span>
-              <h2 className="text-2xl font-black uppercase italic tracking-tighter leading-tight">
-                Trabalho profundo · 90 min
-              </h2>
-              <p className="text-[12px] text-muted-foreground leading-snug">
-                Sistema em operação. Cumpre as ações pendentes antes do reset.
-              </p>
-            </div>
-            <Zap className="h-7 w-7 text-primary shrink-0 drop-shadow-[0_0_8px_hsl(var(--neon-toxic))]" />
+          <div className="space-y-2">
+            <h2 className="text-[22px] font-bold tracking-tight leading-[1.15] text-foreground">
+              Bem-vindo de volta. O momentum espera-te.
+            </h2>
+            <p className="text-[13px] text-muted-foreground">
+              És cada vez mais disciplinado.
+            </p>
           </div>
+
+          {/* Stat trio */}
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { icon: Target, label: "CONSISTÊNCIA", value: "62%" },
+              { icon: Trophy, label: "VITÓRIAS", value: "8" },
+              { icon: TrendingUp, label: "MOMENTUM", value: "62" },
+            ].map((s) => (
+              <div
+                key={s.label}
+                className="border border-foreground/10 bg-background/40 p-2.5 rounded-md"
+              >
+                <div className="flex items-center gap-1 mb-1">
+                  <s.icon className="h-3 w-3 text-muted-foreground" />
+                  <span className="font-mono text-[8px] uppercase tracking-widest text-muted-foreground">
+                    {s.label}
+                  </span>
+                </div>
+                <p className="text-xl font-bold tabular-nums text-foreground leading-none">
+                  {s.value}
+                </p>
+              </div>
+            ))}
+          </div>
+
           <Button size="lg" className="w-full">
-            EXECUTAR PROTOCOLO
+            COMEÇAR PRIMEIRA AÇÃO ›
           </Button>
-        </div>
-      </section>
+        </Surface>
 
-      {/* Subsystems */}
-      <section className="space-y-3">
-        <div className="flex items-center gap-3">
-          <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground/60 whitespace-nowrap">
-            SUBSISTEMAS
-          </span>
-          <div className="h-px flex-1 bg-foreground/10" />
-        </div>
+        {/* Rituais section */}
+        <section className="space-y-2.5">
+          <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground/70 px-1 transition-all duration-500">
+            RITUAIS · {ritualsDone}/3
+          </p>
+          <div className="space-y-2">
+            <PreviewHabitRow name="ACORDAR" time="07:30" done color="hsl(25 95% 55%)" />
+            <PreviewHabitRow name="GINÁSIO" time="08:30" done={secondDone} color="hsl(160 70% 50%)" />
+            <PreviewHabitRow name="DORMIR" time="23:30" color="hsl(220 70% 60%)" />
+          </div>
+        </section>
 
-        <div className="space-y-2">
-          <PreviewHabitRow name="Treino matinal" time="06:30" done />
-          <PreviewHabitRow name="Ler 20 min" time="07:15" done />
-          <PreviewHabitRow name="Meditar" time="08:00" done={thirdDone} />
-          <PreviewHabitRow name="Café" reduce metric={{ count: 3, goal: 5, unit: "chávenas" }} />
-        </div>
-      </section>
+        {/* Métricas section */}
+        <section className="space-y-2.5">
+          <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground/70 px-1">
+            MÉTRICAS · 1/2 ON TRACK
+          </p>
+          <PreviewHabitRow
+            name="Cigarros"
+            reduce
+            metric={{ count: 3, goal: 5, unit: "un" }}
+            color="hsl(45 95% 55%)"
+          />
+        </section>
+      </div>
     </div>
-  </div>
   );
 };
 
-/* ════════════════════════════════════════════════════════════════════════
-   2. CALENDAR — clone of Calendario monthly view
-   ════════════════════════════════════════════════════════════════════════ */
+/* ────────────────────────────────────────────────────────────────────
+   2. CALENDAR — clone of real mobile Calendário page (Mês view)
+   ──────────────────────────────────────────────────────────────────── */
 
 export const CalendarPreview = () => {
+  // Build April 2026: starts Wed (1=Wed), 30 days. Week starts Mon → 2 padding cells.
   const days = Array.from({ length: 30 }, (_, i) => i + 1);
-  const completePattern = new Set([1, 2, 3, 5, 6, 8, 9, 10, 11, 13, 14, 15, 16, 18, 20, 21, 22, 23, 25, 27, 28]);
-  const partialPattern = new Set([4, 7, 12, 17, 19, 24, 26]);
-  const todayDay = 28;
+  const padCount = 2;
+  const todayDay = 29;
+
+  // Realistic data: ratios per day mostly 1/5, 1/4, 2/4 etc.
+  const dayData: Record<number, { c: number; t: number }> = {
+    1: { c: 1, t: 5 }, 2: { c: 1, t: 4 }, 3: { c: 1, t: 4 }, 4: { c: 1, t: 2 }, 5: { c: 1, t: 3 },
+    6: { c: 1, t: 4 }, 7: { c: 1, t: 5 }, 8: { c: 1, t: 5 }, 9: { c: 1, t: 4 }, 10: { c: 1, t: 4 }, 11: { c: 1, t: 2 }, 12: { c: 1, t: 3 },
+    13: { c: 1, t: 4 }, 14: { c: 1, t: 5 }, 15: { c: 1, t: 5 }, 16: { c: 1, t: 4 }, 17: { c: 1, t: 4 }, 18: { c: 1, t: 2 }, 19: { c: 1, t: 3 },
+    20: { c: 1, t: 4 }, 21: { c: 1, t: 5 }, 22: { c: 1, t: 5 }, 23: { c: 2, t: 4 }, 24: { c: 2, t: 4 }, 25: { c: 0, t: 2 }, 26: { c: 1, t: 3 },
+    27: { c: 2, t: 4 }, 28: { c: 3, t: 5 }, 29: { c: 2, t: 5 }, 30: { c: 0, t: 0 },
+  };
 
   return (
     <div className="flex flex-col">
@@ -434,81 +424,128 @@ export const CalendarPreview = () => {
           icon={CalendarIcon}
           title="Calendário"
           subtitle="Visualiza o teu progresso"
+          actions={
+            <div className="inline-flex items-center gap-1 p-1 bg-secondary/60 border border-foreground/10 rounded-xl">
+              {["DIA", "SEMANA", "MÊS"].map((label) => {
+                const isActive = label === "MÊS";
+                return (
+                  <span
+                    key={label}
+                    className={cn(
+                      "h-7 px-2.5 inline-flex items-center justify-center rounded-lg font-bold uppercase italic tracking-tight text-[10px]",
+                      isActive
+                        ? "bg-primary text-primary-foreground shadow-[3px_3px_0_0_hsl(var(--neon-ultra))]"
+                        : "text-muted-foreground",
+                    )}
+                  >
+                    {label}
+                  </span>
+                );
+              })}
+            </div>
+          }
         />
 
-        {/* Cycle hero (Calendario.tsx hero replica) */}
-        <Surface tone="hero" size="hero" className="border-2 border-primary/40 shadow-[4px_4px_0_0_hsl(var(--neon-ultra)/0.4)]">
-          <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mb-2.5">
+        {/* Cycle hero */}
+        <div className="border-2 border-primary/50 bg-card shadow-[4px_4px_0_0_hsl(var(--neon-ultra)/0.4)] p-4">
+          <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mb-3">
             // CICLO · ABR 2026
           </p>
           <div className="flex items-center gap-4">
-            <div className="relative h-[68px] w-[68px] shrink-0">
+            <div className="relative h-[60px] w-[60px] shrink-0">
               <svg className="h-full w-full -rotate-90" viewBox="0 0 36 36">
                 <circle cx="18" cy="18" r="15" fill="none" stroke="hsl(var(--foreground) / 0.08)" strokeWidth="3" />
                 <circle
                   cx="18" cy="18" r="15" fill="none"
                   stroke="hsl(var(--primary))" strokeWidth="3" strokeLinecap="round"
-                  strokeDasharray={`${(89 / 100) * 94.25} 94.25`}
+                  strokeDasharray={`${(30 / 100) * 94.25} 94.25`}
                   style={{ filter: "drop-shadow(0 0 6px hsl(var(--neon-toxic)))" }}
                 />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="font-black italic text-sm tabular-nums">89%</span>
+                <span className="font-bold text-[12px] tabular-nums">30%</span>
               </div>
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
                 DIAS PERFEITOS
               </p>
-              <p className="font-black italic uppercase tracking-tighter text-2xl tabular-nums leading-none mt-1">
-                21<span className="text-muted-foreground/50 text-sm">/28</span>
+              <p className="font-black italic tracking-tighter text-3xl tabular-nums leading-none mt-1">
+                0<span className="text-muted-foreground/50 text-base">/29</span>
               </p>
-              <div className="flex items-center gap-2 mt-2">
-                <span className="flex items-center gap-1 font-mono text-[9px] uppercase tracking-wider text-primary">
-                  <Flame className="h-3 w-3" /> 23D EM SEQUÊNCIA
-                </span>
-                <span className="flex items-center gap-1 font-mono text-[9px] uppercase tracking-wider text-accent">
-                  <Sparkles className="h-3 w-3" /> PEAK
-                </span>
-              </div>
             </div>
           </div>
-        </Surface>
+        </div>
 
-        {/* Calendar grid — mirror of MonthlyCalendar */}
+        {/* MonthSelector replica */}
+        <div className="flex items-center justify-between gap-2 border-2 border-foreground/15 bg-card/60 p-1.5 shadow-[3px_3px_0_0_hsl(var(--neon-ultra)/0.3)]">
+          <div className="flex h-8 w-8 items-center justify-center border border-foreground/20 bg-background/50">
+            <ChevronLeft className="h-3.5 w-3.5" />
+          </div>
+          <div className="flex flex-1 flex-col items-center justify-center text-center">
+            <span className="font-mono text-[8px] uppercase tracking-widest text-muted-foreground/70">
+              // CICLO
+            </span>
+            <h2 className="font-black italic uppercase tracking-tighter text-base leading-none text-foreground">
+              ABRIL <span className="text-primary">2026</span>
+            </h2>
+          </div>
+          <div className="flex h-8 w-8 items-center justify-center border border-foreground/20 bg-background/50">
+            <ChevronRight className="h-3.5 w-3.5" />
+          </div>
+          <div className="flex h-8 items-center gap-1 border-2 border-primary/50 bg-primary/10 px-2 font-mono text-[9px] font-bold uppercase tracking-widest text-primary">
+            <CalendarIcon className="h-2.5 w-2.5" />
+            HOJE
+          </div>
+        </div>
+
+        {/* Calendar grid */}
         <div>
           <div className="mb-1.5 grid grid-cols-7 gap-1">
-            {["S", "T", "Q", "Q", "S", "S", "D"].map((d, i) => (
+            {["SEG", "TER", "QUA", "QUI", "SEX", "SÁB", "DOM"].map((d, i) => (
               <div key={i} className="py-1 text-center font-mono text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60">
                 {d}
               </div>
             ))}
           </div>
           <div className="grid grid-cols-7 gap-1">
-            {Array.from({ length: 1 }).map((_, i) => (
+            {Array.from({ length: padCount }).map((_, i) => (
               <div key={`pad-${i}`} className="aspect-square" />
             ))}
             {days.map((d) => {
-              const isComplete = completePattern.has(d);
-              const isPartial = partialPattern.has(d);
+              const data = dayData[d];
               const isToday = d === todayDay;
               const isFuture = d > todayDay;
+              const hasData = data && data.t > 0;
+              const isPartial = hasData && data.c > 0;
               return (
                 <div
                   key={d}
                   className={cn(
-                    "relative aspect-square flex items-center justify-center font-mono text-[10px] font-bold tabular-nums border",
-                    isFuture && "opacity-30 border-foreground/5",
-                    !isFuture && !isComplete && !isPartial && "border-foreground/10 bg-card/30 text-muted-foreground",
-                    isPartial && "border-primary/40 bg-primary/15 text-primary",
-                    isComplete && "border-primary bg-primary text-primary-foreground shadow-[0_0_10px_hsl(var(--neon-toxic)/0.5)]",
-                    isToday && "ring-2 ring-accent ring-offset-1 ring-offset-background animate-pulse",
+                    "relative aspect-square flex flex-col items-center justify-center font-mono tabular-nums border rounded-sm",
+                    isFuture && "opacity-30 border-transparent text-muted-foreground/50",
+                    !isFuture && !isPartial && "border-transparent text-muted-foreground/40",
+                    !isFuture && isPartial && "border-primary/40 bg-primary/15 text-primary",
+                    isToday && "border-primary border-2 bg-primary/20 text-primary shadow-[0_0_8px_hsl(var(--neon-toxic)/0.3)]",
                   )}
                 >
-                  {d}
+                  <span className="text-[12px] font-bold leading-none">{d}</span>
+                  {!isFuture && hasData && (
+                    <span className="text-[8px] opacity-70 leading-none mt-0.5">
+                      {data.c}/{data.t}
+                    </span>
+                  )}
                 </div>
               );
             })}
+          </div>
+          <div className="mt-3 flex items-center justify-center gap-4 text-[10px]">
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <span className="size-1.5 rounded-full bg-primary" /> Completo
+            </span>
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <span className="size-1.5 rounded-full bg-primary/40" /> Parcial
+            </span>
           </div>
         </div>
       </div>
@@ -516,9 +553,9 @@ export const CalendarPreview = () => {
   );
 };
 
-/* ════════════════════════════════════════════════════════════════════════
-   3. NUTRITION — clone of Nutricao day view
-   ════════════════════════════════════════════════════════════════════════ */
+/* ────────────────────────────────────────────────────────────────────
+   3. NUTRITION
+   ──────────────────────────────────────────────────────────────────── */
 
 export const NutritionPreview = () => (
   <div className="flex flex-col">
@@ -531,12 +568,8 @@ export const NutritionPreview = () => (
         subtitle="Plano semanal personalizado"
         actions={
           <>
-            <button className="flex items-center justify-center h-9 w-9 rounded-xl bg-primary text-primary-foreground border-2 border-primary shadow-[3px_3px_0_0_hsl(var(--neon-ultra))]">
-              <Settings2 className="h-3.5 w-3.5" />
-            </button>
-            <button className="flex items-center justify-center h-9 w-9 rounded-xl bg-primary text-primary-foreground border-2 border-primary shadow-[3px_3px_0_0_hsl(var(--neon-ultra))]">
-              <ShoppingBasket className="h-3.5 w-3.5" />
-            </button>
+            <NeonIconButton icon={Settings2} />
+            <NeonIconButton icon={ShoppingBasket} />
           </>
         }
       />
@@ -616,12 +649,11 @@ export const NutritionPreview = () => (
   </div>
 );
 
-/* ════════════════════════════════════════════════════════════════════════
-   4. SHOPPING — clone of Compras
-   ════════════════════════════════════════════════════════════════════════ */
+/* ────────────────────────────────────────────────────────────────────
+   4. SHOPPING
+   ──────────────────────────────────────────────────────────────────── */
 
 export const ShoppingPreview = () => {
-  // Micro-motion: "Batata-doce" gets toggled at ~2s. Progress bar fills accordingly.
   const extraDone = useDelayedToggle(2000);
   const baseItems = [
     { name: "Peito de frango", qty: "1.2 kg", cat: "Talho", done: true },
@@ -648,11 +680,7 @@ export const ShoppingPreview = () => {
           icon={ShoppingCart}
           title="Compras"
           subtitle="Lista da semana"
-          actions={
-            <button className="flex items-center justify-center h-9 w-9 rounded-xl bg-primary text-primary-foreground border-2 border-primary shadow-[3px_3px_0_0_hsl(var(--neon-ultra))]">
-              <Plus className="h-3.5 w-3.5" />
-            </button>
-          }
+          actions={<NeonIconButton icon={Plus} />}
         />
 
         <Surface tone="subtle" size="compact" className="flex items-center justify-between">
@@ -713,13 +741,11 @@ export const ShoppingPreview = () => {
   );
 };
 
-/* ════════════════════════════════════════════════════════════════════════
-   5. PROGRESS — clone of MonthView (cycle nav + sparkline + readouts +
-   subtle month grid). PRO surface; landing always shows it unlocked.
-   ════════════════════════════════════════════════════════════════════════ */
+/* ────────────────────────────────────────────────────────────────────
+   5. PROGRESS — clone of MonthView
+   ──────────────────────────────────────────────────────────────────── */
 
 export const ProgressPreview = () => {
-  // Sparkline data — 30 days, smooth upward trend with believable noise.
   const data = [
     35, 42, 38, 50, 48, 55, 60, 58, 62, 70,
     65, 72, 78, 74, 80, 82, 78, 85, 88, 84,
@@ -733,7 +759,6 @@ export const ProgressPreview = () => {
   const areaPath = `M0,${h} L${points} L${w},${h} Z`;
   const linePath = `M${points}`;
 
-  // Pulsing "current" dot
   const pulse = useLoopedToggle(1400, true);
 
   return (
@@ -747,7 +772,6 @@ export const ProgressPreview = () => {
           subtitle="Leitura do ciclo"
         />
 
-        {/* Cycle nav — mirror of MonthView */}
         <div className="flex items-center justify-between border-y-2 border-foreground/10 py-3">
           <ChevronLeft className="h-4 w-4 text-muted-foreground" />
           <div className="text-center">
@@ -761,7 +785,6 @@ export const ProgressPreview = () => {
           <ChevronRight className="h-4 w-4 text-muted-foreground" />
         </div>
 
-        {/* Sparkline */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
@@ -803,7 +826,6 @@ export const ProgressPreview = () => {
           </Surface>
         </div>
 
-        {/* Readouts */}
         <div className="space-y-2">
           <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground px-1">
             // LEITURA
@@ -820,7 +842,6 @@ export const ProgressPreview = () => {
           </div>
         </div>
 
-        {/* KPI strip — mirror of progress KPIs */}
         <div className="grid grid-cols-3 gap-2">
           {[
             { icon: Flame, label: "Streak", value: "23D" },
