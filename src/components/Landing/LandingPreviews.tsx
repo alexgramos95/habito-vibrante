@@ -180,8 +180,8 @@ const NeonIconButton = ({
 }: {
   icon: React.ComponentType<{ className?: string }>;
 }) => (
-  <button className="flex items-center justify-center h-10 w-12 rounded-xl bg-primary text-primary-foreground border-2 border-primary shadow-[3px_3px_0_0_hsl(var(--neon-ultra))]">
-    <Icon className="h-4 w-4" />
+  <button className="flex items-center justify-center h-8 w-9 rounded-lg bg-primary text-primary-foreground border border-primary shadow-[2px_2px_0_0_hsl(var(--neon-ultra))]">
+    <Icon className="h-3.5 w-3.5" />
   </button>
 );
 
