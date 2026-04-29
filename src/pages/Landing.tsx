@@ -449,7 +449,7 @@ const Landing = () => {
               },
             ].map(({ Comp, label, outcome, desc }, i) => (
               <Reveal key={label} delay={i * 80} className="h-full">
-                <div className="bg-background border border-foreground/10 p-5 sm:p-6 md:p-8 h-full w-full min-w-0 box-border overflow-hidden flex flex-col gap-5">
+                <div className="bg-background border border-foreground/10 p-7 sm:p-8 md:p-10 h-full w-full min-w-0 box-border overflow-hidden flex flex-col gap-7">
                   <div className="text-center">
                     <p className="type-eyebrow text-primary mb-2">// {label}</p>
                     <h4 className="type-display text-xl md:text-2xl mb-2 leading-tight">
@@ -459,11 +459,9 @@ const Landing = () => {
                       {desc}
                     </p>
                   </div>
-                  <div className="w-full max-w-[230px] sm:max-w-[260px] md:max-w-[280px] mx-auto opacity-90">
+                  <div className="w-full max-w-[300px] sm:max-w-[340px] md:max-w-[360px] mx-auto opacity-90">
                     <PhoneFrame>
-                      <div className="scale-[0.78] origin-top -mb-[22%]">
-                        <Comp />
-                      </div>
+                      <Comp />
                     </PhoneFrame>
                   </div>
                 </div>
