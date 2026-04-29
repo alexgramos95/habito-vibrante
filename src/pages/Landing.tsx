@@ -760,7 +760,7 @@ const Landing = () => {
             <Button
               size="xl"
               onClick={handleStartTrial}
-              className="gap-2 px-14"
+              className="gap-2 px-14 shadow-[0_0_32px_hsl(var(--neon-toxic)/0.4)]"
             >
               {hero.cta}
               <ArrowRight className="h-5 w-5" />
