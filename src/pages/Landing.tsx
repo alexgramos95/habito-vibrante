@@ -345,21 +345,9 @@ const Landing = () => {
           </div>
 
           {/* Real product UI previews — every screen below is the real
-              logged-in app, not a marketing mock-up. */}
-          <div className="grid gap-10 md:gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-            <Reveal>
-              <div className="space-y-4">
-                <PhoneFrame>
-                  <HabitsPreview />
-                </PhoneFrame>
-                <div className="text-center">
-                  <p className="type-eyebrow text-primary mb-1">// Hábitos</p>
-                  <p className="text-sm text-muted-foreground/80 max-w-[28ch] mx-auto">
-                    Diretivas diárias, métricas e ritmo.
-                  </p>
-                </div>
-              </div>
-            </Reveal>
+              logged-in app, not a marketing mock-up. Hábitos já está em
+              destaque no hero, por isso aqui mostramos os outros 4 módulos. */}
+          <div className="grid gap-10 md:gap-8 sm:grid-cols-2 lg:grid-cols-4">
 
             <Reveal delay={80}>
               <div className="space-y-4">
