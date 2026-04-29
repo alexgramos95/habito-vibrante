@@ -373,9 +373,9 @@ export const HabitsPreview = () => {
             RITUAIS · {ritualsDone}/3
           </p>
           <div className="space-y-2">
-            <PreviewHabitRow name="ACORDAR" time="07:30" done color="hsl(25 95% 55%)" />
-            <PreviewHabitRow name="GINÁSIO" time="08:30" done={secondDone} color="hsl(160 70% 50%)" />
-            <PreviewHabitRow name="DORMIR" time="23:30" color="hsl(220 70% 60%)" />
+            <PreviewHabitRow name="MEDITAR" time="06:45" done color="hsl(265 70% 60%)" />
+            <PreviewHabitRow name="LER 20 MIN" time="08:15" done={secondDone} color="hsl(195 80% 55%)" />
+            <PreviewHabitRow name="ESCREVER DIÁRIO" time="22:00" color="hsl(340 75% 60%)" />
           </div>
         </section>
 
@@ -385,10 +385,9 @@ export const HabitsPreview = () => {
             MÉTRICAS · 1/2 ON TRACK
           </p>
           <PreviewHabitRow
-            name="Cigarros"
-            reduce
-            metric={{ count: 3, goal: 5, unit: "un" }}
-            color="hsl(45 95% 55%)"
+            name="Água"
+            metric={{ count: 6, goal: 8, unit: "copos" }}
+            color="hsl(195 85% 55%)"
           />
         </section>
       </div>
@@ -408,11 +407,11 @@ export const CalendarPreview = () => {
 
   // Realistic data: ratios per day mostly 1/5, 1/4, 2/4 etc.
   const dayData: Record<number, { c: number; t: number }> = {
-    1: { c: 1, t: 5 }, 2: { c: 1, t: 4 }, 3: { c: 1, t: 4 }, 4: { c: 1, t: 2 }, 5: { c: 1, t: 3 },
-    6: { c: 1, t: 4 }, 7: { c: 1, t: 5 }, 8: { c: 1, t: 5 }, 9: { c: 1, t: 4 }, 10: { c: 1, t: 4 }, 11: { c: 1, t: 2 }, 12: { c: 1, t: 3 },
-    13: { c: 1, t: 4 }, 14: { c: 1, t: 5 }, 15: { c: 1, t: 5 }, 16: { c: 1, t: 4 }, 17: { c: 1, t: 4 }, 18: { c: 1, t: 2 }, 19: { c: 1, t: 3 },
-    20: { c: 1, t: 4 }, 21: { c: 1, t: 5 }, 22: { c: 1, t: 5 }, 23: { c: 2, t: 4 }, 24: { c: 2, t: 4 }, 25: { c: 0, t: 2 }, 26: { c: 1, t: 3 },
-    27: { c: 2, t: 4 }, 28: { c: 3, t: 5 }, 29: { c: 2, t: 5 }, 30: { c: 0, t: 0 },
+    1: { c: 3, t: 4 }, 2: { c: 4, t: 4 }, 3: { c: 2, t: 4 }, 4: { c: 1, t: 2 }, 5: { c: 2, t: 3 },
+    6: { c: 4, t: 4 }, 7: { c: 3, t: 4 }, 8: { c: 4, t: 4 }, 9: { c: 2, t: 4 }, 10: { c: 3, t: 4 }, 11: { c: 2, t: 2 }, 12: { c: 3, t: 3 },
+    13: { c: 4, t: 4 }, 14: { c: 3, t: 4 }, 15: { c: 4, t: 4 }, 16: { c: 4, t: 4 }, 17: { c: 2, t: 4 }, 18: { c: 1, t: 2 }, 19: { c: 3, t: 3 },
+    20: { c: 4, t: 4 }, 21: { c: 3, t: 4 }, 22: { c: 4, t: 4 }, 23: { c: 3, t: 4 }, 24: { c: 4, t: 4 }, 25: { c: 2, t: 2 }, 26: { c: 2, t: 3 },
+    27: { c: 4, t: 4 }, 28: { c: 4, t: 4 }, 29: { c: 3, t: 4 }, 30: { c: 0, t: 0 },
   };
 
   return (
@@ -458,12 +457,12 @@ export const CalendarPreview = () => {
                 <circle
                   cx="18" cy="18" r="15" fill="none"
                   stroke="hsl(var(--primary))" strokeWidth="3" strokeLinecap="round"
-                  strokeDasharray={`${(30 / 100) * 94.25} 94.25`}
+                  strokeDasharray={`${(55 / 100) * 94.25} 94.25`}
                   style={{ filter: "drop-shadow(0 0 6px hsl(var(--neon-toxic)))" }}
                 />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="font-bold text-[12px] tabular-nums">30%</span>
+                <span className="font-bold text-[12px] tabular-nums">55%</span>
               </div>
             </div>
             <div className="flex-1 min-w-0">
@@ -471,7 +470,7 @@ export const CalendarPreview = () => {
                 DIAS PERFEITOS
               </p>
               <p className="font-black italic tracking-tighter text-3xl tabular-nums leading-none mt-1">
-                0<span className="text-muted-foreground/50 text-base">/29</span>
+                16<span className="text-muted-foreground/50 text-base">/29</span>
               </p>
             </div>
           </div>
