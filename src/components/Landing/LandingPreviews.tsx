@@ -310,8 +310,8 @@ export const HabitsPreview = () => {
       <div className="px-4 pt-5 pb-4 space-y-5">
         <PreviewPageHeader
           icon={LayoutDashboard}
-          title="Hábitos"
-          subtitle="5 hábitos hoje"
+          title="Habits"
+          subtitle="5 habits today"
           actions={
             <>
               <NeonIconButton icon={ListChecks} />
@@ -325,24 +325,24 @@ export const HabitsPreview = () => {
           <div className="flex items-center gap-2">
             <span className="size-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_hsl(var(--neon-toxic))]" />
             <span className="font-mono text-[10px] uppercase tracking-widest text-primary">
-              ATIVO
+              ACTIVE
             </span>
           </div>
 
           <div className="space-y-2">
             <h2 className="text-[22px] font-bold tracking-tight leading-[1.15] text-foreground">
-              Bem-vindo de volta. O momentum espera-te.
+              Welcome back. Momentum is waiting.
             </h2>
             <p className="text-[13px] text-muted-foreground">
-              És cada vez mais disciplinado.
+              You're more disciplined every day.
             </p>
           </div>
 
           {/* Stat trio */}
           <div className="grid grid-cols-3 gap-2">
             {[
-              { icon: Target, label: "CONSISTÊNCIA", value: "62%" },
-              { icon: Trophy, label: "VITÓRIAS", value: "8" },
+              { icon: Target, label: "CONSISTENCY", value: "62%" },
+              { icon: Trophy, label: "WINS",        value: "8" },
               { icon: TrendingUp, label: "MOMENTUM", value: "62" },
             ].map((s) => (
               <div
@@ -363,30 +363,30 @@ export const HabitsPreview = () => {
           </div>
 
           <Button size="lg" className="w-full">
-            COMEÇAR PRIMEIRA AÇÃO ›
+            START FIRST ACTION ›
           </Button>
         </Surface>
 
-        {/* Rituais section */}
+        {/* Rituals section */}
         <section className="space-y-2.5">
           <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground/70 px-1 transition-all duration-500">
-            RITUAIS · {ritualsDone}/3
+            RITUALS · {ritualsDone}/3
           </p>
           <div className="space-y-2">
-            <PreviewHabitRow name="MEDITAR" time="06:45" done color="hsl(265 70% 60%)" />
-            <PreviewHabitRow name="LER 20 MIN" time="08:15" done={secondDone} color="hsl(195 80% 55%)" />
-            <PreviewHabitRow name="ESCREVER DIÁRIO" time="22:00" color="hsl(340 75% 60%)" />
+            <PreviewHabitRow name="MEDITATE" time="06:45" done color="hsl(265 70% 60%)" />
+            <PreviewHabitRow name="READ 20 MIN" time="08:15" done={secondDone} color="hsl(195 80% 55%)" />
+            <PreviewHabitRow name="JOURNAL" time="22:00" color="hsl(340 75% 60%)" />
           </div>
         </section>
 
-        {/* Métricas section */}
+        {/* Metrics section */}
         <section className="space-y-2.5">
           <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground/70 px-1">
-            MÉTRICAS · 1/2 ON TRACK
+            METRICS · 1/2 ON TRACK
           </p>
           <PreviewHabitRow
-            name="Água"
-            metric={{ count: 6, goal: 8, unit: "copos" }}
+            name="Water"
+            metric={{ count: 6, goal: 8, unit: "glasses" }}
             color="hsl(195 85% 55%)"
           />
         </section>
