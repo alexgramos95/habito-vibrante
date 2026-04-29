@@ -563,8 +563,8 @@ export const NutritionPreview = () => (
     <div className="px-4 pt-5 pb-4 space-y-3">
       <PreviewPageHeader
         icon={Leaf}
-        title="Nutrição"
-        subtitle="Plano semanal personalizado"
+        title="Nutrition"
+        subtitle="Personalized weekly plan"
         actions={
           <>
             <NeonIconButton icon={Settings2} />
@@ -575,21 +575,21 @@ export const NutritionPreview = () => (
 
       <div className="flex flex-wrap gap-1.5">
         <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-secondary text-secondary-foreground border border-foreground/10">
-          Definição
+          Cutting
         </span>
         <span className="text-[10px] font-medium px-2 py-0.5 rounded-md border border-foreground/15 text-muted-foreground">
-          4 refeições
+          4 meals
         </span>
         <span className="text-[10px] font-medium px-2 py-0.5 rounded-md border border-foreground/15 text-muted-foreground">
-          2.200 kcal
+          2,200 kcal
         </span>
       </div>
 
       <div className="flex items-center justify-between border-y border-foreground/10 py-2">
         <ChevronLeft className="h-4 w-4 text-muted-foreground" />
         <div className="text-center">
-          <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">Hoje</p>
-          <p className="text-sm font-bold">Terça · 28 Abr</p>
+          <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">Today</p>
+          <p className="text-sm font-bold">Tue · Apr 28</p>
         </div>
         <ChevronRight className="h-4 w-4 text-muted-foreground" />
       </div>
@@ -604,21 +604,21 @@ export const NutritionPreview = () => (
           <p className="font-black italic text-sm tabular-nums text-primary">168</p>
         </div>
         <div className="text-center">
-          <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">HC</p>
+          <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">Carbs</p>
           <p className="font-black italic text-sm tabular-nums">210</p>
         </div>
         <div className="text-center">
-          <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">Gord</p>
+          <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">Fat</p>
           <p className="font-black italic text-sm tabular-nums">72</p>
         </div>
       </Surface>
 
       <div className="space-y-2">
         {[
-          { meal: "Pequeno-almoço", item: "Aveia, frutos vermelhos, whey", kcal: 420, done: true },
-          { meal: "Almoço", item: "Frango, arroz, legumes", kcal: 680, done: true },
-          { meal: "Lanche", item: "Iogurte grego, amêndoas", kcal: 320, done: false },
-          { meal: "Jantar", item: "Salmão, batata-doce", kcal: 720, done: false },
+          { meal: "Breakfast", item: "Oats, berries, whey",        kcal: 420, done: true },
+          { meal: "Lunch",     item: "Chicken, rice, vegetables",  kcal: 680, done: true },
+          { meal: "Snack",     item: "Greek yogurt, almonds",      kcal: 320, done: false },
+          { meal: "Dinner",    item: "Salmon, sweet potato",       kcal: 720, done: false },
         ].map((m, i) => (
           <Surface
             key={i}
