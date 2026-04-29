@@ -86,68 +86,74 @@ export const PhoneFrame = ({ children, className }: PhoneFrameProps) => (
   </div>
 );
 
-/* ───────── Real app top bar (mirrors Navigation desktop chrome,
-              compacted to mobile) ───────── */
+/* ───────── Real app top navigation (clone of Navigation desktop chrome:
+              BecomeLogo lockup + inline nav items + secondary Profile). The
+              real app uses this top bar across all viewports; mobile also
+              shows a bottom tab bar but the previews mirror the desktop
+              chrome so the menu lives at the top, exactly like the
+              logged-in product. ───────── */
 
-const PreviewTopBar = () => (
-  <div className="border-b border-foreground/10 bg-background/95 backdrop-blur-xl">
-    <div className="flex h-14 items-center justify-between px-4">
-      <div className="flex items-center gap-2.5">
-        <BecomeLogo compact size="sm" />
-        <div className="flex flex-col leading-tight">
-          <span className="text-sm font-black uppercase italic tracking-tighter text-foreground">
-            becoMe
-          </span>
-          <span className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground/60">
-            Operador
-          </span>
-        </div>
-      </div>
-      <div className="flex h-8 w-8 items-center justify-center rounded-full border border-foreground/15 bg-card text-[11px] font-black italic">
-        M
-      </div>
-    </div>
-  </div>
-);
-
-/* ───────── Real app bottom nav (clone of Navigation mobile) ───────── */
-
-const PreviewBottomNav = ({
+const PreviewTopNav = ({
   active,
 }: {
   active: "habits" | "calendar" | "nutrition" | "shopping" | "profile" | "none";
 }) => {
-  const items = [
+  const mainItems = [
     { id: "habits",    label: "Hábitos",    icon: LayoutDashboard },
     { id: "calendar",  label: "Calendário", icon: CalendarIcon },
     { id: "nutrition", label: "Nutrição",   icon: Leaf },
     { id: "shopping",  label: "Compras",    icon: ShoppingCart },
-    { id: "profile",   label: "Perfil",     icon: User },
   ] as const;
 
   return (
-    <div className="border-t-2 border-foreground/10 bg-background/98 backdrop-blur-xl">
-      <div className="flex items-center justify-around py-1 px-2">
-        {items.map((item) => {
+    <div className="border-b border-foreground/10 bg-background/95 backdrop-blur-xl">
+      {/* Brand row */}
+      <div className="flex h-12 items-center justify-between px-3">
+        <div className="flex items-center gap-2">
+          <BecomeLogo compact size="sm" />
+          <div className="flex flex-col leading-tight">
+            <span className="text-[12px] font-black uppercase italic tracking-tighter text-foreground">
+              becoMe
+            </span>
+            <span className="font-mono text-[8px] uppercase tracking-widest text-muted-foreground/60">
+              Operador
+            </span>
+          </div>
+        </div>
+        <div
+          className={cn(
+            "flex items-center gap-1.5 px-2 py-1 text-[9px] font-bold uppercase italic tracking-wider border-2",
+            active === "profile"
+              ? "border-accent text-accent bg-accent/10"
+              : "border-transparent text-muted-foreground",
+          )}
+        >
+          <User className="h-3 w-3 not-italic" />
+          <span>Perfil</span>
+        </div>
+      </div>
+
+      {/* Inline nav row (mirror of Navigation desktopMainItems) */}
+      <div className="flex items-center gap-0.5 px-2 pb-1.5">
+        {mainItems.map((item) => {
           const isActive = item.id === active;
           return (
             <div
               key={item.id}
               className={cn(
-                "relative flex flex-col items-center gap-0.5 px-2.5 py-2 text-[10px] font-bold uppercase italic tracking-wider",
-                isActive ? "text-primary" : "text-muted-foreground",
+                "flex items-center gap-1 px-2 py-1 text-[9px] font-bold uppercase italic tracking-wider border-2 transition-colors",
+                isActive
+                  ? "border-primary text-primary bg-primary/10 shadow-[0_0_8px_hsl(var(--neon-toxic)/0.3)]"
+                  : "border-transparent text-muted-foreground",
               )}
             >
-              {isActive && (
-                <div className="absolute inset-x-2 -top-px h-0.5 bg-primary shadow-[0_0_8px_hsl(var(--neon-toxic))]" />
-              )}
               <item.icon
                 className={cn(
-                  "h-5 w-5 not-italic",
-                  isActive && "scale-110 drop-shadow-[0_0_6px_hsl(var(--neon-toxic))]",
+                  "h-3 w-3 not-italic",
+                  isActive && "drop-shadow-[0_0_4px_hsl(var(--neon-toxic))]",
                 )}
               />
-              <span className="truncate max-w-[64px]">{item.label}</span>
+              <span>{item.label}</span>
             </div>
           );
         })}
@@ -155,6 +161,7 @@ const PreviewBottomNav = ({
     </div>
   );
 };
+
 
 /* ───────── PageHeader replica (icon tile + title + subtitle + actions) ───────── */
 
