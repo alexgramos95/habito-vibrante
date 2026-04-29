@@ -519,7 +519,7 @@ const Landing = () => {
             ].map((s, i) => (
               <Reveal key={i} delay={i * 80}>
                 <div className="bg-background p-7 md:p-9 text-center group hover:bg-foreground/[0.02] transition-colors duration-300 h-full">
-                  <s.icon className="h-4 w-4 mx-auto text-primary mb-4 transition-transform duration-300 group-hover:scale-110" />
+                  <s.icon className="h-4 w-4 mx-auto text-primary mb-4 transition-transform duration-300 group-hover:opacity-90" />
                   <p className="type-eyebrow mb-3">{s.label}</p>
                   <p
                     className="type-display text-4xl md:text-5xl text-primary mb-2"
@@ -603,7 +603,7 @@ const Landing = () => {
         <div
           className="absolute inset-0 pointer-events-none opacity-50"
           style={{
-            background: "radial-gradient(ellipse at 50% 0%, hsl(var(--neon-ultra) / 0.10), transparent 65%)",
+            background: "radial-gradient(ellipse at 50% 0%, hsl(var(--neon-ultra) / 0.06), transparent 70%)",
           }}
         />
         <div className="container max-w-5xl px-6 relative z-10">
