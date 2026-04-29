@@ -21,7 +21,7 @@ import {
   ListChecks,
   Trophy,
   Camera,
-  ReceiptText,
+  Receipt,
 } from "lucide-react";
 import { Surface } from "@/components/ui/surface";
 import { Button } from "@/components/ui/button";
