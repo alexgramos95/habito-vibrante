@@ -180,8 +180,8 @@ const NeonIconButton = ({
 }: {
   icon: React.ComponentType<{ className?: string }>;
 }) => (
-  <button className="flex items-center justify-center h-10 w-12 rounded-xl bg-primary text-primary-foreground border-2 border-primary shadow-[3px_3px_0_0_hsl(var(--neon-ultra))]">
-    <Icon className="h-4 w-4" />
+  <button className="flex items-center justify-center h-8 w-9 rounded-lg bg-primary text-primary-foreground border border-primary shadow-[2px_2px_0_0_hsl(var(--neon-ultra))]">
+    <Icon className="h-3.5 w-3.5" />
   </button>
 );
 
@@ -426,16 +426,16 @@ export const CalendarPreview = () => {
           title="Calendar"
           subtitle="Track your progress"
           actions={
-            <div className="inline-flex items-center gap-1 p-1 bg-secondary/60 border border-foreground/10 rounded-xl">
+            <div className="inline-flex items-center gap-0.5 p-0.5 bg-secondary/60 border border-foreground/10 rounded-lg">
               {["DAY", "WEEK", "MONTH"].map((label) => {
                 const isActive = label === "MONTH";
                 return (
                   <span
                     key={label}
                     className={cn(
-                      "h-7 px-2.5 inline-flex items-center justify-center rounded-lg font-bold uppercase italic tracking-tight text-[10px]",
+                      "h-5 px-1.5 inline-flex items-center justify-center rounded-md font-bold uppercase italic tracking-tight text-[8px]",
                       isActive
-                        ? "bg-primary text-primary-foreground shadow-[3px_3px_0_0_hsl(var(--neon-ultra))]"
+                        ? "bg-primary text-primary-foreground shadow-[2px_2px_0_0_hsl(var(--neon-ultra))]"
                         : "text-muted-foreground",
                     )}
                   >
