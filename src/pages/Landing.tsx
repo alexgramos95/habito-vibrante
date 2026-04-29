@@ -796,7 +796,7 @@ const Landing = () => {
         <Button
           size="lg"
           onClick={handleStartTrial}
-          className="w-full gap-2"
+          className="w-full gap-2 shadow-[0_0_24px_hsl(var(--neon-toxic)/0.35)]"
         >
           {hero.cta}
           <ArrowRight className="h-5 w-5" />
