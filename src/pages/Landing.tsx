@@ -151,37 +151,37 @@ const HERO_VARIANTS: Record<HeroVariant, {
     headline: (
       <>
         Become the person<br />
-        <span className="text-primary" style={{ textShadow: "0 0 60px hsl(var(--neon-toxic) / 0.5)" }}>
+        <span className="text-primary" style={{ textShadow: "0 0 32px hsl(var(--neon-toxic) / 0.3)" }}>
           you promised
         </span><br />
         yourself you'd be.
       </>
     ),
-    sub: "Habits, progress and discipline in one operating system.",
+    sub: "Habits, calendar, nutrition and shopping — one system that turns daily intent into who you become. Free for 7 days.",
     cta: "Start Free — 7 Days",
   },
   identity: {
     headline: (
       <>
         Stop tracking habits.<br />
-        <span className="text-primary" style={{ textShadow: "0 0 60px hsl(var(--neon-toxic) / 0.5)" }}>
+        <span className="text-primary" style={{ textShadow: "0 0 32px hsl(var(--neon-toxic) / 0.3)" }}>
           Build identity.
         </span>
       </>
     ),
-    sub: "One operating system for the life you keep postponing.",
+    sub: "One operating system for habits, nutrition and progress — so the life you keep postponing finally compounds. Free for 7 days.",
     cta: "Try It Free",
   },
   system: {
     headline: (
       <>
         Six apps. One life.<br />
-        <span className="text-primary" style={{ textShadow: "0 0 60px hsl(var(--neon-toxic) / 0.5)" }}>
+        <span className="text-primary" style={{ textShadow: "0 0 32px hsl(var(--neon-toxic) / 0.3)" }}>
           Become the system.
         </span>
       </>
     ),
-    sub: "Habits, calendar, nutrition and shopping — finally one place.",
+    sub: "Habits, calendar, nutrition and shopping in one place — so consistency finally compounds. Free for 7 days.",
     cta: "Get Started Free",
   },
 };
