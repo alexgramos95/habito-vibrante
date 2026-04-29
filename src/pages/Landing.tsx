@@ -523,7 +523,7 @@ const Landing = () => {
                   <p className="type-eyebrow mb-3">{s.label}</p>
                   <p
                     className="type-display text-4xl md:text-5xl text-primary mb-2"
-                    style={{ textShadow: "0 0 24px hsl(var(--neon-toxic) / 0.5)" }}
+                    style={{ textShadow: "0 0 16px hsl(var(--neon-toxic) / 0.28)" }}
                   >
                     <Counter end={s.end} suffix={s.suffix} />
                   </p>
@@ -645,7 +645,7 @@ const Landing = () => {
                   className={cn(
                     "relative h-full p-7 md:p-8 border transition-all duration-300 group",
                     p.popular
-                      ? "border-primary/50 bg-foreground/[0.03] shadow-[0_0_40px_hsl(var(--neon-toxic)/0.12)] md:scale-[1.03]"
+                      ? "border-primary/50 bg-foreground/[0.03] shadow-[0_0_24px_hsl(var(--neon-toxic)/0.08)] md:scale-[1.03]"
                       : "border-foreground/10 bg-background hover:border-foreground/25",
                   )}
                 >
@@ -653,7 +653,7 @@ const Landing = () => {
                     <div className={cn(
                       "absolute -top-3 left-1/2 -translate-x-1/2 type-eyebrow px-3 py-1",
                       p.popular
-                        ? "bg-primary text-primary-foreground shadow-[0_0_24px_hsl(var(--neon-toxic)/0.4)]"
+                        ? "bg-primary text-primary-foreground shadow-[0_0_14px_hsl(var(--neon-toxic)/0.22)]"
                         : "bg-foreground text-background",
                     )}>
                       {p.badge}
@@ -661,7 +661,7 @@ const Landing = () => {
                   )}
                   <p className="type-eyebrow text-muted-foreground mb-5 mt-1">{p.label}</p>
                   <div className="flex items-baseline gap-2 mb-2">
-                    <span className={cn("type-display text-5xl md:text-6xl", p.popular && "text-primary")} style={p.popular ? { textShadow: "0 0 30px hsl(var(--neon-toxic) / 0.5)" } : undefined}>
+                    <span className={cn("type-display text-5xl md:text-6xl", p.popular && "text-primary")} style={p.popular ? { textShadow: "0 0 18px hsl(var(--neon-toxic) / 0.3)" } : undefined}>
                       {p.price}
                     </span>
                     <span className="text-muted-foreground text-sm">{p.period}</span>
@@ -741,16 +741,16 @@ const Landing = () => {
       {/* ===== FINAL CTA ===== */}
       <section className="py-20 md:py-28 border-t border-foreground/[0.05] relative overflow-hidden">
         <div
-          className="absolute inset-0 pointer-events-none opacity-70"
+          className="absolute inset-0 pointer-events-none opacity-50"
           style={{
-            background: "radial-gradient(ellipse at center, hsl(var(--neon-toxic) / 0.14), transparent 60%)",
+            background: "radial-gradient(ellipse at center, hsl(var(--neon-toxic) / 0.08), transparent 65%)",
           }}
         />
         <div className="container max-w-3xl px-6 text-center relative z-10">
           <Reveal>
             <h2 className="type-display text-4xl md:text-7xl mb-10">
               Your future self<br />
-              <span className="text-primary" style={{ textShadow: "0 0 50px hsl(var(--neon-toxic) / 0.6)" }}>
+              <span className="text-primary" style={{ textShadow: "0 0 28px hsl(var(--neon-toxic) / 0.35)" }}>
                 starts today.
               </span>
             </h2>
