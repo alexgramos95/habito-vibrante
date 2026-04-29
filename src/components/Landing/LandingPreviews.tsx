@@ -92,11 +92,11 @@ const PreviewTopNav = ({
   active: "habits" | "calendar" | "nutrition" | "shopping" | "profile" | "none";
 }) => {
   const items = [
-    { id: "habits",    label: "HÁBITOS",    icon: LayoutDashboard },
-    { id: "calendar",  label: "CALENDÁ...", icon: CalendarIcon },
-    { id: "nutrition", label: "NUTRIÇÃO",   icon: Leaf },
-    { id: "shopping",  label: "COMPRAS",    icon: ShoppingCart },
-    { id: "profile",   label: "PERFIL",     icon: User },
+    { id: "habits",    label: "HABITS",    icon: LayoutDashboard },
+    { id: "calendar",  label: "CALENDAR",  icon: CalendarIcon },
+    { id: "nutrition", label: "NUTRITION", icon: Leaf },
+    { id: "shopping",  label: "SHOPPING",  icon: ShoppingCart },
+    { id: "profile",   label: "PROFILE",   icon: User },
   ] as const;
 
   return (
