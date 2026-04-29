@@ -319,7 +319,7 @@ export const HabitsPreview = () => {
   const momentumLabel = thirdDone ? "3/4" : "2/4";
   return (
   <div className="flex flex-col">
-    <PreviewTopBar />
+    <PreviewTopNav active="habits" />
 
     <div className="px-4 pt-5 pb-4 space-y-7">
       {/* Operator telemetry header */}
@@ -411,8 +411,6 @@ export const HabitsPreview = () => {
         </div>
       </section>
     </div>
-
-    <PreviewBottomNav active="habits" />
   </div>
   );
 };
@@ -429,7 +427,7 @@ export const CalendarPreview = () => {
 
   return (
     <div className="flex flex-col">
-      <PreviewTopBar />
+      <PreviewTopNav active="calendar" />
 
       <div className="px-4 pt-5 pb-4 space-y-4">
         <PreviewPageHeader
@@ -514,8 +512,6 @@ export const CalendarPreview = () => {
           </div>
         </div>
       </div>
-
-      <PreviewBottomNav active="calendar" />
     </div>
   );
 };
@@ -526,7 +522,7 @@ export const CalendarPreview = () => {
 
 export const NutritionPreview = () => (
   <div className="flex flex-col">
-    <PreviewTopBar />
+    <PreviewTopNav active="nutrition" />
 
     <div className="px-4 pt-5 pb-4 space-y-3">
       <PreviewPageHeader
@@ -617,8 +613,6 @@ export const NutritionPreview = () => (
         ))}
       </div>
     </div>
-
-    <PreviewBottomNav active="nutrition" />
   </div>
 );
 
@@ -647,7 +641,7 @@ export const ShoppingPreview = () => {
 
   return (
     <div className="flex flex-col">
-      <PreviewTopBar />
+      <PreviewTopNav active="shopping" />
 
       <div className="px-4 pt-5 pb-4 space-y-3">
         <PreviewPageHeader
@@ -715,8 +709,6 @@ export const ShoppingPreview = () => {
           ))}
         </div>
       </div>
-
-      <PreviewBottomNav active="shopping" />
     </div>
   );
 };
@@ -746,7 +738,7 @@ export const ProgressPreview = () => {
 
   return (
     <div className="flex flex-col">
-      <PreviewTopBar />
+      <PreviewTopNav active="none" />
 
       <div className="px-4 pt-5 pb-4 space-y-5">
         <PreviewPageHeader
@@ -847,8 +839,6 @@ export const ProgressPreview = () => {
           ))}
         </div>
       </div>
-
-      <PreviewBottomNav active="none" />
     </div>
   );
 };
