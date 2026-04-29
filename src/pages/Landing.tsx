@@ -510,7 +510,7 @@ const Landing = () => {
                 onClick={handleStartTrial}
                 className="gap-2 px-12"
               >
-                Start Free
+                {hero.cta}
                 <ArrowRight className="h-5 w-5" />
               </Button>
               <p className="type-eyebrow text-muted-foreground/50 mt-4">
