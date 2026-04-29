@@ -383,7 +383,7 @@ const Landing = () => {
 
       {/* ===== WHAT'S INSIDE + PRODUCT PROOF ===== */}
       <section id="inside" className="py-16 md:py-20 border-t border-foreground/[0.05]">
-        <div className="container max-w-6xl px-6">
+        <div className="container max-w-6xl px-6 overflow-hidden">
           <Reveal>
             <div className="text-center mb-12">
               <p className="type-eyebrow text-primary mb-4">// The product</p>
@@ -415,7 +415,7 @@ const Landing = () => {
           <Reveal>
             <div className="text-center mb-8">
               <p className="type-eyebrow text-primary mb-3">// Powered by Habits</p>
-              <h3 className="type-display text-2xl md:text-3xl max-w-[28ch] mx-auto">
+              <h3 className="type-display text-[1.55rem] md:text-3xl max-w-[28ch] mx-auto leading-[0.95]">
                 Four modules. One identity loop.
               </h3>
             </div>
@@ -449,7 +449,7 @@ const Landing = () => {
               },
             ].map(({ Comp, label, outcome, desc }, i) => (
               <Reveal key={label} delay={i * 80} className="h-full">
-                <div className="bg-background border border-foreground/10 p-6 md:p-8 h-full w-full min-w-0 box-border flex flex-col gap-5">
+                <div className="bg-background border border-foreground/10 p-5 sm:p-6 md:p-8 h-full w-full min-w-0 box-border overflow-hidden flex flex-col gap-5">
                   <div className="text-center">
                     <p className="type-eyebrow text-primary mb-2">// {label}</p>
                     <h4 className="type-display text-xl md:text-2xl mb-2 leading-tight">
