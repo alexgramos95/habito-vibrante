@@ -795,7 +795,7 @@ const Landing = () => {
               onClick={handleStartTrial}
               className="gap-2 px-14"
             >
-              Start Free
+              {hero.cta}
               <ArrowRight className="h-5 w-5" />
             </Button>
           </Reveal>
