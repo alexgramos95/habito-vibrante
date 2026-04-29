@@ -151,37 +151,37 @@ const HERO_VARIANTS: Record<HeroVariant, {
     headline: (
       <>
         Become the person<br />
-        <span className="text-primary" style={{ textShadow: "0 0 60px hsl(var(--neon-toxic) / 0.5)" }}>
+        <span className="text-primary" style={{ textShadow: "0 0 32px hsl(var(--neon-toxic) / 0.3)" }}>
           you promised
         </span><br />
         yourself you'd be.
       </>
     ),
-    sub: "Habits, progress and discipline in one operating system.",
+    sub: "Habits, calendar, nutrition and shopping — one system that turns daily intent into who you become. Free for 7 days.",
     cta: "Start Free — 7 Days",
   },
   identity: {
     headline: (
       <>
         Stop tracking habits.<br />
-        <span className="text-primary" style={{ textShadow: "0 0 60px hsl(var(--neon-toxic) / 0.5)" }}>
+        <span className="text-primary" style={{ textShadow: "0 0 32px hsl(var(--neon-toxic) / 0.3)" }}>
           Build identity.
         </span>
       </>
     ),
-    sub: "One operating system for the life you keep postponing.",
+    sub: "One operating system for habits, nutrition and progress — so the life you keep postponing finally compounds. Free for 7 days.",
     cta: "Try It Free",
   },
   system: {
     headline: (
       <>
         Six apps. One life.<br />
-        <span className="text-primary" style={{ textShadow: "0 0 60px hsl(var(--neon-toxic) / 0.5)" }}>
+        <span className="text-primary" style={{ textShadow: "0 0 32px hsl(var(--neon-toxic) / 0.3)" }}>
           Become the system.
         </span>
       </>
     ),
-    sub: "Habits, calendar, nutrition and shopping — finally one place.",
+    sub: "Habits, calendar, nutrition and shopping in one place — so consistency finally compounds. Free for 7 days.",
     cta: "Get Started Free",
   },
 };
@@ -292,19 +292,12 @@ const Landing = () => {
 
       {/* ===== HERO — preview above the fold (desktop split, mobile stacked) ===== */}
       <section className="relative pt-24 pb-12 md:pt-28 md:pb-16 overflow-hidden">
-        {/* Ambient glows */}
+        {/* Ambient glow — single, soft */}
         <div
-          className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[900px] pointer-events-none opacity-60"
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-[820px] h-[820px] pointer-events-none opacity-30"
           style={{
             background:
-              "radial-gradient(closest-side, hsl(var(--neon-ultra) / 0.20), transparent 70%)",
-          }}
-        />
-        <div
-          className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[600px] h-[600px] pointer-events-none opacity-50"
-          style={{
-            background:
-              "radial-gradient(closest-side, hsl(var(--neon-toxic) / 0.12), transparent 70%)",
+              "radial-gradient(closest-side, hsl(var(--neon-ultra) / 0.14), transparent 70%)",
           }}
         />
 
@@ -313,7 +306,7 @@ const Landing = () => {
             {/* Copy — minimal: badge, headline, sub, one CTA */}
             <div className="text-center lg:text-left">
               <div className="inline-flex items-center gap-2 mb-6 px-3 py-1.5 border border-foreground/10 bg-foreground/[0.03] backdrop-blur-sm animate-fade-in">
-                <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_hsl(var(--neon-toxic))]" />
+                <span className="h-1.5 w-1.5 rounded-full bg-primary" />
                 <span className="type-eyebrow text-muted-foreground">
                   Identity OS · Now in beta
                 </span>
@@ -323,9 +316,23 @@ const Landing = () => {
                 {hero.headline}
               </h1>
 
-              <p className="type-body text-base md:text-lg text-muted-foreground/90 max-w-[42ch] mx-auto lg:mx-0 mb-8 animate-fade-in">
+              <p className="type-body text-base md:text-lg text-muted-foreground/90 max-w-[44ch] mx-auto lg:mx-0 mb-7 animate-fade-in">
                 {hero.sub}
               </p>
+
+              {/* 3-line value clarity: what · why · next */}
+              <ul className="mb-8 space-y-2 max-w-[42ch] mx-auto lg:mx-0 text-left">
+                {[
+                  "Habits, calendar, nutrition and shopping — one app.",
+                  "Built for consistency, not for streak anxiety.",
+                  "Free for 7 days. No card. Cancel anytime.",
+                ].map((line) => (
+                  <li key={line} className="flex items-start gap-2.5 text-sm text-foreground/85">
+                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                    <span>{line}</span>
+                  </li>
+                ))}
+              </ul>
 
               <div className="flex justify-center lg:justify-start mb-3">
                 <Button
@@ -416,23 +423,46 @@ const Landing = () => {
 
           <div className="grid gap-px bg-foreground/[0.05] border border-foreground/[0.05] md:grid-cols-2 max-w-[960px] mx-auto">
             {[
-              { Comp: HabitsPreview, label: "Habits", desc: "Daily systems that compound into identity." },
-              { Comp: CalendarPreview, label: "Calendar", desc: "Perfect days, streaks, peak weeks." },
-              { Comp: NutritionPreview, label: "Nutrition", desc: "Weekly plan, macros, meals." },
-              { Comp: ShoppingPreview, label: "Shopping", desc: "List generated from your week's plan." },
-            ].map(({ Comp, label, desc }, i) => (
+              {
+                Comp: HabitsPreview,
+                label: "Habits",
+                outcome: "Build streaks that stick.",
+                desc: "Daily rituals that compound — without the streak-anxiety of other apps.",
+              },
+              {
+                Comp: CalendarPreview,
+                label: "Calendar",
+                outcome: "Stay accountable, week after week.",
+                desc: "See your consistency at a glance. Perfect days, peak weeks, honest gaps.",
+              },
+              {
+                Comp: NutritionPreview,
+                label: "Nutrition",
+                outcome: "Plan meals without thinking twice.",
+                desc: "Weekly plan, macros and meals — calibrated for the body you're building.",
+              },
+              {
+                Comp: ShoppingPreview,
+                label: "Shopping",
+                outcome: "Track real progress, not noise.",
+                desc: "Lists generated from your week's plan. Spend with intention, not autopilot.",
+              },
+            ].map(({ Comp, label, outcome, desc }, i) => (
               <Reveal key={label} delay={i * 80}>
-                <div className="bg-background p-6 md:p-8 h-full flex flex-col items-center gap-4">
-                  <div className="w-full max-w-[380px] mx-auto">
+                <div className="bg-background p-6 md:p-8 h-full flex flex-col gap-5">
+                  <div className="text-center">
+                    <p className="type-eyebrow text-primary mb-2">// {label}</p>
+                    <h4 className="type-display text-xl md:text-2xl mb-2 leading-tight">
+                      {outcome}
+                    </h4>
+                    <p className="text-sm text-muted-foreground/80 max-w-[34ch] mx-auto">
+                      {desc}
+                    </p>
+                  </div>
+                  <div className="w-full max-w-[360px] mx-auto opacity-90">
                     <PhoneFrame>
                       <Comp />
                     </PhoneFrame>
-                  </div>
-                  <div className="text-center">
-                    <p className="type-eyebrow text-primary mb-1">// {label}</p>
-                    <p className="text-sm text-muted-foreground/80 max-w-[24ch] mx-auto">
-                      {desc}
-                    </p>
                   </div>
                 </div>
               </Reveal>
@@ -489,11 +519,11 @@ const Landing = () => {
             ].map((s, i) => (
               <Reveal key={i} delay={i * 80}>
                 <div className="bg-background p-7 md:p-9 text-center group hover:bg-foreground/[0.02] transition-colors duration-300 h-full">
-                  <s.icon className="h-4 w-4 mx-auto text-primary mb-4 transition-transform duration-300 group-hover:scale-110" />
+                  <s.icon className="h-4 w-4 mx-auto text-primary mb-4 transition-transform duration-300 group-hover:opacity-90" />
                   <p className="type-eyebrow mb-3">{s.label}</p>
                   <p
                     className="type-display text-4xl md:text-5xl text-primary mb-2"
-                    style={{ textShadow: "0 0 24px hsl(var(--neon-toxic) / 0.5)" }}
+                    style={{ textShadow: "0 0 16px hsl(var(--neon-toxic) / 0.28)" }}
                   >
                     <Counter end={s.end} suffix={s.suffix} />
                   </p>
@@ -573,7 +603,7 @@ const Landing = () => {
         <div
           className="absolute inset-0 pointer-events-none opacity-50"
           style={{
-            background: "radial-gradient(ellipse at 50% 0%, hsl(var(--neon-ultra) / 0.10), transparent 65%)",
+            background: "radial-gradient(ellipse at 50% 0%, hsl(var(--neon-ultra) / 0.06), transparent 70%)",
           }}
         />
         <div className="container max-w-5xl px-6 relative z-10">
@@ -615,7 +645,7 @@ const Landing = () => {
                   className={cn(
                     "relative h-full p-7 md:p-8 border transition-all duration-300 group",
                     p.popular
-                      ? "border-primary/50 bg-foreground/[0.03] shadow-[0_0_40px_hsl(var(--neon-toxic)/0.12)] md:scale-[1.03]"
+                      ? "border-primary/50 bg-foreground/[0.03] shadow-[0_0_24px_hsl(var(--neon-toxic)/0.08)] md:scale-[1.03]"
                       : "border-foreground/10 bg-background hover:border-foreground/25",
                   )}
                 >
@@ -623,7 +653,7 @@ const Landing = () => {
                     <div className={cn(
                       "absolute -top-3 left-1/2 -translate-x-1/2 type-eyebrow px-3 py-1",
                       p.popular
-                        ? "bg-primary text-primary-foreground shadow-[0_0_24px_hsl(var(--neon-toxic)/0.4)]"
+                        ? "bg-primary text-primary-foreground shadow-[0_0_14px_hsl(var(--neon-toxic)/0.22)]"
                         : "bg-foreground text-background",
                     )}>
                       {p.badge}
@@ -631,7 +661,7 @@ const Landing = () => {
                   )}
                   <p className="type-eyebrow text-muted-foreground mb-5 mt-1">{p.label}</p>
                   <div className="flex items-baseline gap-2 mb-2">
-                    <span className={cn("type-display text-5xl md:text-6xl", p.popular && "text-primary")} style={p.popular ? { textShadow: "0 0 30px hsl(var(--neon-toxic) / 0.5)" } : undefined}>
+                    <span className={cn("type-display text-5xl md:text-6xl", p.popular && "text-primary")} style={p.popular ? { textShadow: "0 0 18px hsl(var(--neon-toxic) / 0.3)" } : undefined}>
                       {p.price}
                     </span>
                     <span className="text-muted-foreground text-sm">{p.period}</span>
@@ -711,16 +741,16 @@ const Landing = () => {
       {/* ===== FINAL CTA ===== */}
       <section className="py-20 md:py-28 border-t border-foreground/[0.05] relative overflow-hidden">
         <div
-          className="absolute inset-0 pointer-events-none opacity-70"
+          className="absolute inset-0 pointer-events-none opacity-50"
           style={{
-            background: "radial-gradient(ellipse at center, hsl(var(--neon-toxic) / 0.14), transparent 60%)",
+            background: "radial-gradient(ellipse at center, hsl(var(--neon-toxic) / 0.08), transparent 65%)",
           }}
         />
         <div className="container max-w-3xl px-6 text-center relative z-10">
           <Reveal>
             <h2 className="type-display text-4xl md:text-7xl mb-10">
               Your future self<br />
-              <span className="text-primary" style={{ textShadow: "0 0 50px hsl(var(--neon-toxic) / 0.6)" }}>
+              <span className="text-primary" style={{ textShadow: "0 0 28px hsl(var(--neon-toxic) / 0.35)" }}>
                 starts today.
               </span>
             </h2>
