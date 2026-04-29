@@ -343,22 +343,6 @@ const Landing = () => {
               </p>
             </div>
 
-            {/* Real product preview — above the fold */}
-            <div className="relative mx-auto w-full max-w-[380px]" style={{ animation: "float 6s ease-in-out infinite" }}>
-              {/* Glow halo */}
-              <div
-                className="absolute inset-0 pointer-events-none opacity-70 blur-2xl"
-                style={{
-                  background:
-                    "radial-gradient(closest-side, hsl(var(--neon-toxic) / 0.25), transparent 70%)",
-                }}
-              />
-              <div className="relative">
-                <PhoneFrame>
-                  <HabitsPreview />
-                </PhoneFrame>
-              </div>
-            </div>
           </div>
         </div>
 
