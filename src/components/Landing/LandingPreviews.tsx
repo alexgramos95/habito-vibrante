@@ -20,6 +20,7 @@ import {
   Zap,
   ListChecks,
   Trophy,
+  Camera,
 } from "lucide-react";
 import { Surface } from "@/components/ui/surface";
 import { Button } from "@/components/ui/button";
@@ -679,7 +680,12 @@ export const ShoppingPreview = () => {
           icon={ShoppingCart}
           title="Shopping"
           subtitle="This week's list"
-          actions={<NeonIconButton icon={Plus} />}
+          actions={
+            <>
+              <NeonIconButton icon={Camera} />
+              <NeonIconButton icon={Plus} />
+            </>
+          }
         />
 
         <Surface tone="subtle" size="compact" className="flex items-center justify-between">

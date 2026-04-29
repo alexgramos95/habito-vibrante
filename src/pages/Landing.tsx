@@ -439,7 +439,7 @@ const Landing = () => {
             ].map(({ Comp, label, desc }, i) => (
               <Reveal key={label} delay={i * 80}>
                 <div className="bg-background p-6 md:p-8 h-full flex flex-col items-center gap-4">
-                  <div className="w-full max-w-[380px]">
+                  <div className="w-full max-w-[380px] mx-auto">
                     <PhoneFrame>
                       <Comp />
                     </PhoneFrame>
