@@ -208,8 +208,8 @@ const Landing = () => {
         </div>
       </nav>
 
-      {/* ===== HERO ===== */}
-      <section className="relative pt-36 pb-20 md:pt-44 md:pb-28 overflow-hidden">
+      {/* ===== HERO — preview above the fold (desktop split, mobile stacked) ===== */}
+      <section className="relative pt-24 pb-12 md:pt-28 md:pb-16 overflow-hidden">
         {/* Ambient glows */}
         <div
           className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[900px] pointer-events-none opacity-60"
@@ -226,50 +226,64 @@ const Landing = () => {
           }}
         />
 
-        <div className="container max-w-5xl relative z-10 text-center px-6">
-          <div className="inline-flex items-center gap-2 mb-10 px-3 py-1.5 border border-foreground/10 bg-foreground/[0.03] backdrop-blur-sm animate-fade-in">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_hsl(var(--neon-toxic))]" />
-            <span className="type-eyebrow text-muted-foreground">
-              Identity OS · Now in beta
-            </span>
-          </div>
+        <div className="container max-w-6xl relative z-10 px-6">
+          <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-10 lg:gap-14 items-center">
+            {/* Copy */}
+            <div className="text-center lg:text-left">
+              <div className="inline-flex items-center gap-2 mb-6 px-3 py-1.5 border border-foreground/10 bg-foreground/[0.03] backdrop-blur-sm animate-fade-in">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_hsl(var(--neon-toxic))]" />
+                <span className="type-eyebrow text-muted-foreground">
+                  Identity OS · Now in beta
+                </span>
+              </div>
 
-          <h1 className="type-display text-[44px] sm:text-6xl md:text-7xl lg:text-[92px] mb-8 animate-fade-in">
-            Become the person<br />
-            <span className="text-primary" style={{ textShadow: "0 0 60px hsl(var(--neon-toxic) / 0.5)" }}>
-              you promised
-            </span><br />
-            yourself you'd be.
-          </h1>
+              <h1 className="type-display text-[44px] sm:text-6xl md:text-7xl lg:text-[80px] leading-[0.95] mb-6 animate-fade-in">
+                Become the person<br />
+                <span className="text-primary" style={{ textShadow: "0 0 60px hsl(var(--neon-toxic) / 0.5)" }}>
+                  you promised
+                </span><br />
+                yourself you'd be.
+              </h1>
 
-          <p className="type-body text-lg md:text-xl text-muted-foreground/90 max-w-[42ch] mx-auto mb-12 animate-fade-in">
-            Habits, progress and discipline<br className="hidden md:block" />
-            in one operating system.
-          </p>
+              <p className="type-body text-base md:text-lg text-muted-foreground/90 max-w-[42ch] mx-auto lg:mx-0 mb-8 animate-fade-in">
+                Habits, progress and discipline in one operating system.
+              </p>
 
-          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-7">
-            <Button
-              size="lg"
-              onClick={handleStartTrial}
-              className="gap-2 px-12 w-full sm:w-auto"
-            >
-              Start Free
-              <ArrowRight className="h-5 w-5" />
-            </Button>
-            <Button size="lg" variant="outline" onClick={() => scrollTo("inside")} className="w-full sm:w-auto">
-              See How It Works
-            </Button>
-          </div>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start items-center mb-5">
+                <Button
+                  size="lg"
+                  onClick={handleStartTrial}
+                  className="gap-2 px-12 w-full sm:w-auto"
+                >
+                  Start Free
+                  <ArrowRight className="h-5 w-5" />
+                </Button>
+                <Button size="lg" variant="outline" onClick={() => scrollTo("inside")} className="w-full sm:w-auto">
+                  See How It Works
+                </Button>
+              </div>
 
-          <p className="type-eyebrow text-muted-foreground/50">
-            7 days free · No credit card · Cancel anytime
-          </p>
+              <p className="type-eyebrow text-muted-foreground/50">
+                7 days free · No credit card · Cancel anytime
+              </p>
+            </div>
 
-          {/* Floating mobile mockup — REAL app UI (Habits / Today) */}
-          <div className="mt-16 md:mt-24" style={{ animation: "float 6s ease-in-out infinite" }}>
-            <PhoneFrame>
-              <HabitsPreview />
-            </PhoneFrame>
+            {/* Real product preview — above the fold */}
+            <div className="relative mx-auto w-full max-w-[360px] lg:max-w-none" style={{ animation: "float 6s ease-in-out infinite" }}>
+              {/* Glow halo */}
+              <div
+                className="absolute -inset-8 pointer-events-none opacity-70 blur-2xl"
+                style={{
+                  background:
+                    "radial-gradient(closest-side, hsl(var(--neon-toxic) / 0.25), transparent 70%)",
+                }}
+              />
+              <div className="relative">
+                <PhoneFrame>
+                  <HabitsPreview />
+                </PhoneFrame>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -285,13 +299,29 @@ const Landing = () => {
         `}</style>
       </section>
 
+      {/* ===== PROBLEM (story step 1) ===== */}
+      <section className="py-16 md:py-20 border-t border-foreground/[0.05]">
+        <div className="container max-w-3xl px-6 text-center">
+          <Reveal>
+            <p className="type-eyebrow text-primary mb-5">// The problem</p>
+            <h2 className="type-display text-3xl md:text-5xl mb-6">
+              Six apps. Zero identity.
+            </h2>
+            <p className="type-body text-base md:text-lg text-muted-foreground/85 max-w-[52ch] mx-auto">
+              Habits in one app. Meals in another. Calendar somewhere else.
+              You don't need more tools — you need one system that compounds.
+            </p>
+          </Reveal>
+        </div>
+      </section>
+
       {/* ===== WHAT'S INSIDE + PRODUCT PROOF ===== */}
-      <section id="inside" className="py-24 md:py-28 border-t border-foreground/[0.05]">
+      <section id="inside" className="py-16 md:py-20 border-t border-foreground/[0.05]">
         <div className="container max-w-6xl px-6">
           <Reveal>
-            <div className="text-center mb-16">
-              <p className="type-eyebrow text-primary mb-5">// What's inside</p>
-              <h2 className="type-display text-3xl md:text-5xl mb-5">
+            <div className="text-center mb-12">
+              <p className="type-eyebrow text-primary mb-4">// The product</p>
+              <h2 className="type-display text-3xl md:text-5xl mb-4">
                 One system. Every lever.
               </h2>
               <p className="type-body text-muted-foreground/80 max-w-[44ch] mx-auto">
@@ -300,10 +330,10 @@ const Landing = () => {
             </div>
           </Reveal>
 
-          <div className="grid gap-px bg-foreground/[0.05] border border-foreground/[0.05] md:grid-cols-2 lg:grid-cols-3 mb-20">
+          <div className="grid gap-px bg-foreground/[0.05] border border-foreground/[0.05] md:grid-cols-2 lg:grid-cols-3 mb-16">
             {modules.map((m, i) => (
               <Reveal key={i} delay={i * 60}>
-                <div className="bg-background p-9 group hover:bg-foreground/[0.025] transition-colors duration-300 h-full">
+                <div className="bg-background p-7 group hover:bg-foreground/[0.025] transition-colors duration-300 h-full">
                   <div className="h-11 w-11 mb-7 flex items-center justify-center border border-foreground/10 group-hover:border-primary/40 group-hover:bg-primary/5 transition-all duration-300">
                     <m.icon className="h-5 w-5 text-primary" />
                   </div>
@@ -390,7 +420,7 @@ const Landing = () => {
 
           {/* Inline CTA after proof */}
           <Reveal>
-            <div className="mt-16 text-center">
+            <div className="mt-12 text-center">
               <Button
                 size="lg"
                 onClick={handleStartTrial}
@@ -399,7 +429,7 @@ const Landing = () => {
                 Start Free
                 <ArrowRight className="h-5 w-5" />
               </Button>
-              <p className="type-eyebrow text-muted-foreground/50 mt-5">
+              <p className="type-eyebrow text-muted-foreground/50 mt-4">
                 7 days free · No credit card
               </p>
             </div>
@@ -407,8 +437,8 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* ===== MOMENTUM (with animated counters) ===== */}
-      <section className="py-24 md:py-28 border-t border-foreground/[0.05] relative overflow-hidden">
+      {/* ===== TRANSFORMATION (with animated counters) ===== */}
+      <section className="py-16 md:py-20 border-t border-foreground/[0.05] relative overflow-hidden">
         <div
           className="absolute inset-0 pointer-events-none opacity-40"
           style={{
@@ -418,9 +448,9 @@ const Landing = () => {
         />
         <div className="container max-w-5xl px-6 relative z-10">
           <Reveal>
-            <div className="text-center mb-16">
-              <p className="type-eyebrow text-primary mb-5">// Momentum</p>
-              <h2 className="type-display text-3xl md:text-5xl mb-5">
+            <div className="text-center mb-12">
+              <p className="type-eyebrow text-primary mb-4">// The transformation</p>
+              <h2 className="type-display text-3xl md:text-5xl mb-4">
                 Progress should feel addictive.
               </h2>
               <p className="type-body text-muted-foreground/80 max-w-[44ch] mx-auto">
@@ -454,38 +484,61 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* ===== PRICING ===== */}
-      <section id="pricing" className="py-24 md:py-28 border-t border-foreground/[0.05]">
-        <div className="container max-w-5xl px-6">
+      {/* ===== PRICING — premium framing ===== */}
+      <section id="pricing" className="py-16 md:py-24 border-t border-foreground/[0.05] relative overflow-hidden">
+        <div
+          className="absolute inset-0 pointer-events-none opacity-50"
+          style={{
+            background: "radial-gradient(ellipse at 50% 0%, hsl(var(--neon-ultra) / 0.10), transparent 65%)",
+          }}
+        />
+        <div className="container max-w-5xl px-6 relative z-10">
           <Reveal>
-            <div className="text-center mb-16">
-              <p className="type-eyebrow text-primary mb-5">// Pricing</p>
-              <h2 className="type-display text-3xl md:text-5xl mb-5">
+            <div className="text-center mb-12">
+              <p className="type-eyebrow text-primary mb-4">// Pricing</p>
+              <h2 className="type-display text-3xl md:text-5xl mb-4">
                 Start free. Commit when ready.
               </h2>
               <p className="type-body text-muted-foreground/80">Same product. Three commitments.</p>
             </div>
           </Reveal>
 
-          <div className="grid gap-px bg-foreground/[0.05] border border-foreground/[0.05] md:grid-cols-3">
+          <div className="grid gap-4 md:gap-5 md:grid-cols-3">
             {[
-              { key: "monthly", label: "Monthly", price: "€7.99", period: "/mo", desc: "Try it. Stay if you love it.", popular: false },
-              { key: "yearly", label: "Yearly", price: "€59.99", period: "/yr", desc: "Best value. Save 37%.", popular: true },
-              { key: "lifetime", label: "Lifetime", price: "€149", period: "once", desc: "Pay once. Own it forever.", popular: false },
+              { key: "monthly", label: "Monthly", price: "€7.99", period: "/mo", desc: "Try it. Stay if you love it.", popular: false, perks: ["Cancel anytime", "All Pro features"] },
+              { key: "yearly", label: "Yearly", price: "€59.99", period: "/yr", desc: "Best value. Save 37%.", popular: true, perks: ["≈ €5/mo", "30-day refund", "All Pro features"] },
+              { key: "lifetime", label: "Lifetime", price: "€149", period: "once", desc: "Pay once. Own it forever.", popular: false, perks: ["No subscriptions", "All future updates"] },
             ].map((p, i) => (
               <Reveal key={p.key} delay={i * 80}>
-                <div className={cn("bg-background p-9 relative transition-colors duration-300 h-full", p.popular && "bg-foreground/[0.025]")}>
+                <div
+                  className={cn(
+                    "relative h-full p-7 md:p-8 border transition-all duration-300 group",
+                    p.popular
+                      ? "border-primary/50 bg-foreground/[0.03] shadow-[0_0_40px_hsl(var(--neon-toxic)/0.12)] md:scale-[1.03]"
+                      : "border-foreground/10 bg-background hover:border-foreground/25",
+                  )}
+                >
                   {p.popular && (
-                    <div className="absolute top-0 left-0 bg-primary text-primary-foreground type-eyebrow px-3 py-1">
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground type-eyebrow px-3 py-1 shadow-[0_0_24px_hsl(var(--neon-toxic)/0.4)]">
                       Most popular
                     </div>
                   )}
-                  <p className="type-eyebrow text-muted-foreground mb-4 mt-2">{p.label}</p>
-                  <div className="flex items-baseline gap-1 mb-3">
-                    <span className="type-display text-5xl">{p.price}</span>
+                  <p className="type-eyebrow text-muted-foreground mb-5 mt-1">{p.label}</p>
+                  <div className="flex items-baseline gap-1.5 mb-2">
+                    <span className={cn("type-display text-5xl md:text-6xl", p.popular && "text-primary")} style={p.popular ? { textShadow: "0 0 30px hsl(var(--neon-toxic) / 0.5)" } : undefined}>
+                      {p.price}
+                    </span>
                     <span className="text-muted-foreground text-sm">{p.period}</span>
                   </div>
-                  <p className="type-body text-sm text-muted-foreground/80 mb-9 min-h-[40px]">{p.desc}</p>
+                  <p className="type-body text-sm text-muted-foreground/80 mb-6">{p.desc}</p>
+                  <ul className="space-y-2 mb-8 min-h-[88px]">
+                    {p.perks.map((perk) => (
+                      <li key={perk} className="flex items-start gap-2 text-sm text-foreground/85">
+                        <CheckCircle2 className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                        <span>{perk}</span>
+                      </li>
+                    ))}
+                  </ul>
                   <Button
                     className="w-full"
                     size="lg"
@@ -499,18 +552,18 @@ const Landing = () => {
             ))}
           </div>
 
-          <div className="mt-12 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 type-eyebrow text-muted-foreground/70">
-            <span>✓ Unlimited habits</span>
-            <span>✓ AI nutrition</span>
-            <span>✓ Full calendar</span>
-            <span>✓ Export anytime</span>
-            <span>✓ No ads</span>
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 type-eyebrow text-muted-foreground/70">
+            <span>✓ 7-day free trial</span>
+            <span>✓ No credit card</span>
+            <span>✓ Cancel anytime</span>
+            <span>✓ Encrypted & private</span>
+            <span>✓ 30-day refund</span>
           </div>
         </div>
       </section>
 
       {/* ===== FAQ ===== */}
-      <section id="faq" className="py-24 md:py-28 border-t border-foreground/[0.05]">
+      <section id="faq" className="py-16 md:py-20 border-t border-foreground/[0.05]">
         <div className="container max-w-3xl px-6">
           <Reveal>
             <div className="text-center mb-12">
@@ -545,7 +598,7 @@ const Landing = () => {
       </section>
 
       {/* ===== FINAL CTA ===== */}
-      <section className="py-28 md:py-36 border-t border-foreground/[0.05] relative overflow-hidden">
+      <section className="py-20 md:py-28 border-t border-foreground/[0.05] relative overflow-hidden">
         <div
           className="absolute inset-0 pointer-events-none opacity-70"
           style={{
