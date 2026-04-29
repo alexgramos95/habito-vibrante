@@ -72,7 +72,7 @@ const Reveal = ({
     <div
       ref={ref}
       className={cn(
-        "transition-all duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform",
+        "w-full transition-all duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform",
         shown ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4",
         className,
       )}
