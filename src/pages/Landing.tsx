@@ -292,19 +292,12 @@ const Landing = () => {
 
       {/* ===== HERO — preview above the fold (desktop split, mobile stacked) ===== */}
       <section className="relative pt-24 pb-12 md:pt-28 md:pb-16 overflow-hidden">
-        {/* Ambient glows */}
+        {/* Ambient glow — single, soft */}
         <div
-          className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[900px] pointer-events-none opacity-60"
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-[820px] h-[820px] pointer-events-none opacity-30"
           style={{
             background:
-              "radial-gradient(closest-side, hsl(var(--neon-ultra) / 0.20), transparent 70%)",
-          }}
-        />
-        <div
-          className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[600px] h-[600px] pointer-events-none opacity-50"
-          style={{
-            background:
-              "radial-gradient(closest-side, hsl(var(--neon-toxic) / 0.12), transparent 70%)",
+              "radial-gradient(closest-side, hsl(var(--neon-ultra) / 0.14), transparent 70%)",
           }}
         />
 
@@ -313,7 +306,7 @@ const Landing = () => {
             {/* Copy — minimal: badge, headline, sub, one CTA */}
             <div className="text-center lg:text-left">
               <div className="inline-flex items-center gap-2 mb-6 px-3 py-1.5 border border-foreground/10 bg-foreground/[0.03] backdrop-blur-sm animate-fade-in">
-                <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_hsl(var(--neon-toxic))]" />
+                <span className="h-1.5 w-1.5 rounded-full bg-primary" />
                 <span className="type-eyebrow text-muted-foreground">
                   Identity OS · Now in beta
                 </span>
@@ -323,9 +316,23 @@ const Landing = () => {
                 {hero.headline}
               </h1>
 
-              <p className="type-body text-base md:text-lg text-muted-foreground/90 max-w-[42ch] mx-auto lg:mx-0 mb-8 animate-fade-in">
+              <p className="type-body text-base md:text-lg text-muted-foreground/90 max-w-[44ch] mx-auto lg:mx-0 mb-7 animate-fade-in">
                 {hero.sub}
               </p>
+
+              {/* 3-line value clarity: what · why · next */}
+              <ul className="mb-8 space-y-2 max-w-[42ch] mx-auto lg:mx-0 text-left">
+                {[
+                  "Habits, calendar, nutrition and shopping — one app.",
+                  "Built for consistency, not for streak anxiety.",
+                  "Free for 7 days. No card. Cancel anytime.",
+                ].map((line) => (
+                  <li key={line} className="flex items-start gap-2.5 text-sm text-foreground/85">
+                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                    <span>{line}</span>
+                  </li>
+                ))}
+              </ul>
 
               <div className="flex justify-center lg:justify-start mb-3">
                 <Button
