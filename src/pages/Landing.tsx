@@ -451,9 +451,9 @@ const Landing = () => {
                   <CalendarPreview />
                 </PhoneFrame>
                 <div className="text-center">
-                  <p className="type-eyebrow text-primary mb-1">// Calendário</p>
+                  <p className="type-eyebrow text-primary mb-1">// Calendar</p>
                   <p className="text-sm text-muted-foreground/80 max-w-[28ch] mx-auto">
-                    Dias perfeitos, sequências, peak.
+                    Perfect days, streaks, peak weeks.
                   </p>
                 </div>
               </div>
@@ -465,9 +465,9 @@ const Landing = () => {
                   <ProgressPreview />
                 </PhoneFrame>
                 <div className="text-center">
-                  <p className="type-eyebrow text-primary mb-1">// Progresso</p>
+                  <p className="type-eyebrow text-primary mb-1">// Progress</p>
                   <p className="text-sm text-muted-foreground/80 max-w-[28ch] mx-auto">
-                    Leitura do ciclo, sem ruído.
+                    Cycle reading, no noise.
                   </p>
                 </div>
               </div>
@@ -479,9 +479,9 @@ const Landing = () => {
                   <NutritionPreview />
                 </PhoneFrame>
                 <div className="text-center">
-                  <p className="type-eyebrow text-primary mb-1">// Nutrição</p>
+                  <p className="type-eyebrow text-primary mb-1">// Nutrition</p>
                   <p className="text-sm text-muted-foreground/80 max-w-[28ch] mx-auto">
-                    Plano semanal, macros, refeições.
+                    Weekly plan, macros, meals.
                   </p>
                 </div>
               </div>
@@ -493,9 +493,9 @@ const Landing = () => {
                   <ShoppingPreview />
                 </PhoneFrame>
                 <div className="text-center">
-                  <p className="type-eyebrow text-primary mb-1">// Compras</p>
+                  <p className="type-eyebrow text-primary mb-1">// Shopping</p>
                   <p className="text-sm text-muted-foreground/80 max-w-[28ch] mx-auto">
-                    Lista gerada do plano da semana.
+                    List generated from your week's plan.
                   </p>
                 </div>
               </div>
