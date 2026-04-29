@@ -437,8 +437,8 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* ===== MOMENTUM (with animated counters) ===== */}
-      <section className="py-24 md:py-28 border-t border-foreground/[0.05] relative overflow-hidden">
+      {/* ===== TRANSFORMATION (with animated counters) ===== */}
+      <section className="py-16 md:py-20 border-t border-foreground/[0.05] relative overflow-hidden">
         <div
           className="absolute inset-0 pointer-events-none opacity-40"
           style={{
@@ -448,9 +448,9 @@ const Landing = () => {
         />
         <div className="container max-w-5xl px-6 relative z-10">
           <Reveal>
-            <div className="text-center mb-16">
-              <p className="type-eyebrow text-primary mb-5">// Momentum</p>
-              <h2 className="type-display text-3xl md:text-5xl mb-5">
+            <div className="text-center mb-12">
+              <p className="type-eyebrow text-primary mb-4">// The transformation</p>
+              <h2 className="type-display text-3xl md:text-5xl mb-4">
                 Progress should feel addictive.
               </h2>
               <p className="type-body text-muted-foreground/80 max-w-[44ch] mx-auto">
@@ -484,38 +484,61 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* ===== PRICING ===== */}
-      <section id="pricing" className="py-24 md:py-28 border-t border-foreground/[0.05]">
-        <div className="container max-w-5xl px-6">
+      {/* ===== PRICING — premium framing ===== */}
+      <section id="pricing" className="py-16 md:py-24 border-t border-foreground/[0.05] relative overflow-hidden">
+        <div
+          className="absolute inset-0 pointer-events-none opacity-50"
+          style={{
+            background: "radial-gradient(ellipse at 50% 0%, hsl(var(--neon-ultra) / 0.10), transparent 65%)",
+          }}
+        />
+        <div className="container max-w-5xl px-6 relative z-10">
           <Reveal>
-            <div className="text-center mb-16">
-              <p className="type-eyebrow text-primary mb-5">// Pricing</p>
-              <h2 className="type-display text-3xl md:text-5xl mb-5">
+            <div className="text-center mb-12">
+              <p className="type-eyebrow text-primary mb-4">// Pricing</p>
+              <h2 className="type-display text-3xl md:text-5xl mb-4">
                 Start free. Commit when ready.
               </h2>
               <p className="type-body text-muted-foreground/80">Same product. Three commitments.</p>
             </div>
           </Reveal>
 
-          <div className="grid gap-px bg-foreground/[0.05] border border-foreground/[0.05] md:grid-cols-3">
+          <div className="grid gap-4 md:gap-5 md:grid-cols-3">
             {[
-              { key: "monthly", label: "Monthly", price: "€7.99", period: "/mo", desc: "Try it. Stay if you love it.", popular: false },
-              { key: "yearly", label: "Yearly", price: "€59.99", period: "/yr", desc: "Best value. Save 37%.", popular: true },
-              { key: "lifetime", label: "Lifetime", price: "€149", period: "once", desc: "Pay once. Own it forever.", popular: false },
+              { key: "monthly", label: "Monthly", price: "€7.99", period: "/mo", desc: "Try it. Stay if you love it.", popular: false, perks: ["Cancel anytime", "All Pro features"] },
+              { key: "yearly", label: "Yearly", price: "€59.99", period: "/yr", desc: "Best value. Save 37%.", popular: true, perks: ["≈ €5/mo", "30-day refund", "All Pro features"] },
+              { key: "lifetime", label: "Lifetime", price: "€149", period: "once", desc: "Pay once. Own it forever.", popular: false, perks: ["No subscriptions", "All future updates"] },
             ].map((p, i) => (
               <Reveal key={p.key} delay={i * 80}>
-                <div className={cn("bg-background p-9 relative transition-colors duration-300 h-full", p.popular && "bg-foreground/[0.025]")}>
+                <div
+                  className={cn(
+                    "relative h-full p-7 md:p-8 border transition-all duration-300 group",
+                    p.popular
+                      ? "border-primary/50 bg-foreground/[0.03] shadow-[0_0_40px_hsl(var(--neon-toxic)/0.12)] md:scale-[1.03]"
+                      : "border-foreground/10 bg-background hover:border-foreground/25",
+                  )}
+                >
                   {p.popular && (
-                    <div className="absolute top-0 left-0 bg-primary text-primary-foreground type-eyebrow px-3 py-1">
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground type-eyebrow px-3 py-1 shadow-[0_0_24px_hsl(var(--neon-toxic)/0.4)]">
                       Most popular
                     </div>
                   )}
-                  <p className="type-eyebrow text-muted-foreground mb-4 mt-2">{p.label}</p>
-                  <div className="flex items-baseline gap-1 mb-3">
-                    <span className="type-display text-5xl">{p.price}</span>
+                  <p className="type-eyebrow text-muted-foreground mb-5 mt-1">{p.label}</p>
+                  <div className="flex items-baseline gap-1.5 mb-2">
+                    <span className={cn("type-display text-5xl md:text-6xl", p.popular && "text-primary")} style={p.popular ? { textShadow: "0 0 30px hsl(var(--neon-toxic) / 0.5)" } : undefined}>
+                      {p.price}
+                    </span>
                     <span className="text-muted-foreground text-sm">{p.period}</span>
                   </div>
-                  <p className="type-body text-sm text-muted-foreground/80 mb-9 min-h-[40px]">{p.desc}</p>
+                  <p className="type-body text-sm text-muted-foreground/80 mb-6">{p.desc}</p>
+                  <ul className="space-y-2 mb-8 min-h-[88px]">
+                    {p.perks.map((perk) => (
+                      <li key={perk} className="flex items-start gap-2 text-sm text-foreground/85">
+                        <CheckCircle2 className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                        <span>{perk}</span>
+                      </li>
+                    ))}
+                  </ul>
                   <Button
                     className="w-full"
                     size="lg"
@@ -529,12 +552,12 @@ const Landing = () => {
             ))}
           </div>
 
-          <div className="mt-12 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 type-eyebrow text-muted-foreground/70">
-            <span>✓ Unlimited habits</span>
-            <span>✓ AI nutrition</span>
-            <span>✓ Full calendar</span>
-            <span>✓ Export anytime</span>
-            <span>✓ No ads</span>
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 type-eyebrow text-muted-foreground/70">
+            <span>✓ 7-day free trial</span>
+            <span>✓ No credit card</span>
+            <span>✓ Cancel anytime</span>
+            <span>✓ Encrypted & private</span>
+            <span>✓ 30-day refund</span>
           </div>
         </div>
       </section>
