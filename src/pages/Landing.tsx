@@ -319,9 +319,9 @@ const Landing = () => {
       <section id="inside" className="py-16 md:py-20 border-t border-foreground/[0.05]">
         <div className="container max-w-6xl px-6">
           <Reveal>
-            <div className="text-center mb-16">
-              <p className="type-eyebrow text-primary mb-5">// What's inside</p>
-              <h2 className="type-display text-3xl md:text-5xl mb-5">
+            <div className="text-center mb-12">
+              <p className="type-eyebrow text-primary mb-4">// The product</p>
+              <h2 className="type-display text-3xl md:text-5xl mb-4">
                 One system. Every lever.
               </h2>
               <p className="type-body text-muted-foreground/80 max-w-[44ch] mx-auto">
@@ -330,10 +330,10 @@ const Landing = () => {
             </div>
           </Reveal>
 
-          <div className="grid gap-px bg-foreground/[0.05] border border-foreground/[0.05] md:grid-cols-2 lg:grid-cols-3 mb-20">
+          <div className="grid gap-px bg-foreground/[0.05] border border-foreground/[0.05] md:grid-cols-2 lg:grid-cols-3 mb-16">
             {modules.map((m, i) => (
               <Reveal key={i} delay={i * 60}>
-                <div className="bg-background p-9 group hover:bg-foreground/[0.025] transition-colors duration-300 h-full">
+                <div className="bg-background p-7 group hover:bg-foreground/[0.025] transition-colors duration-300 h-full">
                   <div className="h-11 w-11 mb-7 flex items-center justify-center border border-foreground/10 group-hover:border-primary/40 group-hover:bg-primary/5 transition-all duration-300">
                     <m.icon className="h-5 w-5 text-primary" />
                   </div>
