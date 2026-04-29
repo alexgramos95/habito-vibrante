@@ -398,8 +398,8 @@ const Landing = () => {
 
           <div className="grid gap-px bg-foreground/[0.05] border border-foreground/[0.05] md:grid-cols-2 lg:grid-cols-3 mb-16">
             {modules.map((m, i) => (
-              <Reveal key={i} delay={i * 60}>
-                <div className="bg-background p-7 group hover:bg-foreground/[0.025] transition-colors duration-300 h-full">
+              <Reveal key={i} delay={i * 60} className="h-full">
+                <div className="bg-background p-7 group hover:bg-foreground/[0.025] transition-colors duration-300 h-full w-full">
                   <div className="h-11 w-11 mb-7 flex items-center justify-center border border-foreground/10 group-hover:border-primary/40 group-hover:bg-primary/5 transition-all duration-300">
                     <m.icon className="h-5 w-5 text-primary" />
                   </div>
