@@ -63,7 +63,7 @@ interface PhoneFrameProps {
 }
 
 export const PhoneFrame = ({ children, className }: PhoneFrameProps) => (
-  <div className={cn("relative mx-auto w-full max-w-[380px]", className)}>
+  <div className={cn("relative mx-auto w-full max-w-[380px] aspect-[390/844]", className)}>
     <div
       className="absolute -inset-10 pointer-events-none opacity-60"
       style={{
@@ -71,8 +71,8 @@ export const PhoneFrame = ({ children, className }: PhoneFrameProps) => (
           "radial-gradient(closest-side, hsl(var(--neon-toxic) / 0.18), transparent 70%)",
       }}
     />
-    <div className="relative rounded-[44px] border border-foreground/15 bg-card p-2 shadow-[0_30px_90px_-20px_hsl(var(--neon-ultra)/0.45)]">
-      <div className="rounded-[36px] overflow-hidden bg-background border border-foreground/10">
+    <div className="relative h-full rounded-[44px] border border-foreground/15 bg-card p-2 shadow-[0_30px_90px_-20px_hsl(var(--neon-ultra)/0.45)]">
+      <div className="h-full rounded-[36px] overflow-hidden bg-background border border-foreground/10 [&>*]:h-full">
         {children}
       </div>
     </div>
