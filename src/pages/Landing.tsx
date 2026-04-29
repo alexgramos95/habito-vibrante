@@ -563,7 +563,7 @@ const Landing = () => {
       </section>
 
       {/* ===== FAQ ===== */}
-      <section id="faq" className="py-24 md:py-28 border-t border-foreground/[0.05]">
+      <section id="faq" className="py-16 md:py-20 border-t border-foreground/[0.05]">
         <div className="container max-w-3xl px-6">
           <Reveal>
             <div className="text-center mb-12">
