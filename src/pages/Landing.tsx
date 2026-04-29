@@ -598,7 +598,7 @@ const Landing = () => {
       </section>
 
       {/* ===== FINAL CTA ===== */}
-      <section className="py-28 md:py-36 border-t border-foreground/[0.05] relative overflow-hidden">
+      <section className="py-20 md:py-28 border-t border-foreground/[0.05] relative overflow-hidden">
         <div
           className="absolute inset-0 pointer-events-none opacity-70"
           style={{
