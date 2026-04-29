@@ -310,7 +310,7 @@ const Landing = () => {
 
         <div className="container max-w-6xl relative z-10 px-6">
           <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-10 lg:gap-14 items-center">
-            {/* Copy */}
+            {/* Copy — minimal: badge, headline, sub, one CTA */}
             <div className="text-center lg:text-left">
               <div className="inline-flex items-center gap-2 mb-6 px-3 py-1.5 border border-foreground/10 bg-foreground/[0.03] backdrop-blur-sm animate-fade-in">
                 <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_hsl(var(--neon-toxic))]" />
@@ -323,29 +323,11 @@ const Landing = () => {
                 {hero.headline}
               </h1>
 
-              <p className="type-body text-base md:text-lg text-muted-foreground/90 max-w-[42ch] mx-auto lg:mx-0 mb-6 animate-fade-in">
+              <p className="type-body text-base md:text-lg text-muted-foreground/90 max-w-[42ch] mx-auto lg:mx-0 mb-8 animate-fade-in">
                 {hero.sub}
               </p>
 
-              {/* Trust micro-row (above CTA — reduces hesitation) */}
-              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-x-5 gap-y-2 mb-6 type-eyebrow text-muted-foreground/70">
-                <span className="inline-flex items-center gap-1.5">
-                  <span className="flex">
-                    {[0,1,2,3,4].map((i) => (
-                      <Star key={i} className="h-3 w-3 fill-primary text-primary" />
-                    ))}
-                  </span>
-                  <span>4.8 · early users</span>
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <ShieldCheck className="h-3 w-3 text-primary" /> Encrypted &amp; private
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <Zap className="h-3 w-3 text-primary" /> 30-second signup
-                </span>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start items-center mb-5">
+              <div className="flex justify-center lg:justify-start mb-3">
                 <Button
                   size="lg"
                   onClick={handleStartTrial}
@@ -354,13 +336,10 @@ const Landing = () => {
                   {hero.cta}
                   <ArrowRight className="h-5 w-5" />
                 </Button>
-                <Button size="lg" variant="outline" onClick={() => scrollTo("inside")} className="w-full sm:w-auto">
-                  See How It Works
-                </Button>
               </div>
 
               <p className="type-eyebrow text-muted-foreground/50">
-                7 days free · No credit card · Google or Apple in 1 tap
+                7 days free · No credit card
               </p>
             </div>
 
