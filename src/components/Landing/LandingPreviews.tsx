@@ -65,7 +65,7 @@ interface PhoneFrameProps {
 export const PhoneFrame = ({ children, className }: PhoneFrameProps) => (
   <div className={cn("relative mx-auto w-full max-w-[380px] aspect-[390/844]", className)}>
     <div
-      className="absolute -inset-10 pointer-events-none opacity-60"
+      className="absolute inset-0 pointer-events-none opacity-60 blur-2xl"
       style={{
         background:
           "radial-gradient(closest-side, hsl(var(--neon-toxic) / 0.18), transparent 70%)",
