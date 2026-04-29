@@ -137,6 +137,55 @@ const Counter = ({
   );
 };
 
+/* ---------- A/B test for hero headline + primary CTA ----------
+ * Sticky per visitor (localStorage). Logged via analytics on mount.
+ */
+type HeroVariant = "promise" | "identity" | "system";
+const HERO_AB_KEY = "become_landing_hero_ab";
+const HERO_VARIANTS: Record<HeroVariant, {
+  headline: React.ReactNode;
+  sub: string;
+  cta: string;
+}> = {
+  promise: {
+    headline: (
+      <>
+        Become the person<br />
+        <span className="text-primary" style={{ textShadow: "0 0 60px hsl(var(--neon-toxic) / 0.5)" }}>
+          you promised
+        </span><br />
+        yourself you'd be.
+      </>
+    ),
+    sub: "Habits, progress and discipline in one operating system.",
+    cta: "Start Free — 7 Days",
+  },
+  identity: {
+    headline: (
+      <>
+        Stop tracking habits.<br />
+        <span className="text-primary" style={{ textShadow: "0 0 60px hsl(var(--neon-toxic) / 0.5)" }}>
+          Build identity.
+        </span>
+      </>
+    ),
+    sub: "One operating system for the life you keep postponing.",
+    cta: "Try It Free",
+  },
+  system: {
+    headline: (
+      <>
+        Six apps. One life.<br />
+        <span className="text-primary" style={{ textShadow: "0 0 60px hsl(var(--neon-toxic) / 0.5)" }}>
+          Become the system.
+        </span>
+      </>
+    ),
+    sub: "Habits, calendar, nutrition and shopping — finally one place.",
+    cta: "Get Started Free",
+  },
+};
+
 const Landing = () => {
   const navigate = useNavigate();
   const [showPaywall, setShowPaywall] = useState(false);
@@ -144,7 +193,37 @@ const Landing = () => {
   const [showStickyCTA, setShowStickyCTA] = useState(false);
   const { upgradeToPro } = useSubscription();
 
-  const handleStartTrial = () => navigate("/onboarding");
+  // ── A/B variant ─────────────────────────────────────────────
+  const heroVariant = useMemo<HeroVariant>(() => {
+    if (typeof window === "undefined") return "promise";
+    try {
+      const saved = localStorage.getItem(HERO_AB_KEY) as HeroVariant | null;
+      if (saved && saved in HERO_VARIANTS) return saved;
+      const keys = Object.keys(HERO_VARIANTS) as HeroVariant[];
+      const pick = keys[Math.floor(Math.random() * keys.length)];
+      localStorage.setItem(HERO_AB_KEY, pick);
+      return pick;
+    } catch {
+      return "promise";
+    }
+  }, []);
+  const hero = HERO_VARIANTS[heroVariant];
+
+  useEffect(() => {
+    try {
+      // Light-weight analytics breadcrumb (no-op if not wired up)
+      (window as unknown as { plausible?: (e: string, o?: unknown) => void })
+        .plausible?.("landing_hero_variant", { props: { variant: heroVariant } });
+    } catch { /* noop */ }
+  }, [heroVariant]);
+
+  const handleStartTrial = () => {
+    try {
+      (window as unknown as { plausible?: (e: string, o?: unknown) => void })
+        .plausible?.("landing_cta_click", { props: { variant: heroVariant } });
+    } catch { /* noop */ }
+    navigate("/onboarding");
+  };
   const handleUpgrade = (plan: "monthly" | "yearly" | "lifetime") => {
     upgradeToPro(plan);
     setShowPaywall(false);
