@@ -420,7 +420,7 @@ const Landing = () => {
 
           {/* Inline CTA after proof */}
           <Reveal>
-            <div className="mt-16 text-center">
+            <div className="mt-12 text-center">
               <Button
                 size="lg"
                 onClick={handleStartTrial}
@@ -429,7 +429,7 @@ const Landing = () => {
                 Start Free
                 <ArrowRight className="h-5 w-5" />
               </Button>
-              <p className="type-eyebrow text-muted-foreground/50 mt-5">
+              <p className="type-eyebrow text-muted-foreground/50 mt-4">
                 7 days free · No credit card
               </p>
             </div>
