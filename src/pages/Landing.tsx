@@ -344,7 +344,7 @@ const Landing = () => {
             </div>
 
             {/* Real product preview — above the fold */}
-            <div className="relative mx-auto w-full max-w-[360px] lg:max-w-none" style={{ animation: "float 6s ease-in-out infinite" }}>
+            <div className="relative mx-auto w-full max-w-[360px] lg:max-w-[380px]" style={{ animation: "float 6s ease-in-out infinite" }}>
               {/* Glow halo */}
               <div
                 className="absolute -inset-8 pointer-events-none opacity-70 blur-2xl"
@@ -439,7 +439,7 @@ const Landing = () => {
             ].map(({ Comp, label, desc }, i) => (
               <Reveal key={label} delay={i * 80}>
                 <div className="bg-background p-6 h-full flex flex-col items-center gap-4">
-                  <div className="w-full max-w-[300px]">
+                  <div className="w-full max-w-[380px]">
                     <PhoneFrame>
                       <Comp />
                     </PhoneFrame>
