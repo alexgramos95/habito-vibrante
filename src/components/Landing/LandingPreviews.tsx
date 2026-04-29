@@ -457,12 +457,12 @@ export const CalendarPreview = () => {
                 <circle
                   cx="18" cy="18" r="15" fill="none"
                   stroke="hsl(var(--primary))" strokeWidth="3" strokeLinecap="round"
-                  strokeDasharray={`${(30 / 100) * 94.25} 94.25`}
+                  strokeDasharray={`${(55 / 100) * 94.25} 94.25`}
                   style={{ filter: "drop-shadow(0 0 6px hsl(var(--neon-toxic)))" }}
                 />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="font-bold text-[12px] tabular-nums">30%</span>
+                <span className="font-bold text-[12px] tabular-nums">55%</span>
               </div>
             </div>
             <div className="flex-1 min-w-0">
@@ -470,7 +470,7 @@ export const CalendarPreview = () => {
                 DIAS PERFEITOS
               </p>
               <p className="font-black italic tracking-tighter text-3xl tabular-nums leading-none mt-1">
-                0<span className="text-muted-foreground/50 text-base">/29</span>
+                16<span className="text-muted-foreground/50 text-base">/29</span>
               </p>
             </div>
           </div>
