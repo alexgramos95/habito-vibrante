@@ -423,23 +423,46 @@ const Landing = () => {
 
           <div className="grid gap-px bg-foreground/[0.05] border border-foreground/[0.05] md:grid-cols-2 max-w-[960px] mx-auto">
             {[
-              { Comp: HabitsPreview, label: "Habits", desc: "Daily systems that compound into identity." },
-              { Comp: CalendarPreview, label: "Calendar", desc: "Perfect days, streaks, peak weeks." },
-              { Comp: NutritionPreview, label: "Nutrition", desc: "Weekly plan, macros, meals." },
-              { Comp: ShoppingPreview, label: "Shopping", desc: "List generated from your week's plan." },
-            ].map(({ Comp, label, desc }, i) => (
+              {
+                Comp: HabitsPreview,
+                label: "Habits",
+                outcome: "Build streaks that stick.",
+                desc: "Daily rituals that compound — without the streak-anxiety of other apps.",
+              },
+              {
+                Comp: CalendarPreview,
+                label: "Calendar",
+                outcome: "Stay accountable, week after week.",
+                desc: "See your consistency at a glance. Perfect days, peak weeks, honest gaps.",
+              },
+              {
+                Comp: NutritionPreview,
+                label: "Nutrition",
+                outcome: "Plan meals without thinking twice.",
+                desc: "Weekly plan, macros and meals — calibrated for the body you're building.",
+              },
+              {
+                Comp: ShoppingPreview,
+                label: "Shopping",
+                outcome: "Track real progress, not noise.",
+                desc: "Lists generated from your week's plan. Spend with intention, not autopilot.",
+              },
+            ].map(({ Comp, label, outcome, desc }, i) => (
               <Reveal key={label} delay={i * 80}>
-                <div className="bg-background p-6 md:p-8 h-full flex flex-col items-center gap-4">
-                  <div className="w-full max-w-[380px] mx-auto">
+                <div className="bg-background p-6 md:p-8 h-full flex flex-col gap-5">
+                  <div className="text-center">
+                    <p className="type-eyebrow text-primary mb-2">// {label}</p>
+                    <h4 className="type-display text-xl md:text-2xl mb-2 leading-tight">
+                      {outcome}
+                    </h4>
+                    <p className="text-sm text-muted-foreground/80 max-w-[34ch] mx-auto">
+                      {desc}
+                    </p>
+                  </div>
+                  <div className="w-full max-w-[360px] mx-auto opacity-90">
                     <PhoneFrame>
                       <Comp />
                     </PhoneFrame>
-                  </div>
-                  <div className="text-center">
-                    <p className="type-eyebrow text-primary mb-1">// {label}</p>
-                    <p className="text-sm text-muted-foreground/80 max-w-[24ch] mx-auto">
-                      {desc}
-                    </p>
                   </div>
                 </div>
               </Reveal>
