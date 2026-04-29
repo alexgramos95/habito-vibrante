@@ -767,18 +767,18 @@ export const ProgressPreview = () => {
       <div className="px-4 pt-5 pb-4 space-y-5">
         <PreviewPageHeader
           icon={Activity}
-          title="Progresso"
-          subtitle="Leitura do ciclo"
+          title="Progress"
+          subtitle="Cycle reading"
         />
 
         <div className="flex items-center justify-between border-y-2 border-foreground/10 py-3">
           <ChevronLeft className="h-4 w-4 text-muted-foreground" />
           <div className="text-center">
             <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-              CICLO
+              CYCLE
             </p>
             <h2 className="text-xl font-black italic uppercase tracking-tighter">
-              Abril 2026
+              April 2026
             </h2>
           </div>
           <ChevronRight className="h-4 w-4 text-muted-foreground" />
@@ -787,7 +787,7 @@ export const ProgressPreview = () => {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-              // CONSISTÊNCIA
+              // CONSISTENCY
             </p>
             <span className="font-black italic tabular-nums text-primary text-lg drop-shadow-[0_0_8px_hsl(var(--neon-toxic))]">
               98%
@@ -827,16 +827,16 @@ export const ProgressPreview = () => {
 
         <div className="space-y-2">
           <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground px-1">
-            // LEITURA
+            // READING
           </p>
           <div className="border-l-2 border-primary/60 bg-card/50 p-3">
             <p className="text-[12px] text-foreground/90 leading-relaxed">
-              Mês mais consistente até hoje. Treino e leitura sustentaram-se 23 dias seguidos.
+              Most consistent month so far. Training and reading sustained 23 days in a row.
             </p>
           </div>
           <div className="border-l-2 border-primary/60 bg-card/50 p-3">
             <p className="text-[12px] text-foreground/90 leading-relaxed">
-              Café reduzido em <span className="text-primary font-bold tabular-nums">38%</span> face ao ciclo anterior.
+              Coffee reduced by <span className="text-primary font-bold tabular-nums">38%</span> compared to the previous cycle.
             </p>
           </div>
         </div>
@@ -844,8 +844,8 @@ export const ProgressPreview = () => {
         <div className="grid grid-cols-3 gap-2">
           {[
             { icon: Flame, label: "Streak", value: "23D" },
-            { icon: TrendingUp, label: "Nível", value: "07" },
-            { icon: Target, label: "Dias", value: "21/28" },
+            { icon: TrendingUp, label: "Level", value: "07" },
+            { icon: Target, label: "Days", value: "21/28" },
           ].map((k, i) => (
             <Surface key={i} tone="subtle" size="compact" className="text-center">
               <k.icon className="h-3.5 w-3.5 mx-auto text-primary mb-1" />
