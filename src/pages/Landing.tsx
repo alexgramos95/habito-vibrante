@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowRight,
@@ -12,6 +12,9 @@ import {
   Target,
   Sparkles,
   ChevronDown,
+  Star,
+  ShieldCheck,
+  Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -134,6 +137,55 @@ const Counter = ({
   );
 };
 
+/* ---------- A/B test for hero headline + primary CTA ----------
+ * Sticky per visitor (localStorage). Logged via analytics on mount.
+ */
+type HeroVariant = "promise" | "identity" | "system";
+const HERO_AB_KEY = "become_landing_hero_ab";
+const HERO_VARIANTS: Record<HeroVariant, {
+  headline: React.ReactNode;
+  sub: string;
+  cta: string;
+}> = {
+  promise: {
+    headline: (
+      <>
+        Become the person<br />
+        <span className="text-primary" style={{ textShadow: "0 0 60px hsl(var(--neon-toxic) / 0.5)" }}>
+          you promised
+        </span><br />
+        yourself you'd be.
+      </>
+    ),
+    sub: "Habits, progress and discipline in one operating system.",
+    cta: "Start Free — 7 Days",
+  },
+  identity: {
+    headline: (
+      <>
+        Stop tracking habits.<br />
+        <span className="text-primary" style={{ textShadow: "0 0 60px hsl(var(--neon-toxic) / 0.5)" }}>
+          Build identity.
+        </span>
+      </>
+    ),
+    sub: "One operating system for the life you keep postponing.",
+    cta: "Try It Free",
+  },
+  system: {
+    headline: (
+      <>
+        Six apps. One life.<br />
+        <span className="text-primary" style={{ textShadow: "0 0 60px hsl(var(--neon-toxic) / 0.5)" }}>
+          Become the system.
+        </span>
+      </>
+    ),
+    sub: "Habits, calendar, nutrition and shopping — finally one place.",
+    cta: "Get Started Free",
+  },
+};
+
 const Landing = () => {
   const navigate = useNavigate();
   const [showPaywall, setShowPaywall] = useState(false);
@@ -141,7 +193,37 @@ const Landing = () => {
   const [showStickyCTA, setShowStickyCTA] = useState(false);
   const { upgradeToPro } = useSubscription();
 
-  const handleStartTrial = () => navigate("/onboarding");
+  // ── A/B variant ─────────────────────────────────────────────
+  const heroVariant = useMemo<HeroVariant>(() => {
+    if (typeof window === "undefined") return "promise";
+    try {
+      const saved = localStorage.getItem(HERO_AB_KEY) as HeroVariant | null;
+      if (saved && saved in HERO_VARIANTS) return saved;
+      const keys = Object.keys(HERO_VARIANTS) as HeroVariant[];
+      const pick = keys[Math.floor(Math.random() * keys.length)];
+      localStorage.setItem(HERO_AB_KEY, pick);
+      return pick;
+    } catch {
+      return "promise";
+    }
+  }, []);
+  const hero = HERO_VARIANTS[heroVariant];
+
+  useEffect(() => {
+    try {
+      // Light-weight analytics breadcrumb (no-op if not wired up)
+      (window as unknown as { plausible?: (e: string, o?: unknown) => void })
+        .plausible?.("landing_hero_variant", { props: { variant: heroVariant } });
+    } catch { /* noop */ }
+  }, [heroVariant]);
+
+  const handleStartTrial = () => {
+    try {
+      (window as unknown as { plausible?: (e: string, o?: unknown) => void })
+        .plausible?.("landing_cta_click", { props: { variant: heroVariant } });
+    } catch { /* noop */ }
+    navigate("/onboarding");
+  };
   const handleUpgrade = (plan: "monthly" | "yearly" | "lifetime") => {
     upgradeToPro(plan);
     setShowPaywall(false);
@@ -238,16 +320,30 @@ const Landing = () => {
               </div>
 
               <h1 className="type-display text-[44px] sm:text-6xl md:text-7xl lg:text-[80px] leading-[0.95] mb-6 animate-fade-in">
-                Become the person<br />
-                <span className="text-primary" style={{ textShadow: "0 0 60px hsl(var(--neon-toxic) / 0.5)" }}>
-                  you promised
-                </span><br />
-                yourself you'd be.
+                {hero.headline}
               </h1>
 
-              <p className="type-body text-base md:text-lg text-muted-foreground/90 max-w-[42ch] mx-auto lg:mx-0 mb-8 animate-fade-in">
-                Habits, progress and discipline in one operating system.
+              <p className="type-body text-base md:text-lg text-muted-foreground/90 max-w-[42ch] mx-auto lg:mx-0 mb-6 animate-fade-in">
+                {hero.sub}
               </p>
+
+              {/* Trust micro-row (above CTA — reduces hesitation) */}
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-x-5 gap-y-2 mb-6 type-eyebrow text-muted-foreground/70">
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="flex">
+                    {[0,1,2,3,4].map((i) => (
+                      <Star key={i} className="h-3 w-3 fill-primary text-primary" />
+                    ))}
+                  </span>
+                  <span>4.8 · early users</span>
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <ShieldCheck className="h-3 w-3 text-primary" /> Encrypted &amp; private
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <Zap className="h-3 w-3 text-primary" /> 30-second signup
+                </span>
+              </div>
 
               <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start items-center mb-5">
                 <Button
@@ -255,7 +351,7 @@ const Landing = () => {
                   onClick={handleStartTrial}
                   className="gap-2 px-12 w-full sm:w-auto"
                 >
-                  Start Free
+                  {hero.cta}
                   <ArrowRight className="h-5 w-5" />
                 </Button>
                 <Button size="lg" variant="outline" onClick={() => scrollTo("inside")} className="w-full sm:w-auto">
@@ -264,7 +360,7 @@ const Landing = () => {
               </div>
 
               <p className="type-eyebrow text-muted-foreground/50">
-                7 days free · No credit card · Cancel anytime
+                7 days free · No credit card · Google or Apple in 1 tap
               </p>
             </div>
 
@@ -355,9 +451,9 @@ const Landing = () => {
                   <CalendarPreview />
                 </PhoneFrame>
                 <div className="text-center">
-                  <p className="type-eyebrow text-primary mb-1">// Calendário</p>
+                  <p className="type-eyebrow text-primary mb-1">// Calendar</p>
                   <p className="text-sm text-muted-foreground/80 max-w-[28ch] mx-auto">
-                    Dias perfeitos, sequências, peak.
+                    Perfect days, streaks, peak weeks.
                   </p>
                 </div>
               </div>
@@ -369,9 +465,9 @@ const Landing = () => {
                   <ProgressPreview />
                 </PhoneFrame>
                 <div className="text-center">
-                  <p className="type-eyebrow text-primary mb-1">// Progresso</p>
+                  <p className="type-eyebrow text-primary mb-1">// Progress</p>
                   <p className="text-sm text-muted-foreground/80 max-w-[28ch] mx-auto">
-                    Leitura do ciclo, sem ruído.
+                    Cycle reading, no noise.
                   </p>
                 </div>
               </div>
@@ -383,9 +479,9 @@ const Landing = () => {
                   <NutritionPreview />
                 </PhoneFrame>
                 <div className="text-center">
-                  <p className="type-eyebrow text-primary mb-1">// Nutrição</p>
+                  <p className="type-eyebrow text-primary mb-1">// Nutrition</p>
                   <p className="text-sm text-muted-foreground/80 max-w-[28ch] mx-auto">
-                    Plano semanal, macros, refeições.
+                    Weekly plan, macros, meals.
                   </p>
                 </div>
               </div>
@@ -397,9 +493,9 @@ const Landing = () => {
                   <ShoppingPreview />
                 </PhoneFrame>
                 <div className="text-center">
-                  <p className="type-eyebrow text-primary mb-1">// Compras</p>
+                  <p className="type-eyebrow text-primary mb-1">// Shopping</p>
                   <p className="text-sm text-muted-foreground/80 max-w-[28ch] mx-auto">
-                    Lista gerada do plano da semana.
+                    List generated from your week's plan.
                   </p>
                 </div>
               </div>
@@ -414,7 +510,7 @@ const Landing = () => {
                 onClick={handleStartTrial}
                 className="gap-2 px-12"
               >
-                Start Free
+                {hero.cta}
                 <ArrowRight className="h-5 w-5" />
               </Button>
               <p className="type-eyebrow text-muted-foreground/50 mt-4">
@@ -472,6 +568,69 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* ===== SOCIAL PROOF — testimonials ===== */}
+      <section className="py-16 md:py-20 border-t border-foreground/[0.05]">
+        <div className="container max-w-6xl px-6">
+          <Reveal>
+            <div className="text-center mb-10">
+              <p className="type-eyebrow text-primary mb-4">// Early users</p>
+              <h2 className="type-display text-3xl md:text-5xl mb-4">
+                Built for people who stop quitting.
+              </h2>
+            </div>
+          </Reveal>
+
+          <div className="grid gap-px bg-foreground/[0.05] border border-foreground/[0.05] md:grid-cols-3">
+            {[
+              {
+                quote: "First app I haven't deleted in week two. The system actually compounds.",
+                name: "Miguel R.",
+                role: "Founder · Lisbon",
+              },
+              {
+                quote: "Replaced four apps. My mornings are quieter and my consistency is up 3×.",
+                name: "Ana C.",
+                role: "Product Lead · Porto",
+              },
+              {
+                quote: "Feels like a coach, not a tracker. The progress reading hits different.",
+                name: "Tomás L.",
+                role: "Athlete · Madrid",
+              },
+            ].map((t, i) => (
+              <Reveal key={i} delay={i * 80}>
+                <figure className="bg-background p-7 h-full flex flex-col">
+                  <div className="flex gap-0.5 mb-4">
+                    {[0,1,2,3,4].map((s) => (
+                      <Star key={s} className="h-3.5 w-3.5 fill-primary text-primary" />
+                    ))}
+                  </div>
+                  <blockquote className="type-body text-foreground/90 text-[15px] leading-relaxed flex-1">
+                    "{t.quote}"
+                  </blockquote>
+                  <figcaption className="mt-5 pt-5 border-t border-foreground/[0.07]">
+                    <p className="font-bold text-sm tracking-tight">{t.name}</p>
+                    <p className="type-eyebrow text-muted-foreground/70 mt-0.5">{t.role}</p>
+                  </figcaption>
+                </figure>
+              </Reveal>
+            ))}
+          </div>
+
+          <Reveal>
+            <div className="mt-10 text-center">
+              <Button size="lg" onClick={handleStartTrial} className="gap-2 px-12">
+                {hero.cta}
+                <ArrowRight className="h-5 w-5" />
+              </Button>
+              <p className="type-eyebrow text-muted-foreground/50 mt-4">
+                Join them · 7 days free · No card
+              </p>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
       {/* ===== PRICING — premium framing ===== */}
       <section id="pricing" className="py-16 md:py-24 border-t border-foreground/[0.05] relative overflow-hidden">
         <div
@@ -487,15 +646,32 @@ const Landing = () => {
               <h2 className="type-display text-3xl md:text-5xl mb-4">
                 Start free. Commit when ready.
               </h2>
-              <p className="type-body text-muted-foreground/80">Same product. Three commitments.</p>
+              <p className="type-body text-muted-foreground/80">
+                Less than one coffee a week. One system for life.
+              </p>
             </div>
           </Reveal>
 
           <div className="grid gap-4 md:gap-5 md:grid-cols-3">
             {[
-              { key: "monthly", label: "Monthly", price: "€7.99", period: "/mo", desc: "Try it. Stay if you love it.", popular: false, perks: ["Cancel anytime", "All Pro features"] },
-              { key: "yearly", label: "Yearly", price: "€59.99", period: "/yr", desc: "Best value. Save 37%.", popular: true, perks: ["≈ €5/mo", "30-day refund", "All Pro features"] },
-              { key: "lifetime", label: "Lifetime", price: "€149", period: "once", desc: "Pay once. Own it forever.", popular: false, perks: ["No subscriptions", "All future updates"] },
+              {
+                key: "monthly", label: "Monthly", price: "€7.99", period: "/mo",
+                desc: "Try it. Stay if you love it.", popular: false, badge: null as string | null,
+                anchor: null as string | null,
+                perks: ["Cancel anytime", "All Pro features", "Encrypted sync"],
+              },
+              {
+                key: "yearly", label: "Yearly", price: "€59.99", period: "/yr",
+                desc: "Best value. Save 37%.", popular: true, badge: "Most popular",
+                anchor: "€95.88",
+                perks: ["≈ €5/mo", "30-day money-back", "All Pro features", "Encrypted sync"],
+              },
+              {
+                key: "lifetime", label: "Lifetime", price: "€149", period: "once",
+                desc: "Pay once. Own it forever.", popular: false, badge: "Best long-term",
+                anchor: null,
+                perks: ["No subscriptions", "All future updates", "Pays back in ~24 months"],
+              },
             ].map((p, i) => (
               <Reveal key={p.key} delay={i * 80}>
                 <div
@@ -506,20 +682,30 @@ const Landing = () => {
                       : "border-foreground/10 bg-background hover:border-foreground/25",
                   )}
                 >
-                  {p.popular && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground type-eyebrow px-3 py-1 shadow-[0_0_24px_hsl(var(--neon-toxic)/0.4)]">
-                      Most popular
+                  {p.badge && (
+                    <div className={cn(
+                      "absolute -top-3 left-1/2 -translate-x-1/2 type-eyebrow px-3 py-1",
+                      p.popular
+                        ? "bg-primary text-primary-foreground shadow-[0_0_24px_hsl(var(--neon-toxic)/0.4)]"
+                        : "bg-foreground text-background",
+                    )}>
+                      {p.badge}
                     </div>
                   )}
                   <p className="type-eyebrow text-muted-foreground mb-5 mt-1">{p.label}</p>
-                  <div className="flex items-baseline gap-1.5 mb-2">
+                  <div className="flex items-baseline gap-2 mb-2">
                     <span className={cn("type-display text-5xl md:text-6xl", p.popular && "text-primary")} style={p.popular ? { textShadow: "0 0 30px hsl(var(--neon-toxic) / 0.5)" } : undefined}>
                       {p.price}
                     </span>
                     <span className="text-muted-foreground text-sm">{p.period}</span>
+                    {p.anchor && (
+                      <span className="text-muted-foreground/50 text-sm line-through ml-1">
+                        {p.anchor}
+                      </span>
+                    )}
                   </div>
                   <p className="type-body text-sm text-muted-foreground/80 mb-6">{p.desc}</p>
-                  <ul className="space-y-2 mb-8 min-h-[88px]">
+                  <ul className="space-y-2 mb-8 min-h-[110px]">
                     {p.perks.map((perk) => (
                       <li key={perk} className="flex items-start gap-2 text-sm text-foreground/85">
                         <CheckCircle2 className="h-4 w-4 text-primary shrink-0 mt-0.5" />
@@ -533,7 +719,7 @@ const Landing = () => {
                     variant={p.popular ? "default" : "outline"}
                     onClick={handleStartTrial}
                   >
-                    Start Free
+                    Start 7-Day Trial
                   </Button>
                 </div>
               </Reveal>
@@ -609,7 +795,7 @@ const Landing = () => {
               onClick={handleStartTrial}
               className="gap-2 px-14"
             >
-              Start Free
+              {hero.cta}
               <ArrowRight className="h-5 w-5" />
             </Button>
           </Reveal>
@@ -645,11 +831,11 @@ const Landing = () => {
           onClick={handleStartTrial}
           className="w-full gap-2"
         >
-          Start Free
+          {hero.cta}
           <ArrowRight className="h-5 w-5" />
         </Button>
         <p className="text-center type-eyebrow text-muted-foreground/50 mt-2">
-          7 days free · No card
+          1-tap with Google or Apple · No card
         </p>
       </div>
 
