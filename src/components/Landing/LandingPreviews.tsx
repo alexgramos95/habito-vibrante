@@ -119,7 +119,7 @@ const PreviewTopNav = ({
             <div
               key={item.id}
               className={cn(
-                "relative flex-1 flex flex-col items-center gap-1 py-2 text-[9px] font-black italic uppercase tracking-wider",
+                "relative flex-1 flex flex-col items-center gap-0.5 py-1.5 text-[8px] font-black italic uppercase tracking-wider",
                 isActive ? "text-primary" : "text-muted-foreground/80",
               )}
             >
@@ -128,7 +128,7 @@ const PreviewTopNav = ({
               )}
               <item.icon
                 className={cn(
-                  "h-5 w-5 not-italic",
+                  "h-4 w-4 not-italic",
                   isActive && "drop-shadow-[0_0_6px_hsl(var(--neon-toxic))]",
                 )}
               />
