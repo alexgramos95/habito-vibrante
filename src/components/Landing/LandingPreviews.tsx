@@ -21,7 +21,7 @@ import {
   ListChecks,
   Trophy,
   Camera,
-  ReceiptText,
+  Receipt,
 } from "lucide-react";
 import { Surface } from "@/components/ui/surface";
 import { Button } from "@/components/ui/button";
@@ -683,7 +683,7 @@ export const ShoppingPreview = () => {
           subtitle="Monthly: 142.80 €"
           actions={
             <>
-              <NeonIconButton icon={ReceiptText} />
+              <NeonIconButton icon={Receipt} />
               <NeonIconButton icon={Plus} />
             </>
           }
