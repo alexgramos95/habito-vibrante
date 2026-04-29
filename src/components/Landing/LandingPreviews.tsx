@@ -676,35 +676,62 @@ export const ShoppingPreview = () => {
     <div className="flex flex-col">
       <PreviewTopNav active="shopping" />
 
-      <div className="px-4 pt-5 pb-4 space-y-3">
+      <div className="px-4 pt-5 pb-4 space-y-4">
         <PreviewPageHeader
           icon={ShoppingCart}
           title="Shopping"
-          subtitle="This week's list"
+          subtitle="Monthly: 142.80 €"
           actions={
             <>
-              <NeonIconButton icon={Camera} />
+              <NeonIconButton icon={ReceiptText} />
               <NeonIconButton icon={Plus} />
             </>
           }
         />
 
-        <Surface tone="subtle" size="compact" className="flex items-center justify-between">
-          <div>
-            <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">
-              PROGRESS
-            </p>
-            <p className="text-base font-black italic tabular-nums transition-all duration-500">
-              {completed}<span className="text-muted-foreground/50 text-xs">/{total}</span>
-            </p>
+        {/* Weekly Telemetry Hero — mirrors INVENTÁRIO SEMANAL */}
+        <div className="border-2 border-primary/40 bg-card shadow-[4px_4px_0_0_hsl(var(--neon-ultra)/0.4)] p-4">
+          <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground mb-3">
+            // WEEKLY INVENTORY
+          </p>
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">
+                TOTAL COST
+              </p>
+              <p className="font-black italic uppercase tracking-tighter text-2xl text-foreground tabular-nums">
+                38.40 €
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">
+                EXECUTED
+              </p>
+              <p className="font-black italic uppercase tracking-tighter text-xl text-primary tabular-nums">
+                21.60 €
+              </p>
+            </div>
           </div>
-          <div className="w-32 h-1.5 bg-foreground/10 overflow-hidden">
+          <div className="h-1.5 bg-foreground/5 border border-foreground/10 overflow-hidden">
             <div
-              className="h-full bg-primary shadow-[0_0_8px_hsl(var(--neon-toxic))] transition-[width] duration-[900ms] ease-out"
+              className="h-full bg-primary shadow-[0_0_8px_hsl(var(--neon-toxic)/0.6)] transition-[width] duration-[900ms] ease-out"
               style={{ width: `${pct}%` }}
             />
           </div>
-        </Surface>
+          <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground mt-2 tabular-nums">
+            {completed}/{total} ITEMS · {Math.round(pct)}%
+          </p>
+        </div>
+
+        {/* Week selector */}
+        <div className="flex items-center justify-between">
+          <ChevronLeft className="h-4 w-4 text-muted-foreground" />
+          <div className="text-center">
+            <p className="text-[12px] font-medium text-foreground">Week of April 27</p>
+            <p className="text-[10px] font-bold text-primary">This week</p>
+          </div>
+          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+        </div>
 
         <div className="space-y-1.5">
           {items.map((item, i) => (
