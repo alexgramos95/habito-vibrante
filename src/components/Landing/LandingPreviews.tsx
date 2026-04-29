@@ -683,7 +683,7 @@ export const ShoppingPreview = () => {
           subtitle="Monthly: 142.80 €"
           actions={
             <>
-              <NeonIconButton icon={ReceiptText} />
+              <NeonIconButton icon={Receipt} />
               <NeonIconButton icon={Plus} />
             </>
           }
