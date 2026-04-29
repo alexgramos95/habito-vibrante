@@ -421,7 +421,7 @@ const Landing = () => {
             </div>
           </Reveal>
 
-          <div className="mx-auto grid gap-px bg-foreground/[0.05] border border-foreground/[0.05] md:grid-cols-2 w-full max-w-[960px]">
+          <div className="mx-auto grid gap-6 md:gap-px md:bg-foreground/[0.05] md:border md:border-foreground/[0.05] md:grid-cols-2 w-full max-w-[960px]">
             {[
               {
                 Comp: HabitsPreview,
