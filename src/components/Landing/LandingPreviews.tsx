@@ -92,11 +92,11 @@ const PreviewTopNav = ({
   active: "habits" | "calendar" | "nutrition" | "shopping" | "profile" | "none";
 }) => {
   const items = [
-    { id: "habits",    label: "HÁBITOS",    icon: LayoutDashboard },
-    { id: "calendar",  label: "CALENDÁ...", icon: CalendarIcon },
-    { id: "nutrition", label: "NUTRIÇÃO",   icon: Leaf },
-    { id: "shopping",  label: "COMPRAS",    icon: ShoppingCart },
-    { id: "profile",   label: "PERFIL",     icon: User },
+    { id: "habits",    label: "HABITS",    icon: LayoutDashboard },
+    { id: "calendar",  label: "CALENDAR",  icon: CalendarIcon },
+    { id: "nutrition", label: "NUTRITION", icon: Leaf },
+    { id: "shopping",  label: "SHOPPING",  icon: ShoppingCart },
+    { id: "profile",   label: "PROFILE",   icon: User },
   ] as const;
 
   return (
@@ -310,8 +310,8 @@ export const HabitsPreview = () => {
       <div className="px-4 pt-5 pb-4 space-y-5">
         <PreviewPageHeader
           icon={LayoutDashboard}
-          title="Hábitos"
-          subtitle="5 hábitos hoje"
+          title="Habits"
+          subtitle="5 habits today"
           actions={
             <>
               <NeonIconButton icon={ListChecks} />
@@ -325,24 +325,24 @@ export const HabitsPreview = () => {
           <div className="flex items-center gap-2">
             <span className="size-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_hsl(var(--neon-toxic))]" />
             <span className="font-mono text-[10px] uppercase tracking-widest text-primary">
-              ATIVO
+              ACTIVE
             </span>
           </div>
 
           <div className="space-y-2">
             <h2 className="text-[22px] font-bold tracking-tight leading-[1.15] text-foreground">
-              Bem-vindo de volta. O momentum espera-te.
+              Welcome back. Momentum is waiting.
             </h2>
             <p className="text-[13px] text-muted-foreground">
-              És cada vez mais disciplinado.
+              You're more disciplined every day.
             </p>
           </div>
 
           {/* Stat trio */}
           <div className="grid grid-cols-3 gap-2">
             {[
-              { icon: Target, label: "CONSISTÊNCIA", value: "62%" },
-              { icon: Trophy, label: "VITÓRIAS", value: "8" },
+              { icon: Target, label: "CONSISTENCY", value: "62%" },
+              { icon: Trophy, label: "WINS",        value: "8" },
               { icon: TrendingUp, label: "MOMENTUM", value: "62" },
             ].map((s) => (
               <div
@@ -363,30 +363,30 @@ export const HabitsPreview = () => {
           </div>
 
           <Button size="lg" className="w-full">
-            COMEÇAR PRIMEIRA AÇÃO ›
+            START FIRST ACTION ›
           </Button>
         </Surface>
 
-        {/* Rituais section */}
+        {/* Rituals section */}
         <section className="space-y-2.5">
           <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground/70 px-1 transition-all duration-500">
-            RITUAIS · {ritualsDone}/3
+            RITUALS · {ritualsDone}/3
           </p>
           <div className="space-y-2">
-            <PreviewHabitRow name="MEDITAR" time="06:45" done color="hsl(265 70% 60%)" />
-            <PreviewHabitRow name="LER 20 MIN" time="08:15" done={secondDone} color="hsl(195 80% 55%)" />
-            <PreviewHabitRow name="ESCREVER DIÁRIO" time="22:00" color="hsl(340 75% 60%)" />
+            <PreviewHabitRow name="MEDITATE" time="06:45" done color="hsl(265 70% 60%)" />
+            <PreviewHabitRow name="READ 20 MIN" time="08:15" done={secondDone} color="hsl(195 80% 55%)" />
+            <PreviewHabitRow name="JOURNAL" time="22:00" color="hsl(340 75% 60%)" />
           </div>
         </section>
 
-        {/* Métricas section */}
+        {/* Metrics section */}
         <section className="space-y-2.5">
           <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground/70 px-1">
-            MÉTRICAS · 1/2 ON TRACK
+            METRICS · 1/2 ON TRACK
           </p>
           <PreviewHabitRow
-            name="Água"
-            metric={{ count: 6, goal: 8, unit: "copos" }}
+            name="Water"
+            metric={{ count: 6, goal: 8, unit: "glasses" }}
             color="hsl(195 85% 55%)"
           />
         </section>
@@ -421,12 +421,12 @@ export const CalendarPreview = () => {
       <div className="px-4 pt-5 pb-4 space-y-4">
         <PreviewPageHeader
           icon={CalendarIcon}
-          title="Calendário"
-          subtitle="Visualiza o teu progresso"
+          title="Calendar"
+          subtitle="Track your progress"
           actions={
             <div className="inline-flex items-center gap-1 p-1 bg-secondary/60 border border-foreground/10 rounded-xl">
-              {["DIA", "SEMANA", "MÊS"].map((label) => {
-                const isActive = label === "MÊS";
+              {["DAY", "WEEK", "MONTH"].map((label) => {
+                const isActive = label === "MONTH";
                 return (
                   <span
                     key={label}
@@ -448,7 +448,7 @@ export const CalendarPreview = () => {
         {/* Cycle hero */}
         <div className="border-2 border-primary/50 bg-card shadow-[4px_4px_0_0_hsl(var(--neon-ultra)/0.4)] p-4">
           <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mb-3">
-            // CICLO · ABR 2026
+            // CYCLE · APR 2026
           </p>
           <div className="flex items-center gap-4">
             <div className="relative h-[60px] w-[60px] shrink-0">
@@ -467,7 +467,7 @@ export const CalendarPreview = () => {
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-                DIAS PERFEITOS
+                PERFECT DAYS
               </p>
               <p className="font-black italic tracking-tighter text-3xl tabular-nums leading-none mt-1">
                 16<span className="text-muted-foreground/50 text-base">/29</span>
@@ -483,10 +483,10 @@ export const CalendarPreview = () => {
           </div>
           <div className="flex flex-1 flex-col items-center justify-center text-center">
             <span className="font-mono text-[8px] uppercase tracking-widest text-muted-foreground/70">
-              // CICLO
+              // CYCLE
             </span>
             <h2 className="font-black italic uppercase tracking-tighter text-base leading-none text-foreground">
-              ABRIL <span className="text-primary">2026</span>
+              APRIL <span className="text-primary">2026</span>
             </h2>
           </div>
           <div className="flex h-8 w-8 items-center justify-center border border-foreground/20 bg-background/50">
@@ -494,14 +494,14 @@ export const CalendarPreview = () => {
           </div>
           <div className="flex h-8 items-center gap-1 border-2 border-primary/50 bg-primary/10 px-2 font-mono text-[9px] font-bold uppercase tracking-widest text-primary">
             <CalendarIcon className="h-2.5 w-2.5" />
-            HOJE
+            TODAY
           </div>
         </div>
 
         {/* Calendar grid */}
         <div>
           <div className="mb-1.5 grid grid-cols-7 gap-1">
-            {["SEG", "TER", "QUA", "QUI", "SEX", "SÁB", "DOM"].map((d, i) => (
+            {["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"].map((d, i) => (
               <div key={i} className="py-1 text-center font-mono text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60">
                 {d}
               </div>
@@ -540,10 +540,10 @@ export const CalendarPreview = () => {
           </div>
           <div className="mt-3 flex items-center justify-center gap-4 text-[10px]">
             <span className="flex items-center gap-1.5 text-muted-foreground">
-              <span className="size-1.5 rounded-full bg-primary" /> Completo
+              <span className="size-1.5 rounded-full bg-primary" /> Complete
             </span>
             <span className="flex items-center gap-1.5 text-muted-foreground">
-              <span className="size-1.5 rounded-full bg-primary/40" /> Parcial
+              <span className="size-1.5 rounded-full bg-primary/40" /> Partial
             </span>
           </div>
         </div>
@@ -563,8 +563,8 @@ export const NutritionPreview = () => (
     <div className="px-4 pt-5 pb-4 space-y-3">
       <PreviewPageHeader
         icon={Leaf}
-        title="Nutrição"
-        subtitle="Plano semanal personalizado"
+        title="Nutrition"
+        subtitle="Personalized weekly plan"
         actions={
           <>
             <NeonIconButton icon={Settings2} />
@@ -575,21 +575,21 @@ export const NutritionPreview = () => (
 
       <div className="flex flex-wrap gap-1.5">
         <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-secondary text-secondary-foreground border border-foreground/10">
-          Definição
+          Cutting
         </span>
         <span className="text-[10px] font-medium px-2 py-0.5 rounded-md border border-foreground/15 text-muted-foreground">
-          4 refeições
+          4 meals
         </span>
         <span className="text-[10px] font-medium px-2 py-0.5 rounded-md border border-foreground/15 text-muted-foreground">
-          2.200 kcal
+          2,200 kcal
         </span>
       </div>
 
       <div className="flex items-center justify-between border-y border-foreground/10 py-2">
         <ChevronLeft className="h-4 w-4 text-muted-foreground" />
         <div className="text-center">
-          <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">Hoje</p>
-          <p className="text-sm font-bold">Terça · 28 Abr</p>
+          <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">Today</p>
+          <p className="text-sm font-bold">Tue · Apr 28</p>
         </div>
         <ChevronRight className="h-4 w-4 text-muted-foreground" />
       </div>
@@ -604,21 +604,21 @@ export const NutritionPreview = () => (
           <p className="font-black italic text-sm tabular-nums text-primary">168</p>
         </div>
         <div className="text-center">
-          <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">HC</p>
+          <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">Carbs</p>
           <p className="font-black italic text-sm tabular-nums">210</p>
         </div>
         <div className="text-center">
-          <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">Gord</p>
+          <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">Fat</p>
           <p className="font-black italic text-sm tabular-nums">72</p>
         </div>
       </Surface>
 
       <div className="space-y-2">
         {[
-          { meal: "Pequeno-almoço", item: "Aveia, frutos vermelhos, whey", kcal: 420, done: true },
-          { meal: "Almoço", item: "Frango, arroz, legumes", kcal: 680, done: true },
-          { meal: "Lanche", item: "Iogurte grego, amêndoas", kcal: 320, done: false },
-          { meal: "Jantar", item: "Salmão, batata-doce", kcal: 720, done: false },
+          { meal: "Breakfast", item: "Oats, berries, whey",        kcal: 420, done: true },
+          { meal: "Lunch",     item: "Chicken, rice, vegetables",  kcal: 680, done: true },
+          { meal: "Snack",     item: "Greek yogurt, almonds",      kcal: 320, done: false },
+          { meal: "Dinner",    item: "Salmon, sweet potato",       kcal: 720, done: false },
         ].map((m, i) => (
           <Surface
             key={i}
@@ -655,13 +655,13 @@ export const NutritionPreview = () => (
 export const ShoppingPreview = () => {
   const extraDone = useDelayedToggle(2000);
   const baseItems = [
-    { name: "Peito de frango", qty: "1.2 kg", cat: "Talho", done: true },
-    { name: "Salmão fresco", qty: "600 g", cat: "Peixaria", done: true },
-    { name: "Batata-doce", qty: "1 kg", cat: "Frutas e Legumes", done: false, animate: true },
-    { name: "Brócolos", qty: "2 un", cat: "Frutas e Legumes", done: false },
-    { name: "Iogurte grego", qty: "4 un", cat: "Lacticínios", done: false },
-    { name: "Amêndoas", qty: "200 g", cat: "Mercearia", done: false },
-    { name: "Aveia integral", qty: "500 g", cat: "Mercearia", done: true },
+    { name: "Chicken breast",   qty: "1.2 kg", cat: "Butcher",     done: true },
+    { name: "Fresh salmon",     qty: "600 g",  cat: "Fishmonger",  done: true },
+    { name: "Sweet potato",     qty: "1 kg",   cat: "Produce",     done: false, animate: true },
+    { name: "Broccoli",         qty: "2 pcs",  cat: "Produce",     done: false },
+    { name: "Greek yogurt",     qty: "4 pcs",  cat: "Dairy",       done: false },
+    { name: "Almonds",          qty: "200 g",  cat: "Pantry",      done: false },
+    { name: "Rolled oats",      qty: "500 g",  cat: "Pantry",      done: true },
   ];
   const items = baseItems.map((it) =>
     it.animate ? { ...it, done: extraDone } : it,
@@ -677,15 +677,15 @@ export const ShoppingPreview = () => {
       <div className="px-4 pt-5 pb-4 space-y-3">
         <PreviewPageHeader
           icon={ShoppingCart}
-          title="Compras"
-          subtitle="Lista da semana"
+          title="Shopping"
+          subtitle="This week's list"
           actions={<NeonIconButton icon={Plus} />}
         />
 
         <Surface tone="subtle" size="compact" className="flex items-center justify-between">
           <div>
             <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">
-              PROGRESSO
+              PROGRESS
             </p>
             <p className="text-base font-black italic tabular-nums transition-all duration-500">
               {completed}<span className="text-muted-foreground/50 text-xs">/{total}</span>
@@ -767,18 +767,18 @@ export const ProgressPreview = () => {
       <div className="px-4 pt-5 pb-4 space-y-5">
         <PreviewPageHeader
           icon={Activity}
-          title="Progresso"
-          subtitle="Leitura do ciclo"
+          title="Progress"
+          subtitle="Cycle reading"
         />
 
         <div className="flex items-center justify-between border-y-2 border-foreground/10 py-3">
           <ChevronLeft className="h-4 w-4 text-muted-foreground" />
           <div className="text-center">
             <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-              CICLO
+              CYCLE
             </p>
             <h2 className="text-xl font-black italic uppercase tracking-tighter">
-              Abril 2026
+              April 2026
             </h2>
           </div>
           <ChevronRight className="h-4 w-4 text-muted-foreground" />
@@ -787,7 +787,7 @@ export const ProgressPreview = () => {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-              // CONSISTÊNCIA
+              // CONSISTENCY
             </p>
             <span className="font-black italic tabular-nums text-primary text-lg drop-shadow-[0_0_8px_hsl(var(--neon-toxic))]">
               98%
@@ -827,16 +827,16 @@ export const ProgressPreview = () => {
 
         <div className="space-y-2">
           <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground px-1">
-            // LEITURA
+            // READING
           </p>
           <div className="border-l-2 border-primary/60 bg-card/50 p-3">
             <p className="text-[12px] text-foreground/90 leading-relaxed">
-              Mês mais consistente até hoje. Treino e leitura sustentaram-se 23 dias seguidos.
+              Most consistent month so far. Training and reading sustained 23 days in a row.
             </p>
           </div>
           <div className="border-l-2 border-primary/60 bg-card/50 p-3">
             <p className="text-[12px] text-foreground/90 leading-relaxed">
-              Café reduzido em <span className="text-primary font-bold tabular-nums">38%</span> face ao ciclo anterior.
+              Coffee reduced by <span className="text-primary font-bold tabular-nums">38%</span> compared to the previous cycle.
             </p>
           </div>
         </div>
@@ -844,8 +844,8 @@ export const ProgressPreview = () => {
         <div className="grid grid-cols-3 gap-2">
           {[
             { icon: Flame, label: "Streak", value: "23D" },
-            { icon: TrendingUp, label: "Nível", value: "07" },
-            { icon: Target, label: "Dias", value: "21/28" },
+            { icon: TrendingUp, label: "Level", value: "07" },
+            { icon: Target, label: "Days", value: "21/28" },
           ].map((k, i) => (
             <Surface key={i} tone="subtle" size="compact" className="text-center">
               <k.icon className="h-3.5 w-3.5 mx-auto text-primary mb-1" />
