@@ -74,7 +74,7 @@ export const PhoneFrame = ({ children, className }: PhoneFrameProps) => (
       }}
     />
     <div className="relative h-full rounded-[44px] border border-foreground/15 bg-card p-2 shadow-[0_30px_90px_-20px_hsl(var(--neon-ultra)/0.45)]">
-      <div className="h-full rounded-[36px] overflow-hidden bg-background border border-foreground/10 [&>*]:h-full">
+      <div className="h-full rounded-[36px] overflow-hidden bg-background border border-foreground/10 text-[0.9em] leading-snug [&>*]:h-full">
         {children}
       </div>
     </div>
