@@ -373,9 +373,9 @@ export const HabitsPreview = () => {
             RITUAIS · {ritualsDone}/3
           </p>
           <div className="space-y-2">
-            <PreviewHabitRow name="ACORDAR" time="07:30" done color="hsl(25 95% 55%)" />
-            <PreviewHabitRow name="GINÁSIO" time="08:30" done={secondDone} color="hsl(160 70% 50%)" />
-            <PreviewHabitRow name="DORMIR" time="23:30" color="hsl(220 70% 60%)" />
+            <PreviewHabitRow name="MEDITAR" time="06:45" done color="hsl(265 70% 60%)" />
+            <PreviewHabitRow name="LER 20 MIN" time="08:15" done={secondDone} color="hsl(195 80% 55%)" />
+            <PreviewHabitRow name="ESCREVER DIÁRIO" time="22:00" color="hsl(340 75% 60%)" />
           </div>
         </section>
 
@@ -385,10 +385,9 @@ export const HabitsPreview = () => {
             MÉTRICAS · 1/2 ON TRACK
           </p>
           <PreviewHabitRow
-            name="Cigarros"
-            reduce
-            metric={{ count: 3, goal: 5, unit: "un" }}
-            color="hsl(45 95% 55%)"
+            name="Água"
+            metric={{ count: 6, goal: 8, unit: "copos" }}
+            color="hsl(195 85% 55%)"
           />
         </section>
       </div>
