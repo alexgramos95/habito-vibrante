@@ -320,16 +320,30 @@ const Landing = () => {
               </div>
 
               <h1 className="type-display text-[44px] sm:text-6xl md:text-7xl lg:text-[80px] leading-[0.95] mb-6 animate-fade-in">
-                Become the person<br />
-                <span className="text-primary" style={{ textShadow: "0 0 60px hsl(var(--neon-toxic) / 0.5)" }}>
-                  you promised
-                </span><br />
-                yourself you'd be.
+                {hero.headline}
               </h1>
 
-              <p className="type-body text-base md:text-lg text-muted-foreground/90 max-w-[42ch] mx-auto lg:mx-0 mb-8 animate-fade-in">
-                Habits, progress and discipline in one operating system.
+              <p className="type-body text-base md:text-lg text-muted-foreground/90 max-w-[42ch] mx-auto lg:mx-0 mb-6 animate-fade-in">
+                {hero.sub}
               </p>
+
+              {/* Trust micro-row (above CTA — reduces hesitation) */}
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-x-5 gap-y-2 mb-6 type-eyebrow text-muted-foreground/70">
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="flex">
+                    {[0,1,2,3,4].map((i) => (
+                      <Star key={i} className="h-3 w-3 fill-primary text-primary" />
+                    ))}
+                  </span>
+                  <span>4.8 · early users</span>
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <ShieldCheck className="h-3 w-3 text-primary" /> Encrypted &amp; private
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <Zap className="h-3 w-3 text-primary" /> 30-second signup
+                </span>
+              </div>
 
               <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start items-center mb-5">
                 <Button
@@ -337,7 +351,7 @@ const Landing = () => {
                   onClick={handleStartTrial}
                   className="gap-2 px-12 w-full sm:w-auto"
                 >
-                  Start Free
+                  {hero.cta}
                   <ArrowRight className="h-5 w-5" />
                 </Button>
                 <Button size="lg" variant="outline" onClick={() => scrollTo("inside")} className="w-full sm:w-auto">
@@ -346,7 +360,7 @@ const Landing = () => {
               </div>
 
               <p className="type-eyebrow text-muted-foreground/50">
-                7 days free · No credit card · Cancel anytime
+                7 days free · No credit card · Google or Apple in 1 tap
               </p>
             </div>
 
