@@ -304,7 +304,7 @@ const Landing = () => {
         <div className="container max-w-6xl relative z-10 px-5 md:px-6">
           <div className="flex flex-col items-center">
             {/* Copy — minimal: badge, headline, sub, one CTA */}
-            <div className="text-center max-w-3xl mx-auto">
+            <div className="text-center max-w-5xl mx-auto w-full">
               <div className="inline-flex items-center gap-2 mb-5 px-3 py-1.5 border border-foreground/10 bg-foreground/[0.03] backdrop-blur-sm animate-fade-in">
                 <span className="h-1.5 w-1.5 rounded-full bg-primary" />
                 <span className="type-eyebrow text-muted-foreground">
