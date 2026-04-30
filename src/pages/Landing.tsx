@@ -12,7 +12,6 @@ import {
   Target,
   Sparkles,
   ChevronDown,
-  Star,
   ShieldCheck,
   Zap,
 } from "lucide-react";
