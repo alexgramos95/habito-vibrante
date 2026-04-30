@@ -312,7 +312,7 @@ const Landing = () => {
                 </span>
               </div>
 
-              <h1 className="type-display text-[40px] sm:text-6xl md:text-7xl lg:text-[80px] leading-[0.95] mb-5 animate-fade-in">
+              <h1 className="type-display text-[28px] sm:text-5xl md:text-6xl lg:text-7xl leading-[0.95] mb-5 animate-fade-in">
                 {hero.headline}
               </h1>
 
