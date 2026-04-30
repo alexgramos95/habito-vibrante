@@ -535,69 +535,6 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* ===== SOCIAL PROOF — testimonials ===== */}
-      <section className="py-16 md:py-20 border-t border-foreground/[0.05]">
-        <div className="container max-w-6xl px-6">
-          <Reveal>
-            <div className="text-center mb-10">
-              <p className="type-eyebrow text-primary mb-4">// Early users</p>
-              <h2 className="type-display text-3xl md:text-5xl mb-4">
-                Built for people who stop quitting.
-              </h2>
-            </div>
-          </Reveal>
-
-          <div className="grid gap-px bg-foreground/[0.05] border border-foreground/[0.05] md:grid-cols-3">
-            {[
-              {
-                quote: "First app I haven't deleted in week two. The system actually compounds.",
-                name: "Miguel R.",
-                role: "Founder · Lisbon",
-              },
-              {
-                quote: "Replaced four apps. My mornings are quieter and my consistency is up 3×.",
-                name: "Ana C.",
-                role: "Product Lead · Porto",
-              },
-              {
-                quote: "Feels like a coach, not a tracker. The progress reading hits different.",
-                name: "Tomás L.",
-                role: "Athlete · Madrid",
-              },
-            ].map((t, i) => (
-              <Reveal key={i} delay={i * 80}>
-                <figure className="bg-background p-7 h-full flex flex-col">
-                  <div className="flex gap-0.5 mb-4">
-                    {[0,1,2,3,4].map((s) => (
-                      <Star key={s} className="h-3.5 w-3.5 fill-primary text-primary" />
-                    ))}
-                  </div>
-                  <blockquote className="type-body text-foreground/90 text-[15px] leading-relaxed flex-1">
-                    "{t.quote}"
-                  </blockquote>
-                  <figcaption className="mt-5 pt-5 border-t border-foreground/[0.07]">
-                    <p className="font-bold text-sm tracking-tight">{t.name}</p>
-                    <p className="type-eyebrow text-muted-foreground/70 mt-0.5">{t.role}</p>
-                  </figcaption>
-                </figure>
-              </Reveal>
-            ))}
-          </div>
-
-          <Reveal>
-            <div className="mt-10 text-center">
-              <Button size="lg" onClick={handleStartTrial} className="gap-2 px-12">
-                {hero.cta}
-                <ArrowRight className="h-5 w-5" />
-              </Button>
-              <p className="type-eyebrow text-muted-foreground/50 mt-4">
-                Join them · 7 days free · No card
-              </p>
-            </div>
-          </Reveal>
-        </div>
-      </section>
-
       {/* ===== PRICING — premium framing ===== */}
       <section id="pricing" className="py-16 md:py-24 border-t border-foreground/[0.05] relative overflow-hidden">
         <div
