@@ -399,7 +399,46 @@ export function PlanChatDrawer({ open, onOpenChange, plan, locale, onUpdatePlan 
         },
       });
 
-      if (error) throw error;
+      // Try to extract a meaningful error from FunctionsHttpError (status 402/429/etc.)
+      if (error) {
+        let status: number | undefined;
+        let serverMsg: string | undefined;
+        try {
+          const ctx: any = (error as any).context;
+          status = ctx?.status ?? (error as any).status;
+          if (ctx && typeof ctx.json === "function") {
+            const j = await ctx.json();
+            serverMsg = j?.error;
+          } else if (ctx && typeof ctx.text === "function") {
+            const t = await ctx.text();
+            try { serverMsg = JSON.parse(t)?.error; } catch { serverMsg = t; }
+          }
+        } catch { /* ignore */ }
+
+        if (status === 402) {
+          toast({
+            title: lang === "pt" ? "Créditos de IA esgotados" : "AI credits exhausted",
+            description:
+              lang === "pt"
+                ? "Adiciona créditos em Settings → Workspace → Usage para voltar a gerar refeições."
+                : "Add credits in Settings → Workspace → Usage to resume generating meals.",
+            variant: "destructive",
+          });
+          return;
+        }
+        if (status === 429) {
+          toast({
+            title: lang === "pt" ? "Demasiados pedidos" : "Too many requests",
+            description:
+              lang === "pt"
+                ? "Aguarda alguns segundos e tenta de novo."
+                : "Wait a few seconds and try again.",
+            variant: "destructive",
+          });
+          return;
+        }
+        throw new Error(serverMsg || (error as any).message || "request failed");
+      }
 
       if (data?.error) {
         toast({
