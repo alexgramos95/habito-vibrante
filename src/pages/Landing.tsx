@@ -175,7 +175,7 @@ const HERO_VARIANTS: Record<HeroVariant, {
   system: {
     headline: (
       <>
-        Six apps. One life.<br />
+        Stop relying on motivation.<br />
         <span className="text-primary" style={{ textShadow: "0 0 32px hsl(var(--neon-toxic) / 0.3)" }}>
           Become the system.
         </span>
