@@ -174,8 +174,8 @@ const HERO_VARIANTS: Record<HeroVariant, {
   system: {
     headline: (
       <>
-        <span className="block whitespace-nowrap">Stop relying on motivation.</span>
-        <span className="block whitespace-nowrap text-primary" style={{ textShadow: "0 0 32px hsl(var(--neon-toxic) / 0.3)" }}>
+        <span className="block sm:whitespace-nowrap">Stop relying on motivation.</span>
+        <span className="block sm:whitespace-nowrap text-primary" style={{ textShadow: "0 0 32px hsl(var(--neon-toxic) / 0.3)" }}>
           Become the system.
         </span>
       </>
