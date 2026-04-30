@@ -316,7 +316,7 @@ const Landing = () => {
                 {hero.headline}
               </h1>
 
-              <p className="type-body text-base md:text-lg text-muted-foreground/90 max-w-[44ch] mx-auto lg:mx-0 mb-6 animate-fade-in">
+              <p className="type-body text-base md:text-lg text-muted-foreground/90 max-w-[44ch] mx-auto mb-6 animate-fade-in">
                 {hero.sub}
               </p>
 
