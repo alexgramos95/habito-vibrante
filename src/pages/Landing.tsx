@@ -334,7 +334,7 @@ const Landing = () => {
                 ))}
               </ul>
 
-              <div className="flex justify-center lg:justify-start mb-3">
+              <div className="flex justify-center mb-3">
                 <Button
                   size="xl"
                   onClick={handleStartTrial}
