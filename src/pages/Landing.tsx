@@ -321,7 +321,7 @@ const Landing = () => {
               </p>
 
               {/* 3-line value clarity: sharper outcome-led benefits */}
-              <ul className="mb-7 space-y-2 max-w-[42ch] mx-auto lg:mx-0 text-left">
+              <ul className="mb-7 space-y-2 max-w-[42ch] mx-auto text-left">
                 {[
                   "Replace 6 apps with one daily system.",
                   "Build streaks that compound — not anxiety.",
