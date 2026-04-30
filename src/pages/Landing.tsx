@@ -302,7 +302,7 @@ const Landing = () => {
         />
 
         <div className="container max-w-6xl relative z-10 px-5 md:px-6">
-          <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-10 lg:gap-14 items-center">
+          <div className="flex flex-col items-center">
             {/* Copy — minimal: badge, headline, sub, one CTA */}
             <div className="text-center lg:text-left">
               <div className="inline-flex items-center gap-2 mb-5 px-3 py-1.5 border border-foreground/10 bg-foreground/[0.03] backdrop-blur-sm animate-fade-in">
