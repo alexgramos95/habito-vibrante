@@ -175,7 +175,7 @@ const HERO_VARIANTS: Record<HeroVariant, {
   system: {
     headline: (
       <>
-        Six apps. One life.<br />
+        Stop relying on motivation.<br />
         <span className="text-primary" style={{ textShadow: "0 0 32px hsl(var(--neon-toxic) / 0.3)" }}>
           Become the system.
         </span>
@@ -302,9 +302,9 @@ const Landing = () => {
         />
 
         <div className="container max-w-6xl relative z-10 px-5 md:px-6">
-          <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-10 lg:gap-14 items-center">
+          <div className="flex flex-col items-center">
             {/* Copy — minimal: badge, headline, sub, one CTA */}
-            <div className="text-center lg:text-left">
+            <div className="text-center max-w-3xl mx-auto">
               <div className="inline-flex items-center gap-2 mb-5 px-3 py-1.5 border border-foreground/10 bg-foreground/[0.03] backdrop-blur-sm animate-fade-in">
                 <span className="h-1.5 w-1.5 rounded-full bg-primary" />
                 <span className="type-eyebrow text-muted-foreground">
@@ -316,12 +316,12 @@ const Landing = () => {
                 {hero.headline}
               </h1>
 
-              <p className="type-body text-base md:text-lg text-muted-foreground/90 max-w-[44ch] mx-auto lg:mx-0 mb-6 animate-fade-in">
+              <p className="type-body text-base md:text-lg text-muted-foreground/90 max-w-[44ch] mx-auto mb-6 animate-fade-in">
                 {hero.sub}
               </p>
 
               {/* 3-line value clarity: sharper outcome-led benefits */}
-              <ul className="mb-7 space-y-2 max-w-[42ch] mx-auto lg:mx-0 text-left">
+              <ul className="mb-7 space-y-2 max-w-[42ch] mx-auto text-left">
                 {[
                   "Replace 6 apps with one daily system.",
                   "Build streaks that compound — not anxiety.",
@@ -334,7 +334,7 @@ const Landing = () => {
                 ))}
               </ul>
 
-              <div className="flex justify-center lg:justify-start mb-3">
+              <div className="flex justify-center mb-3">
                 <Button
                   size="xl"
                   onClick={handleStartTrial}
