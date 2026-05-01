@@ -4,10 +4,13 @@ import {
   ArrowRight,
   CheckCircle2,
   ChevronDown,
-  Target,
   Calendar as CalendarIcon,
   Activity,
   ShieldCheck,
+  PlayCircle,
+  ListChecks,
+  Check,
+  RotateCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -17,17 +20,15 @@ import { BecomeLogo } from "@/components/Brand/BecomeLogo";
 import { DayViewPreview } from "@/components/Landing/DayViewPreview";
 
 /**
- * Landing — narrative-driven, conversion-first.
+ * Landing — Final conversion pass.
  *
- * Story arc (mirrors the Instagram carousels):
- *   Hero → Problem → Belief break → Solution transition → Product preview
- *   → Outcomes → Differentiation → Pricing → FAQ → Final CTA
+ * Story arc (one idea per viewport, generous breathing room):
+ *   Hero (almost empty) → Problem (linear) → Belief break →
+ *   Solution turning point → Product (hero moment) → Loop visual →
+ *   Outcomes → Differentiation → Pricing → FAQ → Final CTA
  *
- * Rules:
- *   - One focal element per section.
- *   - Strong vertical rhythm.
- *   - English only.
- *   - Single faithful Day View preview (no fragmented mockups).
+ * Rules: one focal element per section, no horizontal competition,
+ * pure typography in narrative sections, English only.
  */
 
 /* ---------- Scroll reveal ---------- */
@@ -109,9 +110,9 @@ const Landing = () => {
 
   const outcomes = [
     { icon: CheckCircle2, title: "Build consistency", desc: "Daily systems that compound — not streak anxiety." },
-    { icon: CalendarIcon, title: "Plan your day", desc: "One screen. Every priority. Zero context-switching." },
-    { icon: Activity, title: "Track what matters", desc: "Habits, metrics, momentum — without the noise." },
-    { icon: ShieldCheck, title: "Stay in control", desc: "Encrypted, private, exportable. Yours forever." },
+    { icon: CalendarIcon, title: "Stay on track", desc: "One screen. Every priority. Zero context-switching." },
+    { icon: Activity, title: "Know your progress", desc: "Habits, metrics, momentum — without the noise." },
+    { icon: ShieldCheck, title: "Keep control", desc: "Encrypted, private, exportable. Yours forever." },
   ];
 
   const faqs = [
@@ -132,6 +133,10 @@ const Landing = () => {
       a: "Always. Encrypted sync, no ads, no data selling. Export to CSV or PDF whenever you want.",
     },
   ];
+
+  /* Section spacing — generous, unified vertical rhythm */
+  const SECTION = "py-32 md:py-44";
+  const SECTION_TIGHT = "py-24 md:py-32";
 
   return (
     <div className="with-scanlines min-h-screen max-w-full overflow-x-clip bg-background text-foreground antialiased animate-page-enter">
@@ -155,27 +160,26 @@ const Landing = () => {
         </div>
       </nav>
 
-      {/* ===== 1. HERO ===== */}
-      <section className="relative pt-28 pb-16 md:pt-36 md:pb-24 overflow-hidden">
+      {/* ===== 1. HERO — almost empty. One message. One action. ===== */}
+      <section className="relative min-h-[88vh] flex items-center justify-center overflow-hidden pt-24">
         <div
-          className="absolute top-0 left-1/2 -translate-x-1/2 w-[820px] h-[820px] pointer-events-none opacity-30"
+          className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[820px] h-[820px] pointer-events-none opacity-30"
           style={{
             background:
               "radial-gradient(closest-side, hsl(var(--neon-ultra) / 0.14), transparent 70%)",
           }}
         />
         <div className="container max-w-4xl relative z-10 px-5 md:px-6 text-center">
-          <h1 className="type-display text-[34px] sm:text-6xl md:text-7xl leading-[0.95] mb-7 animate-fade-in">
+          <h1 className="type-display text-[36px] sm:text-6xl md:text-7xl lg:text-8xl leading-[0.95] mb-12 animate-fade-in">
             You don't need motivation.
             <br />
-            <span className="text-primary" style={{ textShadow: "0 0 32px hsl(var(--neon-toxic) / 0.35)" }}>
+            <span
+              className="text-primary"
+              style={{ textShadow: "0 0 32px hsl(var(--neon-toxic) / 0.35)" }}
+            >
               You need a system.
             </span>
           </h1>
-
-          <p className="type-body text-base md:text-xl text-muted-foreground/90 max-w-[44ch] mx-auto mb-9 animate-fade-in">
-            Stop restarting. Build consistency that compounds.
-          </p>
 
           <Button
             size="xl"
@@ -185,130 +189,150 @@ const Landing = () => {
             Start your system
             <ArrowRight className="h-5 w-5" />
           </Button>
-
-          <p className="type-eyebrow text-muted-foreground/50 mt-4">
-            7 days free · No credit card
-          </p>
         </div>
       </section>
 
-      {/* ===== 2. PROBLEM ===== */}
-      <section className="py-24 md:py-32 border-t border-foreground/[0.05]">
+      {/* ===== 2. PROBLEM (linear, full width, centered) ===== */}
+      <section className={cn(SECTION, "border-t border-foreground/[0.05]")}>
         <div className="container max-w-3xl px-6 text-center">
           <Reveal>
-            <h2 className="type-display text-3xl sm:text-5xl md:text-6xl leading-[1.05]">
+            <h2 className="type-display text-3xl sm:text-5xl md:text-6xl leading-[1.1]">
               You start when you feel good.
-              <br />
-              <span className="text-muted-foreground/60">You stop when you don't.</span>
-              <br />
-              <span className="text-primary" style={{ textShadow: "0 0 24px hsl(var(--neon-toxic) / 0.3)" }}>
-                That's the cycle.
-              </span>
+            </h2>
+          </Reveal>
+        </div>
+      </section>
+
+      <section className={SECTION}>
+        <div className="container max-w-3xl px-6 text-center">
+          <Reveal>
+            <h2 className="type-display text-3xl sm:text-5xl md:text-6xl leading-[1.1] text-muted-foreground/70">
+              You stop when you don't.
+            </h2>
+          </Reveal>
+        </div>
+      </section>
+
+      <section className={SECTION}>
+        <div className="container max-w-3xl px-6 text-center">
+          <Reveal>
+            <h2
+              className="type-display text-4xl sm:text-6xl md:text-7xl leading-[1.05] text-primary"
+              style={{ textShadow: "0 0 28px hsl(var(--neon-toxic) / 0.35)" }}
+            >
+              That's the cycle.
             </h2>
           </Reveal>
         </div>
       </section>
 
       {/* ===== 3. BELIEF BREAK ===== */}
-      <section className="py-24 md:py-32 border-t border-foreground/[0.05]">
-        <div className="container max-w-3xl px-6 text-center space-y-10">
+      <section className={cn(SECTION, "border-t border-foreground/[0.05]")}>
+        <div className="container max-w-3xl px-6 text-center">
           <Reveal>
             <h2 className="type-display text-4xl sm:text-6xl md:text-7xl leading-[1.05]">
               It's <span className="text-primary" style={{ textShadow: "0 0 28px hsl(var(--neon-toxic) / 0.35)" }}>not</span> your fault.
             </h2>
           </Reveal>
-          <Reveal delay={120}>
-            <p className="type-display text-2xl sm:text-3xl md:text-4xl text-muted-foreground/80 leading-snug max-w-[24ch] mx-auto">
+        </div>
+      </section>
+
+      <section className={SECTION}>
+        <div className="container max-w-3xl px-6 text-center">
+          <Reveal>
+            <h2 className="type-display text-3xl sm:text-5xl md:text-6xl leading-[1.1]">
               Motivation fades.
               <br />
-              That's why nothing sticks.
-            </p>
+              <span className="text-muted-foreground/70">That's why nothing sticks.</span>
+            </h2>
           </Reveal>
         </div>
       </section>
 
-      {/* ===== 4. SOLUTION TRANSITION ===== */}
-      <section className="py-24 md:py-32 border-t border-foreground/[0.05] relative overflow-hidden">
+      {/* ===== 4. TURNING POINT ===== */}
+      <section className={cn(SECTION, "border-t border-foreground/[0.05] relative overflow-hidden")}>
         <div
-          className="absolute inset-0 pointer-events-none opacity-40"
+          className="absolute inset-0 pointer-events-none opacity-50"
           style={{
-            background: "radial-gradient(ellipse at 50% 50%, hsl(var(--neon-toxic) / 0.08), transparent 60%)",
+            background: "radial-gradient(ellipse at 50% 50%, hsl(var(--neon-toxic) / 0.1), transparent 60%)",
           }}
         />
-        <div className="container max-w-3xl px-6 text-center relative z-10 space-y-6">
+        <div className="container max-w-3xl px-6 text-center relative z-10">
           <Reveal>
             <h2 className="type-display text-3xl sm:text-5xl md:text-6xl leading-[1.05]">
               You don't need more motivation.
               <br />
-              <span className="text-primary" style={{ textShadow: "0 0 28px hsl(var(--neon-toxic) / 0.35)" }}>
+              <span className="text-primary" style={{ textShadow: "0 0 32px hsl(var(--neon-toxic) / 0.4)" }}>
                 You need a system.
               </span>
             </h2>
           </Reveal>
-          <Reveal delay={120}>
-            <p className="type-body text-lg md:text-xl text-muted-foreground/85">
-              This is where Become comes in.
-            </p>
-          </Reveal>
         </div>
       </section>
 
-      {/* ===== 5. PRODUCT PREVIEW (single, faithful Day View) ===== */}
-      <section id="product" className="py-20 md:py-28 border-t border-foreground/[0.05]">
+      {/* ===== 5. PRODUCT — hero moment ===== */}
+      <section id="product" className={cn(SECTION, "border-t border-foreground/[0.05]")}>
         <div className="container max-w-6xl px-6">
           <Reveal>
-            <div className="text-center mb-12">
-              <p className="type-eyebrow text-primary mb-4">// Your day, every day</p>
-              <h2 className="type-display text-3xl md:text-5xl mb-3">
+            <div className="text-center mb-16 md:mb-20">
+              <h2 className="type-display text-3xl sm:text-5xl md:text-6xl leading-[1.05]">
                 One place. Every day.
               </h2>
-              <p className="type-body text-muted-foreground/80 max-w-[44ch] mx-auto">
-                Your priorities, rituals and momentum — on one screen.
-              </p>
             </div>
           </Reveal>
 
           <Reveal delay={80}>
-            <div className="relative mx-auto w-full max-w-[480px]">
+            <div className="relative mx-auto w-full max-w-[560px]">
               <div
-                className="absolute inset-0 -z-10 pointer-events-none opacity-60 blur-3xl"
+                className="absolute -inset-10 -z-10 pointer-events-none opacity-70 blur-3xl"
                 style={{
                   background:
-                    "radial-gradient(closest-side, hsl(var(--neon-toxic) / 0.18), transparent 70%)",
+                    "radial-gradient(closest-side, hsl(var(--neon-toxic) / 0.22), transparent 70%)",
                 }}
               />
-              <div className="relative rounded-[44px] border border-foreground/15 bg-card p-3 shadow-[0_30px_90px_-20px_hsl(var(--neon-ultra)/0.45)]">
+              <div className="relative rounded-[44px] border border-foreground/15 bg-card p-3 shadow-[0_40px_120px_-20px_hsl(var(--neon-ultra)/0.5)]">
                 <div className="rounded-[36px] overflow-hidden bg-background border border-foreground/10 px-5 py-7">
                   <DayViewPreview />
                 </div>
               </div>
             </div>
           </Reveal>
+        </div>
+      </section>
 
+      {/* ===== 6. LOOP VISUAL ===== */}
+      <section className={SECTION_TIGHT}>
+        <div className="container max-w-4xl px-6">
           <Reveal>
-            <div className="mt-12 text-center">
-              <Button
-                size="lg"
-                onClick={handleStartTrial}
-                className="gap-2 px-12"
-              >
-                Start your system
-                <ArrowRight className="h-5 w-5" />
-              </Button>
-              <p className="type-eyebrow text-muted-foreground/50 mt-4">
-                7 days free · No credit card
-              </p>
-            </div>
+            <ul className="flex flex-wrap items-center justify-center gap-x-3 gap-y-4 sm:gap-x-6 text-center">
+              {[
+                { icon: PlayCircle, label: "Open" },
+                { icon: ListChecks, label: "Follow" },
+                { icon: Check, label: "Complete" },
+                { icon: RotateCw, label: "Repeat" },
+              ].map((step, i, arr) => (
+                <li key={step.label} className="flex items-center gap-3 sm:gap-6">
+                  <div className="flex items-center gap-2.5">
+                    <step.icon className="h-5 w-5 text-primary" />
+                    <span className="font-bold uppercase italic tracking-tight text-base sm:text-xl text-foreground">
+                      {step.label}
+                    </span>
+                  </div>
+                  {i < arr.length - 1 && (
+                    <ArrowRight className="h-4 w-4 text-muted-foreground/50" />
+                  )}
+                </li>
+              ))}
+            </ul>
           </Reveal>
         </div>
       </section>
 
-      {/* ===== 6. OUTCOMES ===== */}
-      <section className="py-20 md:py-28 border-t border-foreground/[0.05]">
+      {/* ===== 7. OUTCOMES ===== */}
+      <section className={cn(SECTION_TIGHT, "border-t border-foreground/[0.05]")}>
         <div className="container max-w-5xl px-6">
           <Reveal>
-            <div className="text-center mb-12">
-              <p className="type-eyebrow text-primary mb-4">// What you get</p>
+            <div className="text-center mb-14">
               <h2 className="type-display text-3xl md:text-5xl">
                 A system that runs your day.
               </h2>
@@ -318,7 +342,7 @@ const Landing = () => {
           <div className="grid gap-px bg-foreground/[0.05] border border-foreground/[0.05] sm:grid-cols-2 lg:grid-cols-4">
             {outcomes.map((o, i) => (
               <Reveal key={o.title} delay={i * 60} className="h-full">
-                <div className="bg-background p-7 group hover:bg-foreground/[0.025] transition-colors duration-300 h-full w-full">
+                <div className="bg-background p-7 group hover:bg-foreground/[0.025] transition-colors duration-300 h-full w-full min-h-[220px] flex flex-col">
                   <div className="h-11 w-11 mb-7 flex items-center justify-center border border-foreground/10 group-hover:border-primary/40 group-hover:bg-primary/5 transition-all duration-300">
                     <o.icon className="h-5 w-5 text-primary" />
                   </div>
@@ -331,8 +355,8 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* ===== 7. DIFFERENTIATION ===== */}
-      <section className="py-24 md:py-32 border-t border-foreground/[0.05]">
+      {/* ===== 8. DIFFERENTIATION ===== */}
+      <section className={cn(SECTION, "border-t border-foreground/[0.05]")}>
         <div className="container max-w-3xl px-6 text-center">
           <Reveal>
             <h2 className="type-display text-4xl sm:text-6xl md:text-7xl leading-[1.05]">
@@ -347,7 +371,7 @@ const Landing = () => {
       </section>
 
       {/* ===== PRICING ===== */}
-      <section id="pricing" className="py-16 md:py-24 border-t border-foreground/[0.05] relative overflow-hidden">
+      <section id="pricing" className={cn(SECTION_TIGHT, "border-t border-foreground/[0.05] relative overflow-hidden")}>
         <div
           className="absolute inset-0 pointer-events-none opacity-50"
           style={{
@@ -356,14 +380,10 @@ const Landing = () => {
         />
         <div className="container max-w-5xl px-6 relative z-10">
           <Reveal>
-            <div className="text-center mb-12">
-              <p className="type-eyebrow text-primary mb-4">// Pricing</p>
+            <div className="text-center mb-14">
               <h2 className="type-display text-3xl md:text-5xl mb-4">
                 Start free. Commit when ready.
               </h2>
-              <p className="type-body text-muted-foreground/80">
-                Less than one coffee a week. One system for life.
-              </p>
             </div>
           </Reveal>
 
@@ -452,11 +472,10 @@ const Landing = () => {
       </section>
 
       {/* ===== FAQ ===== */}
-      <section id="faq" className="py-16 md:py-20 border-t border-foreground/[0.05]">
+      <section id="faq" className={cn(SECTION_TIGHT, "border-t border-foreground/[0.05]")}>
         <div className="container max-w-3xl px-6">
           <Reveal>
             <div className="text-center mb-12">
-              <p className="type-eyebrow text-primary mb-5">// FAQ</p>
               <h2 className="type-display text-3xl md:text-5xl">
                 Questions, answered.
               </h2>
@@ -486,26 +505,19 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* ===== 8. FINAL CTA ===== */}
-      <section className="py-24 md:py-32 border-t border-foreground/[0.05] relative overflow-hidden">
+      {/* ===== 9. FINAL CTA — inevitable ===== */}
+      <section className={cn(SECTION, "border-t border-foreground/[0.05] relative overflow-hidden")}>
         <div
           className="absolute inset-0 pointer-events-none opacity-50"
           style={{
-            background: "radial-gradient(ellipse at center, hsl(var(--neon-toxic) / 0.08), transparent 65%)",
+            background: "radial-gradient(ellipse at center, hsl(var(--neon-toxic) / 0.1), transparent 65%)",
           }}
         />
         <div className="container max-w-3xl px-6 text-center relative z-10">
           <Reveal>
-            <h2 className="type-display text-4xl sm:text-6xl md:text-7xl mb-10 leading-[1.05]">
+            <h2 className="type-display text-4xl sm:text-6xl md:text-7xl mb-12 leading-[1.05]">
               Stop restarting.
-              <br />
-              <span className="text-primary" style={{ textShadow: "0 0 28px hsl(var(--neon-toxic) / 0.35)" }}>
-                Start your system.
-              </span>
             </h2>
-            <p className="type-body text-lg text-muted-foreground/85 mb-12 max-w-xl mx-auto">
-              7 days free. No credit card. Cancel anytime.
-            </p>
             <Button
               size="xl"
               onClick={handleStartTrial}
@@ -550,9 +562,6 @@ const Landing = () => {
           Start your system
           <ArrowRight className="h-5 w-5" />
         </Button>
-        <p className="text-center type-eyebrow text-muted-foreground/50 mt-2">
-          1-tap with Google or Apple · No card
-        </p>
       </div>
 
       <PaywallModal
