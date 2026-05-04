@@ -325,6 +325,7 @@ const Landing = () => {
               </div>
             </div>
           </div>
+        </div>
       </section>
 
       {/* ===== 2. PROBLEM (linear, full width, centered) ===== */}
