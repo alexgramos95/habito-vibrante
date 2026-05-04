@@ -186,15 +186,6 @@ const Landing = () => {
               </p>
 
               <div className="flex flex-col items-center md:items-start gap-5">
-                <Button
-                  size="xl"
-                  onClick={handleStartTrial}
-                  className="gap-2 px-10 w-full sm:w-auto shadow-[0_0_28px_hsl(var(--neon-toxic)/0.35)]"
-                >
-                  Download the app
-                  <ArrowRight className="h-5 w-5" />
-                </Button>
-
                 <div className="flex items-center gap-3">
                   <button
                     onClick={handleStartTrial}
