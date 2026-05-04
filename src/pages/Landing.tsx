@@ -150,11 +150,8 @@ const Landing = () => {
             <button onClick={() => scrollTo("faq")} className="hover:text-foreground transition-colors">FAQ</button>
           </div>
           <div className="flex items-center gap-4">
-            <Link to="/auth" className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground/60 hover:text-foreground transition-colors">
-              Sign In
-            </Link>
             <Button size="sm" onClick={handleStartTrial}>
-              Start your system
+              Download the app
             </Button>
           </div>
         </div>
@@ -174,20 +171,18 @@ const Landing = () => {
             {/* Text block */}
             <div className="text-center md:text-left animate-fade-in order-1">
               <h1 className="type-display text-[40px] sm:text-5xl md:text-6xl lg:text-7xl leading-[0.95] mb-6 md:mb-8">
-                Your life.
+                You don't need motivation.
                 <br />
                 <span
                   className="text-primary"
                   style={{ textShadow: "0 0 32px hsl(var(--neon-toxic) / 0.35)" }}
                 >
-                  One system.
+                  You need a system.
                 </span>
-                <br />
-                Every day.
               </h1>
 
               <p className="type-body text-base sm:text-lg md:text-xl text-muted-foreground/85 mb-8 md:mb-10 max-w-[44ch] mx-auto md:mx-0">
-                Habits, planning and execution — in one place.
+                Plan. Execute. Repeat.
               </p>
 
               <div className="flex flex-col items-center md:items-start gap-5">
@@ -234,8 +229,8 @@ const Landing = () => {
               </div>
             </div>
 
-            {/* Phone mockups */}
-            <div className="relative order-2 mx-auto w-full max-w-[520px] h-[520px] sm:h-[600px] md:h-[640px]">
+            {/* Phone mockups (~15% larger, side phones slightly blurred) */}
+            <div className="relative order-2 mx-auto w-full max-w-[600px] h-[600px] sm:h-[690px] md:h-[740px]">
               <div
                 className="absolute inset-0 -z-10 pointer-events-none opacity-70 blur-3xl"
                 style={{
@@ -244,47 +239,84 @@ const Landing = () => {
                 }}
               />
 
-              {/* Left phone */}
-              <div className="absolute top-12 left-0 sm:left-2 w-[42%] aspect-[9/19] rounded-[28px] border border-foreground/15 bg-card p-1.5 shadow-[0_30px_80px_-20px_hsl(var(--neon-ultra)/0.45)] -rotate-[10deg] origin-bottom-right opacity-90">
-                <div className="rounded-[22px] overflow-hidden bg-background border border-foreground/10 h-full p-3 flex flex-col gap-2">
-                  <div className="font-mono text-[8px] uppercase tracking-wider text-muted-foreground/70">Week</div>
-                  <div className="flex justify-between mt-2">
-                    {[1,2,3,4,5,6,7].map((i) => (
-                      <div key={i} className={cn("h-2 w-2 rounded-full", i <= 5 ? "bg-primary" : "bg-foreground/15")} />
-                    ))}
-                  </div>
-                  <div className="mt-3 space-y-1.5">
-                    {[80, 65, 92, 50].map((w, i) => (
-                      <div key={i} className="h-1.5 rounded-full bg-foreground/10 overflow-hidden">
-                        <div className="h-full bg-primary/80" style={{ width: `${w}%` }} />
+              {/* Left phone — Habits list */}
+              <div className="absolute top-14 left-0 sm:left-1 w-[44%] aspect-[9/19] rounded-[28px] border border-foreground/15 bg-card p-1.5 shadow-[0_30px_80px_-20px_hsl(var(--neon-ultra)/0.45)] -rotate-[10deg] origin-bottom-right opacity-80 blur-[1.5px]">
+                <div className="rounded-[22px] overflow-hidden bg-background border border-foreground/10 h-full p-3 flex flex-col gap-2.5">
+                  <div className="font-mono text-[8px] uppercase tracking-widest text-primary">Habits · Today</div>
+                  {[
+                    { name: "Meditate", time: "06:45", done: true, color: "hsl(265 70% 60%)" },
+                    { name: "Workout", time: "07:30", done: true, color: "hsl(var(--primary))" },
+                    { name: "Read", time: "08:15", done: false, color: "hsl(195 80% 55%)" },
+                    { name: "Journal", time: "22:00", done: false, color: "hsl(340 75% 60%)" },
+                  ].map((h) => (
+                    <div key={h.name} className="flex items-center gap-2 border border-foreground/10 bg-card/60 p-1.5">
+                      <div
+                        className="h-6 w-[2px]"
+                        style={{ backgroundColor: h.color, opacity: h.done ? 1 : 0.5 }}
+                      />
+                      <div
+                        className={cn(
+                          "h-4 w-4 border flex items-center justify-center",
+                          h.done ? "bg-primary border-primary" : "border-foreground/30",
+                        )}
+                      >
+                        {h.done && <Check className="h-2.5 w-2.5 stroke-[3] text-primary-foreground" />}
                       </div>
-                    ))}
-                  </div>
-                  <div className="mt-auto font-mono text-[7px] uppercase tracking-wider text-primary">Streak · 12</div>
+                      <div className="flex-1 min-w-0">
+                        <div className={cn("text-[9px] font-bold uppercase tracking-tight", h.done ? "text-primary" : "text-foreground")}>
+                          {h.name}
+                        </div>
+                      </div>
+                      <div className="font-mono text-[7px] text-muted-foreground/70">{h.time}</div>
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              {/* Right phone */}
-              <div className="absolute top-12 right-0 sm:right-2 w-[42%] aspect-[9/19] rounded-[28px] border border-foreground/15 bg-card p-1.5 shadow-[0_30px_80px_-20px_hsl(var(--neon-ultra)/0.45)] rotate-[10deg] origin-bottom-left opacity-90">
+              {/* Right phone — Progress / overview */}
+              <div className="absolute top-14 right-0 sm:right-1 w-[44%] aspect-[9/19] rounded-[28px] border border-foreground/15 bg-card p-1.5 shadow-[0_30px_80px_-20px_hsl(var(--neon-ultra)/0.45)] rotate-[10deg] origin-bottom-left opacity-80 blur-[1.5px]">
                 <div className="rounded-[22px] overflow-hidden bg-background border border-foreground/10 h-full p-3 flex flex-col gap-2">
-                  <div className="font-mono text-[8px] uppercase tracking-wider text-muted-foreground/70">Month</div>
+                  <div className="font-mono text-[8px] uppercase tracking-widest text-primary">Progress</div>
+                  <div className="mt-1">
+                    <div className="font-black italic tracking-tighter text-2xl text-primary tabular-nums" style={{ textShadow: "0 0 10px hsl(var(--neon-toxic) / 0.4)" }}>
+                      87<span className="text-[10px] text-muted-foreground/60 ml-0.5 not-italic">%</span>
+                    </div>
+                    <div className="font-mono text-[7px] uppercase tracking-wider text-muted-foreground/60">This week</div>
+                  </div>
                   <div className="grid grid-cols-7 gap-1 mt-2">
                     {Array.from({ length: 28 }).map((_, i) => (
                       <div
                         key={i}
                         className={cn(
-                          "aspect-square rounded-sm",
-                          i % 5 === 0 ? "bg-foreground/10" : i % 3 === 0 ? "bg-primary/40" : "bg-primary/80",
+                          "aspect-square rounded-[1px]",
+                          i % 7 === 6 ? "bg-foreground/10" : i % 4 === 0 ? "bg-primary/40" : "bg-primary/85",
                         )}
                       />
                     ))}
                   </div>
-                  <div className="mt-auto font-mono text-[7px] uppercase tracking-wider text-primary">+18% momentum</div>
+                  <div className="mt-2 space-y-1.5">
+                    {[
+                      { label: "Meditate", w: 92 },
+                      { label: "Workout", w: 78 },
+                      { label: "Read", w: 64 },
+                    ].map((m) => (
+                      <div key={m.label} className="space-y-0.5">
+                        <div className="flex justify-between font-mono text-[7px] uppercase tracking-wider text-muted-foreground/70">
+                          <span>{m.label}</span>
+                          <span className="text-primary">{m.w}%</span>
+                        </div>
+                        <div className="h-1 bg-foreground/10 overflow-hidden">
+                          <div className="h-full bg-primary" style={{ width: `${m.w}%` }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-auto font-mono text-[7px] uppercase tracking-wider text-primary">Streak · 47d</div>
                 </div>
               </div>
 
-              {/* Center phone */}
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[58%] aspect-[9/19] rounded-[36px] border border-foreground/15 bg-card p-2 shadow-[0_50px_120px_-20px_hsl(var(--neon-ultra)/0.55)] z-10">
+              {/* Center phone — Day View (real screen) */}
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[62%] aspect-[9/19] rounded-[36px] border border-foreground/15 bg-card p-2 shadow-[0_50px_120px_-20px_hsl(var(--neon-ultra)/0.55)] z-10">
                 <div className="rounded-[28px] overflow-hidden bg-background border border-foreground/10 h-full px-3 py-4">
                   <div className="origin-top scale-[0.62] sm:scale-[0.68] -mb-[40%]">
                     <DayViewPreview />
