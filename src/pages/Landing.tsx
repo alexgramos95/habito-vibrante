@@ -160,35 +160,137 @@ const Landing = () => {
         </div>
       </nav>
 
-      {/* ===== 1. HERO — almost empty. One message. One action. ===== */}
-      <section className="relative min-h-[88vh] flex items-center justify-center overflow-hidden pt-24">
+      {/* ===== 1. HERO — mobile app download page ===== */}
+      <section className="relative min-h-[92vh] flex items-center overflow-hidden pt-28 md:pt-24 pb-16 md:pb-0">
         <div
-          className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[820px] h-[820px] pointer-events-none opacity-30"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] pointer-events-none opacity-30"
           style={{
             background:
               "radial-gradient(closest-side, hsl(var(--neon-ultra) / 0.14), transparent 70%)",
           }}
         />
-        <div className="container max-w-4xl relative z-10 px-5 md:px-6 text-center">
-          <h1 className="type-display text-[36px] sm:text-6xl md:text-7xl lg:text-8xl leading-[0.95] mb-12 animate-fade-in">
-            You don't need motivation.
-            <br />
-            <span
-              className="text-primary"
-              style={{ textShadow: "0 0 32px hsl(var(--neon-toxic) / 0.35)" }}
-            >
-              You need a system.
-            </span>
-          </h1>
+        <div className="container max-w-7xl relative z-10 px-5 md:px-6">
+          <div className="grid md:grid-cols-2 gap-12 md:gap-10 items-center">
+            {/* Text block */}
+            <div className="text-center md:text-left animate-fade-in order-1">
+              <h1 className="type-display text-[36px] sm:text-5xl md:text-6xl lg:text-7xl leading-[0.95] mb-6 md:mb-8">
+                You don't need motivation.
+                <br />
+                <span
+                  className="text-primary"
+                  style={{ textShadow: "0 0 32px hsl(var(--neon-toxic) / 0.35)" }}
+                >
+                  You need a system.
+                </span>
+              </h1>
 
-          <Button
-            size="xl"
-            onClick={handleStartTrial}
-            className="gap-2 px-12 w-full sm:w-auto shadow-[0_0_28px_hsl(var(--neon-toxic)/0.35)]"
-          >
-            Start your system
-            <ArrowRight className="h-5 w-5" />
-          </Button>
+              <p className="type-body text-base sm:text-lg md:text-xl text-muted-foreground/85 mb-8 md:mb-10 max-w-[44ch] mx-auto md:mx-0">
+                Habits, planning and execution — in one daily system.
+              </p>
+
+              <div className="flex flex-col items-center md:items-start gap-5">
+                <Button
+                  size="xl"
+                  onClick={handleStartTrial}
+                  className="gap-2 px-10 w-full sm:w-auto shadow-[0_0_28px_hsl(var(--neon-toxic)/0.35)]"
+                >
+                  Download the app
+                  <ArrowRight className="h-5 w-5" />
+                </Button>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={handleStartTrial}
+                    aria-label="Download on the App Store"
+                    className="h-12 px-4 flex items-center gap-2.5 rounded-xl bg-foreground text-background hover:opacity-90 transition-opacity"
+                  >
+                    <svg viewBox="0 0 24 24" className="h-6 w-6" fill="currentColor" aria-hidden>
+                      <path d="M16.365 1.43c0 1.14-.42 2.23-1.13 3.05-.78.92-2.05 1.63-3.06 1.55-.13-1.11.4-2.27 1.1-3.05.79-.88 2.13-1.55 3.09-1.55zM20.5 17.55c-.55 1.27-.81 1.84-1.52 2.96-.99 1.56-2.39 3.5-4.13 3.51-1.54.02-1.94-1-4.04-.99-2.1.01-2.54 1.01-4.08.99-1.74-.02-3.06-1.77-4.05-3.33C.01 16.43-.27 11.06 1.4 8.21c1.18-2.02 3.04-3.21 4.79-3.21 1.78 0 2.9 1 4.37 1 1.43 0 2.3-1 4.36-1 1.56 0 3.21.85 4.39 2.31-3.86 2.12-3.23 7.63 1.19 10.24z" />
+                    </svg>
+                    <div className="text-left leading-tight">
+                      <div className="text-[9px] uppercase tracking-wider opacity-80">Download on the</div>
+                      <div className="text-sm font-semibold">App Store</div>
+                    </div>
+                  </button>
+                  <button
+                    onClick={handleStartTrial}
+                    aria-label="Get it on Google Play"
+                    className="h-12 px-4 flex items-center gap-2.5 rounded-xl bg-foreground text-background hover:opacity-90 transition-opacity"
+                  >
+                    <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden>
+                      <path fill="#34A853" d="M3.6 2.3C3.2 2.7 3 3.3 3 4.1v15.8c0 .8.2 1.4.6 1.8l.1.1L12.6 13v-.2L3.7 2.2l-.1.1z"/>
+                      <path fill="#FBBC04" d="M15.6 16.1L12.6 13v-.2l3-3 .1.1 3.6 2c1 .6 1 1.5 0 2.1l-3.7 2.1z"/>
+                      <path fill="#EA4335" d="M15.7 16l-3.1-3.1L3.6 21.7c.4.4 1 .4 1.7.1L15.7 16"/>
+                      <path fill="#4285F4" d="M15.7 6L5.3 2.2c-.7-.4-1.3-.3-1.7.1l9 9 3.1-3.1z"/>
+                    </svg>
+                    <div className="text-left leading-tight">
+                      <div className="text-[9px] uppercase tracking-wider opacity-80">Get it on</div>
+                      <div className="text-sm font-semibold">Google Play</div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Phone mockups */}
+            <div className="relative order-2 mx-auto w-full max-w-[520px] h-[520px] sm:h-[600px] md:h-[640px]">
+              <div
+                className="absolute inset-0 -z-10 pointer-events-none opacity-70 blur-3xl"
+                style={{
+                  background:
+                    "radial-gradient(closest-side, hsl(var(--neon-toxic) / 0.22), transparent 70%)",
+                }}
+              />
+
+              {/* Left phone */}
+              <div className="absolute top-12 left-0 sm:left-2 w-[42%] aspect-[9/19] rounded-[28px] border border-foreground/15 bg-card p-1.5 shadow-[0_30px_80px_-20px_hsl(var(--neon-ultra)/0.45)] -rotate-[10deg] origin-bottom-right opacity-90">
+                <div className="rounded-[22px] overflow-hidden bg-background border border-foreground/10 h-full p-3 flex flex-col gap-2">
+                  <div className="font-mono text-[8px] uppercase tracking-wider text-muted-foreground/70">Week</div>
+                  <div className="flex justify-between mt-2">
+                    {[1,2,3,4,5,6,7].map((i) => (
+                      <div key={i} className={cn("h-2 w-2 rounded-full", i <= 5 ? "bg-primary" : "bg-foreground/15")} />
+                    ))}
+                  </div>
+                  <div className="mt-3 space-y-1.5">
+                    {[80, 65, 92, 50].map((w, i) => (
+                      <div key={i} className="h-1.5 rounded-full bg-foreground/10 overflow-hidden">
+                        <div className="h-full bg-primary/80" style={{ width: `${w}%` }} />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-auto font-mono text-[7px] uppercase tracking-wider text-primary">Streak · 12</div>
+                </div>
+              </div>
+
+              {/* Right phone */}
+              <div className="absolute top-12 right-0 sm:right-2 w-[42%] aspect-[9/19] rounded-[28px] border border-foreground/15 bg-card p-1.5 shadow-[0_30px_80px_-20px_hsl(var(--neon-ultra)/0.45)] rotate-[10deg] origin-bottom-left opacity-90">
+                <div className="rounded-[22px] overflow-hidden bg-background border border-foreground/10 h-full p-3 flex flex-col gap-2">
+                  <div className="font-mono text-[8px] uppercase tracking-wider text-muted-foreground/70">Month</div>
+                  <div className="grid grid-cols-7 gap-1 mt-2">
+                    {Array.from({ length: 28 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className={cn(
+                          "aspect-square rounded-sm",
+                          i % 5 === 0 ? "bg-foreground/10" : i % 3 === 0 ? "bg-primary/40" : "bg-primary/80",
+                        )}
+                      />
+                    ))}
+                  </div>
+                  <div className="mt-auto font-mono text-[7px] uppercase tracking-wider text-primary">+18% momentum</div>
+                </div>
+              </div>
+
+              {/* Center phone */}
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[58%] aspect-[9/19] rounded-[36px] border border-foreground/15 bg-card p-2 shadow-[0_50px_120px_-20px_hsl(var(--neon-ultra)/0.55)] z-10">
+                <div className="rounded-[28px] overflow-hidden bg-background border border-foreground/10 h-full px-3 py-4">
+                  <div className="origin-top scale-[0.62] sm:scale-[0.68] -mb-[40%]">
+                    <DayViewPreview />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
