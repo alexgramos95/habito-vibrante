@@ -632,30 +632,6 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* ===== 9. FINAL CTA — inevitable ===== */}
-      <section className={cn(SECTION, "border-t border-foreground/[0.05] relative overflow-hidden")}>
-        <div
-          className="absolute inset-0 pointer-events-none opacity-50"
-          style={{
-            background: "radial-gradient(ellipse at center, hsl(var(--neon-toxic) / 0.1), transparent 65%)",
-          }}
-        />
-        <div className="container max-w-3xl px-6 text-center relative z-10">
-          <Reveal>
-            <h2 className="type-display text-4xl sm:text-6xl md:text-7xl mb-12 leading-[1.05]">
-              Stop restarting.
-            </h2>
-            <Button
-              size="xl"
-              onClick={handleStartTrial}
-              className="gap-2 px-14 shadow-[0_0_32px_hsl(var(--neon-toxic)/0.4)]"
-            >
-              Start your system
-              <ArrowRight className="h-5 w-5" />
-            </Button>
-          </Reveal>
-        </div>
-      </section>
 
       {/* ===== FOOTER ===== */}
       <footer className="py-12 border-t border-foreground/[0.06] pb-28 md:pb-12">
