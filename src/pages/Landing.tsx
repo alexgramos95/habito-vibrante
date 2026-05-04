@@ -173,19 +173,21 @@ const Landing = () => {
           <div className="grid md:grid-cols-2 gap-12 md:gap-10 items-center">
             {/* Text block */}
             <div className="text-center md:text-left animate-fade-in order-1">
-              <h1 className="type-display text-[36px] sm:text-5xl md:text-6xl lg:text-7xl leading-[0.95] mb-6 md:mb-8">
-                You don't need motivation.
+              <h1 className="type-display text-[40px] sm:text-5xl md:text-6xl lg:text-7xl leading-[0.95] mb-6 md:mb-8">
+                Your life.
                 <br />
                 <span
                   className="text-primary"
                   style={{ textShadow: "0 0 32px hsl(var(--neon-toxic) / 0.35)" }}
                 >
-                  You need a system.
+                  One system.
                 </span>
+                <br />
+                Every day.
               </h1>
 
               <p className="type-body text-base sm:text-lg md:text-xl text-muted-foreground/85 mb-8 md:mb-10 max-w-[44ch] mx-auto md:mx-0">
-                Habits, planning and execution — in one daily system.
+                Habits, planning and execution — in one place.
               </p>
 
               <div className="flex flex-col items-center md:items-start gap-5">
