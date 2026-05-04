@@ -150,11 +150,8 @@ const Landing = () => {
             <button onClick={() => scrollTo("faq")} className="hover:text-foreground transition-colors">FAQ</button>
           </div>
           <div className="flex items-center gap-4">
-            <Link to="/auth" className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground/60 hover:text-foreground transition-colors">
-              Sign In
-            </Link>
             <Button size="sm" onClick={handleStartTrial}>
-              Start your system
+              Download the app
             </Button>
           </div>
         </div>
