@@ -237,14 +237,18 @@ const Landing = () => {
                 }}
               />
 
-              {/* Left phone — Habits list */}
+              {/* Left phone — Plan: today's habits, morning in motion */}
               <div className="absolute top-14 left-0 sm:left-1 w-[44%] aspect-[9/19] rounded-[28px] border border-foreground/15 bg-card p-1.5 shadow-[0_30px_80px_-20px_hsl(var(--neon-ultra)/0.45)] -rotate-[10deg] origin-bottom-right opacity-80 blur-[1.5px]">
                 <div className="rounded-[22px] overflow-hidden bg-background border border-foreground/10 h-full p-3 flex flex-col gap-2.5">
-                  <div className="font-mono text-[8px] uppercase tracking-widest text-primary">Habits · Today</div>
+                  <div className="flex items-center justify-between">
+                    <div className="font-mono text-[8px] uppercase tracking-widest text-primary">Today · Wed</div>
+                    <div className="font-mono text-[7px] tracking-wider text-muted-foreground/60">09:42</div>
+                  </div>
                   {[
                     { name: "Meditate", time: "06:45", done: true, color: "hsl(265 70% 60%)" },
                     { name: "Workout", time: "07:30", done: true, color: "hsl(var(--primary))" },
-                    { name: "Read", time: "08:15", done: false, color: "hsl(195 80% 55%)" },
+                    { name: "Read 20 min", time: "08:15", done: true, color: "hsl(195 80% 55%)" },
+                    { name: "Train", time: "18:00", done: false, color: "hsl(var(--primary))" },
                     { name: "Journal", time: "22:00", done: false, color: "hsl(340 75% 60%)" },
                   ].map((h) => (
                     <div key={h.name} className="flex items-center gap-2 border border-foreground/10 bg-card/60 p-1.5">
@@ -261,25 +265,29 @@ const Landing = () => {
                         {h.done && <Check className="h-2.5 w-2.5 stroke-[3] text-primary-foreground" />}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className={cn("text-[9px] font-bold uppercase tracking-tight", h.done ? "text-primary" : "text-foreground")}>
+                        <div className={cn("text-[9px] font-bold uppercase tracking-tight truncate", h.done ? "text-primary" : "text-foreground")}>
                           {h.name}
                         </div>
                       </div>
                       <div className="font-mono text-[7px] text-muted-foreground/70">{h.time}</div>
                     </div>
                   ))}
+                  <div className="mt-auto flex items-center justify-between font-mono text-[7px] uppercase tracking-wider">
+                    <span className="text-muted-foreground/60">3 of 5 done</span>
+                    <span className="text-primary">60%</span>
+                  </div>
                 </div>
               </div>
 
-              {/* Right phone — Progress / overview */}
+              {/* Right phone — Momentum: streak & weekly progress */}
               <div className="absolute top-14 right-0 sm:right-1 w-[44%] aspect-[9/19] rounded-[28px] border border-foreground/15 bg-card p-1.5 shadow-[0_30px_80px_-20px_hsl(var(--neon-ultra)/0.45)] rotate-[10deg] origin-bottom-left opacity-80 blur-[1.5px]">
                 <div className="rounded-[22px] overflow-hidden bg-background border border-foreground/10 h-full p-3 flex flex-col gap-2">
-                  <div className="font-mono text-[8px] uppercase tracking-widest text-primary">Progress</div>
+                  <div className="font-mono text-[8px] uppercase tracking-widest text-primary">Momentum</div>
                   <div className="mt-1">
-                    <div className="font-black italic tracking-tighter text-2xl text-primary tabular-nums" style={{ textShadow: "0 0 10px hsl(var(--neon-toxic) / 0.4)" }}>
-                      87<span className="text-[10px] text-muted-foreground/60 ml-0.5 not-italic">%</span>
+                    <div className="font-black italic tracking-tighter text-3xl text-accent tabular-nums leading-none" style={{ textShadow: "0 0 12px hsl(var(--neon-ultra) / 0.5)" }}>
+                      47<span className="text-[10px] text-muted-foreground/60 ml-0.5 not-italic">D</span>
                     </div>
-                    <div className="font-mono text-[7px] uppercase tracking-wider text-muted-foreground/60">This week</div>
+                    <div className="font-mono text-[7px] uppercase tracking-wider text-muted-foreground/60 mt-0.5">Streak · personal best</div>
                   </div>
                   <div className="grid grid-cols-7 gap-1 mt-2">
                     {Array.from({ length: 28 }).map((_, i) => (
@@ -309,11 +317,11 @@ const Landing = () => {
                       </div>
                     ))}
                   </div>
-                  <div className="mt-auto font-mono text-[7px] uppercase tracking-wider text-primary">Streak · 47d</div>
+                  <div className="mt-auto font-mono text-[7px] uppercase tracking-wider text-primary">+12% vs last week</div>
                 </div>
               </div>
 
-              {/* Center phone — Day View (real screen) */}
+              {/* Center phone — Execute: today in action (Day View) */}
               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[62%] aspect-[9/19] rounded-[36px] border border-foreground/15 bg-card p-2 shadow-[0_50px_120px_-20px_hsl(var(--neon-ultra)/0.55)] z-10">
                 <div className="rounded-[28px] overflow-hidden bg-background border border-foreground/10 h-full px-3 py-4">
                   <div className="origin-top scale-[0.62] sm:scale-[0.68] -mb-[40%]">
