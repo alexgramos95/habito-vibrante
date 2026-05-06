@@ -632,6 +632,16 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* ===== FINAL STATEMENT ===== */}
+      <section className="py-32 md:py-44">
+        <div className="container max-w-3xl px-6 text-center">
+          <Reveal>
+            <h2 className="type-display text-4xl sm:text-6xl md:text-7xl leading-[1.05]">
+              Stop restarting.
+            </h2>
+          </Reveal>
+        </div>
+      </section>
 
       {/* ===== FOOTER ===== */}
       <footer className="py-12 border-t border-foreground/[0.06] pb-28 md:pb-12">
