@@ -167,9 +167,9 @@ const Landing = () => {
           }}
         />
         <div className="container max-w-7xl relative z-10 px-5 md:px-6">
-          <div className="grid md:grid-cols-2 gap-12 md:gap-10 items-center">
+          <div className="grid md:grid-cols-2 gap-16 md:gap-14 items-center">
             {/* Text block */}
-            <div className="text-center md:text-left animate-fade-in order-1">
+            <div className="text-center md:text-left animate-fade-in order-1 md:pt-6">
               <h1 className="type-display text-[40px] sm:text-5xl md:text-6xl lg:text-7xl leading-[0.95] mb-6 md:mb-8">
                 You don't need motivation.
                 <br />
@@ -181,42 +181,49 @@ const Landing = () => {
                 </span>
               </h1>
 
-              <p className="type-body text-base sm:text-lg md:text-xl text-muted-foreground/85 mb-8 md:mb-10 max-w-[44ch] mx-auto md:mx-0">
+              <p className="type-body text-base sm:text-lg md:text-xl text-muted-foreground/85 mb-3 max-w-[44ch] mx-auto md:mx-0">
                 Plan. Execute. Repeat.
               </p>
 
-              <div className="flex flex-col items-center md:items-start gap-5">
+              <p className="type-body italic text-sm sm:text-base text-foreground/70 mb-10 md:mb-12 max-w-[44ch] mx-auto md:mx-0">
+                This time, it sticks.
+              </p>
+
+              <div className="flex flex-col items-center md:items-start gap-4">
                 <div className="flex items-center gap-3">
                   <button
                     onClick={handleStartTrial}
                     aria-label="Download on the App Store"
-                    className="h-12 px-4 flex items-center gap-2.5 rounded-xl bg-foreground text-background hover:opacity-90 transition-opacity"
+                    className="h-14 px-5 flex items-center gap-3 rounded-xl bg-foreground text-background hover:opacity-90 hover:-translate-y-0.5 transition-all shadow-[0_10px_40px_-10px_hsl(var(--neon-toxic)/0.55)] ring-1 ring-foreground/10"
                   >
-                    <svg viewBox="0 0 24 24" className="h-6 w-6" fill="currentColor" aria-hidden>
+                    <svg viewBox="0 0 24 24" className="h-7 w-7" fill="currentColor" aria-hidden>
                       <path d="M16.365 1.43c0 1.14-.42 2.23-1.13 3.05-.78.92-2.05 1.63-3.06 1.55-.13-1.11.4-2.27 1.1-3.05.79-.88 2.13-1.55 3.09-1.55zM20.5 17.55c-.55 1.27-.81 1.84-1.52 2.96-.99 1.56-2.39 3.5-4.13 3.51-1.54.02-1.94-1-4.04-.99-2.1.01-2.54 1.01-4.08.99-1.74-.02-3.06-1.77-4.05-3.33C.01 16.43-.27 11.06 1.4 8.21c1.18-2.02 3.04-3.21 4.79-3.21 1.78 0 2.9 1 4.37 1 1.43 0 2.3-1 4.36-1 1.56 0 3.21.85 4.39 2.31-3.86 2.12-3.23 7.63 1.19 10.24z" />
                     </svg>
                     <div className="text-left leading-tight">
-                      <div className="text-[9px] uppercase tracking-wider opacity-80">Download on the</div>
-                      <div className="text-sm font-semibold">App Store</div>
+                      <div className="text-[10px] uppercase tracking-wider opacity-80">Download on the</div>
+                      <div className="text-base font-semibold">App Store</div>
                     </div>
                   </button>
                   <button
                     onClick={handleStartTrial}
                     aria-label="Get it on Google Play"
-                    className="h-12 px-4 flex items-center gap-2.5 rounded-xl bg-foreground text-background hover:opacity-90 transition-opacity"
+                    className="h-14 px-5 flex items-center gap-3 rounded-xl bg-foreground text-background hover:opacity-90 hover:-translate-y-0.5 transition-all shadow-[0_10px_40px_-10px_hsl(var(--neon-toxic)/0.55)] ring-1 ring-foreground/10"
                   >
-                    <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden>
+                    <svg viewBox="0 0 24 24" className="h-7 w-7" aria-hidden>
                       <path fill="#34A853" d="M3.6 2.3C3.2 2.7 3 3.3 3 4.1v15.8c0 .8.2 1.4.6 1.8l.1.1L12.6 13v-.2L3.7 2.2l-.1.1z"/>
                       <path fill="#FBBC04" d="M15.6 16.1L12.6 13v-.2l3-3 .1.1 3.6 2c1 .6 1 1.5 0 2.1l-3.7 2.1z"/>
                       <path fill="#EA4335" d="M15.7 16l-3.1-3.1L3.6 21.7c.4.4 1 .4 1.7.1L15.7 16"/>
                       <path fill="#4285F4" d="M15.7 6L5.3 2.2c-.7-.4-1.3-.3-1.7.1l9 9 3.1-3.1z"/>
                     </svg>
                     <div className="text-left leading-tight">
-                      <div className="text-[9px] uppercase tracking-wider opacity-80">Get it on</div>
-                      <div className="text-sm font-semibold">Google Play</div>
+                      <div className="text-[10px] uppercase tracking-wider opacity-80">Get it on</div>
+                      <div className="text-base font-semibold">Google Play</div>
                     </div>
                   </button>
                 </div>
+                <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground/70">
+                  Free · 7-day trial · No credit card
+                </p>
               </div>
             </div>
 
