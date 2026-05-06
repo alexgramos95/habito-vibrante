@@ -632,6 +632,16 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* ===== FINAL STATEMENT ===== */}
+      <section className="py-32 md:py-44">
+        <div className="container max-w-3xl px-6 text-center">
+          <Reveal>
+            <h2 className="type-display text-4xl sm:text-6xl md:text-7xl leading-[1.05]">
+              Stop restarting.
+            </h2>
+          </Reveal>
+        </div>
+      </section>
 
       {/* ===== FOOTER ===== */}
       <footer className="py-12 border-t border-foreground/[0.06] pb-28 md:pb-12">
@@ -649,23 +659,6 @@ const Landing = () => {
           </div>
         </div>
       </footer>
-
-      {/* ===== STICKY MOBILE CTA ===== */}
-      <div
-        className={cn(
-          "md:hidden fixed bottom-0 inset-x-0 z-40 px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] bg-background/90 backdrop-blur-xl border-t border-foreground/10 transition-all duration-300",
-          showStickyCTA ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none",
-        )}
-      >
-        <Button
-          size="lg"
-          onClick={handleStartTrial}
-          className="w-full gap-2 shadow-[0_0_24px_hsl(var(--neon-toxic)/0.35)]"
-        >
-          Start your system
-          <ArrowRight className="h-5 w-5" />
-        </Button>
-      </div>
 
       <PaywallModal
         open={showPaywall}
