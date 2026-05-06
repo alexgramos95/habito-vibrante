@@ -167,9 +167,9 @@ const Landing = () => {
           }}
         />
         <div className="container max-w-7xl relative z-10 px-5 md:px-6">
-          <div className="grid md:grid-cols-2 gap-12 md:gap-10 items-center">
+          <div className="grid md:grid-cols-2 gap-16 md:gap-14 items-center">
             {/* Text block */}
-            <div className="text-center md:text-left animate-fade-in order-1">
+            <div className="text-center md:text-left animate-fade-in order-1 md:pt-6">
               <h1 className="type-display text-[40px] sm:text-5xl md:text-6xl lg:text-7xl leading-[0.95] mb-6 md:mb-8">
                 You don't need motivation.
                 <br />
@@ -181,42 +181,49 @@ const Landing = () => {
                 </span>
               </h1>
 
-              <p className="type-body text-base sm:text-lg md:text-xl text-muted-foreground/85 mb-8 md:mb-10 max-w-[44ch] mx-auto md:mx-0">
+              <p className="type-body text-base sm:text-lg md:text-xl text-muted-foreground/85 mb-3 max-w-[44ch] mx-auto md:mx-0">
                 Plan. Execute. Repeat.
               </p>
 
-              <div className="flex flex-col items-center md:items-start gap-5">
+              <p className="type-body italic text-sm sm:text-base text-foreground/70 mb-10 md:mb-12 max-w-[44ch] mx-auto md:mx-0">
+                This time, it sticks.
+              </p>
+
+              <div className="flex flex-col items-center md:items-start gap-4">
                 <div className="flex items-center gap-3">
                   <button
                     onClick={handleStartTrial}
                     aria-label="Download on the App Store"
-                    className="h-12 px-4 flex items-center gap-2.5 rounded-xl bg-foreground text-background hover:opacity-90 transition-opacity"
+                    className="h-14 px-5 flex items-center gap-3 rounded-xl bg-foreground text-background hover:opacity-90 hover:-translate-y-0.5 transition-all shadow-[0_10px_40px_-10px_hsl(var(--neon-toxic)/0.55)] ring-1 ring-foreground/10"
                   >
-                    <svg viewBox="0 0 24 24" className="h-6 w-6" fill="currentColor" aria-hidden>
+                    <svg viewBox="0 0 24 24" className="h-7 w-7" fill="currentColor" aria-hidden>
                       <path d="M16.365 1.43c0 1.14-.42 2.23-1.13 3.05-.78.92-2.05 1.63-3.06 1.55-.13-1.11.4-2.27 1.1-3.05.79-.88 2.13-1.55 3.09-1.55zM20.5 17.55c-.55 1.27-.81 1.84-1.52 2.96-.99 1.56-2.39 3.5-4.13 3.51-1.54.02-1.94-1-4.04-.99-2.1.01-2.54 1.01-4.08.99-1.74-.02-3.06-1.77-4.05-3.33C.01 16.43-.27 11.06 1.4 8.21c1.18-2.02 3.04-3.21 4.79-3.21 1.78 0 2.9 1 4.37 1 1.43 0 2.3-1 4.36-1 1.56 0 3.21.85 4.39 2.31-3.86 2.12-3.23 7.63 1.19 10.24z" />
                     </svg>
                     <div className="text-left leading-tight">
-                      <div className="text-[9px] uppercase tracking-wider opacity-80">Download on the</div>
-                      <div className="text-sm font-semibold">App Store</div>
+                      <div className="text-[10px] uppercase tracking-wider opacity-80">Download on the</div>
+                      <div className="text-base font-semibold">App Store</div>
                     </div>
                   </button>
                   <button
                     onClick={handleStartTrial}
                     aria-label="Get it on Google Play"
-                    className="h-12 px-4 flex items-center gap-2.5 rounded-xl bg-foreground text-background hover:opacity-90 transition-opacity"
+                    className="h-14 px-5 flex items-center gap-3 rounded-xl bg-foreground text-background hover:opacity-90 hover:-translate-y-0.5 transition-all shadow-[0_10px_40px_-10px_hsl(var(--neon-toxic)/0.55)] ring-1 ring-foreground/10"
                   >
-                    <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden>
+                    <svg viewBox="0 0 24 24" className="h-7 w-7" aria-hidden>
                       <path fill="#34A853" d="M3.6 2.3C3.2 2.7 3 3.3 3 4.1v15.8c0 .8.2 1.4.6 1.8l.1.1L12.6 13v-.2L3.7 2.2l-.1.1z"/>
                       <path fill="#FBBC04" d="M15.6 16.1L12.6 13v-.2l3-3 .1.1 3.6 2c1 .6 1 1.5 0 2.1l-3.7 2.1z"/>
                       <path fill="#EA4335" d="M15.7 16l-3.1-3.1L3.6 21.7c.4.4 1 .4 1.7.1L15.7 16"/>
                       <path fill="#4285F4" d="M15.7 6L5.3 2.2c-.7-.4-1.3-.3-1.7.1l9 9 3.1-3.1z"/>
                     </svg>
                     <div className="text-left leading-tight">
-                      <div className="text-[9px] uppercase tracking-wider opacity-80">Get it on</div>
-                      <div className="text-sm font-semibold">Google Play</div>
+                      <div className="text-[10px] uppercase tracking-wider opacity-80">Get it on</div>
+                      <div className="text-base font-semibold">Google Play</div>
                     </div>
                   </button>
                 </div>
+                <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground/70">
+                  Free · 7-day trial · No credit card
+                </p>
               </div>
             </div>
 
@@ -230,14 +237,18 @@ const Landing = () => {
                 }}
               />
 
-              {/* Left phone — Habits list */}
+              {/* Left phone — Plan: today's habits, morning in motion */}
               <div className="absolute top-14 left-0 sm:left-1 w-[44%] aspect-[9/19] rounded-[28px] border border-foreground/15 bg-card p-1.5 shadow-[0_30px_80px_-20px_hsl(var(--neon-ultra)/0.45)] -rotate-[10deg] origin-bottom-right opacity-80 blur-[1.5px]">
                 <div className="rounded-[22px] overflow-hidden bg-background border border-foreground/10 h-full p-3 flex flex-col gap-2.5">
-                  <div className="font-mono text-[8px] uppercase tracking-widest text-primary">Habits · Today</div>
+                  <div className="flex items-center justify-between">
+                    <div className="font-mono text-[8px] uppercase tracking-widest text-primary">Today · Wed</div>
+                    <div className="font-mono text-[7px] tracking-wider text-muted-foreground/60">09:42</div>
+                  </div>
                   {[
                     { name: "Meditate", time: "06:45", done: true, color: "hsl(265 70% 60%)" },
                     { name: "Workout", time: "07:30", done: true, color: "hsl(var(--primary))" },
-                    { name: "Read", time: "08:15", done: false, color: "hsl(195 80% 55%)" },
+                    { name: "Read 20 min", time: "08:15", done: true, color: "hsl(195 80% 55%)" },
+                    { name: "Train", time: "18:00", done: false, color: "hsl(var(--primary))" },
                     { name: "Journal", time: "22:00", done: false, color: "hsl(340 75% 60%)" },
                   ].map((h) => (
                     <div key={h.name} className="flex items-center gap-2 border border-foreground/10 bg-card/60 p-1.5">
@@ -254,25 +265,29 @@ const Landing = () => {
                         {h.done && <Check className="h-2.5 w-2.5 stroke-[3] text-primary-foreground" />}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className={cn("text-[9px] font-bold uppercase tracking-tight", h.done ? "text-primary" : "text-foreground")}>
+                        <div className={cn("text-[9px] font-bold uppercase tracking-tight truncate", h.done ? "text-primary" : "text-foreground")}>
                           {h.name}
                         </div>
                       </div>
                       <div className="font-mono text-[7px] text-muted-foreground/70">{h.time}</div>
                     </div>
                   ))}
+                  <div className="mt-auto flex items-center justify-between font-mono text-[7px] uppercase tracking-wider">
+                    <span className="text-muted-foreground/60">3 of 5 done</span>
+                    <span className="text-primary">60%</span>
+                  </div>
                 </div>
               </div>
 
-              {/* Right phone — Progress / overview */}
+              {/* Right phone — Momentum: streak & weekly progress */}
               <div className="absolute top-14 right-0 sm:right-1 w-[44%] aspect-[9/19] rounded-[28px] border border-foreground/15 bg-card p-1.5 shadow-[0_30px_80px_-20px_hsl(var(--neon-ultra)/0.45)] rotate-[10deg] origin-bottom-left opacity-80 blur-[1.5px]">
                 <div className="rounded-[22px] overflow-hidden bg-background border border-foreground/10 h-full p-3 flex flex-col gap-2">
-                  <div className="font-mono text-[8px] uppercase tracking-widest text-primary">Progress</div>
+                  <div className="font-mono text-[8px] uppercase tracking-widest text-primary">Momentum</div>
                   <div className="mt-1">
-                    <div className="font-black italic tracking-tighter text-2xl text-primary tabular-nums" style={{ textShadow: "0 0 10px hsl(var(--neon-toxic) / 0.4)" }}>
-                      87<span className="text-[10px] text-muted-foreground/60 ml-0.5 not-italic">%</span>
+                    <div className="font-black italic tracking-tighter text-3xl text-accent tabular-nums leading-none" style={{ textShadow: "0 0 12px hsl(var(--neon-ultra) / 0.5)" }}>
+                      47<span className="text-[10px] text-muted-foreground/60 ml-0.5 not-italic">D</span>
                     </div>
-                    <div className="font-mono text-[7px] uppercase tracking-wider text-muted-foreground/60">This week</div>
+                    <div className="font-mono text-[7px] uppercase tracking-wider text-muted-foreground/60 mt-0.5">Streak · personal best</div>
                   </div>
                   <div className="grid grid-cols-7 gap-1 mt-2">
                     {Array.from({ length: 28 }).map((_, i) => (
@@ -302,11 +317,11 @@ const Landing = () => {
                       </div>
                     ))}
                   </div>
-                  <div className="mt-auto font-mono text-[7px] uppercase tracking-wider text-primary">Streak · 47d</div>
+                  <div className="mt-auto font-mono text-[7px] uppercase tracking-wider text-primary">+12% vs last week</div>
                 </div>
               </div>
 
-              {/* Center phone — Day View (real screen) */}
+              {/* Center phone — Execute: today in action (Day View) */}
               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[62%] aspect-[9/19] rounded-[36px] border border-foreground/15 bg-card p-2 shadow-[0_50px_120px_-20px_hsl(var(--neon-ultra)/0.55)] z-10">
                 <div className="rounded-[28px] overflow-hidden bg-background border border-foreground/10 h-full px-3 py-4">
                   <div className="origin-top scale-[0.62] sm:scale-[0.68] -mb-[40%]">
