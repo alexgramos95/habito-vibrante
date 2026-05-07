@@ -13,6 +13,11 @@ import {
   RotateCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+
+/** Store URLs — set when apps go live. Empty = "coming soon" fallback. */
+const APP_STORE_URL = "";
+const GOOGLE_PLAY_URL = "";
 import { cn } from "@/lib/utils";
 import { useSubscription } from "@/hooks/useSubscription";
 import { PaywallModal } from "@/components/Paywall/PaywallModal";
@@ -86,12 +91,25 @@ const Landing = () => {
   const [showStickyCTA, setShowStickyCTA] = useState(false);
   const { upgradeToPro } = useSubscription();
 
-  const handleStartTrial = () => {
+  const goToStore = (store: "ios" | "android") => {
     try {
       (window as unknown as { plausible?: (e: string, o?: unknown) => void })
-        .plausible?.("landing_cta_click");
+        .plausible?.("landing_store_click", { props: { store } });
     } catch { /* noop */ }
-    navigate("/onboarding");
+    const url = store === "ios" ? APP_STORE_URL : GOOGLE_PLAY_URL;
+    if (url) {
+      window.location.href = url;
+    } else {
+      toast("Coming soon", {
+        description: "The app launches shortly. Join the beta waitlist for early access.",
+      });
+    }
+  };
+  const handleStoreCTA = () => {
+    // Auto-detect platform; default to App Store on desktop.
+    const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
+    const isAndroid = /Android/i.test(ua);
+    goToStore(isAndroid ? "android" : "ios");
   };
   const handleUpgrade = (plan: "monthly" | "yearly" | "lifetime") => {
     upgradeToPro(plan);
@@ -153,7 +171,7 @@ const Landing = () => {
             <Button
               size="sm"
               variant="ghost"
-              onClick={handleStartTrial}
+              onClick={handleStoreCTA}
               className="text-[13px] text-muted-foreground/80 hover:text-foreground hover:bg-transparent"
             >
               Download
@@ -197,7 +215,7 @@ const Landing = () => {
               <div className="flex flex-col items-center md:items-start gap-4">
                 <div className="flex items-center gap-3">
                   <button
-                    onClick={handleStartTrial}
+                    onClick={() => goToStore("ios")}
                     aria-label="Download on the App Store"
                     className="h-14 px-5 flex items-center gap-3 rounded-xl bg-foreground text-background hover:opacity-90 hover:-translate-y-0.5 transition-all shadow-[0_10px_40px_-10px_hsl(var(--neon-toxic)/0.55)] ring-1 ring-foreground/10"
                   >
@@ -210,7 +228,7 @@ const Landing = () => {
                     </div>
                   </button>
                   <button
-                    onClick={handleStartTrial}
+                    onClick={() => goToStore("android")}
                     aria-label="Get it on Google Play"
                     className="h-14 px-5 flex items-center gap-3 rounded-xl bg-foreground text-background hover:opacity-90 hover:-translate-y-0.5 transition-all shadow-[0_10px_40px_-10px_hsl(var(--neon-toxic)/0.55)] ring-1 ring-foreground/10"
                   >
@@ -635,9 +653,9 @@ const Landing = () => {
                     className="w-full"
                     size="lg"
                     variant={p.popular ? "default" : "outline"}
-                    onClick={handleStartTrial}
+                    onClick={handleStoreCTA}
                   >
-                    Start 7-Day Trial
+                    Download the app
                   </Button>
                 </div>
               </Reveal>
