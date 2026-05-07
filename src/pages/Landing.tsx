@@ -171,7 +171,7 @@ const Landing = () => {
             <Button
               size="sm"
               variant="ghost"
-              onClick={handleStartTrial}
+              onClick={handleStoreCTA}
               className="text-[13px] text-muted-foreground/80 hover:text-foreground hover:bg-transparent"
             >
               Download
