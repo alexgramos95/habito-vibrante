@@ -91,13 +91,6 @@ const Landing = () => {
   const [showStickyCTA, setShowStickyCTA] = useState(false);
   const { upgradeToPro } = useSubscription();
 
-  const handleStartTrial = () => {
-    try {
-      (window as unknown as { plausible?: (e: string, o?: unknown) => void })
-        .plausible?.("landing_cta_click");
-    } catch { /* noop */ }
-    navigate("/onboarding");
-  };
   const goToStore = (store: "ios" | "android") => {
     try {
       (window as unknown as { plausible?: (e: string, o?: unknown) => void })
