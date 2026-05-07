@@ -168,14 +168,12 @@ const Landing = () => {
             <button onClick={() => scrollTo("faq")} className="hover:text-foreground/80 transition-colors">FAQ</button>
           </div>
           <div className="flex items-center gap-4">
-            <Button
-              size="sm"
-              variant="ghost"
+            <button
               onClick={handleStoreCTA}
-              className="text-[13px] text-muted-foreground/80 hover:text-foreground hover:bg-transparent"
+              className="h-8 inline-flex items-center bg-primary text-primary-foreground font-black italic uppercase tracking-tighter text-sm px-3 border-2 border-primary shadow-[2px_2px_0_0_hsl(var(--neon-ultra))] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0_0_hsl(var(--neon-ultra))] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
             >
               Download
-            </Button>
+            </button>
           </div>
         </div>
       </nav>
