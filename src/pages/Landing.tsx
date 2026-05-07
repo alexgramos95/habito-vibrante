@@ -13,6 +13,11 @@ import {
   RotateCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+
+/** Store URLs — set when apps go live. Empty = "coming soon" fallback. */
+const APP_STORE_URL = "";
+const GOOGLE_PLAY_URL = "";
 import { cn } from "@/lib/utils";
 import { useSubscription } from "@/hooks/useSubscription";
 import { PaywallModal } from "@/components/Paywall/PaywallModal";
