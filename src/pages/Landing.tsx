@@ -653,9 +653,9 @@ const Landing = () => {
                     className="w-full"
                     size="lg"
                     variant={p.popular ? "default" : "outline"}
-                    onClick={handleStartTrial}
+                    onClick={handleStoreCTA}
                   >
-                    Start 7-Day Trial
+                    Download the app
                   </Button>
                 </div>
               </Reveal>
