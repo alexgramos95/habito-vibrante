@@ -215,7 +215,7 @@ const Landing = () => {
               <div className="flex flex-col items-center md:items-start gap-4">
                 <div className="flex items-center gap-3">
                   <button
-                    onClick={handleStartTrial}
+                    onClick={() => goToStore("ios")}
                     aria-label="Download on the App Store"
                     className="h-14 px-5 flex items-center gap-3 rounded-xl bg-foreground text-background hover:opacity-90 hover:-translate-y-0.5 transition-all shadow-[0_10px_40px_-10px_hsl(var(--neon-toxic)/0.55)] ring-1 ring-foreground/10"
                   >
