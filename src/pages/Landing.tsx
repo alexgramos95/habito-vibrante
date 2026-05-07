@@ -353,11 +353,30 @@ const Landing = () => {
               </div>
             </div>
           </div>
+
+          {/* Continuity line */}
+          <div className="mt-14 md:mt-20 text-center">
+            <p className="type-display text-xl sm:text-2xl md:text-3xl text-foreground/70 leading-[1.05]">
+              One system.
+              <br className="sm:hidden" />
+              <span className="hidden sm:inline"> </span>
+              <span className="text-foreground/50">Every day.</span>
+            </p>
+          </div>
         </div>
+
+        {/* Smooth fade into next section */}
+        <div
+          className="pointer-events-none absolute bottom-0 inset-x-0 h-40 z-0"
+          style={{
+            background:
+              "linear-gradient(180deg, transparent 0%, hsl(var(--background)) 100%)",
+          }}
+        />
       </section>
 
       {/* ===== 2. PROBLEM (linear, full width, centered) ===== */}
-      <section className={cn(SECTION, "border-t border-foreground/[0.05]")}>
+      <section className={SECTION}>
         <div className="container max-w-3xl px-6 text-center">
           <Reveal>
             <h2 className="type-display text-3xl sm:text-5xl md:text-6xl leading-[1.1]">
