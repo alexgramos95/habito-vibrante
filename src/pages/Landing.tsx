@@ -238,10 +238,24 @@ const Landing = () => {
             {/* Phone mockups (~15% larger, side phones slightly blurred) */}
             <div className="relative order-2 mx-auto w-full max-w-[600px] h-[600px] sm:h-[690px] md:h-[740px]">
               <div
-                className="absolute inset-0 -z-10 pointer-events-none opacity-70 blur-3xl"
+                className="absolute inset-0 -z-10 pointer-events-none opacity-80 blur-3xl"
                 style={{
                   background:
-                    "radial-gradient(closest-side, hsl(var(--neon-toxic) / 0.22), transparent 70%)",
+                    "radial-gradient(closest-side, hsl(var(--neon-toxic) / 0.20), transparent 70%)",
+                }}
+              />
+              <div
+                className="absolute inset-0 -z-10 pointer-events-none opacity-60 blur-2xl"
+                style={{
+                  background:
+                    "radial-gradient(55% 45% at 50% 60%, hsl(var(--neon-ultra) / 0.16), transparent 70%)",
+                }}
+              />
+              <div
+                className="absolute inset-0 -z-10 pointer-events-none opacity-[0.04] mix-blend-overlay"
+                style={{
+                  backgroundImage:
+                    "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.6'/></svg>\")",
                 }}
               />
 
