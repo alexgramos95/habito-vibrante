@@ -141,17 +141,22 @@ const Landing = () => {
   return (
     <div className="with-scanlines min-h-screen max-w-full overflow-x-clip bg-background text-foreground antialiased animate-page-enter">
       {/* ===== NAV ===== */}
-      <nav className="fixed top-0 inset-x-0 z-50 backdrop-blur-2xl bg-background/70 border-b border-foreground/[0.05]">
+      <nav className="fixed top-0 inset-x-0 z-50 backdrop-blur-2xl bg-background/40 border-b border-foreground/[0.03]">
         <div className="container max-w-6xl flex items-center justify-between h-16">
           <BecomeLogo />
-          <div className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
-            <button onClick={() => scrollTo("product")} className="hover:text-foreground transition-colors">Product</button>
-            <button onClick={() => scrollTo("pricing")} className="hover:text-foreground transition-colors">Pricing</button>
-            <button onClick={() => scrollTo("faq")} className="hover:text-foreground transition-colors">FAQ</button>
+          <div className="hidden md:flex items-center gap-7 text-[13px] text-muted-foreground/60">
+            <button onClick={() => scrollTo("product")} className="hover:text-foreground/80 transition-colors">Product</button>
+            <button onClick={() => scrollTo("pricing")} className="hover:text-foreground/80 transition-colors">Pricing</button>
+            <button onClick={() => scrollTo("faq")} className="hover:text-foreground/80 transition-colors">FAQ</button>
           </div>
           <div className="flex items-center gap-4">
-            <Button size="sm" onClick={handleStartTrial}>
-              Download the app
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={handleStartTrial}
+              className="text-[13px] text-muted-foreground/80 hover:text-foreground hover:bg-transparent"
+            >
+              Download
             </Button>
           </div>
         </div>
@@ -224,16 +229,33 @@ const Landing = () => {
                 <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground/70">
                   Free · 7-day trial · No credit card
                 </p>
+                <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground/50 -mt-2">
+                  iOS &amp; Android
+                </p>
               </div>
             </div>
 
             {/* Phone mockups (~15% larger, side phones slightly blurred) */}
             <div className="relative order-2 mx-auto w-full max-w-[600px] h-[600px] sm:h-[690px] md:h-[740px]">
               <div
-                className="absolute inset-0 -z-10 pointer-events-none opacity-70 blur-3xl"
+                className="absolute inset-0 -z-10 pointer-events-none opacity-80 blur-3xl"
                 style={{
                   background:
-                    "radial-gradient(closest-side, hsl(var(--neon-toxic) / 0.22), transparent 70%)",
+                    "radial-gradient(closest-side, hsl(var(--neon-toxic) / 0.20), transparent 70%)",
+                }}
+              />
+              <div
+                className="absolute inset-0 -z-10 pointer-events-none opacity-60 blur-2xl"
+                style={{
+                  background:
+                    "radial-gradient(55% 45% at 50% 60%, hsl(var(--neon-ultra) / 0.16), transparent 70%)",
+                }}
+              />
+              <div
+                className="absolute inset-0 -z-10 pointer-events-none opacity-[0.04] mix-blend-overlay"
+                style={{
+                  backgroundImage:
+                    "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.6'/></svg>\")",
                 }}
               />
 
@@ -331,11 +353,30 @@ const Landing = () => {
               </div>
             </div>
           </div>
+
+          {/* Continuity line */}
+          <div className="mt-14 md:mt-20 text-center">
+            <p className="type-display text-xl sm:text-2xl md:text-3xl text-foreground/70 leading-[1.05]">
+              One system.
+              <br className="sm:hidden" />
+              <span className="hidden sm:inline"> </span>
+              <span className="text-foreground/50">Every day.</span>
+            </p>
+          </div>
         </div>
+
+        {/* Smooth fade into next section */}
+        <div
+          className="pointer-events-none absolute bottom-0 inset-x-0 h-40 z-0"
+          style={{
+            background:
+              "linear-gradient(180deg, transparent 0%, hsl(var(--background)) 100%)",
+          }}
+        />
       </section>
 
       {/* ===== 2. PROBLEM (linear, full width, centered) ===== */}
-      <section className={cn(SECTION, "border-t border-foreground/[0.05]")}>
+      <section className={SECTION}>
         <div className="container max-w-3xl px-6 text-center">
           <Reveal>
             <h2 className="type-display text-3xl sm:text-5xl md:text-6xl leading-[1.1]">
