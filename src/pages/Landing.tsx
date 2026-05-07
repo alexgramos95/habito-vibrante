@@ -141,17 +141,22 @@ const Landing = () => {
   return (
     <div className="with-scanlines min-h-screen max-w-full overflow-x-clip bg-background text-foreground antialiased animate-page-enter">
       {/* ===== NAV ===== */}
-      <nav className="fixed top-0 inset-x-0 z-50 backdrop-blur-2xl bg-background/70 border-b border-foreground/[0.05]">
+      <nav className="fixed top-0 inset-x-0 z-50 backdrop-blur-2xl bg-background/40 border-b border-foreground/[0.03]">
         <div className="container max-w-6xl flex items-center justify-between h-16">
           <BecomeLogo />
-          <div className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
-            <button onClick={() => scrollTo("product")} className="hover:text-foreground transition-colors">Product</button>
-            <button onClick={() => scrollTo("pricing")} className="hover:text-foreground transition-colors">Pricing</button>
-            <button onClick={() => scrollTo("faq")} className="hover:text-foreground transition-colors">FAQ</button>
+          <div className="hidden md:flex items-center gap-7 text-[13px] text-muted-foreground/60">
+            <button onClick={() => scrollTo("product")} className="hover:text-foreground/80 transition-colors">Product</button>
+            <button onClick={() => scrollTo("pricing")} className="hover:text-foreground/80 transition-colors">Pricing</button>
+            <button onClick={() => scrollTo("faq")} className="hover:text-foreground/80 transition-colors">FAQ</button>
           </div>
           <div className="flex items-center gap-4">
-            <Button size="sm" onClick={handleStartTrial}>
-              Download the app
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={handleStartTrial}
+              className="text-[13px] text-muted-foreground/80 hover:text-foreground hover:bg-transparent"
+            >
+              Download
             </Button>
           </div>
         </div>
