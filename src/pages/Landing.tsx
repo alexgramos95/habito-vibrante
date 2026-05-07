@@ -98,6 +98,26 @@ const Landing = () => {
     } catch { /* noop */ }
     navigate("/onboarding");
   };
+  const goToStore = (store: "ios" | "android") => {
+    try {
+      (window as unknown as { plausible?: (e: string, o?: unknown) => void })
+        .plausible?.("landing_store_click", { props: { store } });
+    } catch { /* noop */ }
+    const url = store === "ios" ? APP_STORE_URL : GOOGLE_PLAY_URL;
+    if (url) {
+      window.location.href = url;
+    } else {
+      toast("Coming soon", {
+        description: "The app launches shortly. Join the beta waitlist for early access.",
+      });
+    }
+  };
+  const handleStoreCTA = () => {
+    // Auto-detect platform; default to App Store on desktop.
+    const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
+    const isAndroid = /Android/i.test(ua);
+    goToStore(isAndroid ? "android" : "ios");
+  };
   const handleUpgrade = (plan: "monthly" | "yearly" | "lifetime") => {
     upgradeToPro(plan);
     setShowPaywall(false);
