@@ -470,7 +470,7 @@ const Account = () => {
           <CardContent className="space-y-4">
             <Button 
               variant="outline" 
-              onClick={() => signOut()}
+              onClick={async () => { await signOut(); navigate('/auth', { replace: true }); }}
               className="w-full"
             >
               Terminar sessão
