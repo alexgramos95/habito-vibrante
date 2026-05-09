@@ -15,6 +15,7 @@ import { z } from 'zod';
 import { lovable } from '@/integrations/lovable/index';
 import { track } from '@/lib/analytics';
 import { trackEvent } from '@/lib/canonicalEvents';
+import { BecomeLogo } from '@/components/Brand/BecomeLogo';
 
 const emailSchema = z.string().email('Please enter a valid email address');
 const passwordSchema = z.string().min(6, 'Password must be at least 6 characters');
@@ -410,7 +411,7 @@ const Auth = () => {
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       {/* Back button */}
       <div className="w-full max-w-md mb-4">
-        <Link to="/" className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors">
+        <Link to="/onboarding" className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors">
           <ArrowLeft className="h-3.5 w-3.5" />
           // VOLTAR
         </Link>
@@ -428,13 +429,10 @@ const Auth = () => {
         )}
 
         {/* Logo */}
-        <div className="text-center space-y-2">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <div className="h-14 w-14 bg-primary border-2 border-primary flex items-center justify-center shadow-[3px_3px_0_0_hsl(var(--neon-ultra))]">
-              <Flame className="h-7 w-7 text-primary-foreground" />
-            </div>
+        <div className="text-center space-y-3">
+          <div className="flex items-center justify-center mb-2">
+            <BecomeLogo size="md" />
           </div>
-          <h1 className="text-4xl font-black italic uppercase tracking-tighter">becoMe</h1>
           <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
             // IDENTITY · INTENSITY · CONSISTENCY
           </p>

@@ -128,7 +128,7 @@ const Perfil = () => {
   const handleLogout = async () => {
     await signOut();
     toast({ title: locale === 'pt-PT' ? "Sessão terminada" : "Signed out" });
-    navigate('/');
+    navigate('/auth', { replace: true });
   };
 
   const handleResetAllData = async (scopes: ResetScope[]) => {

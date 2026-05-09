@@ -9,6 +9,7 @@ import { writeOnboardingDraft } from "@/lib/onboardingDraft";
 import { trackEvent } from "@/lib/canonicalEvents";
 import { trackOnce } from "@/hooks/useAnalytics";
 import { lovable } from "@/integrations/lovable/index";
+import { BecomeLogo } from "@/components/Brand/BecomeLogo";
 
 /* =============================================================
    ONBOARDING — Cinematic, emotional, app-first.
@@ -177,22 +178,30 @@ const Onboarding = () => {
 
       {step === "welcome" && (
         <Screen keyName="welcome">
+          <div className="flex justify-center pt-2">
+            <BecomeLogo size="md" />
+          </div>
           <div className="flex-1 flex flex-col justify-center text-center">
-            <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-primary mb-6">
-              // Become
+            <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-primary mb-6 animate-in fade-in duration-700">
+              // Chapter 01
             </p>
-            <h1 className="type-display text-5xl sm:text-6xl leading-[1.05] tracking-tight mb-6">
-              Welcome to<br />Become.
+            <h1 className="type-display text-5xl sm:text-6xl leading-[1.05] tracking-tight mb-6 animate-in fade-in slide-in-from-bottom-2 duration-700">
+              You've arrived.
             </h1>
-            <p className="text-lg text-muted-foreground/80 max-w-sm mx-auto leading-relaxed">
+            <p
+              className="text-lg text-muted-foreground/80 max-w-sm mx-auto leading-relaxed animate-in fade-in slide-in-from-bottom-2 duration-700"
+              style={{ animationDelay: "300ms", animationFillMode: "backwards" }}
+            >
               This is where you stop restarting.
+              <br />
+              <span className="text-primary/90">One system. Every day.</span>
             </p>
           </div>
           <button
             onClick={goToAuthOrSkip}
-            className="w-full h-14 bg-primary text-primary-foreground font-bold tracking-tight uppercase text-sm shadow-[0_0_40px_hsl(var(--neon-toxic)/0.35)] active:scale-[0.99] transition-transform inline-flex items-center justify-center gap-2"
+            className="w-full h-14 bg-primary text-primary-foreground font-black italic uppercase tracking-tight text-sm border-2 border-primary shadow-[3px_3px_0_0_hsl(var(--neon-ultra))] hover:shadow-[5px_5px_0_0_hsl(var(--neon-ultra))] hover:-translate-y-0.5 active:translate-y-0 active:shadow-[2px_2px_0_0_hsl(var(--neon-ultra))] transition-all inline-flex items-center justify-center gap-2"
           >
-            Continue <ArrowRight className="h-4 w-4" />
+            Begin <ArrowRight className="h-4 w-4" />
           </button>
         </Screen>
       )}
