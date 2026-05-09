@@ -308,7 +308,7 @@ const Onboarding = () => {
                     )}
                   >
                     <span className={cn("text-base font-semibold tracking-tight", selected && "text-primary")}>
-                      {pick(opt.label, locale)}
+                      {opt.label["en-US"]}
                     </span>
                   </button>
                 );
