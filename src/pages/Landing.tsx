@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { Capacitor } from "@capacitor/core";
+import { useAuth } from "@/contexts/AuthContext";
 
 /** Store URLs — set when apps go live. Empty = "coming soon" fallback. */
 const APP_STORE_URL = "";
@@ -90,6 +92,23 @@ const Landing = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [showStickyCTA, setShowStickyCTA] = useState(false);
   const { upgradeToPro } = useSubscription();
+  const { isAuthenticated, loading: authLoading } = useAuth();
+
+  // Native app shell: skip the marketing landing entirely.
+  // - Authenticated user → straight into the app (Day View).
+  // - New user → emotional onboarding flow.
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform() || authLoading) return;
+    const completed = (() => {
+      try { return localStorage.getItem("become-onboarding-complete") === "true"; }
+      catch { return false; }
+    })();
+    if (isAuthenticated && completed) {
+      navigate("/app", { replace: true });
+    } else {
+      navigate("/onboarding", { replace: true });
+    }
+  }, [authLoading, isAuthenticated, navigate]);
 
   const goToStore = (store: "ios" | "android") => {
     try {
