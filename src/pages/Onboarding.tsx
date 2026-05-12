@@ -1,6 +1,6 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Mail, Loader2 } from "lucide-react";
+import { ArrowRight, Mail, Loader2, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -15,30 +15,125 @@ import { BecomeLogo } from "@/components/Brand/BecomeLogo";
    ONBOARDING — Cinematic, emotional, app-first.
 
    Flow:
-     welcome → auth → obstacle → identity → philosophy → building → /app
+     welcome → auth → struggles (multi) → identity (single)
+       → pull-back (single) → building → ready → /app
 
-   Emotion first. System second. Product third.
+   Emotion first. Identity second. System third. Product fourth.
    ============================================================= */
 
-type Step = "welcome" | "auth" | "obstacle" | "identity" | "philosophy" | "building";
+type Step =
+  | "welcome"
+  | "auth"
+  | "struggles"
+  | "identity"
+  | "pull"
+  | "building"
+  | "ready";
 
 type Bilingual = { "pt-PT": string; "en-US": string };
-const pick = (b: Bilingual, locale: Locale) => b[locale] ?? b["en-US"];
+const t = (b: Bilingual, locale: Locale) => b[locale] ?? b["en-US"];
 
-const OBSTACLE_OPTIONS: { id: string; label: Bilingual }[] = [
-  { id: "consistency", label: { "en-US": "Staying consistent", "pt-PT": "Manter consistência" } },
+/* ---------- Copy ---------- */
+const COPY = {
+  welcome: {
+    chapter: { "en-US": "// Chapter 01", "pt-PT": "// Capítulo 01" },
+    title: { "en-US": "Welcome to Become.", "pt-PT": "Bem-vindo ao Become." },
+    sub: {
+      "en-US": "This is where you stop restarting.",
+      "pt-PT": "Aqui é onde deixas de recomeçar.",
+    },
+    line1: { "en-US": "Small actions.", "pt-PT": "Pequenas ações." },
+    line2: { "en-US": "Repeated daily.", "pt-PT": "Repetidas todos os dias." },
+    line3: { "en-US": "Change everything.", "pt-PT": "Mudam tudo." },
+    cta: { "en-US": "Continue", "pt-PT": "Continuar" },
+    signin: { "en-US": "Sign in", "pt-PT": "Entrar" },
+  },
+  auth: {
+    chapter: { "en-US": "// Step 01", "pt-PT": "// Passo 01" },
+    title: {
+      "en-US": "Begin your\nsystem.",
+      "pt-PT": "Começa o teu\nsistema.",
+    },
+    sub: { "en-US": "One system. Every day.", "pt-PT": "Um sistema. Todos os dias." },
+    apple: { "en-US": "Continue with Apple", "pt-PT": "Continuar com Apple" },
+    google: { "en-US": "Continue with Google", "pt-PT": "Continuar com Google" },
+    email: { "en-US": "Continue with Email", "pt-PT": "Continuar com Email" },
+    legal: {
+      "en-US": "By continuing, you agree to our Terms & Privacy.",
+      "pt-PT": "Ao continuar, concordas com os Termos e Privacidade.",
+    },
+  },
+  struggles: {
+    chapter: { "en-US": "// Honest check", "pt-PT": "// Momento honesto" },
+    title: {
+      "en-US": "What feels hardest\nright now?",
+      "pt-PT": "O que sentes mais\ndifícil agora?",
+    },
+    hint: { "en-US": "Choose all that apply", "pt-PT": "Escolhe tudo o que se aplica" },
+    cta: { "en-US": "Continue", "pt-PT": "Continuar" },
+  },
+  identity: {
+    chapter: { "en-US": "// Direction", "pt-PT": "// Direção" },
+    title: {
+      "en-US": "Who do you\nwant to become?",
+      "pt-PT": "Quem queres\ntornar-te?",
+    },
+  },
+  pull: {
+    chapter: { "en-US": "// Awareness", "pt-PT": "// Consciência" },
+    title: {
+      "en-US": "What keeps pulling\nyou backwards?",
+      "pt-PT": "O que te puxa\nsempre para trás?",
+    },
+  },
+  building: {
+    chapter: { "en-US": "// Preparing", "pt-PT": "// A preparar" },
+    statements: {
+      "en-US": [
+        "Building your routines…",
+        "Creating your structure…",
+        "Preparing your system…",
+        "Shaping your daily flow…",
+      ],
+      "pt-PT": [
+        "A construir as tuas rotinas…",
+        "A criar a tua estrutura…",
+        "A preparar o teu sistema…",
+        "A moldar o teu dia…",
+      ],
+    },
+  },
+  ready: {
+    title: { "en-US": "Your system is ready.", "pt-PT": "O teu sistema está pronto." },
+    sub: {
+      "en-US": "This is the start of something.",
+      "pt-PT": "É o início de algo.",
+    },
+  },
+};
+
+const STRUGGLES: { id: string; label: Bilingual }[] = [
+  { id: "consistency", label: { "en-US": "Staying consistent", "pt-PT": "Manter a consistência" } },
   { id: "structure", label: { "en-US": "Building routines", "pt-PT": "Construir rotinas" } },
   { id: "focus", label: { "en-US": "Staying focused", "pt-PT": "Manter o foco" } },
   { id: "restart", label: { "en-US": "Restarting every week", "pt-PT": "Recomeçar todas as semanas" } },
   { id: "motivation", label: { "en-US": "Low motivation", "pt-PT": "Pouca motivação" } },
 ];
 
-const IDENTITY_OPTIONS: { id: string; label: Bilingual }[] = [
+const IDENTITIES: { id: string; label: Bilingual }[] = [
   { id: "disciplined", label: { "en-US": "Disciplined", "pt-PT": "Disciplinado" } },
   { id: "focused", label: { "en-US": "Focused", "pt-PT": "Focado" } },
   { id: "healthier", label: { "en-US": "Healthier", "pt-PT": "Mais saudável" } },
   { id: "consistent", label: { "en-US": "Consistent", "pt-PT": "Consistente" } },
   { id: "organized", label: { "en-US": "Organized", "pt-PT": "Organizado" } },
+];
+
+const PULLS: { id: string; label: Bilingual }[] = [
+  { id: "distraction", label: { "en-US": "Distraction", "pt-PT": "Distração" } },
+  { id: "fatigue", label: { "en-US": "Fatigue", "pt-PT": "Cansaço" } },
+  { id: "doubt", label: { "en-US": "Self-doubt", "pt-PT": "Dúvida em mim" } },
+  { id: "overwhelm", label: { "en-US": "Overwhelm", "pt-PT": "Sobrecarga" } },
+  { id: "isolation", label: { "en-US": "Lack of structure", "pt-PT": "Falta de estrutura" } },
 ];
 
 const IDENTITY_TO_VECTORS: Record<string, string[]> = {
@@ -69,8 +164,14 @@ const Backdrop = () => (
   </div>
 );
 
-/* ---------- Screen wrapper (fullscreen, fade transitions) ---------- */
-const Screen = ({ children, keyName }: { children: React.ReactNode; keyName: string }) => (
+/* ---------- Screen wrapper ---------- */
+const Screen = ({
+  children,
+  keyName,
+}: {
+  children: React.ReactNode;
+  keyName: string;
+}) => (
   <div
     key={keyName}
     className="relative z-10 flex-1 flex flex-col px-6 pb-[calc(env(safe-area-inset-bottom)+1.5rem)] pt-[calc(env(safe-area-inset-top)+1rem)] animate-in fade-in duration-700"
@@ -79,81 +180,137 @@ const Screen = ({ children, keyName }: { children: React.ReactNode; keyName: str
   </div>
 );
 
+/* ---------- Reusable option pill ---------- */
+const Option = ({
+  selected,
+  onClick,
+  children,
+  multi = false,
+}: {
+  selected: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+  multi?: boolean;
+}) => (
+  <button
+    onClick={onClick}
+    className={cn(
+      "group relative w-full text-left px-5 py-4 border-2 transition-all duration-300 active:scale-[0.99] flex items-center justify-between gap-3",
+      selected
+        ? "border-primary bg-primary/[0.10] shadow-[0_0_28px_hsl(var(--neon-toxic)/0.3)]"
+        : "border-foreground/10 hover:border-foreground/30 bg-foreground/[0.015]",
+    )}
+  >
+    <span
+      className={cn(
+        "text-base font-semibold tracking-tight transition-colors",
+        selected && "text-primary",
+      )}
+    >
+      {children}
+    </span>
+    {multi && (
+      <span
+        className={cn(
+          "h-5 w-5 border-2 flex items-center justify-center transition-all",
+          selected ? "border-primary bg-primary" : "border-foreground/20",
+        )}
+      >
+        {selected && <Check className="h-3 w-3 text-primary-foreground" strokeWidth={3} />}
+      </span>
+    )}
+  </button>
+);
+
 /* =============================================================
    COMPONENT
    ============================================================= */
 const Onboarding = () => {
   const navigate = useNavigate();
-  const { locale } = useI18n();
+  const { locale, setLocale } = useI18n();
   const { isAuthenticated, signInWithGoogle } = useAuth();
   const { completeOnboarding } = useSubscription();
 
   const [step, setStep] = useState<Step>("welcome");
-  const [obstacle, setObstacle] = useState<string | null>(null);
+  const [struggles, setStruggles] = useState<string[]>([]);
   const [identity, setIdentity] = useState<string | null>(null);
+  const [pull, setPull] = useState<string | null>(null);
   const [authBusy, setAuthBusy] = useState<null | "google" | "apple">(null);
+  const [buildIdx, setBuildIdx] = useState(0);
 
   // Skip onboarding entirely if already completed
   useEffect(() => {
     try {
       if (localStorage.getItem("become-onboarding-complete") === "true") {
         navigate("/app", { replace: true });
+        return;
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     trackEvent("onboarding_started", { source: "app" });
   }, [navigate]);
 
   const goToAuthOrSkip = useCallback(() => {
-    setStep(isAuthenticated ? "obstacle" : "auth");
+    setStep(isAuthenticated ? "struggles" : "auth");
   }, [isAuthenticated]);
 
-  // Philosophy auto-advance
-  useEffect(() => {
-    if (step !== "philosophy") return;
-    const t = window.setTimeout(() => setStep("building"), 4200);
-    return () => window.clearTimeout(t);
-  }, [step]);
-
-  // Building screen runs completion + advances
+  // Building rotates statements then advances
   useEffect(() => {
     if (step !== "building") return;
-    const finish = async () => {
+    const statements = COPY.building.statements[locale];
+    const rotate = window.setInterval(() => {
+      setBuildIdx((i) => (i + 1) % statements.length);
+    }, 1100);
+    const finish = window.setTimeout(() => setStep("ready"), 4600);
+    return () => {
+      window.clearInterval(rotate);
+      window.clearTimeout(finish);
+    };
+  }, [step, locale]);
+
+  // Ready screen runs completion + advances
+  useEffect(() => {
+    if (step !== "ready") return;
+    const run = async () => {
       const identityVectors = identity ? IDENTITY_TO_VECTORS[identity] ?? [] : [];
-      const payload = {
-        locale,
-        improvementAreas: [],
-        identityVectors,
-        selectedPresets: [],
-        identityChoice: identity,
-        obstacle,
-        tagline: "",
-        habitsToCreate: [],
-        trackersToCreate: [],
-      };
       try {
-        writeOnboardingDraft(payload);
+        writeOnboardingDraft({
+          locale,
+          improvementAreas: struggles,
+          identityVectors,
+          selectedPresets: [],
+          identityChoice: identity,
+          obstacle: struggles[0] ?? null,
+          tagline: "",
+          habitsToCreate: [],
+          trackersToCreate: [],
+        } as any);
         localStorage.setItem("become-onboarding-complete", "true");
         localStorage.setItem("itero-onboarding-complete", "true");
         localStorage.setItem("become-first-session", "1");
-        // Hint for Day View to show first-time overlay
         localStorage.setItem("become-show-first-action-hint", "true");
-      } catch { /* ignore */ }
-
+      } catch {
+        /* ignore */
+      }
       trackOnce("onboarding_completed", "onboarding_completed", {
-        identity, obstacle, locale, source: "cinematic",
+        identity,
+        struggles,
+        pull,
+        locale,
+        source: "cinematic",
       });
-      trackEvent("onboarding_completed", { identity, obstacle, locale });
-
+      trackEvent("onboarding_completed", { identity, locale });
       completeOnboarding({
-        improvementAreas: [],
+        improvementAreas: struggles,
         identityVectors,
         selectedPresets: [],
       });
     };
-    finish();
-    const t = window.setTimeout(() => navigate("/app", { replace: true }), 3200);
+    run();
+    const t = window.setTimeout(() => navigate("/app", { replace: true }), 2400);
     return () => window.clearTimeout(t);
-  }, [step, identity, obstacle, locale, completeOnboarding, navigate]);
+  }, [step, identity, struggles, pull, locale, completeOnboarding, navigate]);
 
   const handleGoogle = async () => {
     setAuthBusy("google");
@@ -168,55 +325,115 @@ const Onboarding = () => {
         redirect_uri: `${window.location.origin}/onboarding`,
       });
       if (result.error || result.redirected) return;
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     setAuthBusy(null);
   };
+
+  const toggleStruggle = (id: string) =>
+    setStruggles((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+
+  const continueCta = useMemo(
+    () =>
+      locale === "pt-PT"
+        ? "Continuar em Português"
+        : "Continue in English",
+    [locale],
+  );
 
   return (
     <div className="min-h-screen bg-background text-foreground antialiased flex flex-col relative overflow-hidden">
       <Backdrop />
 
+      {/* WELCOME */}
       {step === "welcome" && (
         <Screen keyName="welcome">
-          <div className="flex justify-center pt-2">
-            <BecomeLogo size="md" />
+          {/* Top bar — invisible chrome */}
+          <div className="flex items-center justify-between mb-2">
+            <BecomeLogo size="sm" />
+            <button
+              onClick={goToAuthOrSkip}
+              className="text-xs font-medium text-muted-foreground/70 hover:text-foreground transition-colors tracking-wide"
+            >
+              {t(COPY.welcome.signin, locale)}
+            </button>
           </div>
+
           <div className="flex-1 flex flex-col justify-center text-center">
-            <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-primary mb-6 animate-in fade-in duration-700">
-              // Chapter 01
+            <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-primary mb-6 animate-in fade-in duration-1000">
+              {t(COPY.welcome.chapter, locale)}
             </p>
-            <h1 className="type-display text-5xl sm:text-6xl leading-[1.05] tracking-tight mb-6 animate-in fade-in slide-in-from-bottom-2 duration-700">
-              You've arrived.
+            <h1 className="type-display text-5xl sm:text-6xl leading-[1.05] tracking-tight mb-5 animate-in fade-in slide-in-from-bottom-2 duration-1000">
+              {t(COPY.welcome.title, locale)}
             </h1>
             <p
-              className="text-lg text-muted-foreground/80 max-w-sm mx-auto leading-relaxed animate-in fade-in slide-in-from-bottom-2 duration-700"
+              className="text-lg text-muted-foreground/85 max-w-sm mx-auto leading-relaxed mb-10 animate-in fade-in slide-in-from-bottom-2 duration-1000"
               style={{ animationDelay: "300ms", animationFillMode: "backwards" }}
             >
-              This is where you stop restarting.
-              <br />
-              <span className="text-primary/90">One system. Every day.</span>
+              {t(COPY.welcome.sub, locale)}
             </p>
+            <div
+              className="space-y-1.5 text-base text-muted-foreground/70 animate-in fade-in duration-1000"
+              style={{ animationDelay: "700ms", animationFillMode: "backwards" }}
+            >
+              <p>{t(COPY.welcome.line1, locale)}</p>
+              <p>{t(COPY.welcome.line2, locale)}</p>
+              <p className="text-primary/90">{t(COPY.welcome.line3, locale)}</p>
+            </div>
           </div>
-          <button
-            onClick={goToAuthOrSkip}
-            className="w-full h-14 bg-primary text-primary-foreground font-black italic uppercase tracking-tight text-sm border-2 border-primary shadow-[3px_3px_0_0_hsl(var(--neon-ultra))] hover:shadow-[5px_5px_0_0_hsl(var(--neon-ultra))] hover:-translate-y-0.5 active:translate-y-0 active:shadow-[2px_2px_0_0_hsl(var(--neon-ultra))] transition-all inline-flex items-center justify-center gap-2"
-          >
-            Begin <ArrowRight className="h-4 w-4" />
-          </button>
+
+          <div className="space-y-4">
+            <button
+              onClick={goToAuthOrSkip}
+              className="w-full h-14 bg-primary text-primary-foreground font-black italic uppercase tracking-tight text-sm border-2 border-primary shadow-[3px_3px_0_0_hsl(var(--neon-ultra))] hover:shadow-[5px_5px_0_0_hsl(var(--neon-ultra))] hover:-translate-y-0.5 active:translate-y-0 active:shadow-[2px_2px_0_0_hsl(var(--neon-ultra))] transition-all inline-flex items-center justify-center gap-2"
+            >
+              {continueCta} <ArrowRight className="h-4 w-4" />
+            </button>
+            {/* Subtle language toggle */}
+            <div className="flex items-center justify-center gap-3 text-[11px] font-mono uppercase tracking-[0.2em]">
+              <button
+                onClick={() => setLocale("pt-PT")}
+                className={cn(
+                  "transition-colors",
+                  locale === "pt-PT"
+                    ? "text-primary"
+                    : "text-muted-foreground/50 hover:text-muted-foreground",
+                )}
+              >
+                PT
+              </button>
+              <span className="text-muted-foreground/30">|</span>
+              <button
+                onClick={() => setLocale("en-US")}
+                className={cn(
+                  "transition-colors",
+                  locale === "en-US"
+                    ? "text-primary"
+                    : "text-muted-foreground/50 hover:text-muted-foreground",
+                )}
+              >
+                EN
+              </button>
+            </div>
+          </div>
         </Screen>
       )}
 
+      {/* AUTH */}
       {step === "auth" && (
         <Screen keyName="auth">
           <div className="flex-1 flex flex-col justify-center">
             <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-primary mb-4 text-center">
-              // Step 1
+              {t(COPY.auth.chapter, locale)}
             </p>
-            <h1 className="type-display text-4xl sm:text-5xl leading-[1.05] tracking-tight mb-3 text-center">
-              Create your<br />account
+            <h1 className="type-display text-4xl sm:text-5xl leading-[1.05] tracking-tight mb-3 text-center whitespace-pre-line">
+              {t(COPY.auth.title, locale)}
             </h1>
             <p className="text-sm text-muted-foreground/70 text-center mb-10">
-              One system. Every day.
+              {t(COPY.auth.sub, locale)}
             </p>
 
             <div className="flex flex-col gap-2.5">
@@ -225,153 +442,179 @@ const Onboarding = () => {
                 disabled={!!authBusy}
                 className="w-full h-12 bg-foreground text-background font-semibold text-sm active:scale-[0.99] transition-transform inline-flex items-center justify-center gap-2 disabled:opacity-60"
               >
-                {authBusy === "apple"
-                  ? <Loader2 className="h-4 w-4 animate-spin" />
-                  : <><AppleIcon /> Continue with Apple</>}
+                {authBusy === "apple" ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    <AppleIcon /> {t(COPY.auth.apple, locale)}
+                  </>
+                )}
               </button>
               <button
                 onClick={handleGoogle}
                 disabled={!!authBusy}
                 className="w-full h-12 bg-foreground/[0.04] border-2 border-foreground/10 text-foreground font-semibold text-sm active:scale-[0.99] transition-transform inline-flex items-center justify-center gap-2 disabled:opacity-60"
               >
-                {authBusy === "google"
-                  ? <Loader2 className="h-4 w-4 animate-spin" />
-                  : <><GoogleIcon /> Continue with Google</>}
+                {authBusy === "google" ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    <GoogleIcon /> {t(COPY.auth.google, locale)}
+                  </>
+                )}
               </button>
               <button
                 onClick={() => navigate("/auth?next=onboarding&mode=signup")}
                 className="w-full h-12 bg-transparent border border-foreground/10 text-muted-foreground font-medium text-sm active:scale-[0.99] transition-transform inline-flex items-center justify-center gap-2"
               >
-                <Mail className="h-4 w-4" /> Continue with Email
+                <Mail className="h-4 w-4" /> {t(COPY.auth.email, locale)}
               </button>
             </div>
 
             <p className="text-[11px] text-muted-foreground/50 text-center mt-8 leading-relaxed">
-              By continuing, you agree to our Terms & Privacy.
+              {t(COPY.auth.legal, locale)}
             </p>
           </div>
         </Screen>
       )}
 
-      {step === "obstacle" && (
-        <Screen keyName="obstacle">
+      {/* STRUGGLES — multi-select */}
+      {step === "struggles" && (
+        <Screen keyName="struggles">
           <div className="flex-1 flex flex-col justify-center">
             <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-primary mb-4">
-              // Honest check
+              {t(COPY.struggles.chapter, locale)}
             </p>
-            <h1 className="type-display text-4xl sm:text-5xl leading-[1.05] tracking-tight mb-12">
-              What feels hardest right now?
+            <h1 className="type-display text-4xl sm:text-5xl leading-[1.05] tracking-tight mb-2 whitespace-pre-line">
+              {t(COPY.struggles.title, locale)}
             </h1>
+            <p className="text-xs text-muted-foreground/60 mb-10 font-mono uppercase tracking-wider">
+              {t(COPY.struggles.hint, locale)}
+            </p>
             <div className="flex flex-col gap-2">
-              {OBSTACLE_OPTIONS.map((opt) => {
-                const selected = obstacle === opt.id;
-                return (
-                  <button
-                    key={opt.id}
-                    onClick={() => {
-                      setObstacle(opt.id);
-                      window.setTimeout(() => setStep("identity"), 240);
-                    }}
-                    className={cn(
-                      "w-full text-left px-5 py-4 border-2 transition-all duration-150 active:scale-[0.99]",
-                      selected
-                        ? "border-primary bg-primary/[0.10] shadow-[0_0_28px_hsl(var(--neon-toxic)/0.3)]"
-                        : "border-foreground/10 hover:border-foreground/30 bg-foreground/[0.015]",
-                    )}
-                  >
-                    <span className={cn("text-base font-semibold tracking-tight", selected && "text-primary")}>
-                      {opt.label["en-US"]}
-                    </span>
-                  </button>
-                );
-              })}
+              {STRUGGLES.map((opt) => (
+                <Option
+                  key={opt.id}
+                  selected={struggles.includes(opt.id)}
+                  onClick={() => toggleStruggle(opt.id)}
+                  multi
+                >
+                  {t(opt.label, locale)}
+                </Option>
+              ))}
             </div>
           </div>
+          <button
+            onClick={() => setStep("identity")}
+            disabled={struggles.length === 0}
+            className="w-full h-14 mt-6 bg-primary text-primary-foreground font-black italic uppercase tracking-tight text-sm border-2 border-primary shadow-[3px_3px_0_0_hsl(var(--neon-ultra))] hover:shadow-[5px_5px_0_0_hsl(var(--neon-ultra))] hover:-translate-y-0.5 active:translate-y-0 active:shadow-[2px_2px_0_0_hsl(var(--neon-ultra))] transition-all inline-flex items-center justify-center gap-2 disabled:opacity-30 disabled:pointer-events-none"
+          >
+            {t(COPY.struggles.cta, locale)} <ArrowRight className="h-4 w-4" />
+          </button>
         </Screen>
       )}
 
+      {/* IDENTITY — single */}
       {step === "identity" && (
         <Screen keyName="identity">
           <div className="flex-1 flex flex-col justify-center">
             <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-primary mb-4">
-              // Direction
+              {t(COPY.identity.chapter, locale)}
             </p>
-            <h1 className="type-display text-4xl sm:text-5xl leading-[1.05] tracking-tight mb-12">
-              Who do you want to become?
+            <h1 className="type-display text-4xl sm:text-5xl leading-[1.05] tracking-tight mb-12 whitespace-pre-line">
+              {t(COPY.identity.title, locale)}
             </h1>
             <div className="flex flex-col gap-2">
-              {IDENTITY_OPTIONS.map((opt) => {
-                const selected = identity === opt.id;
-                return (
-                  <button
-                    key={opt.id}
-                    onClick={() => {
-                      setIdentity(opt.id);
-                      window.setTimeout(() => setStep("philosophy"), 240);
-                    }}
-                    className={cn(
-                      "w-full text-left px-5 py-4 border-2 transition-all duration-150 active:scale-[0.99]",
-                      selected
-                        ? "border-primary bg-primary/[0.10] shadow-[0_0_28px_hsl(var(--neon-toxic)/0.3)]"
-                        : "border-foreground/10 hover:border-foreground/30 bg-foreground/[0.015]",
-                    )}
-                  >
-                    <span className={cn("text-base font-semibold tracking-tight", selected && "text-primary")}>
-                      {opt.label["en-US"]}
-                    </span>
-                  </button>
-                );
-              })}
+              {IDENTITIES.map((opt) => (
+                <Option
+                  key={opt.id}
+                  selected={identity === opt.id}
+                  onClick={() => {
+                    setIdentity(opt.id);
+                    window.setTimeout(() => setStep("pull"), 280);
+                  }}
+                >
+                  {t(opt.label, locale)}
+                </Option>
+              ))}
             </div>
           </div>
         </Screen>
       )}
 
-      {step === "philosophy" && (
-        <Screen keyName="philosophy">
-          <div className="flex-1 flex flex-col justify-center text-center">
-            <h1 className="type-display text-4xl sm:text-5xl leading-[1.15] tracking-tight space-y-6">
-              <span className="block animate-in fade-in slide-in-from-bottom-2 duration-700">
-                Small actions.
-              </span>
-              <span
-                className="block animate-in fade-in slide-in-from-bottom-2 duration-700"
-                style={{ animationDelay: "900ms", animationFillMode: "backwards" }}
-              >
-                Repeated daily.
-              </span>
-              <span
-                className="block text-primary animate-in fade-in slide-in-from-bottom-2 duration-700"
-                style={{ animationDelay: "1800ms", animationFillMode: "backwards" }}
-              >
-                Change everything.
-              </span>
+      {/* PULL — single */}
+      {step === "pull" && (
+        <Screen keyName="pull">
+          <div className="flex-1 flex flex-col justify-center">
+            <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-primary mb-4">
+              {t(COPY.pull.chapter, locale)}
+            </p>
+            <h1 className="type-display text-4xl sm:text-5xl leading-[1.05] tracking-tight mb-12 whitespace-pre-line">
+              {t(COPY.pull.title, locale)}
             </h1>
+            <div className="flex flex-col gap-2">
+              {PULLS.map((opt) => (
+                <Option
+                  key={opt.id}
+                  selected={pull === opt.id}
+                  onClick={() => {
+                    setPull(opt.id);
+                    window.setTimeout(() => setStep("building"), 280);
+                  }}
+                >
+                  {t(opt.label, locale)}
+                </Option>
+              ))}
+            </div>
           </div>
         </Screen>
       )}
 
+      {/* BUILDING — rotating statements */}
       {step === "building" && (
         <Screen keyName="building">
           <div className="flex-1 flex flex-col items-center justify-center text-center">
-            <div className="relative mb-10">
+            <div className="relative mb-12">
               <div className="h-20 w-20 rounded-full border-2 border-primary/20" />
               <div className="absolute inset-0 h-20 w-20 rounded-full border-2 border-transparent border-t-primary animate-spin" />
               <div
                 className="absolute inset-0 h-20 w-20 rounded-full"
-                style={{
-                  boxShadow: "0 0 60px hsl(var(--neon-toxic) / 0.5)",
-                }}
+                style={{ boxShadow: "0 0 60px hsl(var(--neon-toxic) / 0.5)" }}
               />
             </div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-primary mb-4">
-              // Setting things up
+            <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-primary mb-5">
+              {t(COPY.building.chapter, locale)}
             </p>
-            <h1 className="type-display text-3xl sm:text-4xl leading-tight tracking-tight mb-3">
-              We're building<br />your system…
+            <div className="h-12 flex items-center justify-center">
+              <p
+                key={buildIdx}
+                className="type-display text-2xl sm:text-3xl leading-tight tracking-tight animate-in fade-in slide-in-from-bottom-1 duration-700"
+              >
+                {COPY.building.statements[locale][buildIdx]}
+              </p>
+            </div>
+          </div>
+        </Screen>
+      )}
+
+      {/* READY */}
+      {step === "ready" && (
+        <Screen keyName="ready">
+          <div className="flex-1 flex flex-col items-center justify-center text-center">
+            <div
+              className="h-12 w-12 rounded-full border-2 border-primary mb-8 flex items-center justify-center animate-in zoom-in-50 duration-700"
+              style={{ boxShadow: "0 0 40px hsl(var(--neon-toxic) / 0.6)" }}
+            >
+              <Check className="h-6 w-6 text-primary" strokeWidth={3} />
+            </div>
+            <h1 className="type-display text-4xl sm:text-5xl leading-[1.05] tracking-tight mb-4 animate-in fade-in slide-in-from-bottom-2 duration-1000">
+              {t(COPY.ready.title, locale)}
             </h1>
-            <p className="text-sm text-muted-foreground/70">
-              This is the start of something.
+            <p
+              className="text-base text-muted-foreground/80 animate-in fade-in duration-1000"
+              style={{ animationDelay: "400ms", animationFillMode: "backwards" }}
+            >
+              {t(COPY.ready.sub, locale)}
             </p>
           </div>
         </Screen>
@@ -389,7 +632,10 @@ const AppleIcon = () => (
 
 const GoogleIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden>
-    <path fill="#EA4335" d="M12 11v3.27h6.6c-.27 1.4-1.79 4.1-6.6 4.1-3.97 0-7.21-3.29-7.21-7.37s3.24-7.37 7.21-7.37c2.26 0 3.78.96 4.65 1.79l3.17-3.06C17.84 1.62 15.18.5 12 .5 5.92.5 1 5.42 1 11.5S5.92 22.5 12 22.5c6.93 0 11.5-4.86 11.5-11.7 0-.79-.09-1.39-.2-1.99H12z" />
+    <path
+      fill="#EA4335"
+      d="M12 11v3.27h6.6c-.27 1.4-1.79 4.1-6.6 4.1-3.97 0-7.21-3.29-7.21-7.37s3.24-7.37 7.21-7.37c2.26 0 3.78.96 4.65 1.79l3.17-3.06C17.84 1.62 15.18.5 12 .5 5.92.5 1 5.42 1 11.5S5.92 22.5 12 22.5c6.93 0 11.5-4.86 11.5-11.7 0-.79-.09-1.39-.2-1.99H12z"
+    />
   </svg>
 );
 
