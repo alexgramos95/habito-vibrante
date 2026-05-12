@@ -37,14 +37,10 @@ const t = (b: Bilingual, locale: Locale) => b[locale] ?? b["en-US"];
 const COPY = {
   welcome: {
     chapter: { "en-US": "// Chapter 01", "pt-PT": "// Capítulo 01" },
-    title: { "en-US": "Welcome to Become.", "pt-PT": "Bem-vindo ao Become." },
-    sub: {
-      "en-US": "This is where you stop restarting.",
-      "pt-PT": "Aqui é onde deixas de recomeçar.",
-    },
-    line1: { "en-US": "Small actions.", "pt-PT": "Pequenas ações." },
-    line2: { "en-US": "Repeated daily.", "pt-PT": "Repetidas todos os dias." },
-    line3: { "en-US": "Change everything.", "pt-PT": "Mudam tudo." },
+    titleA: { "en-US": "You don't need motivation.", "pt-PT": "Não precisas de motivação." },
+    titleB: { "en-US": "You need a system.", "pt-PT": "Precisas de um sistema." },
+    sub: { "en-US": "Plan. Execute. Repeat.", "pt-PT": "Planear. Executar. Repetir." },
+    italic: { "en-US": "This time, it sticks.", "pt-PT": "Desta vez, fica." },
     cta: { "en-US": "Continue", "pt-PT": "Continuar" },
     signin: { "en-US": "Sign in", "pt-PT": "Entrar" },
   },
