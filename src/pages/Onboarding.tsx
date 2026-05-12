@@ -341,7 +341,7 @@ const Onboarding = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background text-foreground antialiased flex flex-col relative overflow-hidden">
+    <div className="with-scanlines min-h-screen bg-background text-foreground antialiased flex flex-col relative overflow-hidden">
       <Backdrop />
 
       {/* WELCOME */}
