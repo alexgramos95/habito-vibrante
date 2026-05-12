@@ -359,26 +359,31 @@ const Onboarding = () => {
           </div>
 
           <div className="flex-1 flex flex-col justify-center text-center">
-            <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-primary mb-6 animate-in fade-in duration-1000">
+            <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-primary mb-7 animate-in fade-in duration-1000">
               {t(COPY.welcome.chapter, locale)}
             </p>
-            <h1 className="type-display text-5xl sm:text-6xl leading-[1.05] tracking-tight mb-5 animate-in fade-in slide-in-from-bottom-2 duration-1000">
-              {t(COPY.welcome.title, locale)}
+            <h1 className="type-display text-[40px] sm:text-5xl md:text-6xl leading-[0.95] mb-6 animate-in fade-in slide-in-from-bottom-2 duration-1000">
+              {t(COPY.welcome.titleA, locale)}
+              <br />
+              <span
+                className="text-primary"
+                style={{ textShadow: "0 0 32px hsl(var(--neon-toxic) / 0.35)" }}
+              >
+                {t(COPY.welcome.titleB, locale)}
+              </span>
             </h1>
             <p
-              className="text-lg text-muted-foreground/85 max-w-sm mx-auto leading-relaxed mb-10 animate-in fade-in slide-in-from-bottom-2 duration-1000"
+              className="type-body text-base sm:text-lg text-muted-foreground/85 mb-3 animate-in fade-in duration-1000"
               style={{ animationDelay: "300ms", animationFillMode: "backwards" }}
             >
               {t(COPY.welcome.sub, locale)}
             </p>
-            <div
-              className="space-y-1.5 text-base text-muted-foreground/70 animate-in fade-in duration-1000"
-              style={{ animationDelay: "700ms", animationFillMode: "backwards" }}
+            <p
+              className="type-body italic text-sm sm:text-base text-foreground/70 animate-in fade-in duration-1000"
+              style={{ animationDelay: "600ms", animationFillMode: "backwards" }}
             >
-              <p>{t(COPY.welcome.line1, locale)}</p>
-              <p>{t(COPY.welcome.line2, locale)}</p>
-              <p className="text-primary/90">{t(COPY.welcome.line3, locale)}</p>
-            </div>
+              {t(COPY.welcome.italic, locale)}
+            </p>
           </div>
 
           <div className="space-y-4">
