@@ -339,7 +339,7 @@ const Onboarding = () => {
       if (isAuthenticated) {
         navigate("/app", { replace: true });
       } else {
-        setStep("auth");
+        setStep("language");
       }
     }, 2400);
     return () => window.clearTimeout(t);
