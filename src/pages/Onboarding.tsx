@@ -475,15 +475,13 @@ const Onboarding = () => {
         <Screen keyName="language">
           <div className="flex-1 flex flex-col justify-center">
             <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-primary mb-4 text-center">
-              {locale === "pt-PT" ? "// Idioma" : "// Language"}
+              // Language
             </p>
             <h1 className="type-display text-4xl sm:text-5xl leading-[1.05] tracking-tight mb-3 text-center">
-              {locale === "pt-PT" ? "Escolhe o teu\nidioma." : "Choose your\nlanguage."}
+              {"Choose your\nlanguage."}
             </h1>
             <p className="text-sm text-muted-foreground/70 text-center mb-10">
-              {locale === "pt-PT"
-                ? "Podes mudar mais tarde nas definições."
-                : "You can change this later in settings."}
+              You can change this later in settings.
             </p>
 
             <div className="flex flex-col gap-2">
@@ -507,7 +505,7 @@ const Onboarding = () => {
             onClick={() => setStep("auth")}
             className="w-full h-14 mt-6 bg-primary text-primary-foreground font-black italic uppercase tracking-tight text-sm border-2 border-primary shadow-[3px_3px_0_0_hsl(var(--neon-ultra))] hover:shadow-[5px_5px_0_0_hsl(var(--neon-ultra))] hover:-translate-y-0.5 active:translate-y-0 active:shadow-[2px_2px_0_0_hsl(var(--neon-ultra))] transition-all inline-flex items-center justify-center gap-2"
           >
-            {locale === "pt-PT" ? "Continuar" : "Continue"} <ArrowRight className="h-4 w-4" />
+            Continue <ArrowRight className="h-4 w-4" />
           </button>
         </Screen>
       )}
