@@ -59,9 +59,9 @@ const MyHabits = () => {
       <main className="max-w-2xl mx-auto px-4 pt-6">
         <PageHeader
           title={isPT ? "Meus hábitos" : "My habits"}
-          subtitle={`${counts.all} ${counts.all === 1
-            ? isPT ? "hábito no total" : "habit in total"
-            : isPT ? "hábitos no total" : "habits in total"}`}
+          subtitle={`LV.${getLevelProgress(state.gamification?.pontos || 0).current} · ${counts.all} ${counts.all === 1
+            ? isPT ? "hábito" : "habit"
+            : isPT ? "hábitos" : "habits"}`}
           icon={ListChecks}
           backTo
           backLabel={isPT ? "Voltar" : "Back"}
