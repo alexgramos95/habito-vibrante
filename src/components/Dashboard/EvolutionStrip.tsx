@@ -132,7 +132,7 @@ export const EvolutionStrip = ({ state, isPT, className }: EvolutionStripProps) 
         <div className="min-w-0 flex items-center gap-2.5">
           <span
             aria-hidden
-            className="h-1.5 w-1.5 rounded-full bg-primary/70 shadow-[0_0_6px_hsl(var(--primary)/0.6)]"
+            className="h-1.5 w-1.5 rounded-full bg-primary/70 living-pulse"
           />
           <span className="text-[14px] text-foreground/85 truncate">
             {phase}
