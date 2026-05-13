@@ -489,12 +489,12 @@ const Index = () => {
             <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
               <CheckCircle2 className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="text-2xl font-bold tracking-tight text-foreground">Um hábito basta.</h3>
+            <h3 className="text-2xl font-bold tracking-tight text-foreground">{isPT ? 'Um hábito basta.' : 'One habit is enough.'}</h3>
             <p className="text-sm text-muted-foreground mt-2 max-w-[280px] mx-auto">
-              Identidade constrói-se um dia de cada vez.
+              {isPT ? 'Identidade constrói-se um dia de cada vez.' : 'Identity is built one day at a time.'}
             </p>
             <Button onClick={() => setShowModeSelector(true)} size="lg" className="mt-6 gap-2">
-              <Plus className="h-4 w-4" /> Criar primeiro hábito
+              <Plus className="h-4 w-4" /> {isPT ? 'Criar primeiro hábito' : 'Create first habit'}
             </Button>
           </div>
         )}
@@ -504,7 +504,7 @@ const Index = () => {
           <section className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-baseline gap-2">
-                <h2 className="text-base font-semibold tracking-tight text-foreground">Hoje</h2>
+                <h2 className="text-base font-semibold tracking-tight text-foreground">{isPT ? 'Hoje' : 'Today'}</h2>
                 {totalTracked > 0 && (
                   <span className="text-xs tabular-nums text-muted-foreground">
                     {Math.round(totalDone)}/{totalTracked}
@@ -668,10 +668,10 @@ const Index = () => {
         {!isPro && simpleHabits.length >= FREE_LIMIT && (
           <div className="text-center py-2">
             <p className="text-sm text-muted-foreground mb-2">
-              Limite gratuito atingido. Hábitos ilimitados na PRO.
+              {isPT ? 'Limite gratuito atingido. Hábitos ilimitados na PRO.' : 'Free limit reached. Unlimited habits on PRO.'}
             </p>
             <Link to="/decision">
-              <Button variant="outline" size="sm">Desbloquear PRO</Button>
+              <Button variant="outline" size="sm">{isPT ? 'Desbloquear PRO' : 'Unlock PRO'}</Button>
             </Link>
           </div>
         )}
@@ -681,9 +681,9 @@ const Index = () => {
       <Dialog open={showModeSelector} onOpenChange={setShowModeSelector}>
         <DialogContent className="w-[90vw] max-w-sm">
           <DialogHeader>
-            <p className="mono-label text-primary mb-1">// Novo</p>
-            <DialogTitle className="display-headline text-2xl">Escolhe o tipo</DialogTitle>
-            <DialogDescription>Ritual diário ou métrica que cresce ao longo do dia.</DialogDescription>
+            <p className="mono-label text-primary mb-1">// {isPT ? 'Novo' : 'New'}</p>
+            <DialogTitle className="display-headline text-2xl">{isPT ? 'Escolhe o tipo' : 'Choose the type'}</DialogTitle>
+            <DialogDescription>{isPT ? 'Ritual diário ou métrica que cresce ao longo do dia.' : 'Daily ritual or metric that grows through the day.'}</DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-3 py-4">
             <button
@@ -699,7 +699,7 @@ const Index = () => {
               <div className="h-12 w-12 border-2 border-primary bg-primary/15 flex items-center justify-center">
                 <CheckCircle2 className="h-6 w-6 text-primary" />
               </div>
-              <span className="font-bold uppercase italic tracking-tight text-sm">Simples</span>
+              <span className="font-bold uppercase italic tracking-tight text-sm">{isPT ? 'Simples' : 'Simple'}</span>
               <span className="mono-label text-muted-foreground/70">Checkbox</span>
             </button>
             <button
@@ -715,8 +715,8 @@ const Index = () => {
               <div className="h-12 w-12 border-2 border-accent bg-accent/15 flex items-center justify-center">
                 <TrendingUp className="h-6 w-6 text-accent" />
               </div>
-              <span className="font-bold uppercase italic tracking-tight text-sm">Métrica</span>
-              <span className="mono-label text-muted-foreground/70">{canAddMetric ? "Valores" : "PRO"}</span>
+              <span className="font-bold uppercase italic tracking-tight text-sm">{isPT ? 'Métrica' : 'Metric'}</span>
+              <span className="mono-label text-muted-foreground/70">{canAddMetric ? (isPT ? 'Valores' : 'Values') : 'PRO'}</span>
             </button>
           </div>
         </DialogContent>
