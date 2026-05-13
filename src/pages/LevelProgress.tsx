@@ -109,30 +109,28 @@ const LevelProgress = () => {
 
       <main className="page-content max-w-2xl mx-auto space-y-5">
         <PageHeader
-          title={isPt ? "Evolução do Nível" : "Level Progress"}
-          subtitle={isPt ? "Acompanha o teu percurso ao longo do tempo" : "Track your journey over time"}
+          title={isPt ? "A tua evolução" : "Your evolution"}
+          subtitle={isPt ? "A história de quem te estás a tornar." : "The story of who you are becoming."}
           backTo="/app/profile"
           backLabel={isPt ? "Voltar" : "Back"}
         />
 
-        {/* Hero level card */}
-        <div className="rounded-2xl border-2 border-primary/40 bg-card p-5 shadow-[4px_4px_0_0_hsl(var(--neon-ultra)/0.4)]">
+        {/* Hero level card — calmer, identity-led */}
+        <div className="rounded-2xl border border-foreground/[0.08] bg-card/60 p-5">
           <div className="flex items-start justify-between mb-4">
             <div>
-              <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-                {isPt ? "// NÍVEL ATUAL" : "// CURRENT LEVEL"}
-              </p>
-              <p className="font-black italic uppercase tracking-tighter text-5xl text-primary mt-1">
+              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-primary/80">
                 LV.{levelProgress.current}
               </p>
-            </div>
-            <div className="text-right">
-              <div className="flex items-center gap-1 justify-end">
-                <Star className="h-3.5 w-3.5 text-warning fill-warning" />
-                <span className="font-black text-2xl">{state.gamification.pontos}</span>
-              </div>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                {isPt ? "pontos totais" : "total points"}
+              <p className="text-2xl font-semibold tracking-tight text-foreground mt-1">
+                {isPt
+                  ? ["A tornares-te consistente","A construir estrutura","A encontrar o teu ritmo","A identidade a emergir","A tornares-te quem és","A viver isso"][Math.min(levelProgress.current - 1, 5)]
+                  : ["Becoming consistent","Building structure","Finding rhythm","Identity emerging","Becoming who you are","Living it"][Math.min(levelProgress.current - 1, 5)]}
+              </p>
+              <p className="text-sm text-muted-foreground mt-1">
+                {isPt
+                  ? `${state.gamification.pontos} pontos ganhos através de consistência`
+                  : `${state.gamification.pontos} points earned through consistency`}
               </p>
             </div>
           </div>
@@ -140,31 +138,33 @@ const LevelProgress = () => {
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs">
               <span className="text-muted-foreground">
-                {isPt ? `Para o nível ${levelProgress.nextLevel}` : `To level ${levelProgress.nextLevel}`}
+                {isPt ? "Próxima evolução" : "Next evolution"}
               </span>
-              <span className="font-mono">{levelProgress.pointsToNext} pts</span>
+              <span className="font-mono text-muted-foreground">
+                {isPt ? `${levelProgress.pointsToNext} pontos` : `${levelProgress.pointsToNext} points`}
+              </span>
             </div>
-            <Progress value={levelProgress.progress} className="h-2" />
+            <Progress value={levelProgress.progress} className="h-1.5" />
           </div>
         </div>
 
-        {/* Quick stats */}
+        {/* Quiet identity tiles */}
         <div className="grid grid-cols-3 gap-2">
           <StatTile
             icon={<Flame className="h-3.5 w-3.5" />}
-            label={isPt ? "Streak atual" : "Current streak"}
+            label={isPt ? "Dias em movimento" : "Days in motion"}
             value={state.gamification.currentStreak || 0}
             color="primary"
           />
           <StatTile
             icon={<Trophy className="h-3.5 w-3.5" />}
-            label={isPt ? "Melhor streak" : "Best streak"}
+            label={isPt ? "Melhor sequência" : "Longest stretch"}
             value={state.gamification.bestStreak || 0}
             color="warning"
           />
           <StatTile
             icon={<Sparkles className="h-3.5 w-3.5" />}
-            label={isPt ? "Conquistas" : "Achievements"}
+            label={isPt ? "Marcos" : "Milestones"}
             value={unlocked.length}
             color="success"
           />
