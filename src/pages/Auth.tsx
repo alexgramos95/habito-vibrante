@@ -411,7 +411,7 @@ const Auth = () => {
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       {/* Back button */}
       <div className="w-full max-w-md mb-4">
-        <Link to="/onboarding" className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors">
+        <Link to="/onboarding?restart=1" className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors">
           <ArrowLeft className="h-3.5 w-3.5" />
           // BACK
         </Link>
