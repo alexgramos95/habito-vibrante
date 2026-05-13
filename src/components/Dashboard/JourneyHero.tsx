@@ -104,31 +104,62 @@ export const JourneyHero = ({
   }, [firstName, isPT]);
 
   // === Sub-headline: identity + state — calm, reflective, never motivational ===
+  // Adaptive engine: time of day, lifecycle, streak, returning, momentum.
   const subline = (() => {
+    const hour = new Date().getHours();
+    const isLateNight = hour >= 23 || hour < 5;
+    const isEarlyMorning = hour >= 5 && hour < 8;
+
     if (lifecycleState === "new")
       return isPT
         ? "O começo é silencioso. Acontece à primeira escolha."
         : "Beginnings are quiet. They happen at the first choice.";
+
     if (brokeYesterday)
       return isPT
-        ? "Ontem ficou em aberto. Identidade não é perfeição — é regresso."
-        : "Yesterday stayed open. Identity isn't perfection — it's return.";
+        ? "Ontem ficou em aberto. Hoje recomeças."
+        : "Yesterday stayed open. Today you begin again.";
+
     if (lifecycleState === "reengaged")
       return isPT
-        ? "Voltaste. Esta é a parte que conta."
-        : "You came back. This is the part that counts.";
+        ? "Ainda estás aqui. Isso importa."
+        : "You're still here. That matters.";
+
+    if (isLateNight)
+      return isPT
+        ? "A noite é tua. Fecha o dia em silêncio."
+        : "The night is yours. Close the day quietly.";
+
+    if (isEarlyMorning && totalDone === 0)
+      return isPT
+        ? "O dia ainda não começou a falar. Tu primeiro."
+        : "The day hasn't spoken yet. You go first.";
+
+    if (streak >= 30)
+      return isPT
+        ? `Já não é esforço. É quem és — ${identityLabel}.`
+        : `It's no longer effort. It's who you are — ${identityLabel}.`;
+
     if (streak >= 14)
       return isPT
         ? `Já não tens de te lembrar. Estás a tornar-te ${identityLabel}.`
         : `You no longer have to remember. You are becoming ${identityLabel}.`;
+
     if (streak >= 5)
       return isPT
-        ? `O sistema está a moldar-te. Continua devagar.`
-        : `The system is shaping you. Keep moving slowly.`;
+        ? "Consistência constrói-se em silêncio."
+        : "Consistency is built in silence.";
+
     if (totalTracked > 0 && totalDone === 0)
       return isPT
         ? "O dia está intacto. Começa por um."
         : "The day is intact. Begin with one.";
+
+    if (totalTracked > 0 && totalDone >= totalTracked)
+      return isPT
+        ? "Pequenos sistemas. Grandes mudanças."
+        : "Small systems. Quiet change.";
+
     return isPT
       ? `A construir o teu eu ${identityLabel}.`
       : `Building your ${identityLabel}.`;
