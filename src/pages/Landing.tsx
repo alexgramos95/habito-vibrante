@@ -222,7 +222,7 @@ const Landing = () => {
               </h1>
 
               <p className="type-body italic text-sm sm:text-base text-foreground/70 mb-10 md:mb-12 max-w-[44ch] mx-auto md:mx-0">
-                This time, it sticks.
+                Self-improvement app to become better.
               </p>
 
               <div className="flex flex-col items-center md:items-start gap-4">
