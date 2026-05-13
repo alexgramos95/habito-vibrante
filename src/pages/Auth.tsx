@@ -469,7 +469,7 @@ const Auth = () => {
                     <Input
                       id="displayName"
                       type="text"
-                      placeholder="Your name"
+                      placeholder={locale === 'pt-PT' ? 'O teu nome' : 'Your name'}
                       value={displayName}
                       onChange={(e) => setDisplayName(e.target.value)}
                       className="pl-10"
