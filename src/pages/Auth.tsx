@@ -441,22 +441,22 @@ const Auth = () => {
         <Card className="border-2 border-primary/40 bg-card shadow-[8px_8px_0_0_hsl(var(--neon-ultra)/0.6)]">
           <CardHeader className="space-y-1">
             <p className="font-mono text-[10px] uppercase tracking-widest text-primary/70">
-              {mode === 'signin' && '// SIGN IN'}
-              {mode === 'signup' && '// SIGN UP'}
-              {mode === 'forgot-password' && '// RECOVER ACCESS'}
-              {mode === 'reset-password' && '// NEW PASSWORD'}
+              {mode === 'signin' && (locale === 'pt-PT' ? '// ENTRAR' : '// SIGN IN')}
+              {mode === 'signup' && (locale === 'pt-PT' ? '// CRIAR CONTA' : '// SIGN UP')}
+              {mode === 'forgot-password' && (locale === 'pt-PT' ? '// RECUPERAR ACESSO' : '// RECOVER ACCESS')}
+              {mode === 'reset-password' && (locale === 'pt-PT' ? '// NOVA PALAVRA-PASSE' : '// NEW PASSWORD')}
             </p>
             <CardTitle className="text-2xl font-black italic uppercase tracking-tighter">
-              {mode === 'signin' && 'Welcome back'}
-              {mode === 'signup' && 'Create your account'}
-              {mode === 'forgot-password' && 'Reset password'}
-              {mode === 'reset-password' && 'Set new password'}
+              {mode === 'signin' && (locale === 'pt-PT' ? 'Bem-vindo de volta' : 'Welcome back')}
+              {mode === 'signup' && (locale === 'pt-PT' ? 'Cria a tua conta' : 'Create your account')}
+              {mode === 'forgot-password' && (locale === 'pt-PT' ? 'Recuperar palavra-passe' : 'Reset password')}
+              {mode === 'reset-password' && (locale === 'pt-PT' ? 'Definir nova palavra-passe' : 'Set new password')}
             </CardTitle>
             <CardDescription className="font-mono text-xs">
-              {mode === 'signin' && 'Sign in to continue'}
-              {mode === 'signup' && 'Start your free trial'}
-              {mode === 'forgot-password' && 'Enter your email to receive a link'}
-              {mode === 'reset-password' && 'Choose a secure password'}
+              {mode === 'signin' && (locale === 'pt-PT' ? 'Entra para continuar' : 'Sign in to continue')}
+              {mode === 'signup' && (locale === 'pt-PT' ? 'Começa o teu período grátis' : 'Start your free trial')}
+              {mode === 'forgot-password' && (locale === 'pt-PT' ? 'Indica o teu email para receberes um link' : 'Enter your email to receive a link')}
+              {mode === 'reset-password' && (locale === 'pt-PT' ? 'Escolhe uma palavra-passe segura' : 'Choose a secure password')}
             </CardDescription>
           </CardHeader>
           <CardContent>
