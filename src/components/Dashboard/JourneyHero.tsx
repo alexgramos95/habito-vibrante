@@ -242,33 +242,11 @@ export const JourneyHero = ({
           </p>
         </div>
 
-        {/* PROGRESS — atmospheric line only, no hard counters */}
-        {totalTracked > 0 && (
-          <div className="relative mt-7">
-            <div
-              className="h-[2px] w-full bg-foreground/[0.06] overflow-hidden rounded-full"
-              role="progressbar"
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={progressPercent}
-              aria-label={isPT ? "Progresso de hoje" : "Today's progress"}
-            >
-              <div
-                className={cn(
-                  "h-full transition-all duration-1000 ease-out rounded-full",
-                  allDoneToday
-                    ? "bg-success/70 shadow-[0_0_8px_hsl(var(--success)/0.35)]"
-                    : "bg-primary/55",
-                )}
-                style={{ width: `${Math.max(progressPercent, 4)}%` }}
-              />
-            </div>
-            {allDoneToday && (
-              <p className="mt-3 text-[12px] text-success/85 tracking-wide italic">
-                {isPT ? "Hoje está completo." : "Today is complete."}
-              </p>
-            )}
-          </div>
+        {/* PROGRESS — completion notice only; the bar lived here previously */}
+        {totalTracked > 0 && allDoneToday && (
+          <p className="relative mt-7 text-[12px] text-success/85 tracking-wide italic">
+            {isPT ? "Hoje está completo." : "Today is complete."}
+          </p>
         )}
       </section>
 
