@@ -692,10 +692,10 @@ const Auth = () => {
 
         {/* Terms */}
         <p className="text-center font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-          // BY CONTINUING YOU ACCEPT{' '}
-          <a href="/terms" className="underline hover:text-primary">TERMS</a>
-          {' '}AND{' '}
-          <a href="/privacy" className="underline hover:text-primary">PRIVACY</a>
+          {locale === 'pt-PT' ? '// AO CONTINUAR ACEITAS OS ' : '// BY CONTINUING YOU ACCEPT '}
+          <a href="/terms" className="underline hover:text-primary">{locale === 'pt-PT' ? 'TERMOS' : 'TERMS'}</a>
+          {locale === 'pt-PT' ? ' E ' : ' AND '}
+          <a href="/privacy" className="underline hover:text-primary">{locale === 'pt-PT' ? 'PRIVACIDADE' : 'PRIVACY'}</a>
         </p>
       </div>
     </div>
