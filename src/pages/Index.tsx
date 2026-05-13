@@ -504,7 +504,7 @@ const Index = () => {
           <section className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-baseline gap-2">
-                <h2 className="text-base font-semibold tracking-tight text-foreground">Hoje</h2>
+                <h2 className="text-base font-semibold tracking-tight text-foreground">{isPT ? 'Hoje' : 'Today'}</h2>
                 {totalTracked > 0 && (
                   <span className="text-xs tabular-nums text-muted-foreground">
                     {Math.round(totalDone)}/{totalTracked}
