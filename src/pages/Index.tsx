@@ -441,7 +441,7 @@ const Index = () => {
     <div className="page-container">
       <Navigation />
 
-      <main className="page-content max-w-xl mx-auto space-y-8">
+      <main className="page-content max-w-xl mx-auto space-y-10">
         {/* ═══ UNIFIED HERO — greeting, progress, streak, next-action CTA ═══ */}
         {state.habits.length > 0 && (
           <JourneyHero
