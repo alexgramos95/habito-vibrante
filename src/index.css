@@ -496,11 +496,35 @@
 
 @keyframes ambient-drift {
   0%, 100% { transform: translate3d(0, 0, 0); opacity: 1; }
-  50%      { transform: translate3d(0, -8px, 0); opacity: 0.92; }
+  50%      { transform: translate3d(0, -10px, 0); opacity: 0.88; }
 }
 
+/* Breathing glow — barely perceptible, used on completed/active surfaces.
+   Slow ~6s cycle. Designed to be felt, not consciously seen. */
+@keyframes breathe-soft {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50%      { opacity: 0.85; transform: scale(1.012); }
+}
+.breathe-soft { animation: breathe-soft 6s ease-in-out infinite; }
+
+@keyframes breathe-glow {
+  0%, 100% { opacity: 0.45; }
+  50%      { opacity: 0.8; }
+}
+.breathe-glow { animation: breathe-glow 5.5s ease-in-out infinite; }
+
+/* Living dot — used for "today" markers, the system signaling presence. */
+@keyframes living-pulse {
+  0%, 100% { box-shadow: 0 0 4px hsl(var(--primary) / 0.35); }
+  50%      { box-shadow: 0 0 10px hsl(var(--primary) / 0.65); }
+}
+.living-pulse { animation: living-pulse 3.6s ease-in-out infinite; }
+
 @media (prefers-reduced-motion: reduce) {
-  .page-container::before { animation: none; }
+  .page-container::before,
+  .breathe-soft,
+  .breathe-glow,
+  .living-pulse { animation: none; }
 }
 
 .page-container > * {
