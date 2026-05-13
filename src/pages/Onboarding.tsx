@@ -475,15 +475,13 @@ const Onboarding = () => {
         <Screen keyName="language">
           <div className="flex-1 flex flex-col justify-center">
             <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-primary mb-4 text-center">
-              {locale === "pt-PT" ? "// Idioma" : "// Language"}
+              // Language
             </p>
             <h1 className="type-display text-4xl sm:text-5xl leading-[1.05] tracking-tight mb-3 text-center">
-              {locale === "pt-PT" ? "Escolhe o teu\nidioma." : "Choose your\nlanguage."}
+              {"Choose your\nlanguage."}
             </h1>
             <p className="text-sm text-muted-foreground/70 text-center mb-10">
-              {locale === "pt-PT"
-                ? "Podes mudar mais tarde nas definições."
-                : "You can change this later in settings."}
+              You can change this later in settings.
             </p>
 
             <div className="flex flex-col gap-2">
