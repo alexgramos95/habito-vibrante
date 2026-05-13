@@ -490,27 +490,27 @@ const Index = () => {
         {(sortedTodaySimple.length > 0 || activeMetrics.length > 0) && (() => {
           const firstPendingId = sortedTodaySimple.find(h => !isSimpleDone(h.id))?.id;
           return (
-          <section className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-base font-semibold tracking-tight text-foreground/90">{isPT ? 'Hoje' : 'Today'}</h2>
-              <div className="flex items-center gap-2">
+          <section className="space-y-5">
+            <div className="flex items-center justify-between px-0.5">
+              <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground/70">{isPT ? 'Hoje' : 'Today'}</h2>
+              <div className="flex items-center gap-1">
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="h-9 gap-1.5 px-3 rounded-xl text-muted-foreground hover:text-foreground"
+                  className="h-8 gap-1.5 px-2.5 rounded-lg text-muted-foreground/60 hover:text-foreground/90 hover:bg-foreground/[0.04]"
                   onClick={() => setShowMyHabits(true)}
                 >
-                  <ListChecks className="h-4 w-4" />
-                  <span className="hidden sm:inline">{isPT ? 'Os meus' : 'All'}</span>
+                  <ListChecks className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline text-[12px]">{isPT ? 'Os meus' : 'All'}</span>
                 </Button>
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="h-9 gap-1.5 px-3 rounded-xl text-muted-foreground hover:text-foreground"
+                  className="h-8 gap-1.5 px-2.5 rounded-lg text-muted-foreground/60 hover:text-foreground/90 hover:bg-foreground/[0.04]"
                   onClick={() => setShowModeSelector(true)}
                 >
-                  <Plus className="h-4 w-4" />
-                  <span className="hidden sm:inline">{isPT ? 'Novo' : 'New'}</span>
+                  <Plus className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline text-[12px]">{isPT ? 'Novo' : 'New'}</span>
                 </Button>
               </div>
             </div>
