@@ -650,7 +650,8 @@ const Index = () => {
               </div>
             )}
           </section>
-        )}
+          );
+        })()}
 
         {/* PRO upsell — calm, single line */}
         {!isPro && simpleHabits.length >= FREE_LIMIT && (
