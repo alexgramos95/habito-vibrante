@@ -486,23 +486,18 @@ const Index = () => {
           </div>
         )}
 
-        {/* ═══ Hoje (rituals + metrics) — single section, clear hierarchy ═══ */}
-        {(sortedTodaySimple.length > 0 || activeMetrics.length > 0) && (
-          <section className="space-y-3">
+        {/* ═══ Hoje — unified rituals + metrics, no hard counters ═══ */}
+        {(sortedTodaySimple.length > 0 || activeMetrics.length > 0) && (() => {
+          const firstPendingId = sortedTodaySimple.find(h => !isSimpleDone(h.id))?.id;
+          return (
+          <section className="space-y-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-baseline gap-2">
-                <h2 className="text-base font-semibold tracking-tight text-foreground">{isPT ? 'Hoje' : 'Today'}</h2>
-                {totalTracked > 0 && (
-                  <span className="text-xs tabular-nums text-muted-foreground">
-                    {Math.round(totalDone)}/{totalTracked}
-                  </span>
-                )}
-              </div>
+              <h2 className="text-base font-semibold tracking-tight text-foreground/90">{isPT ? 'Hoje' : 'Today'}</h2>
               <div className="flex items-center gap-2">
                 <Button
                   size="sm"
-                  variant="outline-soft"
-                  className="h-9 gap-1.5 px-3 rounded-xl"
+                  variant="ghost"
+                  className="h-9 gap-1.5 px-3 rounded-xl text-muted-foreground hover:text-foreground"
                   onClick={() => setShowMyHabits(true)}
                 >
                   <ListChecks className="h-4 w-4" />
@@ -510,8 +505,8 @@ const Index = () => {
                 </Button>
                 <Button
                   size="sm"
-                  variant="default"
-                  className="h-9 gap-1.5 px-3 rounded-xl"
+                  variant="ghost"
+                  className="h-9 gap-1.5 px-3 rounded-xl text-muted-foreground hover:text-foreground"
                   onClick={() => setShowModeSelector(true)}
                 >
                   <Plus className="h-4 w-4" />
@@ -520,13 +515,19 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Simple habits */}
+            {/* Simple habits — first pending gets a quiet "focus" label */}
             {sortedTodaySimple.length > 0 && (
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 {sortedTodaySimple.map(habit => {
                   const log = state.dailyLogs.find(l => l.habitId === habit.id && l.date === today && l.done);
+                  const isFocus = habit.id === firstPendingId;
                   return (
-                    <div key={habit.id} id={`habit-${habit.id}`}>
+                    <div key={habit.id} id={`habit-${habit.id}`} className="space-y-1.5">
+                      {isFocus && (
+                        <p className="px-1 text-[10px] font-medium uppercase tracking-[0.18em] text-primary/70 animate-fade-in">
+                          {isPT ? 'Primeiro passo' : 'First step'}
+                        </p>
+                      )}
                       <MinimalHabitCard
                         habit={habit}
                         isDone={isSimpleDone(habit.id)}
