@@ -475,6 +475,11 @@ const Index = () => {
 
         <NotificationSetup />
 
+        {/* ═══ Daily Evolution — subtle identity strip linking today → long-term ═══ */}
+        {state.habits.length > 0 && (
+          <EvolutionStrip state={state} isPT={isPT} />
+        )}
+
         {/* ═══ Daily Motivation — only past early days, calm spacing ═══ */}
         {!isEarlyDay && state.habits.length > 0 && <MotivationCard card={motivationCard} />}
 
