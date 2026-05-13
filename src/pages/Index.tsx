@@ -500,11 +500,47 @@ const Index = () => {
           </div>
         )}
 
-        {/* ═══ Hoje — unified rituals + metrics, no hard counters ═══ */}
+        {/* ═══ Hoje — temporal rhythm: Manhã → Tarde → Noite → Sem horário ═══ */}
         {(sortedTodaySimple.length > 0 || activeMetrics.length > 0) && (() => {
           const firstPendingId = sortedTodaySimple.find(h => !isSimpleDone(h.id))?.id;
+
+          // Time-of-day bucketing — mirrors /app/habits to give the day a felt rhythm.
+          type Bucket = "morning" | "afternoon" | "evening" | "night" | "unscheduled";
+          const BUCKET_ORDER: Bucket[] = ["morning", "afternoon", "evening", "night", "unscheduled"];
+          const bucketOf = (time?: string): Bucket => {
+            if (!time) return "unscheduled";
+            const h = parseInt(time.split(":")[0] ?? "0", 10);
+            if (h < 5) return "night";
+            if (h < 12) return "morning";
+            if (h < 18) return "afternoon";
+            if (h < 22) return "evening";
+            return "night";
+          };
+          const bucketLabel = (b: Bucket) => ({
+            morning:     isPT ? "Manhã"        : "Morning",
+            afternoon:   isPT ? "Tarde"        : "Afternoon",
+            evening:     isPT ? "Fim de tarde" : "Evening",
+            night:       isPT ? "Noite"        : "Night",
+            unscheduled: isPT ? "Sem horário"  : "Unscheduled",
+          }[b]);
+
+          // Unified timeline — simple + metric items share the same temporal frame.
+          type Item =
+            | { kind: "simple"; habit: Habit }
+            | { kind: "metric"; habit: Habit };
+          const items: Item[] = [
+            ...sortedTodaySimple.map(h => ({ kind: "simple" as const, habit: h })),
+            ...activeMetrics.map(h => ({ kind: "metric" as const, habit: h })),
+          ];
+          const groups = BUCKET_ORDER
+            .map(bucket => ({
+              bucket,
+              items: items.filter(it => bucketOf(it.habit.scheduledTime) === bucket),
+            }))
+            .filter(g => g.items.length > 0);
+
           return (
-          <section className="space-y-5">
+          <section className="space-y-6">
             <div className="flex items-center justify-between px-0.5">
               <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground/70">{isPT ? 'Hoje' : 'Today'}</h2>
               <div className="flex items-center gap-1">
@@ -529,140 +565,149 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Simple habits — first pending gets a quiet "focus" label */}
-            {sortedTodaySimple.length > 0 && (
-              <div className="space-y-2">
-                {sortedTodaySimple.map(habit => {
-                  const log = state.dailyLogs.find(l => l.habitId === habit.id && l.date === today && l.done);
-                  const isFocus = habit.id === firstPendingId;
-                  return (
-                    <div key={habit.id} id={`habit-${habit.id}`} className="space-y-1.5">
-                      {isFocus && (
-                        <p className="px-1 text-[10px] font-medium tracking-[0.18em] uppercase text-primary/55 animate-fade-in">
-                          {isPT ? 'Começa por aqui' : 'Begin here'}
-                        </p>
-                      )}
-                      <MinimalHabitCard
-                        habit={habit}
-                        isDone={isSimpleDone(habit.id)}
-                        isLate={!!log?.isLate}
-                        onToggle={() => handleToggleSimple(habit.id)}
-                      />
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+            {groups.map(({ bucket, items: bucketItems }) => (
+              <div key={bucket} className="space-y-2.5">
+                {/* Bucket header — only render when there are multiple groups (avoid noise on small days) */}
+                {groups.length > 1 && (
+                  <header className="flex items-baseline justify-between px-1">
+                    <h3 className="text-[10px] font-medium uppercase tracking-[0.22em] text-muted-foreground/55">
+                      {bucketLabel(bucket)}
+                    </h3>
+                    <span className="text-[10px] font-mono tabular-nums text-muted-foreground/35">
+                      {bucketItems.length}
+                    </span>
+                  </header>
+                )}
 
-            {/* Metrics — quieter, calmer rows */}
-            {activeMetrics.length > 0 && (
-              <div className="space-y-1.5 pt-1">
-                {activeMetrics.map(habit => {
-                  const count = getTodayCount(habit.id);
-                  const goal = habit.dailyGoal ?? habit.baseline ?? 1;
-                  const isReduce = habit.type === "reduce";
-                  const isExceeded = isReduce && goal > 0 && count > goal;
-                  const isOnTrack = isReduce ? count <= goal : count >= goal;
-                  // For reduce: bar shows how much of the limit is consumed (clamped at 100%);
-                  // when count > goal, card switches to "exceeded" visual state.
-                  // For increase: bar shows progress toward goal.
-                  const prog = Math.min(100, (count / Math.max(goal, 1)) * 100);
+                <div className="space-y-2">
+                  {bucketItems.map(it => {
+                    const habit = it.habit;
 
-                  return (
-                    <button
-                      key={habit.id}
-                      onClick={() => navigate(`/app/habit/${habit.id}`)}
-                      className={cn(
-                        "press-tactile w-full flex items-center gap-3.5 px-4 py-4 border text-left min-h-[76px] rounded-2xl",
-                        "transition-[background-color,border-color] duration-300",
-                        isExceeded
-                          ? "border-destructive/45 bg-destructive/[0.05]"
-                          : isOnTrack
-                          ? "border-success/15 bg-success/[0.025]"
-                          : isReduce
-                          ? "border-warning/15 bg-warning/[0.025]"
-                          : "border-foreground/[0.05] bg-foreground/[0.015] hover:border-foreground/[0.1]"
-                      )}
-                    >
-                      <div className={cn(
-                        "h-10 w-10 flex items-center justify-center text-base shrink-0 rounded-xl",
-                        isExceeded
-                          ? "bg-destructive/10 text-destructive"
-                          : isOnTrack
-                          ? "bg-success/8 text-success/85"
-                          : isReduce
-                            ? "bg-warning/8 text-warning/85"
-                            : "bg-foreground/[0.04] text-foreground/70"
-                      )}>
-                        {habit.icon || "📊"}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className={cn(
-                          "font-semibold text-[15px] tracking-[-0.005em] truncate",
-                          isExceeded ? "text-destructive" : "text-foreground/95"
-                        )}>{habit.nome}</p>
-                        <div className="flex items-center gap-2.5 mt-2">
-                          <div className="flex-1 h-[2px] bg-foreground/[0.06] overflow-hidden rounded-full">
-                            <div
-                              className={cn(
-                                "h-full transition-all duration-700 ease-out rounded-full",
-                                isExceeded ? "bg-destructive/70" :
-                                isOnTrack ? "bg-success/55" :
-                                isReduce ? "bg-warning/55" : "bg-primary/55"
-                              )}
-                              style={{ width: `${prog}%` }}
-                            />
+                    // ── Simple ritual ───────────────────────────────
+                    if (it.kind === "simple") {
+                      const log = state.dailyLogs.find(l => l.habitId === habit.id && l.date === today && l.done);
+                      const isFocus = habit.id === firstPendingId;
+                      return (
+                        <div key={habit.id} id={`habit-${habit.id}`} className="space-y-1.5">
+                          {isFocus && (
+                            <p className="px-1 text-[10px] font-medium tracking-[0.18em] uppercase text-primary/55 animate-fade-in">
+                              {isPT ? 'Começa por aqui' : 'Begin here'}
+                            </p>
+                          )}
+                          <MinimalHabitCard
+                            habit={habit}
+                            isDone={isSimpleDone(habit.id)}
+                            isLate={!!log?.isLate}
+                            onToggle={() => handleToggleSimple(habit.id)}
+                          />
+                        </div>
+                      );
+                    }
+
+                    // ── Metric (cumulative) ─────────────────────────
+                    const count = getTodayCount(habit.id);
+                    const goal = habit.dailyGoal ?? habit.baseline ?? 1;
+                    const isReduce = habit.type === "reduce";
+                    const isExceeded = isReduce && goal > 0 && count > goal;
+                    const isOnTrack = isReduce ? count <= goal : count >= goal;
+                    const prog = Math.min(100, (count / Math.max(goal, 1)) * 100);
+
+                    return (
+                      <button
+                        key={habit.id}
+                        onClick={() => navigate(`/app/habit/${habit.id}`)}
+                        className={cn(
+                          "press-tactile w-full flex items-center gap-3.5 px-4 py-4 border text-left min-h-[76px] rounded-2xl",
+                          "transition-[background-color,border-color] duration-300",
+                          isExceeded
+                            ? "border-destructive/45 bg-destructive/[0.05]"
+                            : isOnTrack
+                            ? "border-success/15 bg-success/[0.025]"
+                            : isReduce
+                            ? "border-warning/15 bg-warning/[0.025]"
+                            : "border-foreground/[0.05] bg-foreground/[0.015] hover:border-foreground/[0.1]"
+                        )}
+                      >
+                        <div className={cn(
+                          "h-10 w-10 flex items-center justify-center text-base shrink-0 rounded-xl",
+                          isExceeded
+                            ? "bg-destructive/10 text-destructive"
+                            : isOnTrack
+                            ? "bg-success/8 text-success/85"
+                            : isReduce
+                              ? "bg-warning/8 text-warning/85"
+                              : "bg-foreground/[0.04] text-foreground/70"
+                        )}>
+                          {habit.icon || "📊"}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className={cn(
+                            "font-semibold text-[15px] tracking-[-0.005em] truncate",
+                            isExceeded ? "text-destructive" : "text-foreground/95"
+                          )}>{habit.nome}</p>
+                          <div className="flex items-center gap-2.5 mt-2">
+                            <div className="flex-1 h-[2px] bg-foreground/[0.06] overflow-hidden rounded-full">
+                              <div
+                                className={cn(
+                                  "h-full transition-all duration-700 ease-out rounded-full",
+                                  isExceeded ? "bg-destructive/70" :
+                                  isOnTrack ? "bg-success/55" :
+                                  isReduce ? "bg-warning/55" : "bg-primary/55"
+                                )}
+                                style={{ width: `${prog}%` }}
+                              />
+                            </div>
+                            <span className={cn(
+                              "text-[11px] whitespace-nowrap tabular-nums font-mono",
+                              isExceeded ? "text-destructive font-semibold" : "text-muted-foreground/70"
+                            )}>
+                              {count}/{goal}
+                              {isExceeded && <span className="ml-1">· +{count - goal}</span>}
+                            </span>
                           </div>
-                          <span className={cn(
-                            "text-[11px] whitespace-nowrap tabular-nums font-mono",
-                            isExceeded ? "text-destructive font-semibold" : "text-muted-foreground/70"
-                          )}>
-                            {count}/{goal}
-                            {isExceeded && <span className="ml-1">· +{count - goal}</span>}
-                          </span>
                         </div>
-                      </div>
-                      {habit.inputMode === "incremental" && (
-                        <div
-                          onClick={e => { e.stopPropagation(); handleAddMetricEntry(habit.id, 1); }}
-                          className={cn(
-                            "h-9 w-9 flex items-center justify-center shrink-0 rounded-lg transition-all active:scale-95",
-                            habit.type === "reduce"
-                              ? "bg-warning/10 text-warning hover:bg-warning/20"
-                              : "bg-primary/10 text-primary hover:bg-primary/20"
-                          )}
-                        >
-                          <Plus className="h-4 w-4" />
-                        </div>
-                      )}
-                      {(habit.inputMode === "binary" || habit.inputMode === "fixedAmount") && (
-                        <div
-                          onClick={e => {
-                            e.stopPropagation();
-                            if (isOnTrack && count > 0) {
-                              const todayEntries = state.trackerEntries.filter(
-                                en => en.trackerId === habit.id && en.date === today
-                              );
-                              todayEntries.forEach(en => handleDeleteMetricEntry(en.id));
-                            } else {
-                              handleAddMetricEntry(habit.id, habit.inputMode === "binary" ? 1 : goal);
-                            }
-                          }}
-                          className={cn(
-                            "h-9 w-9 flex items-center justify-center shrink-0 rounded-lg transition-all active:scale-95",
-                            isOnTrack && count > 0
-                              ? "bg-success/15 text-success"
-                              : "bg-primary/10 text-primary hover:bg-primary/20"
-                          )}
-                        >
-                          <Check className="h-4 w-4" />
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
+                        {habit.inputMode === "incremental" && (
+                          <div
+                            onClick={e => { e.stopPropagation(); handleAddMetricEntry(habit.id, 1); }}
+                            className={cn(
+                              "h-9 w-9 flex items-center justify-center shrink-0 rounded-lg transition-all active:scale-95",
+                              habit.type === "reduce"
+                                ? "bg-warning/10 text-warning hover:bg-warning/20"
+                                : "bg-primary/10 text-primary hover:bg-primary/20"
+                            )}
+                          >
+                            <Plus className="h-4 w-4" />
+                          </div>
+                        )}
+                        {(habit.inputMode === "binary" || habit.inputMode === "fixedAmount") && (
+                          <div
+                            onClick={e => {
+                              e.stopPropagation();
+                              if (isOnTrack && count > 0) {
+                                const todayEntries = state.trackerEntries.filter(
+                                  en => en.trackerId === habit.id && en.date === today
+                                );
+                                todayEntries.forEach(en => handleDeleteMetricEntry(en.id));
+                              } else {
+                                handleAddMetricEntry(habit.id, habit.inputMode === "binary" ? 1 : goal);
+                              }
+                            }}
+                            className={cn(
+                              "h-9 w-9 flex items-center justify-center shrink-0 rounded-lg transition-all active:scale-95",
+                              isOnTrack && count > 0
+                                ? "bg-success/15 text-success"
+                                : "bg-primary/10 text-primary hover:bg-primary/20"
+                            )}
+                          >
+                            <Check className="h-4 w-4" />
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            )}
+            ))}
           </section>
           );
         })()}
