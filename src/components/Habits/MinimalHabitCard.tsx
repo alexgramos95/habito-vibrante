@@ -81,7 +81,7 @@ export const MinimalHabitCard = ({
       interactive
       onClick={() => navigate(`/app/habit/${habit.id}`)}
       className={cn(
-        "w-full flex items-center gap-4 group min-h-[72px] touch-target",
+        "w-full flex items-center gap-4 group min-h-[76px] py-4 touch-target",
         !habit.active && "opacity-40 cursor-not-allowed",
       )}
     >
