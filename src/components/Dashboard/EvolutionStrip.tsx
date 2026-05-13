@@ -50,12 +50,15 @@ const REFLECTIONS_EN = [
 
 const REFLECTIONS_PT = [
   "O teu sistema está a ganhar forma.",
-  "Consistência cria momentum.",
+  "Consistência constrói-se em silêncio.",
   "Cada repetição reforça a identidade.",
-  "Pequenas ações tornam-se estrutura.",
+  "Pequenos sistemas. Grandes mudanças.",
   "Presença acumula em silêncio.",
   "Voltas — é essa a prática.",
   "A identidade forma-se na repetição.",
+  "O ritmo está a aparecer.",
+  "Disciplina é uma forma de cuidar de ti.",
+  "Devagar é também direção.",
 ];
 
 const phaseFor = (level: number, isPT: boolean) => {
