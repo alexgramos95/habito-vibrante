@@ -505,7 +505,7 @@ const Onboarding = () => {
             onClick={() => setStep("auth")}
             className="w-full h-14 mt-6 bg-primary text-primary-foreground font-black italic uppercase tracking-tight text-sm border-2 border-primary shadow-[3px_3px_0_0_hsl(var(--neon-ultra))] hover:shadow-[5px_5px_0_0_hsl(var(--neon-ultra))] hover:-translate-y-0.5 active:translate-y-0 active:shadow-[2px_2px_0_0_hsl(var(--neon-ultra))] transition-all inline-flex items-center justify-center gap-2"
           >
-            {locale === "pt-PT" ? "Continuar" : "Continue"} <ArrowRight className="h-4 w-4" />
+            Continue <ArrowRight className="h-4 w-4" />
           </button>
         </Screen>
       )}
