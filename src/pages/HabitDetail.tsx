@@ -16,52 +16,144 @@ import { updateHabit, deleteHabit, addTrackerEntry, updateTrackerEntry, deleteTr
 import { Habit, Tracker, TrackerEntry } from "@/data/types";
 
 // --- Coach tips engine ---
+// Context-aware, observational, restrained. Coach should sound like the app
+// noticed a pattern — not like it teaches productivity.
+type CoachKind =
+  | "wake" | "sleep" | "train" | "smoke" | "alcohol" | "meditate"
+  | "read" | "water" | "run" | "study" | "journal" | "diet" | "generic";
+
+function detectKind(name: string, category?: string, type?: string): CoachKind {
+  const s = `${name} ${category ?? ""}`.toLowerCase();
+  if (/(acord|levant|wake|morning|madrug)/.test(s)) return "wake";
+  if (/(dorm|sono|sleep|deita)/.test(s)) return "sleep";
+  if (/(trein|gym|muscul|exerc|fitness|workout|train)/.test(s)) return "train";
+  if (/(fum|cigarr|tabaco|smoke|nicot|vape)/.test(s)) return "smoke";
+  if (/(beb|alco|álcool|alcohol|cerveja|vinho|drink)/.test(s)) return "alcohol";
+  if (/(medita|mindful|respir|breath)/.test(s)) return "meditate";
+  if (/(ler|leitura|livro|read|book)/.test(s)) return "read";
+  if (/(água|agua|water|hidrat|hydrat)/.test(s)) return "water";
+  if (/(corr|run|jog|cardio|cami)/.test(s)) return "run";
+  if (/(estud|study|aula|class|curso)/.test(s)) return "study";
+  if (/(diár|journal|escrev|writ|reflex)/.test(s)) return "journal";
+  if (/(comer|diet|food|açúcar|sugar|junk)/.test(s)) return "diet";
+  // Reduction trackers without obvious noun → still treat as reduction
+  if (type === "reduce") return "smoke";
+  return "generic";
+}
+
 function getCoachTips(params: {
+  habitName: string;
   completionRate7d: number; completionRate30d: number;
   currentStreak: number; bestStreak: number; isDoneToday: boolean;
   type?: string; category?: string; mode: "simple" | "metric";
+  isPT: boolean;
 }): string[] {
-  const { mode, completionRate7d, completionRate30d, currentStreak, bestStreak, isDoneToday, type, category } = params;
+  const { habitName, mode, completionRate7d, completionRate30d, currentStreak, bestStreak, isDoneToday, type, category, isPT } = params;
   const rate7 = Math.round(completionRate7d * 100);
   const rate30 = Math.round(completionRate30d * 100);
+  const kind = detectKind(habitName, category, type);
   const tips: string[] = [];
 
+  // --- Habit-specific observations (always one, sets emotional tone) ---
+  const KIND_PT: Record<CoachKind, string[]> = {
+    wake: [
+      "Acordar cedo começa na noite anterior.",
+      "Hoje basta aparecer. O resto vem com o corpo desperto.",
+    ],
+    sleep: [
+      "O sono não se ganha com esforço — ganha-se com ritmo.",
+      "Dormir cedo é um ato de respeito por amanhã.",
+    ],
+    train: [
+      "A frequência muda mais do que a intensidade.",
+      "Sessões pequenas mantêm continuidade. É isso que importa.",
+    ],
+    smoke: [
+      "Reduzir também é progresso.",
+      "Os padrões antigos demoram tempo. Não te castigues por sentir.",
+    ],
+    alcohol: [
+      "Cada noite saltada conta mais do que parece.",
+      "Não é privação. É escolher quem queres ser amanhã.",
+    ],
+    meditate: [
+      "Silêncio também se treina.",
+      "Nem todos os dias precisam de profundidade.",
+    ],
+    read: [
+      "Cinco páginas hoje continuam algo iniciado ontem.",
+      "A leitura desacelera o pensamento. É esse o ponto.",
+    ],
+    water: [
+      "Hidratar é o hábito invisível que sustenta os outros.",
+    ],
+    run: [
+      "Correr lento ainda é correr.",
+      "O corpo regista a tentativa, não só a performance.",
+    ],
+    study: [
+      "Vinte minutos focados valem mais do que duas horas dispersas.",
+    ],
+    journal: [
+      "Escrever clareia o que pensar não consegue.",
+    ],
+    diet: [
+      "Uma escolha calma à mesa basta. Não é todo o dia.",
+    ],
+    generic: [
+      "Pequenos sistemas. Mudança silenciosa.",
+    ],
+  };
+  const KIND_EN: Record<CoachKind, string[]> = {
+    wake: ["Waking early begins the night before.", "Today, just show up. The rest follows."],
+    sleep: ["Sleep isn't earned by effort — it's earned by rhythm.", "Going to bed early is a quiet act of self-respect."],
+    train: ["Frequency changes more than intensity.", "Short sessions keep continuity. That's what matters."],
+    smoke: ["Reducing is also progress.", "Old patterns take time. Don't punish yourself for feeling."],
+    alcohol: ["Each skipped night counts more than it seems.", "Not deprivation. Choosing who you'll be tomorrow."],
+    meditate: ["Silence is also a practice.", "Not every day has to be deep."],
+    read: ["Five pages today continues something begun yesterday.", "Reading slows thought. That's the point."],
+    water: ["Hydration is the invisible habit that sustains the others."],
+    run: ["Slow running is still running.", "The body remembers the attempt, not just the pace."],
+    study: ["Twenty focused minutes beat two scattered hours."],
+    journal: ["Writing clarifies what thinking cannot."],
+    diet: ["One calm choice at the table is enough. Not the whole day."],
+    generic: ["Small systems. Quiet change."],
+  };
+  const palette = (isPT ? KIND_PT : KIND_EN)[kind];
+  // Pick stable per-habit (deterministic by name)
+  const idx = Math.abs(habitName.split("").reduce((a, c) => a + c.charCodeAt(0), 0)) % palette.length;
+  tips.push(palette[idx]);
+
+  // --- Pattern-aware observation (one max) ---
   if (isDoneToday) {
-    if (currentStreak >= 21) tips.push("Isto já faz parte de quem és. A identidade constrói-se com repetição.");
-    else if (currentStreak >= 7) tips.push(`${currentStreak} dias seguidos — o teu cérebro está a formar uma via neural dedicada a isto.`);
-    if (rate7 >= 80) tips.push("Consistência forte esta semana. Estás a construir identidade, não apenas hábitos.");
-    if (currentStreak > 0 && currentStreak === bestStreak) tips.push("É a tua melhor sequência até hoje. Reconhece o que foi preciso para chegar aqui.");
-    if (tips.length === 0) tips.push("Feito! Cada repetição conta mais do que parece.");
+    if (currentStreak >= 21)
+      tips.push(isPT
+        ? "Isto já não exige decisão. Tornou-se quem és."
+        : "This no longer requires decision. It's who you are.");
+    else if (currentStreak >= 7)
+      tips.push(isPT
+        ? `${currentStreak} dias seguidos. O ritmo está a aparecer.`
+        : `${currentStreak} days in a row. The rhythm is appearing.`);
+    else if (currentStreak > 0 && currentStreak === bestStreak && bestStreak >= 3)
+      tips.push(isPT
+        ? "É a tua sequência mais longa até hoje."
+        : "Your longest run so far.");
   } else {
-    if (rate7 < 30) {
-      tips.push(mode === "metric" && type === "reduce"
-        ? "Tenta reduzir só um pouco hoje. Progresso > perfeição."
-        : "Começa com a versão mais fácil deste hábito. Só 2 minutos bastam.");
-      tips.push("Associa isto a algo que já fazes todos os dias — «habit stacking».");
-    } else if (rate7 < 50) {
-      tips.push("Associa este hábito a algo que já fazes diariamente para criar um gatilho automático.");
-      if (rate30 > rate7) tips.push("A tua média mensal é melhor que a semanal. Talvez precises de um reset esta semana.");
-    } else if (rate7 < 70) {
-      tips.push("Estás quase na zona de consistência. Hoje pode ser o dia que faz a diferença.");
-    } else if (rate7 < 90) {
-      tips.push("Bom ritmo — não quebres a cadeia. A consistência cria momentum.");
-    }
+    if (rate7 < 30)
+      tips.push(isPT
+        ? "A barreira está alta. Reduz a versão de hoje até ela desaparecer."
+        : "The bar is too high. Lower today's version until it disappears.");
+    else if (rate7 < 50 && rate30 > rate7 + 10)
+      tips.push(isPT
+        ? "A tua média mensal é melhor. Esta semana pediu mais de ti."
+        : "Your monthly average is stronger. This week asked more of you.");
+    else if (rate7 >= 70 && rate7 < 90)
+      tips.push(isPT
+        ? "A consistência está perto. Hoje sustenta-a."
+        : "Consistency is near. Today sustains it.");
   }
 
-  if (category) {
-    const cat = category.toLowerCase();
-    if (cat.includes("saúde") || cat.includes("exerc") || cat.includes("fitness"))
-      tips.push("Movimento gera energia. Mesmo 5 minutos fazem diferença no teu dia.");
-    else if (cat.includes("mente") || cat.includes("mental") || cat.includes("medita"))
-      tips.push("A mente treina-se como um músculo. Paciência é progresso.");
-    else if (cat.includes("finanç") || cat.includes("poupar") || cat.includes("dinheiro"))
-      tips.push("Pequenas decisões financeiras diárias criam grandes resultados a longo prazo.");
-  }
-
-  if (rate30 > 0 && rate7 > rate30 + 15) tips.push("📈 Tendência ascendente! A tua semana está melhor que a média do mês.");
-  else if (rate30 > 0 && rate7 < rate30 - 15) tips.push("📉 Esta semana está abaixo da tua média. Um bom dia hoje pode inverter a tendência.");
-
-  return tips.slice(0, 4);
+  return tips.slice(0, 2);
 }
 
 // --- Circular progress ---
