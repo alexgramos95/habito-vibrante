@@ -733,7 +733,7 @@ const Onboarding = () => {
               className="text-base text-muted-foreground/80 animate-in fade-in duration-1000"
               style={{ animationDelay: "400ms", animationFillMode: "backwards" }}
             >
-              {t(COPY.ready.sub, locale)}
+              {t(COPY.ready.sub, displayLocale)}
             </p>
           </div>
         </Screen>
