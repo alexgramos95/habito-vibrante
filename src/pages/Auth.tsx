@@ -347,26 +347,26 @@ const Auth = () => {
                 <Mail className="h-7 w-7 text-primary" />
               </div>
             </div>
-            <h1 className="text-3xl font-black italic uppercase tracking-tighter">// VERIFICAR ACESSO</h1>
+            <h1 className="text-3xl font-black italic uppercase tracking-tighter">// VERIFY ACCESS</h1>
             <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-              Confirma o link enviado para o teu email
+              Confirm the link we sent to your email
             </p>
           </div>
 
           <Card className="border-2 border-primary/40 bg-card shadow-[8px_8px_0_0_hsl(var(--neon-ultra)/0.6)]">
             <CardHeader className="space-y-1 text-center">
-              <CardTitle className="text-xl font-black italic uppercase tracking-tighter">PROTOCOLO PENDENTE</CardTitle>
+              <CardTitle className="text-xl font-black italic uppercase tracking-tighter">PENDING CONFIRMATION</CardTitle>
               <CardDescription className="font-mono text-xs">
-                Link enviado para <strong className="text-primary not-italic">{user?.email}</strong>
+                Link sent to <strong className="text-primary not-italic">{user?.email}</strong>
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="border-2 border-foreground/15 bg-background/40 p-4 text-center">
                 <p className="text-sm text-foreground/80 mb-2">
-                  Clica no link no email para confirmar o acesso e iniciar o teu trial de 2 dias.
+                  Click the link in the email to confirm your access and start your free trial.
                 </p>
                 <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-                  // SEM SINAL? VERIFICA SPAM
+                  // NOTHING THERE? CHECK SPAM
                 </p>
               </div>
 
@@ -379,12 +379,12 @@ const Auth = () => {
                 {resending ? (
                   <>
                     <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                    A ENVIAR...
+                    SENDING...
                   </>
                 ) : (
                   <>
                     <RefreshCw className="mr-2 h-4 w-4" />
-                    REENVIAR LINK
+                    RESEND LINK
                   </>
                 )}
               </Button>
@@ -397,7 +397,7 @@ const Auth = () => {
                   }}
                   className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
                 >
-                  // USAR OUTRA CONTA
+                  // USE ANOTHER ACCOUNT
                 </button>
               </div>
             </CardContent>
