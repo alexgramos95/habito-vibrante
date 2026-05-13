@@ -292,7 +292,10 @@ const Onboarding = () => {
   useEffect(() => {
     if (step !== "ready") return;
     const run = async () => {
-      const identityVectors = identity ? IDENTITY_TO_VECTORS[identity] ?? [] : [];
+      const identityVectors = Array.from(
+        new Set(identity.flatMap((id) => IDENTITY_TO_VECTORS[id] ?? [])),
+      );
+      const primaryIdentity = identity[0] ?? null;
       try {
         writeOnboardingDraft({
           locale,
