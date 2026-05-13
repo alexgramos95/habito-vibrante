@@ -173,72 +173,42 @@ export const JourneyHero = ({
         className="relative animate-in fade-in slide-in-from-top-2 duration-500"
         aria-label={isPT ? "Resumo de hoje" : "Today's summary"}
       >
-        {/* GREETING + STREAK */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-              {greeting}
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1.5 max-w-[40ch]">
-              {subline}
-            </p>
-          </div>
-          {streak > 0 && (
-            <div className="shrink-0 flex flex-col items-end">
-              <span className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground">
-                <Flame className="h-3.5 w-3.5 text-primary" />
-                {isPT ? "Streak" : "Streak"}
-              </span>
-              <span className="text-2xl font-bold tabular-nums text-foreground leading-none mt-1">
-                {streak}<span className="text-sm text-muted-foreground font-medium ml-0.5">d</span>
-              </span>
-            </div>
-          )}
+        {/* GREETING — calm, no competing pills */}
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+            {greeting}
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1.5 max-w-[40ch]">
+            {subline}
+          </p>
         </div>
 
-        {/* PROGRESS — calm, single line */}
+        {/* PROGRESS — atmospheric line only, no hard counters */}
         {totalTracked > 0 && (
           <div className="mt-6">
-            <div className="flex items-baseline justify-between mb-2">
-              <span className="text-sm font-medium text-foreground">
-                {allDoneToday
-                  ? (isPT ? "Dia completo." : "Day complete.")
-                  : (isPT ? "Hoje" : "Today")}
-              </span>
-              <span className="text-sm tabular-nums text-muted-foreground">
-                {Number.isInteger(totalDone) ? totalDone : totalDone.toFixed(1)} / {totalTracked}
-              </span>
-            </div>
-            <div className="h-1.5 w-full bg-foreground/10 overflow-hidden rounded-full">
+            <div
+              className="h-[3px] w-full bg-foreground/8 overflow-hidden rounded-full"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={progressPercent}
+              aria-label={isPT ? "Progresso de hoje" : "Today's progress"}
+            >
               <div
                 className={cn(
-                  "h-full transition-all duration-700 ease-out rounded-full",
-                  allDoneToday ? "bg-success" : "bg-primary",
+                  "h-full transition-all duration-1000 ease-out rounded-full",
+                  allDoneToday
+                    ? "bg-success/80 shadow-[0_0_10px_hsl(var(--success)/0.4)]"
+                    : "bg-primary/70",
                 )}
-                style={{ width: `${progressPercent}%` }}
+                style={{ width: `${Math.max(progressPercent, 4)}%` }}
               />
             </div>
-          </div>
-        )}
-
-        {/* PRIMARY CTA — single, clear next action */}
-        {onPrimaryAction && !allDoneToday && (
-          <Button
-            onClick={onPrimaryAction}
-            size="lg"
-            className="mt-5 w-full gap-2 h-12 text-base font-semibold"
-          >
-            {primaryActionLabel
-              || (nextActionName
-                ? (isPT ? `Começar: ${nextActionName}` : `Start: ${nextActionName}`)
-                : (isPT ? "Começar agora" : "Start now"))}
-            <ArrowRight className="h-4 w-4" />
-          </Button>
-        )}
-        {allDoneToday && (
-          <div className="mt-5 flex items-center justify-center gap-2 py-3 text-sm font-medium text-success">
-            <Sparkles className="h-4 w-4" />
-            {isPT ? "Tudo feito hoje. Bem feito." : "All done today. Well done."}
+            {allDoneToday && (
+              <p className="mt-3 text-[12px] text-success/90 tracking-wide">
+                {isPT ? "Hoje está completo." : "Today is complete."}
+              </p>
+            )}
           </div>
         )}
       </section>
