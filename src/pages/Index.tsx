@@ -715,8 +715,8 @@ const Index = () => {
               <div className="h-12 w-12 border-2 border-accent bg-accent/15 flex items-center justify-center">
                 <TrendingUp className="h-6 w-6 text-accent" />
               </div>
-              <span className="font-bold uppercase italic tracking-tight text-sm">Métrica</span>
-              <span className="mono-label text-muted-foreground/70">{canAddMetric ? "Valores" : "PRO"}</span>
+              <span className="font-bold uppercase italic tracking-tight text-sm">{isPT ? 'Métrica' : 'Metric'}</span>
+              <span className="mono-label text-muted-foreground/70">{canAddMetric ? (isPT ? 'Valores' : 'Values') : 'PRO'}</span>
             </button>
           </div>
         </DialogContent>
