@@ -29,6 +29,7 @@ import { getContextualHabitFeedback, getHabitFeedbackEnabled } from "@/logic/hab
 import { MotivationCard } from "@/components/Dashboard/MotivationCard";
 import { getDailyMotivation } from "@/logic/dailyMotivation";
 import { JourneyHero } from "@/components/Dashboard/JourneyHero";
+import { EvolutionStrip } from "@/components/Dashboard/EvolutionStrip";
 import { ReferralPrompt } from "@/components/Referral/ReferralPrompt";
 import { hasSeenReferralPrompt, markReferralPromptSeen } from "@/lib/referral";
 import { track, trackOnce, checkReturnEvents } from "@/hooks/useAnalytics";
