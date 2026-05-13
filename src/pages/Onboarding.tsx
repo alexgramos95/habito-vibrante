@@ -250,10 +250,14 @@ const Onboarding = () => {
   const [authBusy, setAuthBusy] = useState<null | "google" | "apple">(null);
   const [buildIdx, setBuildIdx] = useState(0);
 
-  // Skip onboarding entirely if already completed
+  // Skip onboarding entirely if already completed (unless ?restart=1)
   useEffect(() => {
     try {
-      if (localStorage.getItem("become-onboarding-complete") === "true") {
+      const restart = new URLSearchParams(window.location.search).get("restart") === "1";
+      if (restart) {
+        localStorage.removeItem("become-onboarding-complete");
+        localStorage.removeItem("itero-onboarding-complete");
+      } else if (localStorage.getItem("become-onboarding-complete") === "true") {
         navigate("/app", { replace: true });
         return;
       }
