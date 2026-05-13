@@ -450,26 +450,13 @@ const Index = () => {
             totalDone={totalDone}
             totalTracked={totalTracked}
             brokeYesterday={brokeYesterday}
-            locale="pt-PT"
+            locale={locale}
             nextActionName={sortedTodaySimple.find(h => !isSimpleDone(h.id))?.nome}
-            onPrimaryAction={
-              sortedTodaySimple.length > 0
-                ? () => {
-                    track("journeyhero_cta_clicked", { habitsScheduled: sortedTodaySimple.length });
-                    if (showFirstSession) dismissFirstSession();
-                    const first = sortedTodaySimple.find(h => !isSimpleDone(h.id));
-                    if (first) {
-                      const el = document.getElementById(`habit-${first.id}`);
-                      el?.scrollIntoView({ behavior: "smooth", block: "center" });
-                    }
-                  }
-                : undefined
-            }
           />
         )}
 
-        {/* Trial banner — calm, single line */}
-        {trialStatus.isActive && (
+        {/* Trial banner — deferred past the first emotional engagement window */}
+        {trialStatus.isActive && journeyDay >= 3 && (
           <TrialBanner daysRemaining={trialStatus.daysRemaining} onUpgrade={() => setShowPaywall(true)} />
         )}
 
