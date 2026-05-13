@@ -667,59 +667,79 @@ const Index = () => {
           );
         })()}
 
-        {/* PRO upsell — calm, single line */}
+        {/* PRO upsell — calm, reflective */}
         {!isPro && simpleHabits.length >= FREE_LIMIT && (
-          <div className="text-center py-2">
-            <p className="text-sm text-muted-foreground mb-2">
-              {isPT ? 'Limite gratuito atingido. Hábitos ilimitados na PRO.' : 'Free limit reached. Unlimited habits on PRO.'}
+          <div className="text-center py-3 px-4">
+            <p className="text-[13px] text-muted-foreground/75 leading-relaxed mb-3 max-w-[34ch] mx-auto">
+              {isPT
+                ? 'Três é o suficiente para começar. Quando o sistema crescer, há espaço para mais.'
+                : 'Three is enough to begin. When the system grows, there is room for more.'}
             </p>
             <Link to="/decision">
-              <Button variant="outline" size="sm">{isPT ? 'Desbloquear PRO' : 'Unlock PRO'}</Button>
+              <Button variant="ghost" size="sm" className="text-foreground/70 hover:text-foreground">
+                {isPT ? 'Continuar com PRO' : 'Continue with PRO'}
+              </Button>
             </Link>
           </div>
         )}
       </main>
 
-      {/* ═══ Mode Selector Dialog ═══ */}
+      {/* ═══ Mode Selector — calm, editorial ═══ */}
       <Dialog open={showModeSelector} onOpenChange={setShowModeSelector}>
-        <DialogContent className="w-[90vw] max-w-sm">
+        <DialogContent className="w-[90vw] max-w-sm rounded-2xl">
           <DialogHeader>
-            <p className="mono-label text-primary mb-1">// {isPT ? 'Novo' : 'New'}</p>
-            <DialogTitle className="display-headline text-2xl">{isPT ? 'Escolhe o tipo' : 'Choose the type'}</DialogTitle>
-            <DialogDescription>{isPT ? 'Ritual diário ou métrica que cresce ao longo do dia.' : 'Daily ritual or metric that grows through the day.'}</DialogDescription>
+            <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-muted-foreground/60 mb-1.5">
+              {isPT ? 'Novo' : 'New'}
+            </p>
+            <DialogTitle className="text-[20px] font-semibold tracking-[-0.01em]">
+              {isPT ? 'O que queres acrescentar?' : 'What do you want to add?'}
+            </DialogTitle>
+            <DialogDescription className="text-[13px] text-muted-foreground/75 leading-relaxed">
+              {isPT
+                ? 'Um ritual diário ou uma medida que se acumula ao longo do dia.'
+                : 'A daily ritual or a measure that accumulates through the day.'}
+            </DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-3 py-4">
             <button
               onClick={() => { setShowModeSelector(false); setEditingHabit(null); setShowHabitForm(true); }}
               disabled={!canAddSimple}
               className={cn(
-                "press-tactile flex flex-col items-center gap-2.5 p-5 border-2 transition-all text-center",
+                "press-tactile flex flex-col items-center gap-2.5 p-5 rounded-2xl border transition-colors text-center",
                 canAddSimple
-                  ? "border-primary/40 bg-primary/[0.04] hover:bg-primary/10 hover:shadow-[0_0_18px_hsl(var(--neon-toxic)/0.35)]"
-                  : "border-foreground/10 opacity-40 cursor-not-allowed"
+                  ? "border-foreground/[0.08] bg-foreground/[0.02] hover:bg-foreground/[0.04] hover:border-foreground/[0.14]"
+                  : "border-foreground/[0.06] opacity-40 cursor-not-allowed"
               )}
             >
-              <div className="h-12 w-12 border-2 border-primary bg-primary/15 flex items-center justify-center">
-                <CheckCircle2 className="h-6 w-6 text-primary" />
+              <div className="h-11 w-11 rounded-xl bg-primary/[0.08] flex items-center justify-center">
+                <CheckCircle2 className="h-5 w-5 text-primary/85" />
               </div>
-              <span className="font-bold uppercase italic tracking-tight text-sm">{isPT ? 'Simples' : 'Simple'}</span>
-              <span className="mono-label text-muted-foreground/70">Checkbox</span>
+              <span className="text-[14px] font-semibold tracking-[-0.005em] text-foreground/95">
+                {isPT ? 'Ritual' : 'Ritual'}
+              </span>
+              <span className="text-[11px] text-muted-foreground/65">
+                {isPT ? 'Feito ou não' : 'Done or not'}
+              </span>
             </button>
             <button
               onClick={() => { setShowModeSelector(false); setEditingHabit(null); setShowMetricForm(true); }}
               disabled={!canAddMetric}
               className={cn(
-                "press-tactile flex flex-col items-center gap-2.5 p-5 border-2 transition-all text-center",
+                "press-tactile flex flex-col items-center gap-2.5 p-5 rounded-2xl border transition-colors text-center",
                 canAddMetric
-                  ? "border-accent/40 bg-accent/[0.04] hover:bg-accent/10 hover:shadow-[0_0_18px_hsl(var(--neon-ultra)/0.35)]"
-                  : "border-foreground/10 opacity-40 cursor-not-allowed"
+                  ? "border-foreground/[0.08] bg-foreground/[0.02] hover:bg-foreground/[0.04] hover:border-foreground/[0.14]"
+                  : "border-foreground/[0.06] opacity-40 cursor-not-allowed"
               )}
             >
-              <div className="h-12 w-12 border-2 border-accent bg-accent/15 flex items-center justify-center">
-                <TrendingUp className="h-6 w-6 text-accent" />
+              <div className="h-11 w-11 rounded-xl bg-accent/[0.08] flex items-center justify-center">
+                <TrendingUp className="h-5 w-5 text-accent/85" />
               </div>
-              <span className="font-bold uppercase italic tracking-tight text-sm">{isPT ? 'Métrica' : 'Metric'}</span>
-              <span className="mono-label text-muted-foreground/70">{canAddMetric ? (isPT ? 'Valores' : 'Values') : 'PRO'}</span>
+              <span className="text-[14px] font-semibold tracking-[-0.005em] text-foreground/95">
+                {isPT ? 'Medida' : 'Measure'}
+              </span>
+              <span className="text-[11px] text-muted-foreground/65">
+                {canAddMetric ? (isPT ? 'Acumula ao dia' : 'Builds across the day') : 'PRO'}
+              </span>
             </button>
           </div>
         </DialogContent>
