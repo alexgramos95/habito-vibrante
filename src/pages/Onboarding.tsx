@@ -61,7 +61,7 @@ const COPY = {
     startFree: { "en-US": "Start free", "pt-PT": "Começar grátis" },
   },
   auth: {
-    chapter: { "en-US": "// Step 01", "pt-PT": "// Passo 01" },
+    chapter: { "en-US": "// Final step", "pt-PT": "// Passo final" },
     title: {
       "en-US": "Begin your\nsystem.",
       "pt-PT": "Começa o teu\nsistema.",
@@ -263,9 +263,16 @@ const Onboarding = () => {
     trackEvent("onboarding_started", { source: "app" });
   }, [navigate]);
 
+  // If user authenticates while on final auth step, send them into the app
+  useEffect(() => {
+    if (step === "auth" && isAuthenticated) {
+      navigate("/app", { replace: true });
+    }
+  }, [step, isAuthenticated, navigate]);
+
   const goToAuthOrSkip = useCallback(() => {
-    setStep(isAuthenticated ? "struggles" : "auth");
-  }, [isAuthenticated]);
+    setStep("struggles");
+  }, []);
 
   // Building rotates statements then advances
   useEffect(() => {
@@ -320,9 +327,15 @@ const Onboarding = () => {
       });
     };
     run();
-    const t = window.setTimeout(() => navigate("/app", { replace: true }), 2400);
+    const t = window.setTimeout(() => {
+      if (isAuthenticated) {
+        navigate("/app", { replace: true });
+      } else {
+        setStep("auth");
+      }
+    }, 2400);
     return () => window.clearTimeout(t);
-  }, [step, identity, struggles, pull, locale, completeOnboarding, navigate]);
+  }, [step, identity, struggles, pull, locale, completeOnboarding, navigate, isAuthenticated]);
 
   const handleGoogle = async () => {
     setAuthBusy("google");
