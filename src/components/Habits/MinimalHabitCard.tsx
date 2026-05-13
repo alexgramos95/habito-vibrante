@@ -176,15 +176,15 @@ export const MinimalHabitCard = ({
       )}
 
       {/* Habit name + state line */}
-      <div className="relative flex-1 min-w-0 flex flex-col gap-0.5">
+      <div className="relative flex-1 min-w-0 flex flex-col gap-1">
         <span
           className={cn(
-            "text-left font-bold uppercase tracking-tight text-[14px] leading-tight transition-colors duration-200",
+            "text-left font-semibold tracking-[-0.005em] text-[15px] leading-snug transition-colors duration-200",
             isExceeded ? "text-destructive" :
-            isDone && !isLate ? "text-primary line-through decoration-primary/40" :
-            isDone && isLate ? "text-warning line-through decoration-warning/40" :
+            isDone && !isLate ? "text-primary/85 line-through decoration-primary/30" :
+            isDone && isLate ? "text-warning line-through decoration-warning/30" :
             goalReached ? "text-primary" :
-            "text-foreground",
+            "text-foreground/95",
           )}
         >
           {habit.nome}
