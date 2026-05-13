@@ -40,12 +40,15 @@ const IDENTITY_PHASES_PT = [
 // Rotating philosophical reinforcements — replaces explicit XP/points pressure.
 const REFLECTIONS_EN = [
   "Your system is taking shape.",
-  "Consistency creates momentum.",
+  "Consistency is built in silence.",
   "Every repetition strengthens identity.",
-  "Small actions become structure.",
+  "Small systems. Quiet change.",
   "Presence compounds quietly.",
   "You return — that is the practice.",
   "Identity forms in the repetition.",
+  "The rhythm is starting to show.",
+  "Discipline is a way of caring for yourself.",
+  "Slow is also a direction.",
 ];
 
 const REFLECTIONS_PT = [
