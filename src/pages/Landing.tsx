@@ -230,20 +230,20 @@ const Landing = () => {
                   <button
                     onClick={() => goToStore("ios")}
                     aria-label="Download on the App Store"
-                    className="group h-14 px-5 flex items-center gap-3 rounded-xl bg-zinc-950 border border-zinc-800 text-foreground transition-all duration-300 hover:border-primary hover:shadow-[0_0_20px_hsl(var(--neon-toxic)/0.2)] hover:-translate-y-0.5"
+                    className="group h-14 px-5 flex items-center gap-3 rounded-xl bg-[#0a0a0a] border border-white/10 transition-all duration-300 hover:border-[hsl(var(--neon-toxic))] hover:shadow-[0_0_24px_hsl(var(--neon-toxic)/0.25)] hover:-translate-y-0.5"
                   >
-                    <svg viewBox="0 0 24 24" className="h-7 w-7 text-foreground transition-colors group-hover:text-primary" fill="currentColor" aria-hidden>
+                    <svg viewBox="0 0 24 24" className="h-7 w-7 text-white transition-colors group-hover:text-[hsl(var(--neon-toxic))]" fill="currentColor" aria-hidden>
                       <path d="M16.365 1.43c0 1.14-.42 2.23-1.13 3.05-.78.92-2.05 1.63-3.06 1.55-.13-1.11.4-2.27 1.1-3.05.79-.88 2.13-1.55 3.09-1.55zM20.5 17.55c-.55 1.27-.81 1.84-1.52 2.96-.99 1.56-2.39 3.5-4.13 3.51-1.54.02-1.94-1-4.04-.99-2.1.01-2.54 1.01-4.08.99-1.74-.02-3.06-1.77-4.05-3.33C.01 16.43-.27 11.06 1.4 8.21c1.18-2.02 3.04-3.21 4.79-3.21 1.78 0 2.9 1 4.37 1 1.43 0 2.3-1 4.36-1 1.56 0 3.21.85 4.39 2.31-3.86 2.12-3.23 7.63 1.19 10.24z" />
                     </svg>
                     <div className="text-left leading-tight">
-                      <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-medium">Download on the</div>
-                      <div className="text-base font-bold tracking-tight transition-colors group-hover:text-primary">App Store</div>
+                      <div className="text-[10px] uppercase tracking-widest text-white/50 font-medium">Download on the</div>
+                      <div className="text-base font-bold tracking-tight text-white transition-colors group-hover:text-[hsl(var(--neon-toxic))]">App Store</div>
                     </div>
                   </button>
                   <button
                     onClick={() => goToStore("android")}
                     aria-label="Get it on Google Play"
-                    className="group h-14 px-5 flex items-center gap-3 rounded-xl bg-zinc-950 border border-zinc-800 text-foreground transition-all duration-300 hover:border-primary hover:shadow-[0_0_20px_hsl(var(--neon-toxic)/0.2)] hover:-translate-y-0.5"
+                    className="group h-14 px-5 flex items-center gap-3 rounded-xl bg-[#0a0a0a] border border-white/10 transition-all duration-300 hover:border-[hsl(var(--neon-toxic))] hover:shadow-[0_0_24px_hsl(var(--neon-toxic)/0.25)] hover:-translate-y-0.5"
                   >
                     <svg viewBox="0 0 24 24" className="h-7 w-7" aria-hidden>
                       <path fill="#34A853" d="M3.6 2.3C3.2 2.7 3 3.3 3 4.1v15.8c0 .8.2 1.4.6 1.8l.1.1L12.6 13v-.2L3.7 2.2l-.1.1z"/>
@@ -252,8 +252,8 @@ const Landing = () => {
                       <path fill="#4285F4" d="M15.7 6L5.3 2.2c-.7-.4-1.3-.3-1.7.1l9 9 3.1-3.1z"/>
                     </svg>
                     <div className="text-left leading-tight">
-                      <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-medium">Get it on</div>
-                      <div className="text-base font-bold tracking-tight transition-colors group-hover:text-primary">Google Play</div>
+                      <div className="text-[10px] uppercase tracking-widest text-white/50 font-medium">Get it on</div>
+                      <div className="text-base font-bold tracking-tight text-white transition-colors group-hover:text-[hsl(var(--neon-toxic))]">Google Play</div>
                     </div>
                   </button>
                 </div>
