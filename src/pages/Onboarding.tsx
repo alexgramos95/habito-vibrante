@@ -371,13 +371,13 @@ const Onboarding = () => {
                 onClick={goToAuthOrSkip}
                 className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground/70 hover:text-foreground transition-colors"
               >
-                {t(COPY.welcome.signin, locale)}
+                Sign in
               </button>
               <button
                 onClick={goToAuthOrSkip}
                 className="font-black italic uppercase tracking-tight text-[11px] px-3 py-1.5 bg-primary text-primary-foreground border-2 border-primary shadow-[2px_2px_0_0_hsl(var(--neon-ultra))] hover:shadow-[3px_3px_0_0_hsl(var(--neon-ultra))] hover:-translate-y-0.5 transition-all"
               >
-                {t(COPY.welcome.startFree, locale)}
+                Start free
               </button>
             </div>
           </div>
@@ -387,19 +387,19 @@ const Onboarding = () => {
             <div className="flex justify-center mb-6 animate-in fade-in duration-1000">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-foreground/5 border border-foreground/10 font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
                 <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_8px_hsl(var(--neon-toxic))]" />
-                {t(COPY.welcome.badge, locale)}
+                Identity OS · Now in beta
               </div>
             </div>
 
             {/* Headline */}
             <h1 className="type-display text-center text-[32px] sm:text-5xl md:text-6xl leading-[0.95] mb-5 animate-in fade-in slide-in-from-bottom-2 duration-1000">
-              {t(COPY.welcome.titleA, locale)}
+              Stop relying on motivation.
               <br />
               <span
                 className="text-primary"
                 style={{ textShadow: "0 0 32px hsl(var(--neon-toxic) / 0.35)" }}
               >
-                {t(COPY.welcome.titleB, locale)}
+                Become the system.
               </span>
             </h1>
 
@@ -408,7 +408,7 @@ const Onboarding = () => {
               className="type-body text-center text-sm sm:text-base text-muted-foreground/85 mb-7 max-w-md mx-auto animate-in fade-in duration-1000"
               style={{ animationDelay: "300ms", animationFillMode: "backwards" }}
             >
-              {t(COPY.welcome.sub, locale)}
+              Habits, calendar, nutrition and shopping in one place — so consistency finally compounds. Free for 7 days.
             </p>
 
             {/* Bullets */}
@@ -416,7 +416,11 @@ const Onboarding = () => {
               className="space-y-3 mb-2 max-w-md mx-auto w-full animate-in fade-in duration-1000"
               style={{ animationDelay: "500ms", animationFillMode: "backwards" }}
             >
-              {COPY.welcome.bullets[locale].map((line) => (
+              {[
+                "Replace 6 apps with one daily system.",
+                "Build streaks that compound — not anxiety.",
+                "Free 7 days. No card. Cancel in one tap.",
+              ].map((line) => (
                 <li key={line} className="flex items-start gap-3">
                   <span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full border border-primary/60 text-primary shrink-0">
                     <Check className="h-3 w-3" strokeWidth={3} />
@@ -432,37 +436,11 @@ const Onboarding = () => {
               onClick={goToAuthOrSkip}
               className="w-full h-14 bg-primary text-primary-foreground font-black italic uppercase tracking-tight text-sm border-2 border-primary shadow-[3px_3px_0_0_hsl(var(--neon-ultra))] hover:shadow-[5px_5px_0_0_hsl(var(--neon-ultra))] hover:-translate-y-0.5 active:translate-y-0 active:shadow-[2px_2px_0_0_hsl(var(--neon-ultra))] transition-all inline-flex items-center justify-center gap-2"
             >
-              {t(COPY.welcome.cta, locale)} <ArrowRight className="h-4 w-4" />
+              Get started free <ArrowRight className="h-4 w-4" />
             </button>
             <p className="text-center font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground/60">
-              {t(COPY.welcome.footer, locale)}
+              7 days free · No credit card
             </p>
-            {/* Subtle language toggle */}
-            <div className="flex items-center justify-center gap-3 text-[11px] font-mono uppercase tracking-[0.2em] pt-1">
-              <button
-                onClick={() => setLocale("pt-PT")}
-                className={cn(
-                  "transition-colors",
-                  locale === "pt-PT"
-                    ? "text-primary"
-                    : "text-muted-foreground/50 hover:text-muted-foreground",
-                )}
-              >
-                PT
-              </button>
-              <span className="text-muted-foreground/30">|</span>
-              <button
-                onClick={() => setLocale("en-US")}
-                className={cn(
-                  "transition-colors",
-                  locale === "en-US"
-                    ? "text-primary"
-                    : "text-muted-foreground/50 hover:text-muted-foreground",
-                )}
-              >
-                EN
-              </button>
-            </div>
           </div>
         </Screen>
       )}
