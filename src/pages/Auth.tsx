@@ -408,65 +408,123 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-background flex flex-col items-center justify-center p-3">
-      <div className="w-full max-w-sm space-y-3">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+      {/* Back button */}
+      <div className="w-full max-w-md mb-4">
+        <Link to="/onboarding" className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors">
+          <ArrowLeft className="h-3.5 w-3.5" />
+          // BACK
+        </Link>
+      </div>
+      
+      <div className="w-full max-w-md space-y-6">
+        {/* Verify email banner */}
         {verifyBanner === 'required' && (
-          <Alert className="border-amber-500/50 bg-amber-500/10 py-2">
+          <Alert className="border-amber-500/50 bg-amber-500/10">
             <Mail className="h-4 w-4 text-amber-500" />
-            <AlertDescription className="text-amber-700 dark:text-amber-400 text-xs">
+            <AlertDescription className="text-amber-700 dark:text-amber-400">
               Please verify your email to access the app.
             </AlertDescription>
           </Alert>
         )}
 
-        <div className="flex items-center justify-center">
-          <BecomeLogo size="sm" />
+        {/* Logo */}
+        <div className="text-center space-y-3">
+          <div className="flex items-center justify-center mb-2">
+            <BecomeLogo size="md" />
+          </div>
+          <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+            // IDENTITY · INTENSITY · CONSISTENCY
+          </p>
         </div>
 
-        <Card className="border-2 border-primary/40 bg-card shadow-[6px_6px_0_0_hsl(var(--neon-ultra)/0.6)]">
-          <CardHeader className="space-y-0 p-4 pb-2">
-            <CardTitle className="text-xl font-black italic uppercase tracking-tighter">
+        <Card className="border-2 border-primary/40 bg-card shadow-[8px_8px_0_0_hsl(var(--neon-ultra)/0.6)]">
+          <CardHeader className="space-y-1">
+            <p className="font-mono text-[10px] uppercase tracking-widest text-primary/70">
+              {mode === 'signin' && '// SIGN IN'}
+              {mode === 'signup' && '// SIGN UP'}
+              {mode === 'forgot-password' && '// RECOVER ACCESS'}
+              {mode === 'reset-password' && '// NEW PASSWORD'}
+            </p>
+            <CardTitle className="text-2xl font-black italic uppercase tracking-tighter">
               {mode === 'signin' && 'Welcome back'}
               {mode === 'signup' && 'Create your account'}
               {mode === 'forgot-password' && 'Reset password'}
               {mode === 'reset-password' && 'Set new password'}
             </CardTitle>
+            <CardDescription className="font-mono text-xs">
+              {mode === 'signin' && 'Sign in to continue'}
+              {mode === 'signup' && 'Start your free trial'}
+              {mode === 'forgot-password' && 'Enter your email to receive a link'}
+              {mode === 'reset-password' && 'Choose a secure password'}
+            </CardDescription>
           </CardHeader>
-          <CardContent className="p-4 pt-2">
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {mode === 'signup' && (
+                <div className="space-y-2">
+                  <Label htmlFor="displayName">Name (optional)</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="displayName"
+                      type="text"
+                      placeholder="Your name"
+                      value={displayName}
+                      onChange={(e) => setDisplayName(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+              )}
 
-            <form onSubmit={handleSubmit} className="space-y-2.5">
               {mode !== 'reset-password' && (
-                <div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="email"
                       type="email"
-                      placeholder="Email"
+                      placeholder="you@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="pl-10 h-10"
+                      className="pl-10"
                       autoComplete="email"
                       required
                     />
                   </div>
                   {errors.email && (
-                    <p className="text-xs text-destructive mt-1">{errors.email}</p>
+                    <p className="text-sm text-destructive">{errors.email}</p>
                   )}
                 </div>
               )}
 
               {(mode === 'signin' || mode === 'signup' || mode === 'reset-password') && (
-                <div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password">
+                      {mode === 'reset-password' ? 'New password' : 'Password'}
+                    </Label>
+                    {mode === 'signin' && (
+                      <button
+                        type="button"
+                        onClick={() => setMode('forgot-password')}
+                        className="text-xs text-primary hover:underline"
+                      >
+                        Forgot password?
+                      </button>
+                    )}
+                  </div>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="password"
                       type={showPassword ? 'text' : 'password'}
-                      placeholder={mode === 'reset-password' ? 'New password' : 'Password'}
+                      placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="pl-10 pr-10 h-10"
+                      className="pl-10 pr-10"
                       autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
                       required
                     />
@@ -480,22 +538,23 @@ const Auth = () => {
                     </button>
                   </div>
                   {errors.password && (
-                    <p className="text-xs text-destructive mt-1">{errors.password}</p>
+                    <p className="text-sm text-destructive">{errors.password}</p>
                   )}
                 </div>
               )}
 
               {mode === 'reset-password' && (
-                <div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm password</Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="confirmPassword"
                       type={showConfirmPassword ? 'text' : 'password'}
-                      placeholder="Confirm password"
+                      placeholder="••••••••"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="pl-10 pr-10 h-10"
+                      className="pl-10 pr-10"
                       required
                     />
                     <button
@@ -508,32 +567,29 @@ const Auth = () => {
                     </button>
                   </div>
                   {errors.confirmPassword && (
-                    <p className="text-xs text-destructive mt-1">{errors.confirmPassword}</p>
+                    <p className="text-sm text-destructive">{errors.confirmPassword}</p>
                   )}
                 </div>
               )}
 
+              {/* Remember me checkbox - only for signin */}
               {mode === 'signin' && (
-                <div className="flex items-center justify-between text-xs">
-                  <label className="flex items-center gap-1.5 cursor-pointer select-none text-muted-foreground">
-                    <Checkbox
-                      id="rememberMe"
-                      checked={rememberMe}
-                      onCheckedChange={(checked) => setRememberMe(checked === true)}
-                    />
-                    Keep me signed in
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => setMode('forgot-password')}
-                    className="text-primary hover:underline"
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="rememberMe"
+                    checked={rememberMe}
+                    onCheckedChange={(checked) => setRememberMe(checked === true)}
+                  />
+                  <Label 
+                    htmlFor="rememberMe" 
+                    className="text-sm font-normal cursor-pointer select-none"
                   >
-                    Forgot?
-                  </button>
+                    Keep me signed in on this device
+                  </Label>
                 </div>
               )}
 
-              <Button type="submit" className="w-full h-10" disabled={loading}>
+              <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? 'PROCESSING...' : (
                   <>
                     {mode === 'signin' && 'SIGN IN'}
@@ -546,23 +602,24 @@ const Auth = () => {
               </Button>
             </form>
 
+            {/* OAuth - for signin/signup */}
             {(mode === 'signin' || mode === 'signup') && (
               <>
-                <div className="relative my-3">
+                <div className="relative my-6">
                   <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-foreground/15" />
+                    <span className="w-full border-t-2 border-foreground/15" />
                   </div>
                   <div className="relative flex justify-center">
-                    <span className="bg-card px-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-                      OR
+                    <span className="bg-card px-3 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                      // OR
                     </span>
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Button
-                    variant="outline"
-                    className="w-full h-10"
+                <div className="space-y-3">
+                  <Button 
+                    variant="outline" 
+                    className="w-full" 
                     onClick={handleGoogleSignIn}
                     disabled={loading}
                   >
@@ -572,50 +629,72 @@ const Auth = () => {
                       <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                       <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                     </svg>
-                    GOOGLE
+                    CONTINUE WITH GOOGLE
                   </Button>
 
-                  <Button
-                    variant="outline"
-                    className="w-full h-10"
+                  <Button 
+                    variant="outline" 
+                    className="w-full" 
                     onClick={handleAppleSignIn}
                     disabled={loading}
                   >
                     <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
                     </svg>
-                    APPLE
+                    CONTINUE WITH APPLE
                   </Button>
                 </div>
               </>
             )}
 
-            <div className="mt-3 text-center font-mono text-[11px] uppercase tracking-widest">
+            <div className="mt-6 text-center font-mono text-[11px] uppercase tracking-widest">
               {mode === 'signin' && (
-                <button type="button" onClick={() => setMode('signup')} className="text-muted-foreground hover:text-primary">
-                  No account? <span className="text-primary font-bold">SIGN UP</span>
-                </button>
+                <p className="text-muted-foreground">
+                  No account?{' '}
+                  <button
+                    type="button"
+                    onClick={() => setMode('signup')}
+                    className="text-primary hover:underline font-bold"
+                  >
+                    SIGN UP
+                  </button>
+                </p>
               )}
               {mode === 'signup' && (
-                <button type="button" onClick={() => setMode('signin')} className="text-muted-foreground hover:text-primary">
-                  Have an account? <span className="text-primary font-bold">SIGN IN</span>
-                </button>
+                <p className="text-muted-foreground">
+                  Already have an account?{' '}
+                  <button
+                    type="button"
+                    onClick={() => setMode('signin')}
+                    className="text-primary hover:underline font-bold"
+                  >
+                    SIGN IN
+                  </button>
+                </p>
               )}
               {mode === 'forgot-password' && (
-                <button type="button" onClick={() => setMode('signin')} className="text-muted-foreground hover:text-primary">
-                  <span className="text-primary font-bold">SIGN IN</span>
-                </button>
+                <p className="text-muted-foreground">
+                  Remembered it?{' '}
+                  <button
+                    type="button"
+                    onClick={() => setMode('signin')}
+                    className="text-primary hover:underline font-bold"
+                  >
+                    SIGN IN
+                  </button>
+                </p>
               )}
             </div>
           </CardContent>
         </Card>
 
+        {/* Terms */}
         <p className="text-center font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-          <a href="/terms" className="hover:text-primary">TERMS</a>
-          {' · '}
-          <a href="/privacy" className="hover:text-primary">PRIVACY</a>
+          // BY CONTINUING YOU ACCEPT{' '}
+          <a href="/terms" className="underline hover:text-primary">TERMS</a>
+          {' '}AND{' '}
+          <a href="/privacy" className="underline hover:text-primary">PRIVACY</a>
         </p>
-
       </div>
     </div>
   );
