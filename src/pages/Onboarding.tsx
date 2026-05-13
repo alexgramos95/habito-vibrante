@@ -574,13 +574,13 @@ const Onboarding = () => {
         <Screen keyName="struggles">
           <div className="flex-1 flex flex-col justify-center">
             <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-primary mb-4">
-              {t(COPY.struggles.chapter, locale)}
+              {t(COPY.struggles.chapter, displayLocale)}
             </p>
             <h1 className="type-display text-4xl sm:text-5xl leading-[1.05] tracking-tight mb-2 whitespace-pre-line">
-              {t(COPY.struggles.title, locale)}
+              {t(COPY.struggles.title, displayLocale)}
             </h1>
             <p className="text-xs text-muted-foreground/60 mb-10 font-mono uppercase tracking-wider">
-              {t(COPY.struggles.hint, locale)}
+              {t(COPY.struggles.hint, displayLocale)}
             </p>
             <div className="flex flex-col gap-2">
               {STRUGGLES.map((opt) => (
@@ -590,7 +590,7 @@ const Onboarding = () => {
                   onClick={() => toggleStruggle(opt.id)}
                   multi
                 >
-                  {t(opt.label, locale)}
+                  {t(opt.label, displayLocale)}
                 </Option>
               ))}
             </div>
@@ -600,7 +600,7 @@ const Onboarding = () => {
             disabled={struggles.length === 0}
             className="w-full h-14 mt-6 bg-primary text-primary-foreground font-black italic uppercase tracking-tight text-sm border-2 border-primary shadow-[3px_3px_0_0_hsl(var(--neon-ultra))] hover:shadow-[5px_5px_0_0_hsl(var(--neon-ultra))] hover:-translate-y-0.5 active:translate-y-0 active:shadow-[2px_2px_0_0_hsl(var(--neon-ultra))] transition-all inline-flex items-center justify-center gap-2 disabled:opacity-30 disabled:pointer-events-none"
           >
-            {t(COPY.struggles.cta, locale)} <ArrowRight className="h-4 w-4" />
+            {t(COPY.struggles.cta, displayLocale)} <ArrowRight className="h-4 w-4" />
           </button>
         </Screen>
       )}
@@ -610,13 +610,13 @@ const Onboarding = () => {
         <Screen keyName="identity">
           <div className="flex-1 flex flex-col justify-center">
             <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-primary mb-4">
-              {t(COPY.identity.chapter, locale)}
+              {t(COPY.identity.chapter, displayLocale)}
             </p>
             <h1 className="type-display text-4xl sm:text-5xl leading-[1.05] tracking-tight mb-2 whitespace-pre-line">
-              {t(COPY.identity.title, locale)}
+              {t(COPY.identity.title, displayLocale)}
             </h1>
             <p className="text-xs text-muted-foreground/60 mb-10 font-mono uppercase tracking-wider">
-              {t(COPY.struggles.hint, locale)}
+              {t(COPY.struggles.hint, displayLocale)}
             </p>
             <div className="flex flex-col gap-2">
               {IDENTITIES.map((opt) => (
@@ -632,7 +632,7 @@ const Onboarding = () => {
                   }
                   multi
                 >
-                  {t(opt.label, locale)}
+                  {t(opt.label, displayLocale)}
                 </Option>
               ))}
             </div>
@@ -642,7 +642,7 @@ const Onboarding = () => {
             disabled={identity.length === 0}
             className="w-full h-14 mt-6 bg-primary text-primary-foreground font-black italic uppercase tracking-tight text-sm border-2 border-primary shadow-[3px_3px_0_0_hsl(var(--neon-ultra))] hover:shadow-[5px_5px_0_0_hsl(var(--neon-ultra))] hover:-translate-y-0.5 active:translate-y-0 active:shadow-[2px_2px_0_0_hsl(var(--neon-ultra))] transition-all inline-flex items-center justify-center gap-2 disabled:opacity-30 disabled:pointer-events-none"
           >
-            {t(COPY.struggles.cta, locale)} <ArrowRight className="h-4 w-4" />
+            {t(COPY.struggles.cta, displayLocale)} <ArrowRight className="h-4 w-4" />
           </button>
         </Screen>
       )}
@@ -652,13 +652,13 @@ const Onboarding = () => {
         <Screen keyName="pull">
           <div className="flex-1 flex flex-col justify-center">
             <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-primary mb-4">
-              {t(COPY.pull.chapter, locale)}
+              {t(COPY.pull.chapter, displayLocale)}
             </p>
             <h1 className="type-display text-4xl sm:text-5xl leading-[1.05] tracking-tight mb-2 whitespace-pre-line">
-              {t(COPY.pull.title, locale)}
+              {t(COPY.pull.title, displayLocale)}
             </h1>
             <p className="text-xs text-muted-foreground/60 mb-10 font-mono uppercase tracking-wider">
-              {t(COPY.struggles.hint, locale)}
+              {t(COPY.struggles.hint, displayLocale)}
             </p>
             <div className="flex flex-col gap-2">
               {PULLS.map((opt) => (
@@ -674,7 +674,7 @@ const Onboarding = () => {
                   }
                   multi
                 >
-                  {t(opt.label, locale)}
+                  {t(opt.label, displayLocale)}
                 </Option>
               ))}
             </div>
@@ -684,7 +684,7 @@ const Onboarding = () => {
             disabled={pull.length === 0}
             className="w-full h-14 mt-6 bg-primary text-primary-foreground font-black italic uppercase tracking-tight text-sm border-2 border-primary shadow-[3px_3px_0_0_hsl(var(--neon-ultra))] hover:shadow-[5px_5px_0_0_hsl(var(--neon-ultra))] hover:-translate-y-0.5 active:translate-y-0 active:shadow-[2px_2px_0_0_hsl(var(--neon-ultra))] transition-all inline-flex items-center justify-center gap-2 disabled:opacity-30 disabled:pointer-events-none"
           >
-            {t(COPY.struggles.cta, locale)} <ArrowRight className="h-4 w-4" />
+            {t(COPY.struggles.cta, displayLocale)} <ArrowRight className="h-4 w-4" />
           </button>
         </Screen>
       )}
@@ -702,14 +702,14 @@ const Onboarding = () => {
               />
             </div>
             <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-primary mb-5">
-              {t(COPY.building.chapter, locale)}
+              {t(COPY.building.chapter, displayLocale)}
             </p>
             <div className="h-12 flex items-center justify-center">
               <p
                 key={buildIdx}
                 className="type-display text-2xl sm:text-3xl leading-tight tracking-tight animate-in fade-in slide-in-from-bottom-1 duration-700"
               >
-                {COPY.building.statements[locale][buildIdx]}
+                {COPY.building.statements[displayLocale][buildIdx]}
               </p>
             </div>
           </div>
@@ -727,7 +727,7 @@ const Onboarding = () => {
               <Check className="h-6 w-6 text-primary" strokeWidth={3} />
             </div>
             <h1 className="type-display text-4xl sm:text-5xl leading-[1.05] tracking-tight mb-4 animate-in fade-in slide-in-from-bottom-2 duration-1000">
-              {t(COPY.ready.title, locale)}
+              {t(COPY.ready.title, displayLocale)}
             </h1>
             <p
               className="text-base text-muted-foreground/80 animate-in fade-in duration-1000"
