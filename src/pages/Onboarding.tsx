@@ -320,9 +320,15 @@ const Onboarding = () => {
       });
     };
     run();
-    const t = window.setTimeout(() => navigate("/app", { replace: true }), 2400);
+    const t = window.setTimeout(() => {
+      if (isAuthenticated) {
+        navigate("/app", { replace: true });
+      } else {
+        setStep("auth");
+      }
+    }, 2400);
     return () => window.clearTimeout(t);
-  }, [step, identity, struggles, pull, locale, completeOnboarding, navigate]);
+  }, [step, identity, struggles, pull, locale, completeOnboarding, navigate, isAuthenticated]);
 
   const handleGoogle = async () => {
     setAuthBusy("google");
