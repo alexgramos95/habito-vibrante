@@ -668,10 +668,10 @@ const Index = () => {
         {!isPro && simpleHabits.length >= FREE_LIMIT && (
           <div className="text-center py-2">
             <p className="text-sm text-muted-foreground mb-2">
-              Limite gratuito atingido. Hábitos ilimitados na PRO.
+              {isPT ? 'Limite gratuito atingido. Hábitos ilimitados na PRO.' : 'Free limit reached. Unlimited habits on PRO.'}
             </p>
             <Link to="/decision">
-              <Button variant="outline" size="sm">Desbloquear PRO</Button>
+              <Button variant="outline" size="sm">{isPT ? 'Desbloquear PRO' : 'Unlock PRO'}</Button>
             </Link>
           </div>
         )}
