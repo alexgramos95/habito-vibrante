@@ -322,7 +322,7 @@ const Onboarding = () => {
         locale,
         source: "cinematic",
       });
-      trackEvent("onboarding_completed", { identity, locale });
+      trackEvent("onboarding_completed", { identity: primaryIdentity, locale });
       completeOnboarding({
         improvementAreas: struggles,
         identityVectors,
