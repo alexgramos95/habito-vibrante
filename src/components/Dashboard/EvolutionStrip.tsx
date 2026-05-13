@@ -37,9 +37,39 @@ const IDENTITY_PHASES_PT = [
   "A viver isso",
 ];
 
+// Rotating philosophical reinforcements — replaces explicit XP/points pressure.
+const REFLECTIONS_EN = [
+  "Your system is taking shape.",
+  "Consistency creates momentum.",
+  "Every repetition strengthens identity.",
+  "Small actions become structure.",
+  "Presence compounds quietly.",
+  "You return — that is the practice.",
+  "Identity forms in the repetition.",
+];
+
+const REFLECTIONS_PT = [
+  "O teu sistema está a ganhar forma.",
+  "Consistência cria momentum.",
+  "Cada repetição reforça a identidade.",
+  "Pequenas ações tornam-se estrutura.",
+  "Presença acumula em silêncio.",
+  "Voltas — é essa a prática.",
+  "A identidade forma-se na repetição.",
+];
+
 const phaseFor = (level: number, isPT: boolean) => {
   const arr = isPT ? IDENTITY_PHASES_PT : IDENTITY_PHASES_EN;
   return arr[Math.min(level - 1, arr.length - 1)] || arr[arr.length - 1];
+};
+
+const reflectionFor = (date: Date, isPT: boolean) => {
+  const arr = isPT ? REFLECTIONS_PT : REFLECTIONS_EN;
+  // Day-of-year index → stable for the whole day, gently rotates daily.
+  const start = new Date(date.getFullYear(), 0, 0);
+  const diff = date.getTime() - start.getTime();
+  const dayOfYear = Math.floor(diff / 86400000);
+  return arr[dayOfYear % arr.length];
 };
 
 export const EvolutionStrip = ({ state, isPT, className }: EvolutionStripProps) => {
