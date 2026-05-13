@@ -541,8 +541,7 @@ const Index = () => {
 
           return (
           <section className="space-y-6">
-            <div className="flex items-center justify-between px-0.5">
-              <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground/70">{isPT ? 'Hoje' : 'Today'}</h2>
+            <div className="flex items-center justify-end px-0.5">
               <div className="flex items-center gap-1">
                 <Button
                   size="sm"
