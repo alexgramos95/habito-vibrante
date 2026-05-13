@@ -463,7 +463,7 @@ const Auth = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               {mode === 'signup' && (
                 <div className="space-y-2">
-                  <Label htmlFor="displayName">Name (optional)</Label>
+                  <Label htmlFor="displayName">{locale === 'pt-PT' ? 'Nome (opcional)' : 'Name (optional)'}</Label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
