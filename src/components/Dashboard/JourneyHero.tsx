@@ -103,14 +103,32 @@ export const JourneyHero = ({
     return `Good evening${name}.`;
   }, [firstName, isPT]);
 
-  // === Sub-headline: identity + state ===
+  // === Sub-headline: identity + state — calm, reflective, never motivational ===
   const subline = (() => {
     if (lifecycleState === "new")
-      return isPT ? "A tua primeira vitória começa hoje." : "Your first win starts today.";
+      return isPT
+        ? "O começo é silencioso. Acontece à primeira escolha."
+        : "Beginnings are quiet. They happen at the first choice.";
     if (brokeYesterday)
-      return isPT ? "Ontem ficou em aberto. Hoje recomeças." : "Yesterday stayed open. Today you restart.";
+      return isPT
+        ? "Ontem ficou em aberto. Identidade não é perfeição — é regresso."
+        : "Yesterday stayed open. Identity isn't perfection — it's return.";
     if (lifecycleState === "reengaged")
-      return isPT ? "Bom ver-te. Retoma o ritmo." : "Good to see you. Pick the rhythm back up.";
+      return isPT
+        ? "Voltaste. Esta é a parte que conta."
+        : "You came back. This is the part that counts.";
+    if (streak >= 14)
+      return isPT
+        ? `Já não tens de te lembrar. Estás a tornar-te ${identityLabel}.`
+        : `You no longer have to remember. You are becoming ${identityLabel}.`;
+    if (streak >= 5)
+      return isPT
+        ? `O sistema está a moldar-te. Continua devagar.`
+        : `The system is shaping you. Keep moving slowly.`;
+    if (totalTracked > 0 && totalDone === 0)
+      return isPT
+        ? "O dia está intacto. Começa por um."
+        : "The day is intact. Begin with one.";
     return isPT
       ? `A construir o teu eu ${identityLabel}.`
       : `Building your ${identityLabel}.`;
