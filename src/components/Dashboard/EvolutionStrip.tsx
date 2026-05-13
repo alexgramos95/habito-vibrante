@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { format, getDay, parseISO, subDays } from "date-fns";
+import { format, getDay, subDays } from "date-fns";
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AppState } from "@/data/types";
