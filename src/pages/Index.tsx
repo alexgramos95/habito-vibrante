@@ -489,12 +489,12 @@ const Index = () => {
             <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
               <CheckCircle2 className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="text-2xl font-bold tracking-tight text-foreground">Um hábito basta.</h3>
+            <h3 className="text-2xl font-bold tracking-tight text-foreground">{isPT ? 'Um hábito basta.' : 'One habit is enough.'}</h3>
             <p className="text-sm text-muted-foreground mt-2 max-w-[280px] mx-auto">
-              Identidade constrói-se um dia de cada vez.
+              {isPT ? 'Identidade constrói-se um dia de cada vez.' : 'Identity is built one day at a time.'}
             </p>
             <Button onClick={() => setShowModeSelector(true)} size="lg" className="mt-6 gap-2">
-              <Plus className="h-4 w-4" /> Criar primeiro hábito
+              <Plus className="h-4 w-4" /> {isPT ? 'Criar primeiro hábito' : 'Create first habit'}
             </Button>
           </div>
         )}
