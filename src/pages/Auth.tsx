@@ -652,37 +652,37 @@ const Auth = () => {
             <div className="mt-6 text-center font-mono text-[11px] uppercase tracking-widest">
               {mode === 'signin' && (
                 <p className="text-muted-foreground">
-                  No account?{' '}
+                  {locale === 'pt-PT' ? 'Sem conta?' : 'No account?'}{' '}
                   <button
                     type="button"
                     onClick={() => setMode('signup')}
                     className="text-primary hover:underline font-bold"
                   >
-                    SIGN UP
+                    {locale === 'pt-PT' ? 'CRIAR CONTA' : 'SIGN UP'}
                   </button>
                 </p>
               )}
               {mode === 'signup' && (
                 <p className="text-muted-foreground">
-                  Already have an account?{' '}
+                  {locale === 'pt-PT' ? 'Já tens conta?' : 'Already have an account?'}{' '}
                   <button
                     type="button"
                     onClick={() => setMode('signin')}
                     className="text-primary hover:underline font-bold"
                   >
-                    SIGN IN
+                    {locale === 'pt-PT' ? 'ENTRAR' : 'SIGN IN'}
                   </button>
                 </p>
               )}
               {mode === 'forgot-password' && (
                 <p className="text-muted-foreground">
-                  Remembered it?{' '}
+                  {locale === 'pt-PT' ? 'Já te lembras?' : 'Remembered it?'}{' '}
                   <button
                     type="button"
                     onClick={() => setMode('signin')}
                     className="text-primary hover:underline font-bold"
                   >
-                    SIGN IN
+                    {locale === 'pt-PT' ? 'ENTRAR' : 'SIGN IN'}
                   </button>
                 </p>
               )}
