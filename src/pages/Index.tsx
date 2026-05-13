@@ -681,9 +681,9 @@ const Index = () => {
       <Dialog open={showModeSelector} onOpenChange={setShowModeSelector}>
         <DialogContent className="w-[90vw] max-w-sm">
           <DialogHeader>
-            <p className="mono-label text-primary mb-1">// Novo</p>
-            <DialogTitle className="display-headline text-2xl">Escolhe o tipo</DialogTitle>
-            <DialogDescription>Ritual diário ou métrica que cresce ao longo do dia.</DialogDescription>
+            <p className="mono-label text-primary mb-1">// {isPT ? 'Novo' : 'New'}</p>
+            <DialogTitle className="display-headline text-2xl">{isPT ? 'Escolhe o tipo' : 'Choose the type'}</DialogTitle>
+            <DialogDescription>{isPT ? 'Ritual diário ou métrica que cresce ao longo do dia.' : 'Daily ritual or metric that grows through the day.'}</DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-3 py-4">
             <button
