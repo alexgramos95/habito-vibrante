@@ -408,58 +408,32 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-      {/* Back button */}
-      <div className="w-full max-w-md mb-4">
-        <Link to="/onboarding" className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors">
-          <ArrowLeft className="h-3.5 w-3.5" />
-          // BACK
-        </Link>
-      </div>
-      
-      <div className="w-full max-w-md space-y-6">
-        {/* Verify email banner */}
+    <div className="min-h-[100dvh] bg-background flex flex-col items-center justify-center p-3">
+      <div className="w-full max-w-sm space-y-3">
         {verifyBanner === 'required' && (
-          <Alert className="border-amber-500/50 bg-amber-500/10">
+          <Alert className="border-amber-500/50 bg-amber-500/10 py-2">
             <Mail className="h-4 w-4 text-amber-500" />
-            <AlertDescription className="text-amber-700 dark:text-amber-400">
+            <AlertDescription className="text-amber-700 dark:text-amber-400 text-xs">
               Please verify your email to access the app.
             </AlertDescription>
           </Alert>
         )}
 
-        {/* Logo */}
-        <div className="text-center space-y-3">
-          <div className="flex items-center justify-center mb-2">
-            <BecomeLogo size="md" />
-          </div>
-          <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-            // IDENTITY · INTENSITY · CONSISTENCY
-          </p>
+        <div className="flex items-center justify-center">
+          <BecomeLogo size="sm" />
         </div>
 
-        <Card className="border-2 border-primary/40 bg-card shadow-[8px_8px_0_0_hsl(var(--neon-ultra)/0.6)]">
-          <CardHeader className="space-y-1">
-            <p className="font-mono text-[10px] uppercase tracking-widest text-primary/70">
-              {mode === 'signin' && '// SIGN IN'}
-              {mode === 'signup' && '// SIGN UP'}
-              {mode === 'forgot-password' && '// RECOVER ACCESS'}
-              {mode === 'reset-password' && '// NEW PASSWORD'}
-            </p>
-            <CardTitle className="text-2xl font-black italic uppercase tracking-tighter">
+        <Card className="border-2 border-primary/40 bg-card shadow-[6px_6px_0_0_hsl(var(--neon-ultra)/0.6)]">
+          <CardHeader className="space-y-0 p-4 pb-2">
+            <CardTitle className="text-xl font-black italic uppercase tracking-tighter">
               {mode === 'signin' && 'Welcome back'}
               {mode === 'signup' && 'Create your account'}
               {mode === 'forgot-password' && 'Reset password'}
               {mode === 'reset-password' && 'Set new password'}
             </CardTitle>
-            <CardDescription className="font-mono text-xs">
-              {mode === 'signin' && 'Sign in to continue'}
-              {mode === 'signup' && 'Start your free trial'}
-              {mode === 'forgot-password' && 'Enter your email to receive a link'}
-              {mode === 'reset-password' && 'Choose a secure password'}
-            </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 pt-2">
+
             <form onSubmit={handleSubmit} className="space-y-4">
               {mode === 'signup' && (
                 <div className="space-y-2">
