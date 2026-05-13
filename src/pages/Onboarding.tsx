@@ -28,7 +28,8 @@ type Step =
   | "identity"
   | "pull"
   | "building"
-  | "ready";
+  | "ready"
+  | "language";
 
 type Bilingual = { "pt-PT": string; "en-US": string };
 const t = (b: Bilingual, locale: Locale) => b[locale] ?? b["en-US"];
