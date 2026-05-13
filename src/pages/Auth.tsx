@@ -441,35 +441,35 @@ const Auth = () => {
         <Card className="border-2 border-primary/40 bg-card shadow-[8px_8px_0_0_hsl(var(--neon-ultra)/0.6)]">
           <CardHeader className="space-y-1">
             <p className="font-mono text-[10px] uppercase tracking-widest text-primary/70">
-              {mode === 'signin' && '// SIGN IN'}
-              {mode === 'signup' && '// SIGN UP'}
-              {mode === 'forgot-password' && '// RECOVER ACCESS'}
-              {mode === 'reset-password' && '// NEW PASSWORD'}
+              {mode === 'signin' && (locale === 'pt-PT' ? '// ENTRAR' : '// SIGN IN')}
+              {mode === 'signup' && (locale === 'pt-PT' ? '// CRIAR CONTA' : '// SIGN UP')}
+              {mode === 'forgot-password' && (locale === 'pt-PT' ? '// RECUPERAR ACESSO' : '// RECOVER ACCESS')}
+              {mode === 'reset-password' && (locale === 'pt-PT' ? '// NOVA PALAVRA-PASSE' : '// NEW PASSWORD')}
             </p>
             <CardTitle className="text-2xl font-black italic uppercase tracking-tighter">
-              {mode === 'signin' && 'Welcome back'}
-              {mode === 'signup' && 'Create your account'}
-              {mode === 'forgot-password' && 'Reset password'}
-              {mode === 'reset-password' && 'Set new password'}
+              {mode === 'signin' && (locale === 'pt-PT' ? 'Bem-vindo de volta' : 'Welcome back')}
+              {mode === 'signup' && (locale === 'pt-PT' ? 'Cria a tua conta' : 'Create your account')}
+              {mode === 'forgot-password' && (locale === 'pt-PT' ? 'Recuperar palavra-passe' : 'Reset password')}
+              {mode === 'reset-password' && (locale === 'pt-PT' ? 'Definir nova palavra-passe' : 'Set new password')}
             </CardTitle>
             <CardDescription className="font-mono text-xs">
-              {mode === 'signin' && 'Sign in to continue'}
-              {mode === 'signup' && 'Start your free trial'}
-              {mode === 'forgot-password' && 'Enter your email to receive a link'}
-              {mode === 'reset-password' && 'Choose a secure password'}
+              {mode === 'signin' && (locale === 'pt-PT' ? 'Entra para continuar' : 'Sign in to continue')}
+              {mode === 'signup' && (locale === 'pt-PT' ? 'Começa o teu período grátis' : 'Start your free trial')}
+              {mode === 'forgot-password' && (locale === 'pt-PT' ? 'Indica o teu email para receberes um link' : 'Enter your email to receive a link')}
+              {mode === 'reset-password' && (locale === 'pt-PT' ? 'Escolhe uma palavra-passe segura' : 'Choose a secure password')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               {mode === 'signup' && (
                 <div className="space-y-2">
-                  <Label htmlFor="displayName">Name (optional)</Label>
+                  <Label htmlFor="displayName">{locale === 'pt-PT' ? 'Nome (opcional)' : 'Name (optional)'}</Label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="displayName"
                       type="text"
-                      placeholder="Your name"
+                      placeholder={locale === 'pt-PT' ? 'O teu nome' : 'Your name'}
                       value={displayName}
                       onChange={(e) => setDisplayName(e.target.value)}
                       className="pl-10"
@@ -504,7 +504,9 @@ const Auth = () => {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="password">
-                      {mode === 'reset-password' ? 'New password' : 'Password'}
+                      {mode === 'reset-password'
+                        ? (locale === 'pt-PT' ? 'Nova palavra-passe' : 'New password')
+                        : (locale === 'pt-PT' ? 'Palavra-passe' : 'Password')}
                     </Label>
                     {mode === 'signin' && (
                       <button
@@ -512,7 +514,7 @@ const Auth = () => {
                         onClick={() => setMode('forgot-password')}
                         className="text-xs text-primary hover:underline"
                       >
-                        Forgot password?
+                        {locale === 'pt-PT' ? 'Esqueceste-te?' : 'Forgot password?'}
                       </button>
                     )}
                   </div>
@@ -545,7 +547,7 @@ const Auth = () => {
 
               {mode === 'reset-password' && (
                 <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm password</Label>
+                  <Label htmlFor="confirmPassword">{locale === 'pt-PT' ? 'Confirmar palavra-passe' : 'Confirm password'}</Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
@@ -580,22 +582,22 @@ const Auth = () => {
                     checked={rememberMe}
                     onCheckedChange={(checked) => setRememberMe(checked === true)}
                   />
-                  <Label 
-                    htmlFor="rememberMe" 
+                  <Label
+                    htmlFor="rememberMe"
                     className="text-sm font-normal cursor-pointer select-none"
                   >
-                    Keep me signed in on this device
+                    {locale === 'pt-PT' ? 'Manter sessão iniciada neste dispositivo' : 'Keep me signed in on this device'}
                   </Label>
                 </div>
               )}
 
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'PROCESSING...' : (
+                {loading ? (locale === 'pt-PT' ? 'A PROCESSAR...' : 'PROCESSING...') : (
                   <>
-                    {mode === 'signin' && 'SIGN IN'}
-                    {mode === 'signup' && 'CREATE ACCOUNT'}
-                    {mode === 'forgot-password' && 'SEND LINK'}
-                    {mode === 'reset-password' && 'UPDATE PASSWORD'}
+                    {mode === 'signin' && (locale === 'pt-PT' ? 'ENTRAR' : 'SIGN IN')}
+                    {mode === 'signup' && (locale === 'pt-PT' ? 'CRIAR CONTA' : 'CREATE ACCOUNT')}
+                    {mode === 'forgot-password' && (locale === 'pt-PT' ? 'ENVIAR LINK' : 'SEND LINK')}
+                    {mode === 'reset-password' && (locale === 'pt-PT' ? 'ATUALIZAR PALAVRA-PASSE' : 'UPDATE PASSWORD')}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </>
                 )}
@@ -629,7 +631,7 @@ const Auth = () => {
                       <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                       <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                     </svg>
-                    CONTINUE WITH GOOGLE
+                    {locale === 'pt-PT' ? 'CONTINUAR COM GOOGLE' : 'CONTINUE WITH GOOGLE'}
                   </Button>
 
                   <Button 
@@ -641,7 +643,7 @@ const Auth = () => {
                     <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
                     </svg>
-                    CONTINUE WITH APPLE
+                    {locale === 'pt-PT' ? 'CONTINUAR COM APPLE' : 'CONTINUE WITH APPLE'}
                   </Button>
                 </div>
               </>
@@ -650,37 +652,37 @@ const Auth = () => {
             <div className="mt-6 text-center font-mono text-[11px] uppercase tracking-widest">
               {mode === 'signin' && (
                 <p className="text-muted-foreground">
-                  No account?{' '}
+                  {locale === 'pt-PT' ? 'Sem conta?' : 'No account?'}{' '}
                   <button
                     type="button"
                     onClick={() => setMode('signup')}
                     className="text-primary hover:underline font-bold"
                   >
-                    SIGN UP
+                    {locale === 'pt-PT' ? 'CRIAR CONTA' : 'SIGN UP'}
                   </button>
                 </p>
               )}
               {mode === 'signup' && (
                 <p className="text-muted-foreground">
-                  Already have an account?{' '}
+                  {locale === 'pt-PT' ? 'Já tens conta?' : 'Already have an account?'}{' '}
                   <button
                     type="button"
                     onClick={() => setMode('signin')}
                     className="text-primary hover:underline font-bold"
                   >
-                    SIGN IN
+                    {locale === 'pt-PT' ? 'ENTRAR' : 'SIGN IN'}
                   </button>
                 </p>
               )}
               {mode === 'forgot-password' && (
                 <p className="text-muted-foreground">
-                  Remembered it?{' '}
+                  {locale === 'pt-PT' ? 'Já te lembras?' : 'Remembered it?'}{' '}
                   <button
                     type="button"
                     onClick={() => setMode('signin')}
                     className="text-primary hover:underline font-bold"
                   >
-                    SIGN IN
+                    {locale === 'pt-PT' ? 'ENTRAR' : 'SIGN IN'}
                   </button>
                 </p>
               )}
@@ -690,10 +692,10 @@ const Auth = () => {
 
         {/* Terms */}
         <p className="text-center font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-          // BY CONTINUING YOU ACCEPT{' '}
-          <a href="/terms" className="underline hover:text-primary">TERMS</a>
-          {' '}AND{' '}
-          <a href="/privacy" className="underline hover:text-primary">PRIVACY</a>
+          {locale === 'pt-PT' ? '// AO CONTINUAR ACEITAS OS ' : '// BY CONTINUING YOU ACCEPT '}
+          <a href="/terms" className="underline hover:text-primary">{locale === 'pt-PT' ? 'TERMOS' : 'TERMS'}</a>
+          {locale === 'pt-PT' ? ' E ' : ' AND '}
+          <a href="/privacy" className="underline hover:text-primary">{locale === 'pt-PT' ? 'PRIVACIDADE' : 'PRIVACY'}</a>
         </p>
       </div>
     </div>
