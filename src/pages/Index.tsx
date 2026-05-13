@@ -699,7 +699,7 @@ const Index = () => {
               <div className="h-12 w-12 border-2 border-primary bg-primary/15 flex items-center justify-center">
                 <CheckCircle2 className="h-6 w-6 text-primary" />
               </div>
-              <span className="font-bold uppercase italic tracking-tight text-sm">Simples</span>
+              <span className="font-bold uppercase italic tracking-tight text-sm">{isPT ? 'Simples' : 'Simple'}</span>
               <span className="mono-label text-muted-foreground/70">Checkbox</span>
             </button>
             <button
