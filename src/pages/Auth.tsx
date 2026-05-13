@@ -547,7 +547,7 @@ const Auth = () => {
 
               {mode === 'reset-password' && (
                 <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm password</Label>
+                  <Label htmlFor="confirmPassword">{locale === 'pt-PT' ? 'Confirmar palavra-passe' : 'Confirm password'}</Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
