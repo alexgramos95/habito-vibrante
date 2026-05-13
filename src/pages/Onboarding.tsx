@@ -497,7 +497,7 @@ const Onboarding = () => {
                 onClick={() => setLocale("pt-PT")}
                 multi
               >
-                Português
+                Portuguese
               </Option>
             </div>
           </div>
