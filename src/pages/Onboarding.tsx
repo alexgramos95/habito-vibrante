@@ -36,13 +36,29 @@ const t = (b: Bilingual, locale: Locale) => b[locale] ?? b["en-US"];
 /* ---------- Copy ---------- */
 const COPY = {
   welcome: {
-    chapter: { "en-US": "// Chapter 01", "pt-PT": "// Capítulo 01" },
-    titleA: { "en-US": "You don't need motivation.", "pt-PT": "Não precisas de motivação." },
-    titleB: { "en-US": "You need a system.", "pt-PT": "Precisas de um sistema." },
-    sub: { "en-US": "Plan. Execute. Repeat.", "pt-PT": "Planear. Executar. Repetir." },
-    italic: { "en-US": "This time, it sticks.", "pt-PT": "Desta vez, fica." },
-    cta: { "en-US": "Continue", "pt-PT": "Continuar" },
+    badge: { "en-US": "Identity OS · Now in beta", "pt-PT": "Identity OS · Agora em beta" },
+    titleA: { "en-US": "Stop relying on motivation.", "pt-PT": "Pára de depender da motivação." },
+    titleB: { "en-US": "Become the system.", "pt-PT": "Torna-te o sistema." },
+    sub: {
+      "en-US": "Habits, calendar, nutrition and shopping in one place — so consistency finally compounds. Free for 7 days.",
+      "pt-PT": "Hábitos, calendário, nutrição e compras num só lugar — para a consistência finalmente acumular. Grátis por 7 dias.",
+    },
+    bullets: {
+      "en-US": [
+        "Replace 6 apps with one daily system.",
+        "Build streaks that compound — not anxiety.",
+        "Free 7 days. No card. Cancel in one tap.",
+      ],
+      "pt-PT": [
+        "Substitui 6 apps por um sistema diário.",
+        "Cria sequências que acumulam — sem ansiedade.",
+        "7 dias grátis. Sem cartão. Cancela num toque.",
+      ],
+    },
+    cta: { "en-US": "Get started free", "pt-PT": "Começar grátis" },
+    footer: { "en-US": "7 days free · No credit card", "pt-PT": "7 dias grátis · Sem cartão" },
     signin: { "en-US": "Sign in", "pt-PT": "Entrar" },
+    startFree: { "en-US": "Start free", "pt-PT": "Começar grátis" },
   },
   auth: {
     chapter: { "en-US": "// Step 01", "pt-PT": "// Passo 01" },
@@ -347,22 +363,36 @@ const Onboarding = () => {
       {/* WELCOME */}
       {step === "welcome" && (
         <Screen keyName="welcome">
-          {/* Top bar — invisible chrome */}
-          <div className="flex items-center justify-between mb-2">
+          {/* Top bar */}
+          <div className="flex items-center justify-between mb-8">
             <BecomeLogo size="sm" />
-            <button
-              onClick={goToAuthOrSkip}
-              className="text-xs font-medium text-muted-foreground/70 hover:text-foreground transition-colors tracking-wide"
-            >
-              {t(COPY.welcome.signin, locale)}
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={goToAuthOrSkip}
+                className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground/70 hover:text-foreground transition-colors"
+              >
+                {t(COPY.welcome.signin, locale)}
+              </button>
+              <button
+                onClick={goToAuthOrSkip}
+                className="font-black italic uppercase tracking-tight text-[11px] px-3 py-1.5 bg-primary text-primary-foreground border-2 border-primary shadow-[2px_2px_0_0_hsl(var(--neon-ultra))] hover:shadow-[3px_3px_0_0_hsl(var(--neon-ultra))] hover:-translate-y-0.5 transition-all"
+              >
+                {t(COPY.welcome.startFree, locale)}
+              </button>
+            </div>
           </div>
 
-          <div className="flex-1 flex flex-col justify-center text-center">
-            <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-primary mb-7 animate-in fade-in duration-1000">
-              {t(COPY.welcome.chapter, locale)}
-            </p>
-            <h1 className="type-display text-[40px] sm:text-5xl md:text-6xl leading-[0.95] mb-6 animate-in fade-in slide-in-from-bottom-2 duration-1000">
+          <div className="flex-1 flex flex-col justify-center">
+            {/* Beta badge */}
+            <div className="flex justify-center mb-6 animate-in fade-in duration-1000">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-foreground/5 border border-foreground/10 font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_8px_hsl(var(--neon-toxic))]" />
+                {t(COPY.welcome.badge, locale)}
+              </div>
+            </div>
+
+            {/* Headline */}
+            <h1 className="type-display text-center text-[32px] sm:text-5xl md:text-6xl leading-[0.95] mb-5 animate-in fade-in slide-in-from-bottom-2 duration-1000">
               {t(COPY.welcome.titleA, locale)}
               <br />
               <span
@@ -372,29 +402,43 @@ const Onboarding = () => {
                 {t(COPY.welcome.titleB, locale)}
               </span>
             </h1>
+
+            {/* Sub */}
             <p
-              className="type-body text-base sm:text-lg text-muted-foreground/85 mb-3 animate-in fade-in duration-1000"
+              className="type-body text-center text-sm sm:text-base text-muted-foreground/85 mb-7 max-w-md mx-auto animate-in fade-in duration-1000"
               style={{ animationDelay: "300ms", animationFillMode: "backwards" }}
             >
               {t(COPY.welcome.sub, locale)}
             </p>
-            <p
-              className="type-body italic text-sm sm:text-base text-foreground/70 animate-in fade-in duration-1000"
-              style={{ animationDelay: "600ms", animationFillMode: "backwards" }}
+
+            {/* Bullets */}
+            <ul
+              className="space-y-3 mb-2 max-w-md mx-auto w-full animate-in fade-in duration-1000"
+              style={{ animationDelay: "500ms", animationFillMode: "backwards" }}
             >
-              {t(COPY.welcome.italic, locale)}
-            </p>
+              {COPY.welcome.bullets[locale].map((line) => (
+                <li key={line} className="flex items-start gap-3">
+                  <span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full border border-primary/60 text-primary shrink-0">
+                    <Check className="h-3 w-3" strokeWidth={3} />
+                  </span>
+                  <span className="type-body text-sm sm:text-base text-foreground/90">{line}</span>
+                </li>
+              ))}
+            </ul>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             <button
               onClick={goToAuthOrSkip}
               className="w-full h-14 bg-primary text-primary-foreground font-black italic uppercase tracking-tight text-sm border-2 border-primary shadow-[3px_3px_0_0_hsl(var(--neon-ultra))] hover:shadow-[5px_5px_0_0_hsl(var(--neon-ultra))] hover:-translate-y-0.5 active:translate-y-0 active:shadow-[2px_2px_0_0_hsl(var(--neon-ultra))] transition-all inline-flex items-center justify-center gap-2"
             >
-              {continueCta} <ArrowRight className="h-4 w-4" />
+              {t(COPY.welcome.cta, locale)} <ArrowRight className="h-4 w-4" />
             </button>
+            <p className="text-center font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground/60">
+              {t(COPY.welcome.footer, locale)}
+            </p>
             {/* Subtle language toggle */}
-            <div className="flex items-center justify-center gap-3 text-[11px] font-mono uppercase tracking-[0.2em]">
+            <div className="flex items-center justify-center gap-3 text-[11px] font-mono uppercase tracking-[0.2em] pt-1">
               <button
                 onClick={() => setLocale("pt-PT")}
                 className={cn(
