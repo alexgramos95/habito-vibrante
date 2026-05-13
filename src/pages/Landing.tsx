@@ -261,7 +261,7 @@ const Landing = () => {
                   Free · 7-day trial · No credit card
                 </p>
                 <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground/50 -mt-2">
-                  iOS &amp; Android
+                  &#8203;
                 </p>
               </div>
             </div>
