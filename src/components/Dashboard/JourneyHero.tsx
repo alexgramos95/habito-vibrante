@@ -191,21 +191,31 @@ export const JourneyHero = ({
         className="relative animate-in fade-in slide-in-from-top-2 duration-500"
         aria-label={isPT ? "Resumo de hoje" : "Today's summary"}
       >
+        {/* Ambient atmospheric glow — barely perceptible */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -inset-x-6 -top-6 h-40 opacity-60"
+          style={{
+            background:
+              "radial-gradient(60% 100% at 20% 0%, hsl(var(--primary) / 0.05), transparent 60%)",
+          }}
+        />
+
         {/* GREETING — calm, no competing pills */}
-        <div className="min-w-0">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+        <div className="relative min-w-0">
+          <h1 className="text-[26px] sm:text-[30px] font-bold tracking-[-0.02em] text-foreground leading-[1.1]">
             {greeting}
           </h1>
-          <p className="text-sm text-muted-foreground mt-1.5 max-w-[40ch]">
+          <p className="text-[14px] text-muted-foreground/85 mt-2 max-w-[42ch] leading-relaxed">
             {subline}
           </p>
         </div>
 
         {/* PROGRESS — atmospheric line only, no hard counters */}
         {totalTracked > 0 && (
-          <div className="mt-6">
+          <div className="relative mt-7">
             <div
-              className="h-[3px] w-full bg-foreground/8 overflow-hidden rounded-full"
+              className="h-[2px] w-full bg-foreground/[0.06] overflow-hidden rounded-full"
               role="progressbar"
               aria-valuemin={0}
               aria-valuemax={100}
@@ -216,14 +226,14 @@ export const JourneyHero = ({
                 className={cn(
                   "h-full transition-all duration-1000 ease-out rounded-full",
                   allDoneToday
-                    ? "bg-success/80 shadow-[0_0_10px_hsl(var(--success)/0.4)]"
-                    : "bg-primary/70",
+                    ? "bg-success/70 shadow-[0_0_8px_hsl(var(--success)/0.35)]"
+                    : "bg-primary/55",
                 )}
                 style={{ width: `${Math.max(progressPercent, 4)}%` }}
               />
             </div>
             {allDoneToday && (
-              <p className="mt-3 text-[12px] text-success/90 tracking-wide">
+              <p className="mt-3 text-[12px] text-success/85 tracking-wide italic">
                 {isPT ? "Hoje está completo." : "Today is complete."}
               </p>
             )}
