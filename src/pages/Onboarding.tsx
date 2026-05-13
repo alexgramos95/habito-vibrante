@@ -36,13 +36,29 @@ const t = (b: Bilingual, locale: Locale) => b[locale] ?? b["en-US"];
 /* ---------- Copy ---------- */
 const COPY = {
   welcome: {
-    chapter: { "en-US": "// Chapter 01", "pt-PT": "// Capítulo 01" },
-    titleA: { "en-US": "You don't need motivation.", "pt-PT": "Não precisas de motivação." },
-    titleB: { "en-US": "You need a system.", "pt-PT": "Precisas de um sistema." },
-    sub: { "en-US": "Plan. Execute. Repeat.", "pt-PT": "Planear. Executar. Repetir." },
-    italic: { "en-US": "This time, it sticks.", "pt-PT": "Desta vez, fica." },
-    cta: { "en-US": "Continue", "pt-PT": "Continuar" },
+    badge: { "en-US": "Identity OS · Now in beta", "pt-PT": "Identity OS · Agora em beta" },
+    titleA: { "en-US": "Stop relying on motivation.", "pt-PT": "Pára de depender da motivação." },
+    titleB: { "en-US": "Become the system.", "pt-PT": "Torna-te o sistema." },
+    sub: {
+      "en-US": "Habits, calendar, nutrition and shopping in one place — so consistency finally compounds. Free for 7 days.",
+      "pt-PT": "Hábitos, calendário, nutrição e compras num só lugar — para a consistência finalmente acumular. Grátis por 7 dias.",
+    },
+    bullets: {
+      "en-US": [
+        "Replace 6 apps with one daily system.",
+        "Build streaks that compound — not anxiety.",
+        "Free 7 days. No card. Cancel in one tap.",
+      ],
+      "pt-PT": [
+        "Substitui 6 apps por um sistema diário.",
+        "Cria sequências que acumulam — sem ansiedade.",
+        "7 dias grátis. Sem cartão. Cancela num toque.",
+      ],
+    },
+    cta: { "en-US": "Get started free", "pt-PT": "Começar grátis" },
+    footer: { "en-US": "7 days free · No credit card", "pt-PT": "7 dias grátis · Sem cartão" },
     signin: { "en-US": "Sign in", "pt-PT": "Entrar" },
+    startFree: { "en-US": "Start free", "pt-PT": "Começar grátis" },
   },
   auth: {
     chapter: { "en-US": "// Step 01", "pt-PT": "// Passo 01" },
