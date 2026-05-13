@@ -112,11 +112,12 @@ export const MinimalHabitCard = ({
         />
       )}
 
-      {/* Color bar */}
+      {/* Color bar — gains a breathing glow when completed */}
       <div
         className={cn(
-          "relative w-[3px] h-10 shrink-0 transition-all duration-300",
+          "relative w-[3px] h-10 shrink-0 transition-all duration-500 ease-out",
           isDone && "h-12",
+          isDone && !isLate && !isExceeded && "breathe-soft",
         )}
         style={{
           backgroundColor: isExceeded
@@ -126,7 +127,7 @@ export const MinimalHabitCard = ({
           boxShadow: isExceeded
             ? `0 0 10px hsl(var(--destructive))`
             : isDone && !isLate
-            ? `0 0 10px ${habit.cor || "hsl(var(--neon-toxic))"}`
+            ? `0 0 14px ${habit.cor || "hsl(var(--neon-toxic))"}`
             : undefined,
         }}
       />
