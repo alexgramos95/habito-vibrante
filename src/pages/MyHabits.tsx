@@ -1,24 +1,49 @@
 import { useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { ChevronRight, Pencil, Power, Search, ListChecks } from "lucide-react";
+import { Link } from "react-router-dom";
+import { ChevronRight, Power, ListChecks, Plus } from "lucide-react";
 import { Navigation } from "@/components/Layout/Navigation";
 import { PageHeader } from "@/components/Layout/PageHeader";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { SearchInput } from "@/components/ui/search-input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Surface } from "@/components/ui/surface";
 import { useData } from "@/contexts/DataContext";
 import { useI18n } from "@/i18n/I18nContext";
 import { updateHabit } from "@/data/storage";
 import { sortHabitsByTime } from "@/logic/habitSorting";
-import { getLevelProgress } from "@/logic/computations";
+import { Habit } from "@/data/types";
 import { cn } from "@/lib/utils";
 
 type Filter = "all" | "active" | "inactive";
 
+// ─── Temporal grouping ─────────────────────────────────────────────────
+// Aligns with the app's temporal identity (Day → Week → Month).
+type Bucket = "morning" | "afternoon" | "evening" | "night" | "unscheduled";
+
+const bucketOf = (time?: string): Bucket => {
+  if (!time) return "unscheduled";
+  const h = parseInt(time.split(":")[0] ?? "0", 10);
+  if (h < 5) return "night";
+  if (h < 12) return "morning";
+  if (h < 18) return "afternoon";
+  if (h < 22) return "evening";
+  return "night";
+};
+
+const BUCKET_ORDER: Bucket[] = ["morning", "afternoon", "evening", "night", "unscheduled"];
+
+const bucketLabel = (b: Bucket, isPT: boolean) => {
+  const map = {
+    morning:     isPT ? "Manhã"           : "Morning",
+    afternoon:   isPT ? "Tarde"           : "Afternoon",
+    evening:     isPT ? "Fim de tarde"    : "Evening",
+    night:       isPT ? "Noite"           : "Night",
+    unscheduled: isPT ? "Sem horário"     : "Unscheduled",
+  } as const;
+  return map[b];
+};
+
 const MyHabits = () => {
-  const navigate = useNavigate();
   const { state, setState } = useData();
   const { locale } = useI18n();
   const isPT = locale === "pt-PT";
@@ -40,6 +65,16 @@ const MyHabits = () => {
     return sortHabitsByTime(base);
   }, [state.habits, filter, query]);
 
+  // Group by time-of-day bucket (preserves chronological sort within each).
+  const grouped = useMemo(() => {
+    const map = new Map<Bucket, Habit[]>();
+    for (const b of BUCKET_ORDER) map.set(b, []);
+    for (const h of filtered) map.get(bucketOf(h.scheduledTime))!.push(h);
+    return BUCKET_ORDER
+      .map((b) => ({ bucket: b, items: map.get(b)! }))
+      .filter((g) => g.items.length > 0);
+  }, [filtered]);
+
   const counts = useMemo(
     () => ({
       all: state.habits.length,
@@ -53,122 +88,210 @@ const MyHabits = () => {
     setState((prev) => updateHabit(prev, id, { active: !active }));
   };
 
+  // Editorial subtitle — context-aware, neutral, no gamification.
+  const subtitle = (() => {
+    if (counts.all === 0) {
+      return isPT ? "Os teus rituais começam aqui." : "Your rituals begin here.";
+    }
+    const word = counts.all === 1
+      ? (isPT ? "ritual" : "ritual")
+      : (isPT ? "rituais" : "rituals");
+    return `${counts.all} ${word}`;
+  })();
+
   return (
     <div className="min-h-screen pb-24">
       <Navigation />
       <main className="max-w-2xl mx-auto px-4 pt-6">
         <PageHeader
-          title={isPT ? "Meus hábitos" : "My habits"}
-          subtitle={`LV.${getLevelProgress(state.gamification?.pontos || 0).current} · ${counts.all} ${counts.all === 1
-            ? isPT ? "hábito" : "habit"
-            : isPT ? "hábitos" : "habits"}`}
+          title={isPT ? "Os teus hábitos" : "Your habits"}
+          subtitle={subtitle}
           icon={ListChecks}
           backTo
           backLabel={isPT ? "Voltar" : "Back"}
         />
+
         <div className="space-y-5">
-
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
+          <SearchInput
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={setQuery}
             placeholder={isPT ? "Procurar por nome ou categoria" : "Search by name or category"}
-            className="pl-9 h-10 rounded-lg bg-secondary/50 border-border"
+            className="h-10 rounded-lg bg-secondary/40 border-border/50"
           />
-        </div>
 
-        <Tabs value={filter} onValueChange={(v) => setFilter(v as Filter)}>
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="all">
-              {isPT ? "Todos" : "All"} · {counts.all}
-            </TabsTrigger>
-            <TabsTrigger value="active">
-              {isPT ? "Ativos" : "Active"} · {counts.active}
-            </TabsTrigger>
-            <TabsTrigger value="inactive">
-              {isPT ? "Inativos" : "Inactive"} · {counts.inactive}
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+          <Tabs value={filter} onValueChange={(v) => setFilter(v as Filter)}>
+            <TabsList
+              className={cn(
+                "grid w-full",
+                counts.inactive > 0 ? "grid-cols-3" : "grid-cols-2",
+              )}
+            >
+              <TabsTrigger value="all">
+                {isPT ? "Todos" : "All"}
+                <span className="ml-1.5 text-muted-foreground/70 tabular-nums">{counts.all}</span>
+              </TabsTrigger>
+              <TabsTrigger value="active">
+                {isPT ? "Ativos" : "Active"}
+                <span className="ml-1.5 text-muted-foreground/70 tabular-nums">{counts.active}</span>
+              </TabsTrigger>
+              {counts.inactive > 0 && (
+                <TabsTrigger value="inactive">
+                  {isPT ? "Inativos" : "Inactive"}
+                  <span className="ml-1.5 text-muted-foreground/70 tabular-nums">{counts.inactive}</span>
+                </TabsTrigger>
+              )}
+            </TabsList>
+          </Tabs>
 
-        {filtered.length === 0 ? (
-          <Card className="border-dashed border-border/40 bg-card/30">
-            <CardContent className="py-12 text-center text-sm text-muted-foreground">
-              {isPT ? "Nenhum hábito encontrado." : "No habits found."}
-            </CardContent>
-          </Card>
-        ) : (
-          <ul className="space-y-2">
-            {filtered.map((habit) => (
-              <li key={habit.id}>
-                <Card className={cn("transition-colors", !habit.active && "opacity-60")}>
-                  <CardContent className="p-3 flex items-center gap-3">
-                    <Link
-                      to={`/app/habit/${habit.id}`}
-                      className="flex-1 min-w-0 flex items-center gap-3"
-                    >
-                      <div
-                        className="h-9 w-9 rounded-lg flex items-center justify-center text-base shrink-0"
-                        style={{
-                          backgroundColor: habit.cor
-                            ? `${habit.cor}22`
-                            : "hsl(var(--secondary))",
-                        }}
-                      >
-                        {habit.icon ?? "•"}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">
-                          {habit.nome}
-                        </p>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          {habit.categoria && (
-                            <Badge variant="secondary" className="text-[10px] py-0 h-4">
-                              {habit.categoria}
-                            </Badge>
-                          )}
-                          {habit.scheduledTime && (
-                            <span className="text-[11px] text-muted-foreground">
-                              {habit.scheduledTime}
-                            </span>
-                          )}
-                          <span className="text-[11px] text-muted-foreground">
-                            {habit.mode === "metric"
-                              ? isPT ? "Métrico" : "Metric"
-                              : isPT ? "Simples" : "Simple"}
-                          </span>
-                        </div>
-                      </div>
-                    </Link>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-muted-foreground"
-                      onClick={() => toggleActive(habit.id, habit.active)}
-                      aria-label={habit.active
-                        ? isPT ? "Desativar" : "Deactivate"
-                        : isPT ? "Ativar" : "Activate"}
-                    >
-                      <Power className="h-4 w-4" />
-                    </Button>
-                    <Link
-                      to={`/app/habit/${habit.id}`}
-                      aria-label={isPT ? "Editar" : "Edit"}
-                      className="h-8 w-8 inline-flex items-center justify-center rounded-md text-muted-foreground hover:bg-secondary"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Link>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
-                  </CardContent>
-                </Card>
-              </li>
-            ))}
-          </ul>
-        )}
+          {filtered.length === 0 ? (
+            <Surface tone="subtle" size="hero" className="text-center">
+              <p className="text-sm text-muted-foreground">
+                {query
+                  ? (isPT ? "Nada corresponde a essa procura." : "Nothing matches that search.")
+                  : (isPT ? "Ainda sem rituais por aqui." : "No rituals here yet.")}
+              </p>
+              {!query && (
+                <Link
+                  to="/app"
+                  className="mt-3 inline-flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 transition-colors"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  {isPT ? "Criar o primeiro" : "Create your first"}
+                </Link>
+              )}
+            </Surface>
+          ) : (
+            <div className="space-y-7">
+              {grouped.map(({ bucket, items }) => (
+                <section key={bucket} className="space-y-2">
+                  <header className="flex items-baseline justify-between px-1">
+                    <h2 className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground/70">
+                      {bucketLabel(bucket, isPT)}
+                    </h2>
+                    <span className="text-[10px] font-mono tabular-nums text-muted-foreground/50">
+                      {items.length}
+                    </span>
+                  </header>
+
+                  <ul className="space-y-1.5">
+                    {items.map((habit) => (
+                      <li key={habit.id}>
+                        <HabitRow
+                          habit={habit}
+                          isPT={isPT}
+                          onToggleActive={() => toggleActive(habit.id, habit.active)}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ))}
+
+              {/* Quiet footer CTA — never compete with content */}
+              <div className="pt-2 text-center">
+                <Link
+                  to="/app"
+                  className="inline-flex items-center gap-1.5 text-xs text-muted-foreground/70 hover:text-foreground transition-colors"
+                >
+                  <Plus className="h-3 w-3" />
+                  {isPT ? "Adicionar novo hábito" : "Add new habit"}
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
       </main>
     </div>
+  );
+};
+
+// ─── Single row ────────────────────────────────────────────────────────
+interface HabitRowProps {
+  habit: Habit;
+  isPT: boolean;
+  onToggleActive: () => void;
+}
+
+const HabitRow = ({ habit, isPT, onToggleActive }: HabitRowProps) => {
+  const isMetric = habit.mode === "metric";
+  const modeLabel = isMetric
+    ? (isPT ? "medida" : "measure")
+    : (isPT ? "ritual" : "ritual");
+
+  return (
+    <Surface
+      tone={habit.active ? "default" : "subtle"}
+      size="compact"
+      className={cn(
+        "flex items-center gap-3 group",
+        !habit.active && "opacity-60",
+      )}
+    >
+      <Link
+        to={`/app/habit/${habit.id}`}
+        className="flex-1 min-w-0 flex items-center gap-3"
+      >
+        {/* Color rail — quiet identity marker, not an icon block */}
+        <span
+          aria-hidden
+          className="h-9 w-[3px] shrink-0 rounded-full"
+          style={{
+            backgroundColor: habit.cor || "hsl(var(--primary))",
+            opacity: habit.active ? 0.85 : 0.4,
+          }}
+        />
+
+        <div className="min-w-0 flex-1">
+          <p className="text-[14px] font-medium text-foreground truncate leading-snug">
+            {habit.nome}
+          </p>
+          <div className="flex items-center gap-2 mt-1 text-[11px] text-muted-foreground/80">
+            {habit.scheduledTime && (
+              <span className="font-mono tabular-nums">{habit.scheduledTime}</span>
+            )}
+            {habit.scheduledTime && (habit.categoria || modeLabel) && (
+              <span aria-hidden className="text-muted-foreground/30">·</span>
+            )}
+            {habit.categoria && (
+              <span className="truncate">{habit.categoria.toLowerCase()}</span>
+            )}
+            {habit.categoria && (
+              <span aria-hidden className="text-muted-foreground/30">·</span>
+            )}
+            <span className="text-muted-foreground/60">{modeLabel}</span>
+          </div>
+        </div>
+      </Link>
+
+      <Button
+        variant="ghost"
+        size="icon"
+        className={cn(
+          "h-8 w-8 shrink-0 transition-colors",
+          habit.active
+            ? "text-muted-foreground/60 hover:text-warning"
+            : "text-muted-foreground/40 hover:text-primary",
+        )}
+        onClick={onToggleActive}
+        aria-label={
+          habit.active
+            ? (isPT ? "Pausar" : "Pause")
+            : (isPT ? "Reativar" : "Reactivate")
+        }
+        title={
+          habit.active
+            ? (isPT ? "Pausar" : "Pause")
+            : (isPT ? "Reativar" : "Reactivate")
+        }
+      >
+        <Power className="h-3.5 w-3.5" />
+      </Button>
+
+      <ChevronRight
+        aria-hidden
+        className="h-4 w-4 text-muted-foreground/30 shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:text-muted-foreground/60"
+      />
+    </Surface>
   );
 };
 
