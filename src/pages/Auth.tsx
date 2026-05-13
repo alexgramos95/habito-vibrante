@@ -690,10 +690,10 @@ const Auth = () => {
 
         {/* Terms */}
         <p className="text-center font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-          // AO CONTINUAR ACEITAS{' '}
-          <a href="/terms" className="underline hover:text-primary">TERMOS</a>
-          {' '}E{' '}
-          <a href="/privacy" className="underline hover:text-primary">PRIVACIDADE</a>
+          // BY CONTINUING YOU ACCEPT{' '}
+          <a href="/terms" className="underline hover:text-primary">TERMS</a>
+          {' '}AND{' '}
+          <a href="/privacy" className="underline hover:text-primary">PRIVACY</a>
         </p>
       </div>
     </div>
