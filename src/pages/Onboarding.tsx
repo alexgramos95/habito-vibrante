@@ -263,6 +263,13 @@ const Onboarding = () => {
     trackEvent("onboarding_started", { source: "app" });
   }, [navigate]);
 
+  // If user authenticates while on final auth step, send them into the app
+  useEffect(() => {
+    if (step === "auth" && isAuthenticated) {
+      navigate("/app", { replace: true });
+    }
+  }, [step, isAuthenticated, navigate]);
+
   const goToAuthOrSkip = useCallback(() => {
     setStep("struggles");
   }, []);
