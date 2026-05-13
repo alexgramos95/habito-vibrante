@@ -92,8 +92,8 @@ const Auth = () => {
   }, [isAuthenticated]);
   // Handle mode from URL param
   useEffect(() => {
-    if (modeParam === 'reset-password') {
-      setMode('reset-password');
+    if (modeParam === 'reset-password' || modeParam === 'signup' || modeParam === 'signin' || modeParam === 'forgot-password') {
+      setMode(modeParam as AuthMode);
     }
   }, [modeParam]);
 
