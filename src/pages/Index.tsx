@@ -524,8 +524,8 @@ const Index = () => {
                   return (
                     <div key={habit.id} id={`habit-${habit.id}`} className="space-y-1.5">
                       {isFocus && (
-                        <p className="px-1 text-[10px] font-medium uppercase tracking-[0.18em] text-primary/70 animate-fade-in">
-                          {isPT ? 'Primeiro passo' : 'First step'}
+                        <p className="px-1 text-[10px] font-medium tracking-[0.18em] uppercase text-primary/55 animate-fade-in">
+                          {isPT ? 'Começa por aqui' : 'Begin here'}
                         </p>
                       )}
                       <MinimalHabitCard
