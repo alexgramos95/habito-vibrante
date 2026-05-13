@@ -533,18 +533,26 @@ const HabitDetail = () => {
           </div>
         )}
 
-        {/* Coach Tips */}
+        {/* Coach — editorial, integrated, not a widget */}
         {tips.length > 0 && (
-          <div className="rounded-2xl border border-accent/20 bg-accent/5 p-4 space-y-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-accent flex items-center gap-2">
-              <Lightbulb className="h-3.5 w-3.5" /> Coach — {habit.nome}
-            </h3>
-            <div className="space-y-2.5">
+          <div className="px-1 pt-2 pb-1 space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-medium uppercase tracking-[0.22em] text-muted-foreground/55">
+                {locale === "pt-PT" ? "Observação" : "Observation"}
+              </span>
+              <div className="h-px flex-1 bg-foreground/[0.06]" />
+            </div>
+            <div className="space-y-2.5 max-w-[44ch]">
               {tips.map((tip, i) => (
-                <div key={i} className="flex items-start gap-2.5">
-                  <div className="h-1.5 w-1.5 rounded-full bg-accent/60 shrink-0 mt-1.5" />
-                  <p className="text-sm text-foreground/80 leading-relaxed">{tip}</p>
-                </div>
+                <p
+                  key={i}
+                  className={cn(
+                    "text-[14px] leading-[1.55] text-foreground/75",
+                    i === 0 && "italic text-foreground/85"
+                  )}
+                >
+                  {tip}
+                </p>
               ))}
             </div>
           </div>
