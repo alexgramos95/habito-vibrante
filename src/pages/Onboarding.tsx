@@ -475,7 +475,7 @@ const Onboarding = () => {
         <Screen keyName="language">
           <div className="flex-1 flex flex-col justify-center">
             <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-primary mb-4 text-center">
-              // Language
+              {locale === "pt-PT" ? "// Idioma" : "// Language"}
             </p>
             <h1 className="type-display text-4xl sm:text-5xl leading-[1.05] tracking-tight mb-3 text-center">
               {locale === "pt-PT" ? "Escolhe o teu\nidioma." : "Choose your\nlanguage."}
