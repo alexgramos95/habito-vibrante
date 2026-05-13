@@ -245,8 +245,8 @@ const Onboarding = () => {
 
   const [step, setStep] = useState<Step>("welcome");
   const [struggles, setStruggles] = useState<string[]>([]);
-  const [identity, setIdentity] = useState<string | null>(null);
-  const [pull, setPull] = useState<string | null>(null);
+  const [identity, setIdentity] = useState<string[]>([]);
+  const [pull, setPull] = useState<string[]>([]);
   const [authBusy, setAuthBusy] = useState<null | "google" | "apple">(null);
   const [buildIdx, setBuildIdx] = useState(0);
 
