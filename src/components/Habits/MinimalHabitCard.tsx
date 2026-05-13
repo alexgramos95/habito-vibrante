@@ -37,7 +37,8 @@ export const MinimalHabitCard = ({
   useEffect(() => {
     if (!prevDone.current && isDone) {
       setJustCompleted(true);
-      const timer = setTimeout(() => setJustCompleted(false), 700);
+      // Slower, calmer settle — feels like a breath, not a flash.
+      const timer = setTimeout(() => setJustCompleted(false), 1100);
       prevDone.current = isDone;
       return () => clearTimeout(timer);
     }
