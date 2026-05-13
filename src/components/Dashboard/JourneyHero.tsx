@@ -222,13 +222,13 @@ export const JourneyHero = ({
         className="relative animate-in fade-in slide-in-from-top-2 duration-500"
         aria-label={isPT ? "Resumo de hoje" : "Today's summary"}
       >
-        {/* Ambient atmospheric glow — barely perceptible */}
+        {/* Ambient atmospheric glow — barely perceptible, breathing */}
         <span
           aria-hidden
-          className="pointer-events-none absolute -inset-x-6 -top-6 h-40 opacity-60"
+          className="pointer-events-none absolute -inset-x-6 -top-6 h-40 breathe-glow"
           style={{
             background:
-              "radial-gradient(60% 100% at 20% 0%, hsl(var(--primary) / 0.05), transparent 60%)",
+              "radial-gradient(60% 100% at 20% 0%, hsl(var(--primary) / 0.06), transparent 60%)",
           }}
         />
 
