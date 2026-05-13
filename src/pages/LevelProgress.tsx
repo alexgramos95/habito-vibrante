@@ -3,11 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { format, subDays, startOfWeek, endOfWeek, eachDayOfInterval, parseISO } from "date-fns";
 import { pt, enUS } from "date-fns/locale";
 import {
-  Star, Flame, Trophy, TrendingUp, Target, Sparkles,
+  Flame, Trophy, TrendingUp, Target, Sparkles,
 } from "lucide-react";
 import {
-  AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, ReferenceLine,
+  AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip,
+  ResponsiveContainer,
 } from "recharts";
 import { Navigation } from "@/components/Layout/Navigation";
 import { PageHeader } from "@/components/Layout/PageHeader";
@@ -109,30 +109,28 @@ const LevelProgress = () => {
 
       <main className="page-content max-w-2xl mx-auto space-y-5">
         <PageHeader
-          title={isPt ? "Evolução do Nível" : "Level Progress"}
-          subtitle={isPt ? "Acompanha o teu percurso ao longo do tempo" : "Track your journey over time"}
+          title={isPt ? "A tua evolução" : "Your evolution"}
+          subtitle={isPt ? "A história de quem te estás a tornar." : "The story of who you are becoming."}
           backTo="/app/profile"
           backLabel={isPt ? "Voltar" : "Back"}
         />
 
-        {/* Hero level card */}
-        <div className="rounded-2xl border-2 border-primary/40 bg-card p-5 shadow-[4px_4px_0_0_hsl(var(--neon-ultra)/0.4)]">
+        {/* Hero level card — calmer, identity-led */}
+        <div className="rounded-2xl border border-foreground/[0.08] bg-card/60 p-5">
           <div className="flex items-start justify-between mb-4">
             <div>
-              <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-                {isPt ? "// NÍVEL ATUAL" : "// CURRENT LEVEL"}
-              </p>
-              <p className="font-black italic uppercase tracking-tighter text-5xl text-primary mt-1">
+              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-primary/80">
                 LV.{levelProgress.current}
               </p>
-            </div>
-            <div className="text-right">
-              <div className="flex items-center gap-1 justify-end">
-                <Star className="h-3.5 w-3.5 text-warning fill-warning" />
-                <span className="font-black text-2xl">{state.gamification.pontos}</span>
-              </div>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                {isPt ? "pontos totais" : "total points"}
+              <p className="text-2xl font-semibold tracking-tight text-foreground mt-1">
+                {isPt
+                  ? ["A tornares-te consistente","A construir estrutura","A encontrar o teu ritmo","A identidade a emergir","A tornares-te quem és","A viver isso"][Math.min(levelProgress.current - 1, 5)]
+                  : ["Becoming consistent","Building structure","Finding rhythm","Identity emerging","Becoming who you are","Living it"][Math.min(levelProgress.current - 1, 5)]}
+              </p>
+              <p className="text-sm text-muted-foreground mt-1">
+                {isPt
+                  ? `${state.gamification.pontos} pontos ganhos através de consistência`
+                  : `${state.gamification.pontos} points earned through consistency`}
               </p>
             </div>
           </div>
@@ -140,69 +138,54 @@ const LevelProgress = () => {
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs">
               <span className="text-muted-foreground">
-                {isPt ? `Para o nível ${levelProgress.nextLevel}` : `To level ${levelProgress.nextLevel}`}
+                {isPt ? "Próxima evolução" : "Next evolution"}
               </span>
-              <span className="font-mono">{levelProgress.pointsToNext} pts</span>
+              <span className="font-mono text-muted-foreground">
+                {isPt ? `${levelProgress.pointsToNext} pontos` : `${levelProgress.pointsToNext} points`}
+              </span>
             </div>
-            <Progress value={levelProgress.progress} className="h-2" />
+            <Progress value={levelProgress.progress} className="h-1.5" />
           </div>
         </div>
 
-        {/* Quick stats */}
+        {/* Quiet identity tiles */}
         <div className="grid grid-cols-3 gap-2">
           <StatTile
             icon={<Flame className="h-3.5 w-3.5" />}
-            label={isPt ? "Streak atual" : "Current streak"}
+            label={isPt ? "Dias em movimento" : "Days in motion"}
             value={state.gamification.currentStreak || 0}
             color="primary"
           />
           <StatTile
             icon={<Trophy className="h-3.5 w-3.5" />}
-            label={isPt ? "Melhor streak" : "Best streak"}
+            label={isPt ? "Melhor sequência" : "Longest stretch"}
             value={state.gamification.bestStreak || 0}
             color="warning"
           />
           <StatTile
             icon={<Sparkles className="h-3.5 w-3.5" />}
-            label={isPt ? "Conquistas" : "Achievements"}
+            label={isPt ? "Marcos" : "Milestones"}
             value={unlocked.length}
             color="success"
           />
         </div>
 
-        {/* ─── 30-day points evolution ─── */}
+        {/* ─── 30-day rhythm (atmospheric area) ─── */}
         <ChartCard
-          title={isPt ? "Pontos · últimos 30 dias" : "Points · last 30 days"}
-          subtitle={
-            isPt
-              ? `Total: ${totalPoints30d} pts · média ${avgPoints30d}/dia`
-              : `Total: ${totalPoints30d} pts · avg ${avgPoints30d}/day`
-          }
+          title={isPt ? "Ritmo recente" : "Recent rhythm"}
+          subtitle={isPt ? "Últimos 30 dias" : "Last 30 days"}
           icon={<TrendingUp className="h-3.5 w-3.5" />}
         >
-          <ResponsiveContainer width="100%" height={180}>
-            <AreaChart data={pointsLast30Days} margin={{ top: 10, right: 8, left: -25, bottom: 0 }}>
+          <ResponsiveContainer width="100%" height={140}>
+            <AreaChart data={pointsLast30Days} margin={{ top: 10, right: 4, left: -35, bottom: 0 }}>
               <defs>
                 <linearGradient id="pointsGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.6} />
+                  <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.35} />
                   <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="2 4" stroke="hsl(var(--foreground) / 0.08)" vertical={false} />
-              <XAxis
-                dataKey="date"
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={9}
-                tickLine={false}
-                axisLine={false}
-                interval={4}
-              />
-              <YAxis
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={9}
-                tickLine={false}
-                axisLine={false}
-              />
+              <XAxis dataKey="date" hide />
+              <YAxis hide />
               <Tooltip
                 contentStyle={{
                   backgroundColor: "hsl(var(--card))",
@@ -212,27 +195,25 @@ const LevelProgress = () => {
                 }}
                 formatter={(v: number) => [`${v} pts`, isPt ? "Pontos" : "Points"]}
               />
-              <ReferenceLine y={avgPoints30d} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" />
               <Area
                 type="monotone"
                 dataKey="points"
                 stroke="hsl(var(--primary))"
-                strokeWidth={2}
+                strokeWidth={1.5}
                 fill="url(#pointsGrad)"
               />
             </AreaChart>
           </ResponsiveContainer>
         </ChartCard>
 
-        {/* ─── Weekly completions ─── */}
+        {/* ─── Weekly consistency — softer bars ─── */}
         <ChartCard
           title={isPt ? "Consistência semanal" : "Weekly consistency"}
-          subtitle={isPt ? "Últimas 8 semanas" : "Last 8 weeks"}
+          subtitle={isPt ? "Mostraste-te." : "You showed up."}
           icon={<Target className="h-3.5 w-3.5" />}
         >
-          <ResponsiveContainer width="100%" height={180}>
-            <BarChart data={weeklyCompletions} margin={{ top: 10, right: 8, left: -25, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="2 4" stroke="hsl(var(--foreground) / 0.08)" vertical={false} />
+          <ResponsiveContainer width="100%" height={140}>
+            <BarChart data={weeklyCompletions} margin={{ top: 10, right: 4, left: -35, bottom: 0 }}>
               <XAxis
                 dataKey="label"
                 stroke="hsl(var(--muted-foreground))"
@@ -240,14 +221,7 @@ const LevelProgress = () => {
                 tickLine={false}
                 axisLine={false}
               />
-              <YAxis
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={9}
-                tickLine={false}
-                axisLine={false}
-                domain={[0, 100]}
-                tickFormatter={(v) => `${v}%`}
-              />
+              <YAxis hide domain={[0, 100]} />
               <Tooltip
                 contentStyle={{
                   backgroundColor: "hsl(var(--card))",
@@ -260,41 +234,41 @@ const LevelProgress = () => {
                   isPt ? "Concluído" : "Done",
                 ]}
               />
-              <Bar dataKey="pct" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="pct" fill="hsl(var(--primary) / 0.6)" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
 
-        {/* ─── Activity heatmap (30 day streak) ─── */}
+        {/* ─── Proof of presence — organic dots ─── */}
         <ChartCard
-          title={isPt ? "Dias com atividade" : "Active days"}
+          title={isPt ? "Prova de presença" : "Proof of presence"}
           subtitle={
             isPt
-              ? `${streakData.filter((d) => d.active).length}/30 dias com check-in`
-              : `${streakData.filter((d) => d.active).length}/30 days checked in`
+              ? `${streakData.filter((d) => d.active).length} / 30 dias`
+              : `${streakData.filter((d) => d.active).length} / 30 days`
           }
           icon={<Flame className="h-3.5 w-3.5" />}
         >
-          <div className="grid grid-cols-10 gap-1.5">
+          <div className="grid grid-cols-10 gap-2 py-1">
             {streakData.map((d, i) => (
               <div
                 key={i}
                 className={cn(
-                  "aspect-square rounded-sm border",
+                  "aspect-square rounded-full transition-all",
                   d.active
-                    ? "bg-primary/80 border-primary"
-                    : "bg-muted/30 border-border/30",
+                    ? "bg-primary/70 shadow-[0_0_8px_hsl(var(--primary)/0.45)]"
+                    : "bg-foreground/[0.06]",
                 )}
-                title={`${d.date}: ${d.active ? (isPt ? "ativo" : "active") : (isPt ? "inativo" : "inactive")}`}
+                title={`${d.date}: ${d.active ? (isPt ? "presente" : "present") : (isPt ? "ausente" : "absent")}`}
               />
             ))}
           </div>
         </ChartCard>
 
-        {/* ─── Achievements ─── */}
+        {/* ─── Milestones (formerly achievements) ─── */}
         <ChartCard
-          title={isPt ? "Conquistas" : "Achievements"}
-          subtitle={`${unlocked.length}/${ACHIEVEMENTS.length}`}
+          title={isPt ? "Marcos de evolução" : "Milestones in evolution"}
+          subtitle={`${unlocked.length} / ${ACHIEVEMENTS.length}`}
           icon={<Trophy className="h-3.5 w-3.5" />}
         >
           <div className="grid grid-cols-2 gap-2">
@@ -304,15 +278,15 @@ const LevelProgress = () => {
                 <div
                   key={a.id}
                   className={cn(
-                    "flex items-center gap-2 rounded-lg border p-2",
+                    "flex items-center gap-2 rounded-xl border p-2.5 transition-colors",
                     isUnlocked
-                      ? "border-success/30 bg-success/5"
-                      : "border-border/30 bg-muted/20 opacity-50",
+                      ? "border-primary/20 bg-primary/[0.04]"
+                      : "border-border/20 bg-muted/10 opacity-50",
                   )}
                 >
-                  <span className="text-xl">{a.icon}</span>
+                  <span className="text-lg">{a.icon}</span>
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold truncate">{a.nome}</p>
+                    <p className="text-xs font-medium truncate text-foreground">{a.nome}</p>
                     <p className="text-[10px] text-muted-foreground truncate">
                       {a.descricao}
                     </p>

@@ -12,6 +12,7 @@ import { useData } from "@/contexts/DataContext";
 import { useI18n } from "@/i18n/I18nContext";
 import { updateHabit } from "@/data/storage";
 import { sortHabitsByTime } from "@/logic/habitSorting";
+import { getLevelProgress } from "@/logic/computations";
 import { cn } from "@/lib/utils";
 
 type Filter = "all" | "active" | "inactive";
@@ -58,9 +59,9 @@ const MyHabits = () => {
       <main className="max-w-2xl mx-auto px-4 pt-6">
         <PageHeader
           title={isPT ? "Meus hábitos" : "My habits"}
-          subtitle={`${counts.all} ${counts.all === 1
-            ? isPT ? "hábito no total" : "habit in total"
-            : isPT ? "hábitos no total" : "habits in total"}`}
+          subtitle={`LV.${getLevelProgress(state.gamification?.pontos || 0).current} · ${counts.all} ${counts.all === 1
+            ? isPT ? "hábito" : "habit"
+            : isPT ? "hábitos" : "habits"}`}
           icon={ListChecks}
           backTo
           backLabel={isPT ? "Voltar" : "Back"}

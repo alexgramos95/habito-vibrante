@@ -29,6 +29,7 @@ import { getContextualHabitFeedback, getHabitFeedbackEnabled } from "@/logic/hab
 import { MotivationCard } from "@/components/Dashboard/MotivationCard";
 import { getDailyMotivation } from "@/logic/dailyMotivation";
 import { JourneyHero } from "@/components/Dashboard/JourneyHero";
+import { EvolutionStrip } from "@/components/Dashboard/EvolutionStrip";
 import { ReferralPrompt } from "@/components/Referral/ReferralPrompt";
 import { hasSeenReferralPrompt, markReferralPromptSeen } from "@/lib/referral";
 import { track, trackOnce, checkReturnEvents } from "@/hooks/useAnalytics";
@@ -473,6 +474,11 @@ const Index = () => {
         )}
 
         <NotificationSetup />
+
+        {/* ═══ Daily Evolution — subtle identity strip linking today → long-term ═══ */}
+        {state.habits.length > 0 && (
+          <EvolutionStrip state={state} isPT={isPT} />
+        )}
 
         {/* ═══ Daily Motivation — only past early days, calm spacing ═══ */}
         {!isEarlyDay && state.habits.length > 0 && <MotivationCard card={motivationCard} />}
