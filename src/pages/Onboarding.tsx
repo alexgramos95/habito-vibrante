@@ -369,6 +369,10 @@ const Onboarding = () => {
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
 
+  // Steps before language selection are always shown in English
+  const displayLocale: Locale =
+    step === "language" || step === "auth" ? locale : "en-US";
+
   const continueCta = useMemo(
     () =>
       locale === "pt-PT"
