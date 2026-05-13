@@ -584,7 +584,7 @@ const Auth = () => {
                     htmlFor="rememberMe" 
                     className="text-sm font-normal cursor-pointer select-none"
                   >
-                    {locale === 'pt-PT' ? 'Manter sessão neste dispositivo' : 'Keep me signed in on this device'}
+                    Keep me signed in on this device
                   </Label>
                 </div>
               )}
