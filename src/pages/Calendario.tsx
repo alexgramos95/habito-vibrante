@@ -353,7 +353,7 @@ const Calendario = () => {
     <div className="page-container">
       <Navigation />
 
-      <main className="page-content max-w-xl mx-auto space-y-5">
+      <main className="page-content max-w-xl mx-auto space-y-8">
         <PageHeader
           title={t.calendar.title}
           subtitle={locale === 'pt-PT' ? 'Visualiza o teu progresso' : 'View your progress'}
@@ -376,35 +376,73 @@ const Calendario = () => {
           </div>
         )}
 
-        {/* ═══ Month Telemetry Hero ═══ */}
-        <div className="border-2 border-primary/40 bg-card shadow-[4px_4px_0_0_hsl(var(--neon-ultra)/0.4)] p-5">
-          <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mb-3">
-            // CICLO · {format(new Date(currentYear, currentMonth), "MMM yyyy", { locale: dateLocale }).toUpperCase()}
-          </p>
-          <div className="flex items-center gap-5">
-            <CircularProgress percent={monthStats.consistency} />
-            <div className="flex-1 min-w-0">
-              <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-                {locale === 'pt-PT' ? 'DIAS PERFEITOS' : 'PERFECT DAYS'}
-              </p>
-              <p className="font-black italic uppercase tracking-tighter text-3xl text-foreground tabular-nums">
-                {monthStats.perfectDays}<span className="text-muted-foreground/50 text-lg">/{monthStats.totalDays}</span>
-              </p>
-              <div className="flex items-center gap-3 mt-2">
-                {currentStreak > 0 && (
-                  <span className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider text-primary">
-                    <Flame className="h-3 w-3" /> {currentStreak}{locale === 'pt-PT' ? 'D EM SEQUÊNCIA' : 'D STREAK'}
-                  </span>
-                )}
-                {monthStats.consistency >= 80 && (
-                  <span className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider text-accent">
-                    <Sparkles className="h-3 w-3" /> {locale === 'pt-PT' ? 'PEAK' : 'PEAK'}
-                  </span>
-                )}
+        {/* ═══ Month Identity Hero ═══ */}
+        {(() => {
+          const monthLabel = format(new Date(currentYear, currentMonth), "MMMM", { locale: dateLocale });
+          const isPT = locale === 'pt-PT';
+          // Adaptive reflective subline based on rhythm
+          let subline: string;
+          if (monthStats.totalDays === 0 || monthStats.perfectDays === 0 && monthStats.consistency === 0) {
+            subline = isPT ? 'Um mês começa em silêncio.' : 'A month begins in silence.';
+          } else if (currentStreak >= 14) {
+            subline = isPT ? 'Já não é esforço. É quem te tornaste.' : "It's no longer effort. It's who you've become.";
+          } else if (currentStreak >= 5) {
+            subline = isPT ? 'A continuidade está a moldar-te.' : 'Continuity is shaping you.';
+          } else if (monthStats.consistency >= 70) {
+            subline = isPT ? 'O ritmo está a tornar-se tu.' : 'The rhythm is becoming you.';
+          } else if (monthStats.consistency >= 40) {
+            subline = isPT ? 'Pequenos sistemas. Mudança silenciosa.' : 'Small systems. Quiet change.';
+          } else if (monthStats.perfectDays > 0) {
+            subline = isPT ? 'Cada dia conta uma frase do mês.' : 'Each day writes a sentence of the month.';
+          } else {
+            subline = isPT ? 'Identidade não é perfeição — é regresso.' : "Identity isn't perfection — it's return.";
+          }
+
+          return (
+            <div className="relative overflow-hidden rounded-2xl border border-border/30 bg-card/40 px-6 py-7 backdrop-blur-sm">
+              {/* ambient glow */}
+              <div
+                className="pointer-events-none absolute -top-1/2 left-1/2 h-[200%] w-[200%] -translate-x-1/2 opacity-40"
+                style={{
+                  background: 'radial-gradient(circle at center, hsl(var(--primary) / 0.06), transparent 60%)',
+                  animation: 'breathe-soft 14s ease-in-out infinite',
+                }}
+              />
+              <div className="relative flex items-center gap-6">
+                <div style={{ animation: 'breathe-soft 12s ease-in-out infinite' }}>
+                  <CircularProgress percent={monthStats.consistency} size={64} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground/60">
+                    {monthLabel} · {currentYear}
+                  </p>
+                  <p className="mt-1 text-[15px] font-medium text-foreground/90 leading-snug">
+                    {subline}
+                  </p>
+                  {(currentStreak > 0 || monthStats.perfectDays > 0) && (
+                    <div className="mt-3 flex items-center gap-4 text-[11px] text-muted-foreground/70 tabular-nums">
+                      {monthStats.perfectDays > 0 && (
+                        <span>
+                          {monthStats.perfectDays} {isPT
+                            ? (monthStats.perfectDays === 1 ? 'dia inteiro' : 'dias inteiros')
+                            : (monthStats.perfectDays === 1 ? 'whole day' : 'whole days')}
+                        </span>
+                      )}
+                      {currentStreak > 0 && (
+                        <span className="flex items-center gap-1.5">
+                          <span className="h-1 w-1 rounded-full bg-primary/60" style={{ animation: 'living-pulse 3s ease-in-out infinite' }} />
+                          {currentStreak} {isPT
+                            ? (currentStreak === 1 ? 'dia consecutivo' : 'dias consecutivos')
+                            : (currentStreak === 1 ? 'day in a row' : 'days in a row')}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        </div>
+          );
+        })()}
 
         {/* ═══ Monthly View ═══ */}
         {viewMode === "monthly" && (
@@ -502,11 +540,17 @@ const Calendario = () => {
               </div>
 
               <div className={cn(
-                "p-4 rounded-2xl text-center border",
-                isComplete ? "bg-success/10 border-success/20" : "bg-secondary/30 border-border/30"
+                "p-5 rounded-2xl text-center border transition-colors",
+                isComplete ? "bg-primary/[0.04] border-primary/20" : "bg-card/40 border-border/20"
               )}>
-                <p className="text-3xl font-bold">{data.completedHabits}/{data.totalHabits}</p>
-                <p className="text-xs text-muted-foreground">{locale === 'pt-PT' ? 'hábitos concluídos' : 'habits completed'}</p>
+                <p className="text-[28px] font-semibold tabular-nums text-foreground">{data.completedHabits}<span className="text-muted-foreground/40">/{data.totalHabits}</span></p>
+                <p className="text-[11px] mt-1 uppercase tracking-[0.2em] text-muted-foreground/60">
+                  {data.totalHabits === 0
+                    ? (locale === 'pt-PT' ? 'um dia em branco' : 'a blank day')
+                    : isComplete
+                      ? (locale === 'pt-PT' ? 'um dia inteiro' : 'a whole day')
+                      : (locale === 'pt-PT' ? 'um dia em construção' : 'a day in motion')}
+                </p>
               </div>
 
               {/* Simple habits */}
