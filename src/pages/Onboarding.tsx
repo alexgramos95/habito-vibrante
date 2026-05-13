@@ -245,8 +245,8 @@ const Onboarding = () => {
 
   const [step, setStep] = useState<Step>("welcome");
   const [struggles, setStruggles] = useState<string[]>([]);
-  const [identity, setIdentity] = useState<string | null>(null);
-  const [pull, setPull] = useState<string | null>(null);
+  const [identity, setIdentity] = useState<string[]>([]);
+  const [pull, setPull] = useState<string[]>([]);
   const [authBusy, setAuthBusy] = useState<null | "google" | "apple">(null);
   const [buildIdx, setBuildIdx] = useState(0);
 
@@ -292,7 +292,10 @@ const Onboarding = () => {
   useEffect(() => {
     if (step !== "ready") return;
     const run = async () => {
-      const identityVectors = identity ? IDENTITY_TO_VECTORS[identity] ?? [] : [];
+      const identityVectors = Array.from(
+        new Set(identity.flatMap((id) => IDENTITY_TO_VECTORS[id] ?? [])),
+      );
+      const primaryIdentity = identity[0] ?? null;
       try {
         writeOnboardingDraft({
           locale,
@@ -319,7 +322,7 @@ const Onboarding = () => {
         locale,
         source: "cinematic",
       });
-      trackEvent("onboarding_completed", { identity, locale });
+      trackEvent("onboarding_completed", { identity: primaryIdentity, locale });
       completeOnboarding({
         improvementAreas: struggles,
         identityVectors,
@@ -550,59 +553,87 @@ const Onboarding = () => {
         </Screen>
       )}
 
-      {/* IDENTITY — single */}
+      {/* IDENTITY — multi */}
       {step === "identity" && (
         <Screen keyName="identity">
           <div className="flex-1 flex flex-col justify-center">
             <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-primary mb-4">
               {t(COPY.identity.chapter, locale)}
             </p>
-            <h1 className="type-display text-4xl sm:text-5xl leading-[1.05] tracking-tight mb-12 whitespace-pre-line">
+            <h1 className="type-display text-4xl sm:text-5xl leading-[1.05] tracking-tight mb-2 whitespace-pre-line">
               {t(COPY.identity.title, locale)}
             </h1>
+            <p className="text-xs text-muted-foreground/60 mb-10 font-mono uppercase tracking-wider">
+              {t(COPY.struggles.hint, locale)}
+            </p>
             <div className="flex flex-col gap-2">
               {IDENTITIES.map((opt) => (
                 <Option
                   key={opt.id}
-                  selected={identity === opt.id}
-                  onClick={() => {
-                    setIdentity(opt.id);
-                    window.setTimeout(() => setStep("pull"), 280);
-                  }}
+                  selected={identity.includes(opt.id)}
+                  onClick={() =>
+                    setIdentity((prev) =>
+                      prev.includes(opt.id)
+                        ? prev.filter((x) => x !== opt.id)
+                        : [...prev, opt.id],
+                    )
+                  }
+                  multi
                 >
                   {t(opt.label, locale)}
                 </Option>
               ))}
             </div>
           </div>
+          <button
+            onClick={() => setStep("pull")}
+            disabled={identity.length === 0}
+            className="w-full h-14 mt-6 bg-primary text-primary-foreground font-black italic uppercase tracking-tight text-sm border-2 border-primary shadow-[3px_3px_0_0_hsl(var(--neon-ultra))] hover:shadow-[5px_5px_0_0_hsl(var(--neon-ultra))] hover:-translate-y-0.5 active:translate-y-0 active:shadow-[2px_2px_0_0_hsl(var(--neon-ultra))] transition-all inline-flex items-center justify-center gap-2 disabled:opacity-30 disabled:pointer-events-none"
+          >
+            {t(COPY.struggles.cta, locale)} <ArrowRight className="h-4 w-4" />
+          </button>
         </Screen>
       )}
 
-      {/* PULL — single */}
+      {/* PULL — multi */}
       {step === "pull" && (
         <Screen keyName="pull">
           <div className="flex-1 flex flex-col justify-center">
             <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-primary mb-4">
               {t(COPY.pull.chapter, locale)}
             </p>
-            <h1 className="type-display text-4xl sm:text-5xl leading-[1.05] tracking-tight mb-12 whitespace-pre-line">
+            <h1 className="type-display text-4xl sm:text-5xl leading-[1.05] tracking-tight mb-2 whitespace-pre-line">
               {t(COPY.pull.title, locale)}
             </h1>
+            <p className="text-xs text-muted-foreground/60 mb-10 font-mono uppercase tracking-wider">
+              {t(COPY.struggles.hint, locale)}
+            </p>
             <div className="flex flex-col gap-2">
               {PULLS.map((opt) => (
                 <Option
                   key={opt.id}
-                  selected={pull === opt.id}
-                  onClick={() => {
-                    setPull(opt.id);
-                    window.setTimeout(() => setStep("building"), 280);
-                  }}
+                  selected={pull.includes(opt.id)}
+                  onClick={() =>
+                    setPull((prev) =>
+                      prev.includes(opt.id)
+                        ? prev.filter((x) => x !== opt.id)
+                        : [...prev, opt.id],
+                    )
+                  }
+                  multi
                 >
                   {t(opt.label, locale)}
                 </Option>
               ))}
             </div>
           </div>
+          <button
+            onClick={() => setStep("building")}
+            disabled={pull.length === 0}
+            className="w-full h-14 mt-6 bg-primary text-primary-foreground font-black italic uppercase tracking-tight text-sm border-2 border-primary shadow-[3px_3px_0_0_hsl(var(--neon-ultra))] hover:shadow-[5px_5px_0_0_hsl(var(--neon-ultra))] hover:-translate-y-0.5 active:translate-y-0 active:shadow-[2px_2px_0_0_hsl(var(--neon-ultra))] transition-all inline-flex items-center justify-center gap-2 disabled:opacity-30 disabled:pointer-events-none"
+          >
+            {t(COPY.struggles.cta, locale)} <ArrowRight className="h-4 w-4" />
+          </button>
         </Screen>
       )}
 
