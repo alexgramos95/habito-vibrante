@@ -61,7 +61,7 @@ const COPY = {
     startFree: { "en-US": "Start free", "pt-PT": "Começar grátis" },
   },
   auth: {
-    chapter: { "en-US": "// Step 01", "pt-PT": "// Passo 01" },
+    chapter: { "en-US": "// Final step", "pt-PT": "// Passo final" },
     title: {
       "en-US": "Begin your\nsystem.",
       "pt-PT": "Começa o teu\nsistema.",
