@@ -49,18 +49,15 @@ export const Navigation = () => {
 
   return (
     <>
-      {/* Desktop Navigation - Arcade Overdrive */}
-      <nav className="sticky top-0 z-50 border-b border-foreground/10 bg-background/95 backdrop-blur-xl">
+      {/* Desktop Navigation — softer, recedes into the system */}
+      <nav className="sticky top-0 z-50 border-b border-foreground/[0.05] bg-background/80 backdrop-blur-xl">
         <div className="container flex h-14 items-center justify-between">
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5 opacity-90">
             <BecomeLogo compact />
-            <div className="flex flex-col leading-tight">
-              <span className="text-sm font-black uppercase italic tracking-tighter text-foreground">{t.app.name}</span>
-              <span className="mono-label text-[10px] text-muted-foreground/60 hidden sm:block">{t.app.tagline}</span>
-            </div>
+            <span className="text-sm font-black uppercase italic tracking-tighter text-foreground/80">{t.app.name}</span>
           </div>
 
-          <div className="hidden md:flex items-center gap-1">
+          <div className="hidden md:flex items-center gap-0.5">
             {desktopMainItems.map((item) => (
               <NavLink
                 key={item.to}
@@ -68,19 +65,19 @@ export const Navigation = () => {
                 end={item.to === "/app"}
                 className={({ isActive }) =>
                   cn(
-                    "flex items-center gap-2 px-3.5 py-2 text-xs font-bold uppercase italic tracking-wider transition-all duration-150 border-2",
+                    "flex items-center gap-2 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] transition-colors duration-200 rounded-lg",
                     isActive
-                      ? "border-primary text-primary bg-primary/10 shadow-[0_0_12px_hsl(var(--neon-toxic)/0.3)]"
-                      : "border-transparent text-muted-foreground hover:text-primary hover:border-primary/30",
+                      ? "text-primary/90 bg-primary/[0.06]"
+                      : "text-muted-foreground/60 hover:text-foreground/90",
                   )
                 }
               >
-                <item.icon className="h-4 w-4 not-italic" />
+                <item.icon className="h-3.5 w-3.5" />
                 <span className="hidden lg:inline">{item.label}</span>
               </NavLink>
             ))}
 
-            <div className="h-4 w-px bg-foreground/15 mx-2" />
+            <div className="h-3 w-px bg-foreground/10 mx-2" />
 
             {desktopSecondaryItems.map((item) => (
               <NavLink
@@ -88,14 +85,14 @@ export const Navigation = () => {
                 to={item.to}
                 className={({ isActive }) =>
                   cn(
-                    "flex items-center gap-2 px-3.5 py-2 text-xs font-bold uppercase italic tracking-wider transition-all duration-150 border-2",
+                    "flex items-center gap-2 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] transition-colors duration-200 rounded-lg",
                     isActive
-                      ? "border-accent text-accent bg-accent/10"
-                      : "border-transparent text-muted-foreground hover:text-accent hover:border-accent/30",
+                      ? "text-foreground/90 bg-foreground/[0.05]"
+                      : "text-muted-foreground/60 hover:text-foreground/90",
                   )
                 }
               >
-                <item.icon className="h-4 w-4 not-italic" />
+                <item.icon className="h-3.5 w-3.5" />
                 <span className="hidden lg:inline">{item.label}</span>
               </NavLink>
             ))}
@@ -103,8 +100,8 @@ export const Navigation = () => {
         </div>
       </nav>
 
-      {/* Mobile Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 border-t-2 border-foreground/10 bg-background/98 backdrop-blur-xl md:hidden">
+      {/* Mobile Bottom Navigation — softer chrome */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-foreground/[0.06] bg-background/92 backdrop-blur-xl md:hidden">
         <div className="flex items-center justify-around py-1 px-2 safe-bottom">
           {navItems.map((item) => (
             <NavLink
@@ -113,23 +110,23 @@ export const Navigation = () => {
               end={item.to === "/app"}
               className={({ isActive }) =>
                 cn(
-                  "relative flex flex-col items-center gap-0.5 px-3 py-2 text-[10px] font-bold uppercase italic tracking-wider transition-all duration-150 touch-target",
+                  "relative flex flex-col items-center gap-1 px-3 py-2 text-[10px] font-medium tracking-wider transition-colors duration-200 touch-target",
                   isActive
-                    ? "text-primary"
-                    : "text-muted-foreground active:text-foreground",
+                    ? "text-primary/90"
+                    : "text-muted-foreground/55 active:text-foreground/90",
                 )
               }
             >
               {({ isActive }) => (
                 <>
-                  {isActive && (
-                    <div className="absolute inset-x-2 -top-px h-0.5 bg-primary shadow-[0_0_8px_hsl(var(--neon-toxic))]" />
-                  )}
                   <item.icon className={cn(
-                    "h-5 w-5 transition-transform duration-150 not-italic",
-                    isActive && "scale-110 drop-shadow-[0_0_6px_hsl(var(--neon-toxic))]",
+                    "h-[18px] w-[18px] transition-all duration-300",
+                    isActive && "drop-shadow-[0_0_4px_hsl(var(--neon-toxic)/0.6)]",
                   )} />
-                  <span className="truncate max-w-[64px]">{item.label}</span>
+                  <span className="truncate max-w-[64px] opacity-90">{item.label}</span>
+                  {isActive && (
+                    <span className="absolute -bottom-px h-[2px] w-1 rounded-full bg-primary/80 shadow-[0_0_4px_hsl(var(--neon-toxic))]" />
+                  )}
                 </>
               )}
             </NavLink>

@@ -488,8 +488,19 @@
   pointer-events: none;
   z-index: 0;
   background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, hsl(var(--primary) / 0.025), transparent 60%),
     linear-gradient(180deg, hsl(0 0% 0% / 0.4) 0%, transparent 40%),
     linear-gradient(0deg, hsl(0 0% 0% / 0.3) 0%, transparent 30%);
+  animation: ambient-drift 24s ease-in-out infinite;
+}
+
+@keyframes ambient-drift {
+  0%, 100% { transform: translate3d(0, 0, 0); opacity: 1; }
+  50%      { transform: translate3d(0, -8px, 0); opacity: 0.92; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-container::before { animation: none; }
 }
 
 .page-container > * {

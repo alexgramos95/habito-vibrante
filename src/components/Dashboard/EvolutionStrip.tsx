@@ -105,29 +105,30 @@ export const EvolutionStrip = ({ state, isPT, className }: EvolutionStripProps) 
       aria-label={isPT ? "Ver evolução" : "View evolution"}
       className={cn(
         "group relative block overflow-hidden rounded-2xl",
-        "border border-foreground/[0.05] bg-card/30",
-        "px-4 py-4 transition-all duration-500",
-        "hover:border-foreground/[0.12] hover:bg-card/50",
+        "bg-foreground/[0.015] border border-foreground/[0.04]",
+        "px-4 py-3.5 transition-all duration-700",
+        "hover:bg-foreground/[0.03] hover:border-foreground/[0.08]",
         className,
       )}
     >
       {/* Ambient atmospheric glow */}
       <span
         aria-hidden
-        className="pointer-events-none absolute -inset-px opacity-60"
+        className="pointer-events-none absolute -inset-px opacity-50"
         style={{
           background:
-            "radial-gradient(120% 80% at 0% 0%, hsl(var(--primary) / 0.06), transparent 55%)",
+            "radial-gradient(120% 80% at 0% 0%, hsl(var(--primary) / 0.05), transparent 55%)",
         }}
       />
 
       <div className="relative flex items-center justify-between gap-3">
-        {/* Left — identity phase */}
-        <div className="min-w-0 flex items-baseline gap-2.5">
-          <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-primary/70">
-            LV.{lp.current}
-          </span>
-          <span className="text-sm text-foreground/90 truncate">
+        {/* Left — identity phase, no LV.x prefix */}
+        <div className="min-w-0 flex items-center gap-2.5">
+          <span
+            aria-hidden
+            className="h-1.5 w-1.5 rounded-full bg-primary/70 shadow-[0_0_6px_hsl(var(--primary)/0.6)]"
+          />
+          <span className="text-[14px] text-foreground/85 truncate">
             {phase}
           </span>
         </div>
@@ -137,21 +138,21 @@ export const EvolutionStrip = ({ state, isPT, className }: EvolutionStripProps) 
           {rhythm.map((d, i) => {
             const empty = d.ratio < 0;
             const intensity =
-              empty ? 0.05 :
-              d.ratio === 0 ? 0.09 :
-              0.28 + d.ratio * 0.72;
+              empty ? 0.04 :
+              d.ratio === 0 ? 0.07 :
+              0.22 + d.ratio * 0.65;
             const full = d.ratio >= 0.999;
             return (
               <span
                 key={i}
                 className={cn(
                   "h-1.5 w-1.5 rounded-full transition-all duration-700",
-                  d.isToday && "ring-1 ring-primary/35 ring-offset-2 ring-offset-background h-2 w-2",
+                  d.isToday && "ring-1 ring-primary/30 ring-offset-2 ring-offset-background h-2 w-2",
                 )}
                 style={{
                   backgroundColor: `hsl(var(--primary) / ${intensity})`,
                   boxShadow: full
-                    ? "0 0 8px hsl(var(--primary) / 0.5), 0 0 2px hsl(var(--primary) / 0.7)"
+                    ? "0 0 6px hsl(var(--primary) / 0.45)"
                     : undefined,
                 }}
               />
@@ -160,12 +161,12 @@ export const EvolutionStrip = ({ state, isPT, className }: EvolutionStripProps) 
         </div>
       </div>
 
-      {/* Quiet philosophical reinforcement — replaces XP/points line */}
-      <div className="relative mt-2.5 flex items-center justify-between gap-2 text-[11px] text-muted-foreground/80">
+      {/* Quiet philosophical reinforcement */}
+      <div className="relative mt-2 flex items-center justify-between gap-2 text-[11px] text-muted-foreground/70">
         <span className="italic tracking-wide truncate">
           {reflection}
         </span>
-        <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/50 transition-transform group-hover:translate-x-0.5" />
+        <ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground/40 transition-transform group-hover:translate-x-0.5" />
       </div>
     </Link>
   );
