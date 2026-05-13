@@ -353,7 +353,7 @@ const Calendario = () => {
     <div className="page-container">
       <Navigation />
 
-      <main className="page-content max-w-xl mx-auto space-y-5">
+      <main className="page-content max-w-xl mx-auto space-y-8">
         <PageHeader
           title={t.calendar.title}
           subtitle={locale === 'pt-PT' ? 'Visualiza o teu progresso' : 'View your progress'}
