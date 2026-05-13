@@ -264,8 +264,8 @@ const Onboarding = () => {
   }, [navigate]);
 
   const goToAuthOrSkip = useCallback(() => {
-    setStep(isAuthenticated ? "struggles" : "auth");
-  }, [isAuthenticated]);
+    setStep("struggles");
+  }, []);
 
   // Building rotates statements then advances
   useEffect(() => {
