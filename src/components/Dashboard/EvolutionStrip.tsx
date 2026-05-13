@@ -40,22 +40,28 @@ const IDENTITY_PHASES_PT = [
 // Rotating philosophical reinforcements — replaces explicit XP/points pressure.
 const REFLECTIONS_EN = [
   "Your system is taking shape.",
-  "Consistency creates momentum.",
+  "Consistency is built in silence.",
   "Every repetition strengthens identity.",
-  "Small actions become structure.",
+  "Small systems. Quiet change.",
   "Presence compounds quietly.",
   "You return — that is the practice.",
   "Identity forms in the repetition.",
+  "The rhythm is starting to show.",
+  "Discipline is a way of caring for yourself.",
+  "Slow is also a direction.",
 ];
 
 const REFLECTIONS_PT = [
   "O teu sistema está a ganhar forma.",
-  "Consistência cria momentum.",
+  "Consistência constrói-se em silêncio.",
   "Cada repetição reforça a identidade.",
-  "Pequenas ações tornam-se estrutura.",
+  "Pequenos sistemas. Grandes mudanças.",
   "Presença acumula em silêncio.",
   "Voltas — é essa a prática.",
   "A identidade forma-se na repetição.",
+  "O ritmo está a aparecer.",
+  "Disciplina é uma forma de cuidar de ti.",
+  "Devagar é também direção.",
 ];
 
 const phaseFor = (level: number, isPT: boolean) => {
@@ -126,7 +132,7 @@ export const EvolutionStrip = ({ state, isPT, className }: EvolutionStripProps) 
         <div className="min-w-0 flex items-center gap-2.5">
           <span
             aria-hidden
-            className="h-1.5 w-1.5 rounded-full bg-primary/70 shadow-[0_0_6px_hsl(var(--primary)/0.6)]"
+            className="h-1.5 w-1.5 rounded-full bg-primary/70 living-pulse"
           />
           <span className="text-[14px] text-foreground/85 truncate">
             {phase}

@@ -31,13 +31,25 @@ export const EmptyState = ({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center text-center px-6",
+        "relative flex flex-col items-center justify-center text-center px-6",
         compact ? "py-8" : "py-16",
         "animate-fade-in motion-reduce:animate-none",
         className,
       )}
     >
-      {Icon && <Icon className="h-12 w-12 text-muted-foreground/30 mb-4" aria-hidden />}
+      {Icon && (
+        <div className="relative mb-4">
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-0 -m-4 rounded-full breathe-glow"
+            style={{
+              background:
+                "radial-gradient(60% 60% at 50% 50%, hsl(var(--primary) / 0.07), transparent 70%)",
+            }}
+          />
+          <Icon className="relative h-12 w-12 text-muted-foreground/35 breathe-soft" aria-hidden />
+        </div>
+      )}
       <p className="text-base font-medium text-muted-foreground mb-1">{title}</p>
       {description && (
         <p className="text-sm text-muted-foreground/70 max-w-xs">{description}</p>

@@ -470,19 +470,33 @@ const Index = () => {
         {/* ═══ Daily Motivation — only past early days, calm spacing ═══ */}
         {!isEarlyDay && state.habits.length > 0 && <MotivationCard card={motivationCard} />}
 
-        {/* ═══ Empty state — minimal, inviting ═══ */}
+        {/* ═══ Empty state — atmospheric, intentional, hopeful ═══ */}
         {state.habits.length === 0 && (
-          <div className="border border-dashed border-foreground/15 bg-card/40 p-10 text-center rounded-2xl">
-            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
-              <CheckCircle2 className="h-6 w-6 text-primary" />
+          <div className="relative overflow-hidden rounded-3xl border border-foreground/[0.06] bg-foreground/[0.015] p-12 text-center">
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-0 breathe-glow"
+              style={{
+                background:
+                  "radial-gradient(60% 50% at 50% 30%, hsl(var(--primary) / 0.08), transparent 70%)",
+              }}
+            />
+            <div className="relative">
+              <div className="mx-auto mb-6 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 breathe-soft">
+                <CheckCircle2 className="h-5 w-5 text-primary/80" />
+              </div>
+              <h3 className="text-[22px] font-semibold tracking-[-0.015em] text-foreground/95">
+                {isPT ? 'A estrutura começa aqui.' : 'Structure begins here.'}
+              </h3>
+              <p className="text-[13px] text-muted-foreground/75 mt-2 max-w-[280px] mx-auto leading-relaxed">
+                {isPT
+                  ? 'Tudo começa com um pequeno sistema. Um hábito basta.'
+                  : 'Everything starts with a small system. One habit is enough.'}
+              </p>
+              <Button onClick={() => setShowModeSelector(true)} size="lg" className="mt-7 gap-2">
+                <Plus className="h-4 w-4" /> {isPT ? 'Começar' : 'Begin'}
+              </Button>
             </div>
-            <h3 className="text-2xl font-bold tracking-tight text-foreground">{isPT ? 'Um hábito basta.' : 'One habit is enough.'}</h3>
-            <p className="text-sm text-muted-foreground mt-2 max-w-[280px] mx-auto">
-              {isPT ? 'Identidade constrói-se um dia de cada vez.' : 'Identity is built one day at a time.'}
-            </p>
-            <Button onClick={() => setShowModeSelector(true)} size="lg" className="mt-6 gap-2">
-              <Plus className="h-4 w-4" /> {isPT ? 'Criar primeiro hábito' : 'Create first habit'}
-            </Button>
           </div>
         )}
 
