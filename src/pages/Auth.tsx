@@ -504,7 +504,9 @@ const Auth = () => {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="password">
-                      {mode === 'reset-password' ? 'New password' : 'Password'}
+                      {mode === 'reset-password'
+                        ? (locale === 'pt-PT' ? 'Nova palavra-passe' : 'New password')
+                        : (locale === 'pt-PT' ? 'Palavra-passe' : 'Password')}
                     </Label>
                     {mode === 'signin' && (
                       <button
@@ -512,7 +514,7 @@ const Auth = () => {
                         onClick={() => setMode('forgot-password')}
                         className="text-xs text-primary hover:underline"
                       >
-                        Forgot password?
+                        {locale === 'pt-PT' ? 'Esqueceste-te?' : 'Forgot password?'}
                       </button>
                     )}
                   </div>
