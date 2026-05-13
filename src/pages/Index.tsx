@@ -559,49 +559,49 @@ const Index = () => {
                       key={habit.id}
                       onClick={() => navigate(`/app/habit/${habit.id}`)}
                       className={cn(
-                        "press-tactile w-full flex items-center gap-3 p-4 border text-left min-h-[72px] rounded-xl",
-                        "transition-[background-color,border-color,box-shadow] duration-200",
+                        "press-tactile w-full flex items-center gap-3.5 px-4 py-4 border text-left min-h-[76px] rounded-2xl",
+                        "transition-[background-color,border-color] duration-300",
                         isExceeded
-                          ? "border-destructive/60 bg-destructive/[0.08] shadow-[0_0_18px_hsl(var(--destructive)/0.15)]"
+                          ? "border-destructive/45 bg-destructive/[0.05]"
                           : isOnTrack
-                          ? "border-success/30 bg-success/[0.04]"
+                          ? "border-success/15 bg-success/[0.025]"
                           : isReduce
-                          ? "border-warning/30 bg-warning/[0.04]"
-                          : "border-foreground/[0.08] bg-card hover:border-foreground/15"
+                          ? "border-warning/15 bg-warning/[0.025]"
+                          : "border-foreground/[0.05] bg-foreground/[0.015] hover:border-foreground/[0.1]"
                       )}
                     >
                       <div className={cn(
-                        "h-10 w-10 flex items-center justify-center text-base shrink-0 rounded-lg",
+                        "h-10 w-10 flex items-center justify-center text-base shrink-0 rounded-xl",
                         isExceeded
-                          ? "bg-destructive/15 text-destructive"
+                          ? "bg-destructive/10 text-destructive"
                           : isOnTrack
-                          ? "bg-success/10 text-success"
+                          ? "bg-success/8 text-success/85"
                           : isReduce
-                            ? "bg-warning/10 text-warning"
-                            : "bg-primary/10 text-primary"
+                            ? "bg-warning/8 text-warning/85"
+                            : "bg-foreground/[0.04] text-foreground/70"
                       )}>
                         {habit.icon || "📊"}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className={cn(
-                          "font-medium text-sm truncate",
-                          isExceeded ? "text-destructive" : "text-foreground"
+                          "font-semibold text-[15px] tracking-[-0.005em] truncate",
+                          isExceeded ? "text-destructive" : "text-foreground/95"
                         )}>{habit.nome}</p>
-                        <div className="flex items-center gap-2 mt-1.5">
-                          <div className="flex-1 h-1 bg-foreground/8 overflow-hidden rounded-full">
+                        <div className="flex items-center gap-2.5 mt-2">
+                          <div className="flex-1 h-[2px] bg-foreground/[0.06] overflow-hidden rounded-full">
                             <div
                               className={cn(
-                                "h-full transition-all duration-500 ease-out rounded-full",
-                                isExceeded ? "bg-destructive" :
-                                isOnTrack ? "bg-success" :
-                                isReduce ? "bg-warning" : "bg-primary"
+                                "h-full transition-all duration-700 ease-out rounded-full",
+                                isExceeded ? "bg-destructive/70" :
+                                isOnTrack ? "bg-success/55" :
+                                isReduce ? "bg-warning/55" : "bg-primary/55"
                               )}
                               style={{ width: `${prog}%` }}
                             />
                           </div>
                           <span className={cn(
                             "text-[11px] whitespace-nowrap tabular-nums font-mono",
-                            isExceeded ? "text-destructive font-semibold" : "text-muted-foreground"
+                            isExceeded ? "text-destructive font-semibold" : "text-muted-foreground/70"
                           )}>
                             {count}/{goal}
                             {isExceeded && <span className="ml-1">· +{count - goal}</span>}
