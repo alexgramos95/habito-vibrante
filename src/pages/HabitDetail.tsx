@@ -295,12 +295,14 @@ const HabitDetail = () => {
   const tips = useMemo(() => {
     if (!habit || !stats) return [];
     return getCoachTips({
+      habitName: habit.nome,
+      isPT: locale === "pt-PT",
       mode: isMetric ? "metric" : "simple",
       completionRate7d: stats.completionRate7d, completionRate30d: stats.completionRate30d,
       currentStreak: stats.currentStreak, bestStreak: stats.bestStreak,
       isDoneToday: stats.isDoneToday, type: habit.type, category: habit.categoria,
     });
-  }, [habit, stats, isMetric]);
+  }, [habit, stats, isMetric, locale]);
 
   // --- Handlers ---
   const handleSaveSimple = useCallback((data: Omit<Habit, "id" | "createdAt">) => {
