@@ -582,22 +582,22 @@ const Auth = () => {
                     checked={rememberMe}
                     onCheckedChange={(checked) => setRememberMe(checked === true)}
                   />
-                  <Label 
-                    htmlFor="rememberMe" 
+                  <Label
+                    htmlFor="rememberMe"
                     className="text-sm font-normal cursor-pointer select-none"
                   >
-                    Keep me signed in on this device
+                    {locale === 'pt-PT' ? 'Manter sessão iniciada neste dispositivo' : 'Keep me signed in on this device'}
                   </Label>
                 </div>
               )}
 
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'PROCESSING...' : (
+                {loading ? (locale === 'pt-PT' ? 'A PROCESSAR...' : 'PROCESSING...') : (
                   <>
-                    {mode === 'signin' && 'SIGN IN'}
-                    {mode === 'signup' && 'CREATE ACCOUNT'}
-                    {mode === 'forgot-password' && 'SEND LINK'}
-                    {mode === 'reset-password' && 'UPDATE PASSWORD'}
+                    {mode === 'signin' && (locale === 'pt-PT' ? 'ENTRAR' : 'SIGN IN')}
+                    {mode === 'signup' && (locale === 'pt-PT' ? 'CRIAR CONTA' : 'CREATE ACCOUNT')}
+                    {mode === 'forgot-password' && (locale === 'pt-PT' ? 'ENVIAR LINK' : 'SEND LINK')}
+                    {mode === 'reset-password' && (locale === 'pt-PT' ? 'ATUALIZAR PALAVRA-PASSE' : 'UPDATE PASSWORD')}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </>
                 )}
