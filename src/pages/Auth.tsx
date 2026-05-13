@@ -441,22 +441,22 @@ const Auth = () => {
         <Card className="border-2 border-primary/40 bg-card shadow-[8px_8px_0_0_hsl(var(--neon-ultra)/0.6)]">
           <CardHeader className="space-y-1">
             <p className="font-mono text-[10px] uppercase tracking-widest text-primary/70">
-              {mode === 'signin' && '// ACESSO'}
-              {mode === 'signup' && '// REGISTO'}
-              {mode === 'forgot-password' && '// RECUPERAR ACESSO'}
-              {mode === 'reset-password' && '// NOVA CHAVE'}
+              {mode === 'signin' && '// SIGN IN'}
+              {mode === 'signup' && '// SIGN UP'}
+              {mode === 'forgot-password' && '// RECOVER ACCESS'}
+              {mode === 'reset-password' && '// NEW PASSWORD'}
             </p>
             <CardTitle className="text-2xl font-black italic uppercase tracking-tighter">
-              {mode === 'signin' && 'Bem-vindo de volta'}
-              {mode === 'signup' && 'Cria a tua conta'}
-              {mode === 'forgot-password' && 'Repor palavra-passe'}
-              {mode === 'reset-password' && 'Define nova chave'}
+              {mode === 'signin' && 'Welcome back'}
+              {mode === 'signup' && 'Create your account'}
+              {mode === 'forgot-password' && 'Reset password'}
+              {mode === 'reset-password' && 'Set new password'}
             </CardTitle>
             <CardDescription className="font-mono text-xs">
-              {mode === 'signin' && 'Entra para continuar o teu protocolo'}
-              {mode === 'signup' && 'Inicia o teu trial de 2 dias'}
-              {mode === 'forgot-password' && 'Indica o email para receber link'}
-              {mode === 'reset-password' && 'Escolhe uma chave segura'}
+              {mode === 'signin' && 'Sign in to continue'}
+              {mode === 'signup' && 'Start your free trial'}
+              {mode === 'forgot-password' && 'Enter your email to receive a link'}
+              {mode === 'reset-password' && 'Choose a secure password'}
             </CardDescription>
           </CardHeader>
           <CardContent>
