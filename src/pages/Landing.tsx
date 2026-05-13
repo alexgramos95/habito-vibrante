@@ -221,10 +221,6 @@ const Landing = () => {
                 </span>
               </h1>
 
-              <p className="type-body text-base sm:text-lg md:text-xl text-muted-foreground/85 mb-3 max-w-[44ch] mx-auto md:mx-0">
-                Plan. Execute. Repeat.
-              </p>
-
               <p className="type-body italic text-sm sm:text-base text-foreground/70 mb-10 md:mb-12 max-w-[44ch] mx-auto md:mx-0">
                 This time, it sticks.
               </p>
