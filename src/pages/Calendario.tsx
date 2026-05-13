@@ -540,11 +540,17 @@ const Calendario = () => {
               </div>
 
               <div className={cn(
-                "p-4 rounded-2xl text-center border",
-                isComplete ? "bg-success/10 border-success/20" : "bg-secondary/30 border-border/30"
+                "p-5 rounded-2xl text-center border transition-colors",
+                isComplete ? "bg-primary/[0.04] border-primary/20" : "bg-card/40 border-border/20"
               )}>
-                <p className="text-3xl font-bold">{data.completedHabits}/{data.totalHabits}</p>
-                <p className="text-xs text-muted-foreground">{locale === 'pt-PT' ? 'hábitos concluídos' : 'habits completed'}</p>
+                <p className="text-[28px] font-semibold tabular-nums text-foreground">{data.completedHabits}<span className="text-muted-foreground/40">/{data.totalHabits}</span></p>
+                <p className="text-[11px] mt-1 uppercase tracking-[0.2em] text-muted-foreground/60">
+                  {data.totalHabits === 0
+                    ? (locale === 'pt-PT' ? 'um dia em branco' : 'a blank day')
+                    : isComplete
+                      ? (locale === 'pt-PT' ? 'um dia inteiro' : 'a whole day')
+                      : (locale === 'pt-PT' ? 'um dia em construção' : 'a day in motion')}
+                </p>
               </div>
 
               {/* Simple habits */}
