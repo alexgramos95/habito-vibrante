@@ -56,12 +56,14 @@ const Definicoes = () => {
   const handleHardReload = async () => {
     setIsReloading(true);
     try {
-      // Trigger update check on any registered service worker
-      if ("serviceWorker" in navigator) {
-        const registrations = await navigator.serviceWorker.getRegistrations();
-        await Promise.all(registrations.map((r) => r.update().catch(() => null)));
-      }
+      // Unregister ALL service workers (not just update) to fully drop old shells
       await clearPwaRuntime();
+      // Also clear storage caches that may hold a stale build marker
+      try {
+        Object.keys(localStorage)
+          .filter((k) => k.startsWith("become-pwa-reset:"))
+          .forEach((k) => localStorage.removeItem(k));
+      } catch {}
       toast({
         title: locale === "pt-PT" ? "A recarregar..." : "Reloading...",
         description:
