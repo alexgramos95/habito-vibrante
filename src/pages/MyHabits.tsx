@@ -12,6 +12,7 @@ import { useData } from "@/contexts/DataContext";
 import { useI18n } from "@/i18n/I18nContext";
 import { updateHabit } from "@/data/storage";
 import { sortHabitsByTime } from "@/logic/habitSorting";
+import { getLevelProgress } from "@/logic/computations";
 import { cn } from "@/lib/utils";
 
 type Filter = "all" | "active" | "inactive";
