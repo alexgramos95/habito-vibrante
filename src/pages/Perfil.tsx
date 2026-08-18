@@ -510,7 +510,28 @@ const Perfil = () => {
               <Trash2 className="h-3.5 w-3.5" /> {locale === 'pt-PT' ? 'Selecionar' : 'Select'}
             </Button>
           </div>
+          {isAuthenticated && (
+            <div className="flex items-start justify-between gap-3 pt-1 border-t border-destructive/15">
+              <div className="pt-3">
+                <p className="text-sm">{locale === 'pt-PT' ? 'Eliminar todos os dados' : 'Delete all data'}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {locale === 'pt-PT'
+                    ? 'Apaga permanentemente todo o registo associado à tua conta.'
+                    : 'Permanently erases every record linked to your account.'}
+                </p>
+              </div>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => { setDeleteConfirm(""); setShowDeleteAll(true); }}
+                className="gap-1.5 h-8 mt-3 shrink-0"
+              >
+                <Trash2 className="h-3.5 w-3.5" /> {locale === 'pt-PT' ? 'Eliminar' : 'Delete'}
+              </Button>
+            </div>
+          )}
         </div>
+
       </main>
 
       <ResetAppDialog
