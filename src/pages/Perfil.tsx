@@ -22,6 +22,10 @@ import { getLatestFutureSelf, getReflectionForDate } from "@/data/storage";
 import { getLevelProgress } from "@/logic/computations";
 import { cn } from "@/lib/utils";
 import { ResetAppDialog, type ResetScope } from "@/components/Profile/ResetAppDialog";
+import {
+  AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useDemoMode } from "@/hooks/useDemoMode";
@@ -47,6 +51,9 @@ const Perfil = () => {
   const { state, setState, resetAppData, isSyncing } = useData();
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  const [showDeleteAll, setShowDeleteAll] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [isDeletingAll, setIsDeletingAll] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
   const [showExport, setShowExport] = useState(false);
   const { subscription, trialStatus, isPro, upgradeToPro } = useSubscription();
@@ -203,6 +210,52 @@ const Perfil = () => {
       setIsResetting(false);
     }
   };
+
+  const isPtLocale = locale === 'pt-PT';
+  const deleteKeyword = isPtLocale ? 'ELIMINAR' : 'DELETE';
+
+  const handleDeleteAllUserData = async () => {
+    if (!user) return;
+    setIsDeletingAll(true);
+    try {
+      await Promise.all([
+        supabase.from('user_data').delete().eq('user_id', user.id),
+        supabase.from('feedback').delete().eq('user_id', user.id),
+        supabase.from('pro_interest').delete().eq('user_id', user.id),
+        supabase.from('push_subscriptions').delete().eq('user_id', user.id),
+        supabase.from('profiles').delete().eq('user_id', user.id),
+      ]);
+
+      // Wipe every local trace
+      try {
+        localStorage.clear();
+        sessionStorage.clear();
+      } catch { /* noop */ }
+
+      try { window.dispatchEvent(new CustomEvent('become:app-reset')); } catch { /* noop */ }
+
+      toast({
+        title: isPtLocale ? 'Registo eliminado' : 'Record deleted',
+        description: isPtLocale
+          ? 'Todos os teus dados foram removidos.'
+          : 'All your data has been removed.',
+      });
+
+      await signOut();
+      navigate('/', { replace: true });
+    } catch {
+      toast({
+        title: isPtLocale ? 'Não foi possível eliminar' : 'Could not delete',
+        description: isPtLocale ? 'Tenta novamente.' : 'Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsDeletingAll(false);
+      setShowDeleteAll(false);
+    }
+  };
+
+
 
   const levelProgress = getLevelProgress(state.gamification.pontos);
   const unlockedAchievements = ACHIEVEMENTS.filter(a => state.gamification.conquistas.includes(a.id));
@@ -510,7 +563,28 @@ const Perfil = () => {
               <Trash2 className="h-3.5 w-3.5" /> {locale === 'pt-PT' ? 'Selecionar' : 'Select'}
             </Button>
           </div>
+          {isAuthenticated && (
+            <div className="flex items-start justify-between gap-3 pt-1 border-t border-destructive/15">
+              <div className="pt-3">
+                <p className="text-sm">{locale === 'pt-PT' ? 'Eliminar todos os dados' : 'Delete all data'}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {locale === 'pt-PT'
+                    ? 'Apaga permanentemente todo o registo associado à tua conta.'
+                    : 'Permanently erases every record linked to your account.'}
+                </p>
+              </div>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => { setDeleteConfirm(""); setShowDeleteAll(true); }}
+                className="gap-1.5 h-8 mt-3 shrink-0"
+              >
+                <Trash2 className="h-3.5 w-3.5" /> {locale === 'pt-PT' ? 'Eliminar' : 'Delete'}
+              </Button>
+            </div>
+          )}
         </div>
+
       </main>
 
       <ResetAppDialog
@@ -533,8 +607,49 @@ const Perfil = () => {
           achievements: state.gamification.conquistas.length + (state.gamification.pontos > 0 ? 1 : 0),
         }}
       />
+      <AlertDialog open={showDeleteAll} onOpenChange={setShowDeleteAll}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {isPtLocale ? 'Eliminar todos os dados' : 'Delete all data'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {isPtLocale
+                ? 'Isto apaga permanentemente hábitos, registos, reflexões, nutrição, perfil e notificações associados à tua conta. Não há recuperação.'
+                : 'This permanently erases habits, logs, reflections, nutrition, profile and notifications linked to your account. There is no recovery.'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">
+              {isPtLocale ? `Escreve ${deleteKeyword} para confirmar` : `Type ${deleteKeyword} to confirm`}
+            </Label>
+            <Input
+              value={deleteConfirm}
+              onChange={(e) => setDeleteConfirm(e.target.value)}
+              placeholder={deleteKeyword}
+              autoComplete="off"
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletingAll}>
+              {isPtLocale ? 'Cancelar' : 'Cancel'}
+            </AlertDialogCancel>
+            <Button
+              variant="destructive"
+              disabled={isDeletingAll || deleteConfirm.trim().toUpperCase() !== deleteKeyword}
+              onClick={handleDeleteAllUserData}
+            >
+              {isDeletingAll
+                ? (isPtLocale ? 'A eliminar…' : 'Deleting…')
+                : (isPtLocale ? 'Eliminar definitivamente' : 'Delete permanently')}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <PaywallModal open={showPaywall} onClose={() => setShowPaywall(false)} onUpgrade={upgradeToPro} trialDaysLeft={trialStatus.daysRemaining} />
       <ExportDialog open={showExport} onClose={() => setShowExport(false)} isPro={isPro} onShowPaywall={() => setShowPaywall(true)} />
+
     </div>
   );
 };
