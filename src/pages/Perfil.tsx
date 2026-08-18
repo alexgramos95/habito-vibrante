@@ -47,6 +47,9 @@ const Perfil = () => {
   const { state, setState, resetAppData, isSyncing } = useData();
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  const [showDeleteAll, setShowDeleteAll] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [isDeletingAll, setIsDeletingAll] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
   const [showExport, setShowExport] = useState(false);
   const { subscription, trialStatus, isPro, upgradeToPro } = useSubscription();
