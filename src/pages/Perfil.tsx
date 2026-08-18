@@ -22,6 +22,10 @@ import { getLatestFutureSelf, getReflectionForDate } from "@/data/storage";
 import { getLevelProgress } from "@/logic/computations";
 import { cn } from "@/lib/utils";
 import { ResetAppDialog, type ResetScope } from "@/components/Profile/ResetAppDialog";
+import {
+  AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useDemoMode } from "@/hooks/useDemoMode";
