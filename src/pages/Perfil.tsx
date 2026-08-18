@@ -207,6 +207,53 @@ const Perfil = () => {
     }
   };
 
+  const isPtLocale = locale === 'pt-PT';
+  const deleteKeyword = isPtLocale ? 'ELIMINAR' : 'DELETE';
+
+  const handleDeleteAllUserData = async () => {
+    if (!user) return;
+    setIsDeletingAll(true);
+    try {
+      await Promise.all([
+        supabase.from('user_data').delete().eq('user_id', user.id),
+        supabase.from('daily_reflections' as never).delete().eq('user_id', user.id).then(() => null, () => null),
+        supabase.from('feedback').delete().eq('user_id', user.id),
+        supabase.from('pro_interest').delete().eq('user_id', user.id),
+        supabase.from('push_subscriptions').delete().eq('user_id', user.id),
+        supabase.from('profiles').delete().eq('user_id', user.id),
+      ]);
+
+      // Wipe every local trace
+      try {
+        localStorage.clear();
+        sessionStorage.clear();
+      } catch { /* noop */ }
+
+      try { window.dispatchEvent(new CustomEvent('become:app-reset')); } catch { /* noop */ }
+
+      toast({
+        title: isPtLocale ? 'Registo eliminado' : 'Record deleted',
+        description: isPtLocale
+          ? 'Todos os teus dados foram removidos.'
+          : 'All your data has been removed.',
+      });
+
+      await signOut();
+      navigate('/', { replace: true });
+    } catch {
+      toast({
+        title: isPtLocale ? 'Não foi possível eliminar' : 'Could not delete',
+        description: isPtLocale ? 'Tenta novamente.' : 'Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsDeletingAll(false);
+      setShowDeleteAll(false);
+    }
+  };
+
+
+
   const levelProgress = getLevelProgress(state.gamification.pontos);
   const unlockedAchievements = ACHIEVEMENTS.filter(a => state.gamification.conquistas.includes(a.id));
   const activeHabits = state.habits.filter(h => h.active).length;
