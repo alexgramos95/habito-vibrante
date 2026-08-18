@@ -216,7 +216,6 @@ const Perfil = () => {
     try {
       await Promise.all([
         supabase.from('user_data').delete().eq('user_id', user.id),
-        supabase.from('daily_reflections' as never).delete().eq('user_id', user.id).then(() => null, () => null),
         supabase.from('feedback').delete().eq('user_id', user.id),
         supabase.from('pro_interest').delete().eq('user_id', user.id),
         supabase.from('push_subscriptions').delete().eq('user_id', user.id),
