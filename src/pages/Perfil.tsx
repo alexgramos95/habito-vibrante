@@ -603,8 +603,49 @@ const Perfil = () => {
           achievements: state.gamification.conquistas.length + (state.gamification.pontos > 0 ? 1 : 0),
         }}
       />
+      <AlertDialog open={showDeleteAll} onOpenChange={setShowDeleteAll}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {isPtLocale ? 'Eliminar todos os dados' : 'Delete all data'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {isPtLocale
+                ? 'Isto apaga permanentemente hábitos, registos, reflexões, nutrição, perfil e notificações associados à tua conta. Não há recuperação.'
+                : 'This permanently erases habits, logs, reflections, nutrition, profile and notifications linked to your account. There is no recovery.'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">
+              {isPtLocale ? `Escreve ${deleteKeyword} para confirmar` : `Type ${deleteKeyword} to confirm`}
+            </Label>
+            <Input
+              value={deleteConfirm}
+              onChange={(e) => setDeleteConfirm(e.target.value)}
+              placeholder={deleteKeyword}
+              autoComplete="off"
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletingAll}>
+              {isPtLocale ? 'Cancelar' : 'Cancel'}
+            </AlertDialogCancel>
+            <Button
+              variant="destructive"
+              disabled={isDeletingAll || deleteConfirm.trim().toUpperCase() !== deleteKeyword}
+              onClick={handleDeleteAllUserData}
+            >
+              {isDeletingAll
+                ? (isPtLocale ? 'A eliminar…' : 'Deleting…')
+                : (isPtLocale ? 'Eliminar definitivamente' : 'Delete permanently')}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <PaywallModal open={showPaywall} onClose={() => setShowPaywall(false)} onUpgrade={upgradeToPro} trialDaysLeft={trialStatus.daysRemaining} />
       <ExportDialog open={showExport} onClose={() => setShowExport(false)} isPro={isPro} onShowPaywall={() => setShowPaywall(true)} />
+
     </div>
   );
 };
