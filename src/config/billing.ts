@@ -1,20 +1,19 @@
 /**
  * SINGLE SOURCE OF TRUTH for all billing/pricing in becoMe
  * 
- * ALL pricing, Stripe IDs, and limits are defined here.
- * Do NOT hardcode prices or Stripe IDs anywhere else.
+ * ALL pricing, Google Play product IDs, and limits are defined here.
  */
 
 // ============================================
-// STRIPE PRICE IDS (Production - January 2026)
+// GOOGLE PLAY PRODUCT IDS (via RevenueCat)
 // ============================================
-export const STRIPE_PRICE_IDS = {
-  monthly: "price_1SvNnvPEplRqsp5IM3Q8fFXr",
-  yearly: "price_1SvNpwPEplRqsp5IyW3A5VZv",
-  lifetime: "price_1SvNtBPEplRqsp5IhDXGblEB",
+export const PRODUCT_IDS = {
+  monthly: "pro_monthly",
+  yearly: "pro_yearly",
+  lifetime: "pro_lifetime",
 } as const;
 
-export type PlanType = keyof typeof STRIPE_PRICE_IDS;
+export type PlanType = keyof typeof PRODUCT_IDS;
 
 // ============================================
 // PRICING DISPLAY
@@ -40,7 +39,7 @@ export interface PricingPlan {
 export const PLANS: PricingPlan[] = [
   {
     id: "monthly",
-    priceId: STRIPE_PRICE_IDS.monthly,
+    priceId: PRODUCT_IDS.monthly,
     price: 7.99,
     currency: "EUR",
     period: "month",
@@ -51,7 +50,7 @@ export const PLANS: PricingPlan[] = [
   },
   {
     id: "yearly",
-    priceId: STRIPE_PRICE_IDS.yearly,
+    priceId: PRODUCT_IDS.yearly,
     price: 59.99,
     currency: "EUR",
     period: "year",
@@ -66,7 +65,7 @@ export const PLANS: PricingPlan[] = [
   },
   {
     id: "lifetime",
-    priceId: STRIPE_PRICE_IDS.lifetime,
+    priceId: PRODUCT_IDS.lifetime,
     price: 149,
     currency: "EUR",
     period: "once",
@@ -87,7 +86,7 @@ export const getPlanById = (id: PlanType): PricingPlan => {
 
 // Helper to validate price ID
 export const isValidPriceId = (priceId: string): boolean => {
-  return Object.values(STRIPE_PRICE_IDS).includes(priceId as typeof STRIPE_PRICE_IDS[PlanType]);
+  return Object.values(PRODUCT_IDS).includes(priceId as typeof PRODUCT_IDS[PlanType]);
 };
 
 // ============================================

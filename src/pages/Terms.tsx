@@ -55,7 +55,7 @@ const Terms = () => {
             <p className="text-muted-foreground">
               Pro subscriptions are billed according to the plan selected (monthly, yearly, or lifetime). 
               Subscriptions automatically renew unless cancelled before the renewal date. 
-              Refunds are handled according to the platform's (Apple App Store, Google Play, or Stripe) refund policies.
+              Refunds are handled according to the platform's (Google Play) refund policies.
             </p>
           </section>
 
