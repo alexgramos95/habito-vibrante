@@ -9,7 +9,7 @@ const corsHeaders = {
 // Trial duration: 7 days (168 hours)
 const TRIAL_DURATION_HOURS = 168;
 
-// Safe logging — strips PII (emails, full IDs, Stripe secrets)
+// Safe logging — strips PII (emails, full IDs, secrets)
 const sanitize = (details?: Record<string, unknown>): Record<string, unknown> | undefined => {
   if (!details) return undefined;
   const safe: Record<string, unknown> = {};
@@ -32,7 +32,6 @@ const logStep = (step: string, details?: Record<string, unknown>) => {
 // Safe error mapping
 const getSafeErrorMessage = (rawMessage: string): string => {
   const errorMappings: Record<string, string> = {
-    "STRIPE_SECRET_KEY is not set": "Payment service unavailable",
     "No authorization header": "Authentication required",
     "Authentication error": "Invalid credentials",
     "User not authenticated": "Please sign in to continue",
@@ -124,11 +123,10 @@ serve(async (req) => {
         userId: user.id, 
         plan: existingSubData.plan, 
         status: existingSubData.status,
-        stripe_customer_id: existingSubData.stripe_customer_id,
-        stripe_subscription_id: existingSubData.stripe_subscription_id
+        hasGoogleToken: !!existingSubData.google_purchase_token,
       });
 
-      // If DB says PRO and has Stripe IDs, trust it (webhook is source of truth)
+      // If DB says PRO and has a Google Play purchase, trust it (webhook is source of truth)
       if (existingSubData.plan === 'pro' && 
           (existingSubData.status === 'active' || existingSubData.status === 'trialing') &&
           (existingSubData.google_purchase_token || existingSubData.purchase_plan === 'lifetime')) {
@@ -155,7 +153,7 @@ serve(async (req) => {
     logStep("No active Google Play subscription found, checking trial status in DB");
 
     // ==========================================
-    // STEP 2: No Stripe PRO - Check trial status in database
+    // STEP 2: No PRO - Check trial status in database
     // Use existingSubData that was already fetched at the start
     // ==========================================
     const subData = existingSubData;
