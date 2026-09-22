@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import Stripe from "npm:stripe@18.5.0";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
@@ -67,9 +66,6 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
-    logStep("Stripe key verified");
 
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -112,7 +108,6 @@ serve(async (req) => {
     const user = userData.user;
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
 
     // ==========================================
     // STEP 0: Check DB FIRST for existing PRO status (set by webhook)
@@ -136,7 +131,7 @@ serve(async (req) => {
       // If DB says PRO and has Stripe IDs, trust it (webhook is source of truth)
       if (existingSubData.plan === 'pro' && 
           (existingSubData.status === 'active' || existingSubData.status === 'trialing') &&
-          (existingSubData.stripe_customer_id || existingSubData.purchase_plan === 'lifetime')) {
+          (existingSubData.google_purchase_token || existingSubData.purchase_plan === 'lifetime')) {
         logStep("PRO status found in DB - returning PRO immediately", { 
           userId: user.id, 
           purchasePlan: existingSubData.purchase_plan,
@@ -157,124 +152,7 @@ serve(async (req) => {
       }
     }
 
-    // ==========================================
-    // STEP 1: Check for active Stripe subscription by email
-    // ==========================================
-    let stripeCustomerId: string | null = null;
-    
-    // First, try to find customer by email
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-    
-    if (customers.data.length > 0) {
-      stripeCustomerId = customers.data[0].id;
-      logStep("Found Stripe customer by email", { customerId: stripeCustomerId, email: user.email });
-    } else if (existingSubData?.stripe_customer_id) {
-      // Fallback: use stripe_customer_id from DB if email lookup fails
-      stripeCustomerId = existingSubData.stripe_customer_id;
-      logStep("Using Stripe customer ID from DB", { customerId: stripeCustomerId });
-    }
-    
-    if (stripeCustomerId) {
-      // Check for active subscriptions
-      const subscriptions = await stripe.subscriptions.list({
-        customer: stripeCustomerId,
-        status: "active",
-        limit: 1,
-      });
-      
-      // Also check for trialing subscriptions
-      const trialingSubscriptions = await stripe.subscriptions.list({
-        customer: stripeCustomerId,
-        status: "trialing",
-        limit: 1,
-      });
-
-      const activeSubscription = subscriptions.data[0] || trialingSubscriptions.data[0];
-
-      if (activeSubscription) {
-        const subscriptionEnd = activeSubscription.current_period_end 
-          ? new Date(activeSubscription.current_period_end * 1000).toISOString() 
-          : null;
-        const productId = activeSubscription.items.data[0]?.price?.product as string;
-        const interval = activeSubscription.items.data[0]?.price?.recurring?.interval;
-        const purchasePlan = interval === 'year' ? 'yearly' : 'monthly';
-        
-        logStep("Active Stripe subscription found - returning PRO", { 
-          subscriptionId: activeSubscription.id, 
-          status: activeSubscription.status,
-          productId, 
-          purchasePlan 
-        });
-
-        // Update DB to reflect PRO status (do NOT touch trial fields)
-        await supabaseClient
-          .from('subscriptions')
-          .upsert({
-            user_id: user.id,
-            plan: 'pro',
-            stripe_customer_id: stripeCustomerId,
-            stripe_subscription_id: activeSubscription.id,
-            purchase_plan: purchasePlan,
-            current_period_end: subscriptionEnd,
-            status: activeSubscription.status,
-            updated_at: new Date().toISOString(),
-          }, { onConflict: 'user_id' });
-
-        return new Response(JSON.stringify({
-          plan: 'pro',
-          stripeStatus: activeSubscription.status,
-          subscriptionEnd,
-          productId,
-          purchasePlan,
-          trialEndsAt: null,
-          subscribed: true,
-        }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200,
-        });
-      }
-
-      // Check for lifetime purchase (one-time payment)
-      const payments = await stripe.paymentIntents.list({
-        customer: stripeCustomerId,
-        limit: 10,
-      });
-      
-      const successfulLifetime = payments.data.find((p: { status: string; metadata?: { price_type?: string } }) => 
-        p.status === 'succeeded' && p.metadata?.price_type === 'lifetime'
-      );
-      
-      if (successfulLifetime) {
-        logStep("Lifetime purchase found - returning PRO", { paymentId: successfulLifetime.id });
-
-        // Update DB to reflect lifetime PRO (do NOT touch trial fields)
-        await supabaseClient
-          .from('subscriptions')
-          .upsert({
-            user_id: user.id,
-            plan: 'pro',
-            stripe_customer_id: stripeCustomerId,
-            purchase_plan: 'lifetime',
-            status: 'active',
-            updated_at: new Date().toISOString(),
-          }, { onConflict: 'user_id' });
-
-        return new Response(JSON.stringify({
-          plan: 'pro',
-          stripeStatus: 'lifetime',
-          subscriptionEnd: null,
-          productId: null,
-          purchasePlan: 'lifetime',
-          trialEndsAt: null,
-          subscribed: true,
-        }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200,
-        });
-      }
-    }
-
-    logStep("No active Stripe subscription found, checking trial status in DB");
+    logStep("No active Google Play subscription found, checking trial status in DB");
 
     // ==========================================
     // STEP 2: No Stripe PRO - Check trial status in database
