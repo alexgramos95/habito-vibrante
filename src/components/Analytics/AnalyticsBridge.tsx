@@ -53,7 +53,7 @@ export const AnalyticsBridge = () => {
       });
       // First time we observe a pro plan after a non-pro state we treat as
       // checkout completion (client-side mirror; server-side truth lives in
-      // revenue_events via the Stripe webhook).
+      // revenue_events via the Google Play (RevenueCat) webhook).
       if (prevPlan && prevPlan !== "pro") {
         trackEvent("checkout_completed", { plan: purchasePlan ?? "pro" });
       }

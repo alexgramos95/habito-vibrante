@@ -91,7 +91,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
    * - Creates trial on first check if none exists
    * - Returns trial status if still active
    * - Returns free if trial expired
-   * - Returns pro if Stripe subscription active
+   * - Returns pro if Google Play subscription active
    */
   const refreshSubscription = useCallback(async (force = false) => {
     const currentSession = sessionRef.current;

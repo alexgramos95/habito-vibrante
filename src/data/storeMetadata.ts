@@ -256,7 +256,7 @@ export interface PricingPlan {
 }
 
 // Re-export from centralized billing config
-export { STRIPE_PRICE_IDS } from '@/config/billing';
+export { PRODUCT_IDS } from '@/config/billing';
 
 // Legacy pricing display - kept for backward compatibility
 // New code should import from @/config/billing

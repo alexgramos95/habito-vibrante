@@ -203,7 +203,7 @@ export const useSubscription = () => {
     await authStartTrial();
   }, [authStartTrial]);
 
-  // Upgrade to Pro (triggers Stripe checkout flow)
+  // Upgrade to Pro (triggers Google Play purchase flow)
   const upgradeToPro = useCallback((planType: 'monthly' | 'yearly' | 'lifetime') => {
     console.log('[SUBSCRIPTION] Upgrade to pro requested:', planType);
   }, []);
