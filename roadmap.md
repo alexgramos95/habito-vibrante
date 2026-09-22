@@ -1,0 +1,1 @@
+- [ ] Prepare app for Google Play (production Capacitor config, icons)

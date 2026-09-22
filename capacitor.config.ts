@@ -1,12 +1,14 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
+// Production config for Google Play: the app loads the bundled build (dist).
+// For live-reload during development, temporarily add:
+// server: { url: 'https://205ace93-63ac-4abe-8082-3fe0d744b6dc.lovableproject.com?forceHideBadge=true', cleartext: true },
 const config: CapacitorConfig = {
   appId: 'app.lovable.becomeme',
-  appName: 'becomeme',
+  appName: 'becoMe',
   webDir: 'dist',
-  server: {
-    url: 'https://205ace93-63ac-4abe-8082-3fe0d744b6dc.lovableproject.com?forceHideBadge=true',
-    cleartext: true,
+  android: {
+    allowMixedContent: false,
   },
 };
 
